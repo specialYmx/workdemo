@@ -1,0 +1,44 @@
+[
+  {
+    "name": "db",
+    "path": "/db",
+    "component": "D:\\\\temp_demo\\\\report-html\\\\law\\\\pages\\\\db\\\\index.vue",
+    "chunkName": "pages/db/index",
+    "_name": "_770607e8"
+  },
+  {
+    "name": "knowledge",
+    "path": "/knowledge",
+    "component": "D:\\\\temp_demo\\\\report-html\\\\law\\\\pages\\\\knowledge\\\\index.vue",
+    "chunkName": "pages/knowledge/index",
+    "_name": "_44574020"
+  },
+  {
+    "name": "updates",
+    "path": "/updates",
+    "component": "D:\\\\temp_demo\\\\report-html\\\\law\\\\pages\\\\updates\\\\index.vue",
+    "chunkName": "pages/updates/index",
+    "_name": "_00c34124"
+  },
+  {
+    "name": "index",
+    "path": "/",
+    "component": "D:\\\\temp_demo\\\\report-html\\\\law\\\\pages\\\\index.vue",
+    "chunkName": "pages/index",
+    "_name": "_79926eb4"
+  },
+  {
+    "name": "document-compare-id",
+    "path": "/document-compare/:id?",
+    "component": "D:\\\\temp_demo\\\\report-html\\\\law\\\\pages\\\\document-compare\\\\_id.vue",
+    "chunkName": "pages/document-compare/_id",
+    "_name": "_6d59e58a"
+  },
+  {
+    "name": "document-id",
+    "path": "/document/:id?",
+    "component": "D:\\\\temp_demo\\\\report-html\\\\law\\\\pages\\\\document\\\\_id.vue",
+    "chunkName": "pages/document/_id",
+    "_name": "_1f63a353"
+  }
+]

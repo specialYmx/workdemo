@@ -1,0 +1,531 @@
+/* 
+  应用全局样式和CSS变量
+  这些样式和变量可以在任何组件中使用
+*/
+/* 全局变量 */
+:root {
+  /* 颜色 */
+  /* 法律合规系统主题变量 */
+  --lawyer-primary: #f59e0b;
+  --lawyer-primary-light: #fbbf24;
+  --lawyer-primary-dark: #d97706;
+  --lawyer-primary-rgb: 245, 158, 11;
+  --lawyer-success: #10b981;
+  --lawyer-warning: #f59e0b;
+  --lawyer-danger: #ef4444;
+  --lawyer-danger-rgb: 239, 68, 68;
+  --lawyer-background: #f8fafc;
+  --lawyer-surface: #fff;
+  --lawyer-text: #1e293b;
+  --lawyer-text-light: #64748b;
+  --lawyer-border: #e2e8f0;
+  --lawyer-border-light: #f1f5f9;
+  /* 文档差异对比颜色 */
+  --lawyer-diff-add: #e6ffed;
+  --lawyer-diff-add-border: #b7ebc0;
+  --lawyer-diff-del: #ffeef0;
+  --lawyer-diff-del-border: #fdb8c0;
+}
+/* 深色主题变量 - 可以通过添加.dark类到body来启用 */
+/* 基础样式重置 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: var(--analysis-background);
+  color: var(--analysis-text);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+.ant-table-tbody > tr > td {
+  padding: 12px 16px;
+  vertical-align: middle;
+}
+/* 法律合规系统通用样式 */
+.lawyer-body {
+  background: var(--lawyer-background);
+  color: var(--lawyer-text);
+}
+/* 链接样式 */
+.lawyer-link {
+  color: var(--lawyer-primary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+.lawyer-link:hover {
+  color: var(--lawyer-primary-dark);
+}
+/* 按钮基本样式 */
+.lawyer-btn {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--lawyer-border);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.15s ease-in-out;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  background: var(--lawyer-surface);
+  color: var(--lawyer-text-light);
+  font-family: inherit;
+  outline: none;
+}
+.lawyer-btn:hover {
+  border-color: var(--lawyer-primary);
+  color: var(--lawyer-primary);
+}
+.lawyer-btn:focus {
+  box-shadow: 0 0 0 2px rgba(var(--lawyer-primary-rgb), 0.2);
+}
+.lawyer-btn-primary {
+  background: var(--lawyer-primary);
+  color: white;
+  border-color: var(--lawyer-primary);
+}
+.lawyer-btn-primary:hover {
+  background: var(--lawyer-primary-dark);
+  border-color: var(--lawyer-primary-dark);
+  color: white;
+}
+/* 常用辅助类 */
+.lawyer-text-center {
+  text-align: center;
+}
+.lawyer-mb-1 {
+  margin-bottom: 0.25rem;
+}
+.lawyer-mb-2 {
+  margin-bottom: 0.5rem;
+}
+.lawyer-mb-3 {
+  margin-bottom: 1rem;
+}
+.lawyer-mb-4 {
+  margin-bottom: 1.5rem;
+}
+.lawyer-mb-5 {
+  margin-bottom: 2rem;
+}
+.lawyer-mt-1 {
+  margin-top: 0.25rem;
+}
+.lawyer-mt-2 {
+  margin-top: 0.5rem;
+}
+.lawyer-mt-3 {
+  margin-top: 1rem;
+}
+.lawyer-mt-4 {
+  margin-top: 1.5rem;
+}
+.lawyer-mt-5 {
+  margin-top: 2rem;
+}
+/* 页面容器 */
+.lawyer-page-container {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+/* 页面过渡动画 */
+.lawyer-page-enter-active,
+.lawyer-page-leave-active {
+  transition: opacity 0.3s;
+}
+.lawyer-page-enter,
+.lawyer-page-leave-active {
+  opacity: 0;
+}
+/* 法律合规系统首页样式 */
+.lawyer-page-header {
+  background: var(--lawyer-surface);
+  padding: 1.5rem 2rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--lawyer-border);
+}
+.lawyer-page-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+.lawyer-page-header h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--lawyer-text);
+  margin: 0;
+  line-height: 1.3;
+}
+.lawyer-page-header-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+.lawyer-time-range {
+  display: flex;
+  background: var(--lawyer-border-light);
+  border-radius: 6px;
+  padding: 0.25rem;
+  gap: 0.25rem;
+}
+.lawyer-time-btn {
+  padding: 0.5rem 0.75rem;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  transition: all 0.15s ease-in-out;
+  color: var(--lawyer-text-light);
+  font-family: inherit;
+}
+.lawyer-time-btn:hover {
+  background: rgba(var(--lawyer-primary-rgb), 0.08);
+  color: var(--lawyer-primary-dark);
+}
+.lawyer-time-btn.active {
+  background: var(--lawyer-primary);
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+.lawyer-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(calc(50% - 0.75rem), 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+.lawyer-stats-card {
+  background: var(--lawyer-surface);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.lawyer-stats-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+.lawyer-stats-card-header h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--lawyer-text);
+  margin: 0;
+}
+.lawyer-more-action {
+  border: none;
+  background: transparent;
+  padding: 0.25rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.lawyer-chart-container {
+  height: 250px;
+  margin-bottom: 1rem;
+}
+.lawyer-chart-placeholder {
+  width: 100%;
+  height: 100%;
+  background: var(--lawyer-border-light);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.lawyer-placeholder-text {
+  font-size: 1rem;
+  color: var(--lawyer-text-light);
+}
+.lawyer-stats-legend {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 1rem;
+}
+.lawyer-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.lawyer-legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+.lawyer-legend-label {
+  font-size: 0.875rem;
+  color: var(--lawyer-text-light);
+}
+.lawyer-legend-value {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--lawyer-text);
+}
+.lawyer-data-table {
+  margin-bottom: 2rem;
+}
+.lawyer-table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.lawyer-table-header h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--lawyer-text);
+  margin: 0;
+}
+.lawyer-table-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+/* 布局相关样式 */
+.lawyer-app-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.lawyer-main-content {
+  flex: 1;
+}
+.lawyer-top-header {
+  background: var(--lawyer-surface, #fff);
+  padding: 0.75rem 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  border-bottom: 1px solid var(--lawyer-border, #e2e8f0);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+.lawyer-top-header-content {
+  max-width: 1600px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.lawyer-top-logo {
+  font-size: 1.375rem;
+  font-weight: 600;
+  color: var(--lawyer-primary, #f59e0b);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.lawyer-top-logo .anticon {
+  font-size: 1.25rem;
+}
+.lawyer-nav-links {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+.lawyer-nav-link {
+  color: var(--lawyer-text-light, #64748b);
+  text-decoration: none;
+  transition: color 0.2s ease, border-color 0.2s ease;
+  padding: 0.6rem 0.25rem;
+  border-bottom: 2px solid transparent;
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.lawyer-nav-link .anticon {
+  font-size: 1rem;
+}
+.lawyer-nav-link:hover {
+  color: var(--lawyer-primary-dark, #d97706);
+  background-color: rgba(var(--lawyer-primary-rgb, 245, 158, 11), 0.05);
+}
+.lawyer-nav-link.active {
+  color: var(--lawyer-primary, #f59e0b);
+  border-bottom: 2px solid var(--lawyer-primary, #f59e0b);
+  font-weight: 600;
+}
+.lawyer-nav-link.active:hover {
+  background-color: transparent;
+}
+.lawyer-nav-link .lawyer-badge {
+  background: var(--lawyer-danger, #ef4444);
+  color: white;
+  font-size: 0.65rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  margin-left: 0.3rem;
+  line-height: 1;
+}
+/* 法规更新页面样式 */
+.lawyer-updates-header {
+  background: var(--lawyer-surface, #fff);
+  padding: 1.5rem 2rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--lawyer-border, #e2e8f0);
+}
+.lawyer-updates-header h1 {
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: var(--lawyer-text, #1e293b);
+  margin-bottom: 1rem;
+}
+.lawyer-header-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.lawyer-filter-tabs {
+  display: flex;
+  background: var(--lawyer-surface, #fff);
+  border: 1px solid var(--lawyer-border, #e2e8f0);
+  border-radius: 6px;
+  padding: 0 0.25rem;
+}
+.lawyer-filter-tab {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  transition: all 0.15s ease-in-out;
+  color: var(--lawyer-text-light, #64748b);
+  border-radius: 4px;
+  margin: 0.25rem;
+  height: auto;
+}
+.lawyer-filter-tab:hover {
+  color: var(--lawyer-primary, #f59e0b);
+  background-color: rgba(var(--lawyer-primary-rgb, 245, 158, 11), 0.05);
+}
+.lawyer-filter-tab.active {
+  color: var(--lawyer-primary, #f59e0b);
+  background-color: rgba(var(--lawyer-primary-rgb, 245, 158, 11), 0.1);
+  font-weight: 500;
+}
+.lawyer-update-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+.lawyer-update-card {
+  background: var(--lawyer-surface, #fff);
+  border-radius: 8px;
+  transition: all 0.2s ease-in-out;
+  height: 100%;
+}
+.lawyer-update-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+.lawyer-card-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+.lawyer-card-tags {
+  display: flex;
+  gap: 0.5rem;
+}
+.lawyer-card-date {
+  color: var(--lawyer-text-light, #64748b);
+  font-size: 0.875rem;
+}
+.lawyer-card-title {
+  font-size: 1.125rem;
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+  line-height: 1.4;
+}
+.lawyer-card-title a {
+  color: var(--lawyer-text, #1e293b);
+  transition: color 0.2s ease;
+}
+.lawyer-card-title a:hover {
+  color: var(--lawyer-primary, #f59e0b);
+}
+.lawyer-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-bottom: 0.75rem;
+  color: var(--lawyer-text-light, #64748b);
+  font-size: 0.875rem;
+}
+.lawyer-meta-item .anticon {
+  margin-right: 0.25rem;
+}
+.lawyer-card-description {
+  margin-bottom: 1rem;
+  color: var(--lawyer-text-light, #64748b);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  /* 多行文本截断 */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* stylelint-disable */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  /* stylelint-enable */
+}
+.lawyer-card-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+}
+.lawyer-card-keywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.lawyer-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+.lawyer-pagination-container {
+  display: flex;
+  justify-content: center;
+  margin: 2rem 0;
+}
+/* 摘要弹窗样式 */
+.lawyer-summary-content h2 {
+  font-size: 1.25rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  color: var(--lawyer-text, #1e293b);
+}
+.lawyer-summary-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--lawyer-text-light, #64748b);
+}
+.lawyer-summary-meta span {
+  font-weight: 500;
+  color: var(--lawyer-text, #1e293b);
+}
+.lawyer-summary-body {
+  margin: 1rem 0;
+  line-height: 1.8;
+  color: var(--lawyer-text, #1e293b);
+}
+.lawyer-summary-footer {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: center;
+}

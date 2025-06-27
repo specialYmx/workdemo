@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文档版本对比 - 法律合规智能系统</title>
+    <style>
+        :root {
+            --primary: #f59e0b; /* Gold/Yellow */
+            --primary-light: #fbbf24;
+            --primary-dark: #d97706;
+            --background: #f7f7f7; /* Light gray background */
+            --surface: #ffffff;   /* White for card backgrounds, headers */
+            --text: #202124;      /* Dark gray for main text */
+            --text-light: #5f6368; /* Lighter gray for secondary text */
+            --border: #dadce0;     /* Subtle border color */
+            --border-light: #e8eaed; /* Even Lighter subtle border */
+            --diff-add: #e6ffed;
+            --diff-add-border: #b7ebc0;
+            --diff-del: #ffeef0;
+            --diff-del-border: #fdb8c0;
+            --success: #10b981;
+            --danger: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: var(--background);
+            color: var(--text);
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .compare-header {
+            background: var(--surface);
+            padding: 0.75rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .back-btn {
+            padding: 0.5rem 1rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            color: var(--text-light);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .back-btn:hover {
+            background: var(--border-light);
+            color: var(--primary-dark);
+            border-color: var(--primary-light);
+        }
+
+        .compare-header h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-left: 1.5rem;
+            margin-right: auto; /* Pushes buttons to the right */
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .action-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .approve-btn {
+            background-color: var(--success);
+            color: white;
+            border-color: var(--success);
+        }
+        .approve-btn:hover {
+            background-color: #0f9b6c; /* Darker green */
+            border-color: #0f9b6c;
+        }
+
+        .reject-btn {
+            background-color: var(--danger);
+            color: white;
+            border-color: var(--danger);
+        }
+        .reject-btn:hover {
+            background-color: #d73737; /* Darker red */
+            border-color: #d73737;
+        }
+
+        .compare-main-container {
+            display: flex;
+            padding: 1.5rem;
+            gap: 1.5rem;
+            height: calc(100vh - 55px - 3rem); /* Adjust based on header height */
+            padding-bottom: 60px; /* Adjusted padding for smaller footer */
+        }
+
+        .document-column, .changelog-column {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.07), 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .document-column {
+            flex: 1; /* Each document column takes equal space */
+        }
+
+        .changelog-column {
+            flex-basis: 360px; /* Fixed width for changelog */
+            flex-shrink: 0;
+        }
+        
+        .column-header {
+            padding: 0.75rem 1.25rem;
+            border-bottom: 1px solid var(--border);
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text);
+            background-color: var(--background); /* Slightly different background for header */
+        }
+
+        .column-content {
+            padding: 1.25rem;
+            overflow-y: auto;
+            font-size: 0.875rem;
+        }
+        
+        .column-content h3 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--primary-dark);
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+        }
+         .column-content h3:first-child {
+            margin-top: 0;
+        }
+
+        .column-content p {
+            margin-bottom: 0.75rem;
+            color: var(--text-light);
+        }
+        
+        .column-content .speaker {
+            font-weight: 500;
+            color: var(--text);
+            margin-bottom: 0.25rem;
+        }
+
+        /* Changelog specific styles */
+        .changelog-summary {
+            padding: 0.75rem 1.25rem;
+            border-bottom: 1px solid var(--border-light);
+            background-color: var(--primary-light);
+            color: var(--surface);
+            font-weight: 500;
+        }
+        .changelog-summary strong {
+            color: var(--primary-dark);
+            background-color: white;
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+        }
+
+
+        .changelog-item {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .changelog-item:last-child {
+            border-bottom: none;
+        }
+
+        .changelog-item-location {
+            font-size: 0.8125rem;
+            font-weight: 500;
+            color: var(--primary);
+            margin-bottom: 0.375rem;
+        }
+
+        .changelog-item-description {
+            font-size: 0.875rem;
+            color: var(--text-light);
+        }
+        .changelog-item-description .added {
+            color: var(--success);
+            background-color: var(--diff-add);
+            padding: 0.1rem 0.2rem;
+            border-radius: 3px;
+        }
+        .changelog-item-description .removed {
+            color: var(--danger);
+            background-color: var(--diff-del);
+            padding: 0.1rem 0.2rem;
+            border-radius: 3px;
+            text-decoration: line-through;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .compare-main-container {
+                flex-direction: column;
+                height: auto;
+            }
+            .changelog-column {
+                flex-basis: auto; /* Allow changelog to take full width if needed */
+                max-height: 400px; /* Limit height when stacked */
+            }
+        }
+        @media (max-width: 768px) {
+            .compare-header {
+                padding: 0.75rem 1rem;
+            }
+            .compare-header h1 {
+                 font-size: 1.1rem;
+                 margin-left: 1rem;
+            }
+            .compare-main-container {
+                padding: 1rem;
+                gap: 1rem;
+            }
+             .column-header {
+                padding: 0.625rem 1rem;
+                font-size: 0.9rem;
+            }
+            .column-content {
+                padding: 1rem;
+            }
+        }
+
+        .page-action-footer {
+            position: fixed;
+            bottom: 1rem; /* Made closer to edge */
+            right: 1rem; /* Made closer to edge */
+            z-index: 1005; /* Ensure it's above other content */
+            display: flex;
+            gap: 0.5rem; /* Reduced gap */
+            padding: 0.5rem; /* Reduced padding */
+            background-color: rgba(var(--surface-rgb, 255, 255, 255), 0.9);
+            border-radius: 6px; /* Slightly smaller radius */
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+        }
+        .page-action-footer .action-btn {
+            padding: 0.4rem 0.8rem; /* Reduced padding */
+            font-size: 0.8125rem; /* Reduced font size */
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            color: white; /* Ensure text color is visible */
+            opacity: 1; /* Ensure button is fully visible */
+            visibility: visible; /* Ensure button is visible */
+        }
+        .page-action-footer .action-btn i {
+            font-size: 0.875rem; /* Reduced icon size */
+            display: inline; /* Ensure icon is displayed */
+        }
+        .page-action-footer .action-btn span {
+            display: inline; /* Ensure text is displayed */
+            opacity: 1; /* Ensure text is fully visible */
+            visibility: visible; /* Ensure text is visible */
+        }
+
+    </style>
+</head>
+<body>
+    <header class="compare-header">
+        <a href="law-document.html" class="back-btn">
+            <span>&larr;</span> 返回文档
+        </a>
+        <h1>文档版本对比</h1>
+    </header>
+
+    <div class="compare-main-container">
+        <div class="document-column" id="doc-before">
+            <div class="column-header">修改前文档 (V1.0 - 2023-01-15)</div>
+            <div class="column-content">
+                <h3>第一章 总则</h3>
+                <p><strong>第一条</strong> 为加强公司内部控制，规范经营行为，防范风险，保障公司可持续发展，依据《中华人民共和国公司法》及相关法律法规，制定本规定。</p>
+                <p><strong>第二条</strong> 本规定所称内部控制，是指公司董事会、监事会、管理层和全体员工实施的，旨在实现控制目标的过程。</p>
+                <p><strong>第三条</strong> 内部控制的目标是：合理保证公司经营管理合法合规、资产安全、财务报告及相关信息真实完整，提高经营效率和效果，促进公司实现发展战略。</p>
+                
+                <h3>第二章 风险评估</h3>
+                <p><strong>第十条</strong> 公司应建立风险评估机制，定期对经营活动中的主要风险点进行识别、分析和评价。</p>
+                <p><strong>第十一条</strong> 风险评估应覆盖所有重要业务流程和关键岗位。</p>
+                <p><strong>第十二条</strong> 对于识别出的重大风险，应制定相应的应对措施，并明确责任部门和责任人。</p>
+
+                <h3>第三章 控制活动</h3>
+                <p><strong>第二十条</strong> 公司应根据风险评估结果，建立健全各项业务活动的控制制度和程序。</p>
+                <p><strong>第二十一条</strong> 关键控制点应设立明确的控制标准和操作规程。授权批准、不相容职务分离、预算控制、信息系统控制等是常用的控制方法。</p>
+                <p><strong>第二十二条</strong> 公司应确保所有员工了解并遵守相关的内部控制制度。</p>
+            </div>
+        </div>
+
+        <div class="document-column" id="doc-after">
+            <div class="column-header">修改后文档 (V1.1 - 2023-07-20)</div>
+            <div class="column-content">
+                <h3>第一章 总则</h3>
+                <p><strong>第一条</strong> 为进一步加强公司内部控制与合规管理，规范经营行为，有效防范化解各类风险，保障公司稳健与可持续发展，依据《中华人民共和国公司法》、《企业内部控制基本规范》及其配套指引等法律法规，结合公司实际情况，修订本规定。</p>
+                <p><strong>第二条</strong> 本规定所称内部控制，是指由公司董事会、监事会、管理层和全体员工共同实施的，旨在合理保证公司战略目标实现、经营管理合法合规、资产安全、财务报告及相关信息真实、准确、完整的过程。</p>
+                <p><strong>第三条</strong> 内部控制的目标是：合理保证公司经营管理合法合规、资产安全与完整、财务报告及相关信息真实完整，提高信息质量和透明度，提高经营效率和效果，促进公司实现发展战略。</p>
+                
+                <h3>第二章 风险评估与应对</h3>
+                <p><strong>第十条</strong> 公司应建立常态化风险评估机制，至少每年对经营活动中的主要风险点和潜在风险进行识别、分析和评价。</p>
+                <p><strong>第十一条</strong> 风险评估应覆盖所有重要业务流程、关键岗位及重要信息系统。</p>
+                <p><strong>第十二条</strong> 对于识别出的重大风险，应制定具体的、可操作的应对措施，包括风险规避、降低、分担和承受等策略，并明确责任部门、责任人及完成时限。</p>
+                <p><strong>第十三条（新增）</strong> 公司应建立风险监测预警机制，对重大风险进行持续跟踪和动态管理。</p>
+
+                <h3>第三章 控制活动与信息沟通</h3>
+                <p><strong>第二十条</strong> 公司应根据风险评估结果，并结合业务特点，建立健全各项业务活动的控制制度和程序，确保控制措施的有效性与成本效益原则相符。</p>
+                <p><strong>第二十一条</strong> 关键控制点应设立明确的控制标准和操作规程。授权批准、不相容职务分离、预算控制、财产保护、会计记录、信息系统控制等是常用的控制方法。</p>
+                <p><strong>第二十二条</strong> 公司应确保所有员工通过持续培训和有效沟通，充分了解并遵守相关的内部控制制度。</p>
+                <p><strong>第二十三条（新增）</strong> 公司应建立通畅的内部控制信息沟通渠道，确保内部控制相关信息在各层级、各部门间有效传递。</p>
+            </div>
+        </div>
+
+        <div class="changelog-column" id="doc-changelog">
+            <div class="column-header">审阅内容 (V1.1 vs V1.0)</div>
+            <div class="changelog-summary">
+                共有 <strong id="totalChanges">8</strong> 大类变动
+            </div>
+            <div class="column-content">
+                <div class="changelog-item">
+                    <div class="changelog-item-location">第一章 总则 - 第一条</div>
+                    <p class="changelog-item-description">修改内容：<span class="added">"进一步加强公司内部控制与合规管理"</span>，<span class="added">"有效防范化解各类风险"</span>，<span class="added">"稳健与"</span>，<span class="added">"《企业内部控制基本规范》及其配套指引等"</span>，<span class="added">"结合公司实际情况，修订本规定"</span>。原内容："加强公司内部控制"，"防范风险"，"依据《中华人民共和国公司法》及相关法律法规，制定本规定"。</p>
+                </div>
+                <div class="changelog-item">
+                    <div class="changelog-item-location">第一章 总则 - 第二条</div>
+                    <p class="changelog-item-description">修改内容：<span class="added">"共同实施的"</span>，<span class="added">"合理保证公司战略目标实现、"</span>，<span class="added">"准确、完整"</span>。原内容："实施的"，"旨在实现控制目标"。 </p>
+                </div>
+                <div class="changelog-item">
+                    <div class="changelog-item-location">第一章 总则 - 第三条</div>
+                    <p class="changelog-item-description">添加了 <span class="added">"提高信息质量和透明度，"</span>，<span class="added">"与完整"</span>（在资产安全后）。</p>
+                </div>
+                <div class="changelog-item">
+                    <div class="changelog-item-location">第二章 标题变更</div>
+                    <p class="changelog-item-description">原标题："风险评估"，修改为：<span class="added">"风险评估与应对"</span>。</p>
+                </div>
+                <div class="changelog-item">
+                    <div class="changelog-item-location">第二章 风险评估与应对 - 第十条</div>
+                    <p class="changelog-item-description">添加了 <span class="added">"常态化"</span>，<span class="added">"至少每年"</span>，<span class="added">"和潜在风险"</span>。</p>
+                </div>
+                <div class="changelog-item">
+                    <div class="changelog-item-location">第二章 风险评估与应对 - 第十一条</div>
+                    <p class="changelog-item-description">添加了 <span class="added">"及重要信息系统"</span>。</p>
+                </div>
+                <div class="changelog-item">
+                    <div class="changelog-item-location">第二章 风险评估与应对 - 第十二条</div>
+                    <p class="changelog-item-description">添加了 <span class="added">"具体的、可操作的"</span>，<span class="added">"包括风险规避、降低、分担和承受等策略，"</span>，<span class="added">"及完成时限"</span>。</p>
+                </div>
+                 <div class="changelog-item">
+                    <div class="changelog-item-location">第二章 风险评估与应对 - 第十三条</div>
+                    <p class="changelog-item-description"><span class="added">新增条款：</span>"公司应建立风险监测预警机制，对重大风险进行持续跟踪和动态管理。"</p>
+                </div>
+                <div class="changelog-item">
+                    <div class="changelog-item-location">第三章 标题变更</div>
+                    <p class="changelog-item-description">原标题："控制活动"，修改为：<span class="added">"控制活动与信息沟通"</span>。</p>
+                </div>
+                <div class="changelog-item">
+                    <div class="changelog-item-location">第三章 控制活动与信息沟通 - 第二十条</div>
+                    <p class="changelog-item-description">添加了 <span class="added">"并结合业务特点，"</span> 和 <span class="added">"，确保控制措施的有效性与成本效益原则相符"</span>。</p>
+                </div>
+                 <div class="changelog-item">
+                    <div class="changelog-item-location">第三章 控制活动与信息沟通 - 第二十一条</div>
+                    <p class="changelog-item-description">添加了 <span class="added">"财产保护、会计记录、"</span>。</p>
+                </div>
+                <div class="changelog-item">
+                    <div class="changelog-item-location">第三章 控制活动与信息沟通 - 第二十二条</div>
+                    <p class="changelog-item-description">添加了 <span class="added">"通过持续培训和有效沟通，充分"</span>。</p>
+                </div>
+                 <div class="changelog-item">
+                    <div class="changelog-item-location">第三章 控制活动与信息沟通 - 第二十三条</div>
+                    <p class="changelog-item-description"><span class="added">新增条款：</span> "公司应建立通畅的内部控制信息沟通渠道，确保内部控制相关信息在各层级、各部门间有效传递。"</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="page-action-footer">
+        <button class="action-btn approve-btn" onclick="approveDocument()"><i>✔️</i><span>批准</span></button>
+        <button class="action-btn reject-btn" onclick="rejectDocument()"><i>✖️</i><span>驳回</span></button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const changelogItems = document.querySelectorAll('#doc-changelog .column-content .changelog-item');
+            const totalChangesElement = document.getElementById('totalChanges');
+            if (totalChangesElement) {
+                totalChangesElement.textContent = changelogItems.length;
+            }
+        });
+
+        function approveDocument() {
+            alert('文档已批准！');
+            // Add further logic here, e.g., redirect or update status
+        }
+
+        function rejectDocument() {
+            const reason = prompt('请输入驳回原因 (可选):');
+            if (reason !== null) { // Proceed if user clicks OK (even with empty reason)
+                alert('文档已驳回。原因: ' + (reason || '未提供'));
+                // Add further logic here
+            }
+            // If user clicks Cancel on prompt, do nothing.
+        }
+    </script>
+</body>
+</html> 

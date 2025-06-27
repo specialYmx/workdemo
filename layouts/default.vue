@@ -1,0 +1,58 @@
+<template>
+  <div class="lawyer-app-layout">
+    <header class="lawyer-top-header">
+      <div class="lawyer-top-header-content">
+        <router-link to="/" class="lawyer-top-logo">
+          <a-icon type="balance" />
+          法律合规智能系统
+        </router-link>
+        <nav class="lawyer-nav-links">
+          <nuxt-link to="/" class="lawyer-nav-link" exact-active-class="active">
+            <a-icon type="home" />
+            首页概览
+          </nuxt-link>
+          <nuxt-link
+            to="/knowledge"
+            class="lawyer-nav-link"
+            exact-active-class="active"
+          >
+            <a-icon type="book" />
+            大家智库
+          </nuxt-link>
+          <nuxt-link
+            to="/updates"
+            class="lawyer-nav-link"
+            exact-active-class="active"
+          >
+            <a-icon type="file-text" />
+            法规更新
+            <span class="lawyer-badge">5</span>
+          </nuxt-link>
+          <nuxt-link
+            to="/db"
+            class="lawyer-nav-link"
+            exact-active-class="active"
+          >
+            <a-icon type="audit" />
+            人工审核
+            <span class="lawyer-badge">3</span>
+          </nuxt-link>
+        </nav>
+      </div>
+    </header>
+    <main class="lawyer-main-content">
+      <nuxt />
+    </main>
+  </div>
+</template>
+
+<script lang="ts">
+import { Component, Vue } from "nuxt-property-decorator";
+
+@Component
+export default class DefaultLayout extends Vue {}
+</script>
+
+<style lang="less" scoped>
+/* 所有样式已移至assets/styles/analysis.less，此处保留空白 */
+</style>

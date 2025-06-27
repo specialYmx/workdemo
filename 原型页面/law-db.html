@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>人工审核 - 法律合规智能系统</title>
+    <style>
+        :root {
+            --primary: #f59e0b; /* Gold/Yellow */
+            --primary-light: #fbbf24;
+            --primary-dark: #d97706;
+            --success: #10b981; 
+            --warning: #f59e0b; /* Consistent with primary for this theme */
+            --danger: #ef4444;
+            --background: #f8fafc; /* Updated */
+            --surface: #ffffff;   /* White for card backgrounds, headers */
+            --text: #1e293b;      /* Updated */
+            --text-light: #64748b; /* Updated */
+            --border: #e2e8f0;     /* Updated */
+            /* --border-light: #e8eaed; Removed for now */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: var(--background);
+            color: var(--text);
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        /* Top Navigation Header */
+        .top-header {
+            background: var(--surface);
+            padding: 0.75rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid var(--border);
+            box-shadow: none; /* Updated */
+        }
+
+        .top-header-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .top-logo {
+            font-size: 1.375rem;
+            font-weight: 500; /* Updated */
+            color: var(--text); /* Updated */
+            text-decoration: none;
+        }
+        
+        .top-logo i {
+            margin-right: 0.5rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem; /* Updated */
+            align-items: center;
+        }
+
+        .nav-link {
+            color: var(--text-light);
+            text-decoration: none;
+            transition: color 0.2s ease, border-color 0.2s ease;
+            padding: 0.6rem 0.25rem;
+            border-bottom: 2px solid transparent;
+            font-size: 0.875rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        
+        .nav-link i {
+            font-size: 1rem; /* Adjust icon size if needed */
+        }
+
+        .nav-link:hover {
+            color: var(--primary);
+        }
+
+        .nav-link.active {
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+            font-weight: 600;
+        }
+        
+        .nav-link .badge {
+            background: var(--danger);
+            color: white;
+            font-size: 0.65rem;
+            padding: 0.1rem 0.4rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            margin-left: 0.3rem;
+            line-height: 1;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 1.5rem;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* Page Header */
+        .page-header {
+            background: var(--surface);
+            padding: 1.5rem 2rem;
+            border-radius: 8px;
+            box-shadow: none; /* Updated */
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border);
+            display: flex; /* For title and actions */
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap; /* Allow wrapping */
+        }
+
+        .page-header h1 {
+            font-size: 1.5rem; /* 24px */
+            font-weight: 500; /* Updated */
+            color: var(--text);
+            margin: 0 0 1rem 0; /* Bottom margin for spacing if actions wrap */
+        }
+        
+        .page-actions {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 4px; /* Updated */
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            background: var(--surface);
+            color: var(--text); /* Ensures consistency, was already var(--text) */
+            font-family: inherit;
+        }
+        .btn i {
+            font-size: 0.875rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            border-color: var(--primary-dark);
+            /* transform and box-shadow were not present, so no removal needed */
+        }
+
+        .btn-secondary {
+            background: var(--surface);
+            color: var(--text-light); /* Will be overridden by general .btn color: var(--text) if specificity is lower, check this. For now, keep .btn as primary source of text color */
+            border-color: var(--border);
+        }
+
+        .btn-secondary:hover {
+            background-color: rgba(var(--primary-rgb, 245, 158, 11), 0.1); /* Updated */
+            border-color: var(--primary); /* Updated */
+            color: var(--primary-dark); /* This provides specific hover color for secondary */
+        }
+
+        .btn:focus {
+            outline: none;
+            box-shadow: 0 0 0 1px var(--primary); /* Updated */
+        }
+
+        .filter-select {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 4px; /* Updated */
+            font-size: 0.875rem;
+            background: var(--surface); /* Updated */
+            color: var(--text);
+            font-family: inherit;
+            height: calc(0.5rem * 2 + 1rem + 2px); /* Match button height */
+        }
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 1px var(--primary); /* Updated */
+        }
+
+        /* Table Section */
+        .table-section {
+            background: var(--surface);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            box-shadow: none; /* Updated */
+            overflow: hidden; 
+        }
+
+        .table-controls {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border); /* Was already var(--border) */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .table-controls input[type="search"] {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 4px; /* Updated */
+            font-size: 0.875rem;
+            min-width: 250px;
+            background: var(--surface); /* Updated */
+            color: var(--text);
+        }
+        .table-controls input[type="search"]:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 1px var(--primary); /* Updated */
+        }
+
+        .responsive-table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+
+        th, td {
+            padding: 0.875rem 1.5rem; /* Consistent padding */
+            text-align: left;
+            border-bottom: 1px solid var(--border); /* Updated from --border-light */
+            color: var(--text);
+            white-space: nowrap; /* Prevent text wrapping in cells initially */
+        }
+
+        th {
+            background: var(--surface); /* Updated from --background */
+            font-weight: 500;
+            color: var(--text-light);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.025em;
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover {
+            background-color: rgba(var(--primary-rgb, 245, 158, 11), 0.05); /* Updated */
+        }
+
+        .status-badge {
+            padding: 0.2rem 0.5rem; /* Updated */
+            border-radius: 4px; /* Updated from 1rem */
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            border: 1px solid transparent;
+        }
+        .status-badge::before {
+            content: '';
+            width: 0.5rem;
+            height: 0.5rem;
+            border-radius: 50%;
+        }
+
+        .status-pending {
+            background-color: rgba(245, 158, 11, 0.1); /* warning transparent */
+            color: var(--warning);
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+        .status-pending::before { background-color: var(--warning); }
+
+        .status-approved {
+            background-color: rgba(16, 185, 129, 0.1); /* success transparent */
+            color: var(--success);
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+        .status-approved::before { background-color: var(--success); }
+
+        .status-rejected {
+            background-color: rgba(239, 68, 68, 0.1); /* danger transparent */
+            color: var(--danger);
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+        .status-rejected::before { background-color: var(--danger); }
+
+        .tag {
+            padding: 0.2rem 0.5rem; /* Updated */
+            border-radius: 3px; /* Updated */
+            font-size: 0.75rem;
+            font-weight: 500;
+            border: 1px solid transparent;
+        }
+        .tag-law { background-color: rgba(239, 68, 68, 0.1); color: var(--danger); border-color: rgba(239, 68, 68, 0.3); }
+        .tag-policy { background-color: rgba(245, 158, 11, 0.1); color: var(--warning); border-color: rgba(245, 158, 11, 0.3); }
+        .tag-internal { background-color: rgba(16, 185, 129, 0.1); color: var(--success); border-color: rgba(16, 185, 129, 0.3); }
+
+
+        .table-actions .btn {
+            padding: 0.375rem 0.75rem; /* Smaller buttons for table actions */
+            font-size: 0.8125rem;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1.5rem 0;
+            gap: 0.5rem;
+            margin-top: 1rem; /* Space above pagination */
+        }
+
+        .pagination-btn, .pagination-link {
+            padding: 0.5rem 0.875rem;
+            border: 1px solid var(--border);
+            border-radius: 4px; /* Updated */
+            background: var(--surface);
+            color: var(--text); /* Updated */
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .pagination-link:hover, .pagination-btn:not(:disabled):hover {
+            border-color: var(--primary); /* Updated */
+            color: var(--primary-dark);
+            background-color: rgba(var(--primary-rgb, 245, 158, 11), 0.1); /* Updated */
+        }
+
+        .pagination-link.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            font-weight: 500; /* Updated */
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .page-actions {
+                width: 100%;
+                margin-top: 1rem;
+                justify-content: flex-start;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .top-header {
+                padding: 0.75rem 1rem;
+            }
+            .top-header-content {
+                flex-direction: column;
+                gap: 0.5rem;
+                align-items: flex-start;
+            }
+            .nav-links {
+                width: 100%;
+                justify-content: space-between;
+                gap: 0.5rem;
+                overflow-x: auto;
+                padding-bottom: 0.5rem;
+            }
+            .nav-link {
+                padding: 0.5rem 0.1rem;
+                font-size: 0.8125rem;
+            }
+            .nav-link i {
+                font-size: 0.9rem;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+            .page-header {
+                padding: 1rem 1.5rem;
+            }
+            .table-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .table-controls input[type="search"] {
+                min-width: 0; /* Allow full width */
+                width: 100%;
+            }
+            th, td {
+                padding: 0.75rem 1rem;
+                white-space: normal; /* Allow text wrapping on mobile */
+            }
+            .table-actions .btn {
+                margin-bottom: 0.5rem; /* Stack buttons nicely */
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="top-header">
+        <div class="top-header-content">
+            <a href="law-analytics.html" class="top-logo"><i>⚖️</i>法律合规智能系统</a>
+            <nav class="nav-links">
+                <a href="law-analytics.html" class="nav-link"><i>🏠</i>首页概览</a>
+                <a href="law-knowledge.html" class="nav-link"><i>📚</i>大家智库</a>
+                <a href="law-updates.html" class="nav-link"><i>📰</i>法规更新 <span class="badge">23</span></a>
+                <a href="law-db.html" class="nav-link active"><i>✏️</i>人工审核 <span class="badge">23</span></a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="main-content">
+        <div class="page-header">
+            <h1>人工审核与数据管理</h1>
+            <div class="page-actions">
+                <select class="filter-select" id="filterStatus">
+                    <option value="all">全部状态</option>
+                    <option value="pending">待审核</option>
+                    <option value="approved">已通过</option>
+                    <option value="rejected">已驳回</option>
+                </select>
+                <select class="filter-select" id="filterType">
+                    <option value="all">全部分类</option>
+                    <option value="law">法律法规</option>
+                    <option value="policy">监管政策</option>
+                    <option value="internal">内部规章</option>
+                </select>
+                <button class="btn btn-primary" id="batchApproveButton"><i>✔️</i> 批量通过</button>
+                <button class="btn btn-danger" id="batchRejectButton"><i>✖️</i> 批量驳回</button>
+                <button class="btn btn-secondary" id="exportDataButton"><i>📤</i> 导出数据</button>
+            </div>
+        </div>
+
+        <div class="table-section">
+            <div class="table-controls">
+                <input type="search" id="searchInput" placeholder="搜索标题、文号、来源...">
+                 <div>总计: <strong id="totalItems">0</strong> 条 / 待审核: <strong id="pendingItems">0</strong> 条</div>
+            </div>
+            <div class="responsive-table-container">
+                <table id="reviewTable">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="selectAllCheckbox"></th>
+                            <th>标题 / 文号</th>
+                            <th>分类</th>
+                            <th>来源</th>
+                            <th>提交时间</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><input type="checkbox" class="row-checkbox"></td>
+                            <td>
+                                <div style="font-weight: 500;">关于保险资金投资股权的合规审查报告</div>
+                                <div style="font-size: 0.75rem; color: var(--text-light);">文号：合规审[2024]001号</div>
+                            </td>
+                            <td><span class="tag tag-law">法律法规</span></td>
+                            <td>合规部</td>
+                            <td>2024-01-15 14:30</td>
+                            <td><span class="status-badge status-pending">待审核</span></td>
+                            <td class="table-actions">
+                                <a href="law-document-compare.html" class="btn btn-sm btn-secondary">查看</a>
+                                <button class="btn btn-sm btn-success">批准</button>
+                                <button class="btn btn-sm btn-danger">驳回</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox" class="row-checkbox"></td>
+                            <td>
+                                <div style="font-weight: 500;">偿付能力充足率计算方法修订草案</div>
+                                <div style="font-size: 0.75rem; color: var(--text-light);">文号：偿付[2024]002号</div>
+                            </td>
+                            <td><span class="tag tag-policy">监管政策</span></td>
+                            <td>风险管理部</td>
+                            <td>2024-01-14 16:20</td>
+                            <td><span class="status-badge status-pending">待审核</span></td>
+                            <td class="table-actions">
+                                <a href="law-document-compare.html" class="btn btn-sm btn-secondary">查看</a>
+                                <button class="btn btn-sm btn-success">批准</button>
+                                <button class="btn btn-sm btn-danger">驳回</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox" class="row-checkbox"></td>
+                            <td>
+                                <div style="font-weight: 500;">关联交易管理制度内部审核意见</div>
+                                <div style="font-size: 0.75rem; color: var(--text-light);">文号：内审[2024]003号</div>
+                            </td>
+                            <td><span class="tag tag-internal">内部规章</span></td>
+                            <td>法务部</td>
+                            <td>2024-01-14 10:45</td>
+                            <td><span class="status-badge status-approved">已通过</span></td>
+                            <td class="table-actions">
+                                <a href="law-document-compare.html" class="btn btn-sm btn-secondary">查看</a>
+                                <button class="btn btn-sm btn-success">批准</button>
+                                <button class="btn btn-sm btn-danger">驳回</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox" class="row-checkbox"></td>
+                            <td>
+                                <div style="font-weight: 500;">保险公司治理评估报告</div>
+                                <div style="font-size: 0.75rem; color: var(--text-light);">文号：治理[2024]004号</div>
+                            </td>
+                            <td><span class="tag tag-law">法律法规</span></td>
+                            <td>董事会办公室</td>
+                            <td>2024-01-13 09:15</td>
+                            <td><span class="status-badge status-rejected">已驳回</span></td>
+                            <td class="table-actions">
+                                <a href="law-document-compare.html" class="btn btn-sm btn-secondary">查看</a>
+                                <button class="btn btn-sm btn-success">批准</button>
+                                <button class="btn btn-sm btn-danger">驳回</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox" class="row-checkbox"></td>
+                            <td>
+                                <div style="font-weight: 500;">信息披露管理办法执行情况检查</div>
+                                <div style="font-size: 0.75rem; color: var(--text-light);">文号：披露[2024]005号</div>
+                            </td>
+                            <td><span class="tag tag-policy">监管政策</span></td>
+                            <td>信息披露部</td>
+                            <td>2024-01-12 15:30</td>
+                            <td><span class="status-badge status-pending">待审核</span></td>
+                            <td class="table-actions">
+                                <a href="law-document-compare.html" class="btn btn-sm btn-secondary">查看</a>
+                                <button class="btn btn-sm btn-success">批准</button>
+                                <button class="btn btn-sm btn-danger">驳回</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox" class="row-checkbox"></td>
+                            <td>
+                                <div style="font-weight: 500;">资产负债管理制度更新方案</div>
+                                <div style="font-size: 0.75rem; color: var(--text-light);">文号：资管[2024]006号</div>
+                            </td>
+                            <td><span class="tag tag-internal">内部规章</span></td>
+                            <td>资产管理部</td>
+                            <td>2024-01-11 11:20</td>
+                            <td><span class="status-badge status-approved">已通过</span></td>
+                            <td class="table-actions">
+                                <a href="law-document-compare.html" class="btn btn-sm btn-secondary">查看</a>
+                                <button class="btn btn-sm btn-success">批准</button>
+                                <button class="btn btn-sm btn-danger">驳回</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox" class="row-checkbox"></td>
+                            <td>
+                                <div style="font-weight: 500;">反洗钱工作年度总结及改进计划</div>
+                                <div style="font-size: 0.75rem; color: var(--text-light);">文号：反洗[2024]007号</div>
+                            </td>
+                            <td><span class="tag tag-law">法律法规</span></td>
+                            <td>合规部</td>
+                            <td>2024-01-10 08:45</td>
+                            <td><span class="status-badge status-pending">待审核</span></td>
+                            <td class="table-actions">
+                                <a href="law-document-compare.html" class="btn btn-sm btn-secondary">查看</a>
+                                <button class="btn btn-sm btn-success">批准</button>
+                                <button class="btn btn-sm btn-danger">驳回</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox" class="row-checkbox"></td>
+                            <td>
+                                <div style="font-weight: 500;">消费者权益保护工作评估</div>
+                                <div style="font-size: 0.75rem; color: var(--text-light);">文号：消保[2024]008号</div>
+                            </td>
+                            <td><span class="tag tag-policy">监管政策</span></td>
+                            <td>客户服务部</td>
+                            <td>2024-01-09 14:00</td>
+                            <td><span class="status-badge status-approved">已通过</span></td>
+                            <td class="table-actions">
+                                <a href="law-document-compare.html" class="btn btn-sm btn-secondary">查看</a>
+                                <button class="btn btn-sm btn-success">批准</button>
+                                <button class="btn btn-sm btn-danger">驳回</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="pagination" id="pagination">
+            <button class="pagination-btn" disabled>‹ 上一页</button>
+            <a href="#" class="pagination-link active">1</a>
+            <a href="#" class="pagination-link">2</a>
+            <a href="#" class="pagination-link">3</a>
+            <a href="#" class="pagination-link">4</a>
+            <span style="padding: 0.5rem;">...</span>
+            <a href="#" class="pagination-link">12</a>
+            <button class="pagination-btn">下一页 ›</button>
+        </div>
+    </div>
+
+    <script>
+        // Filter functionality
+        function applyFilters() {
+            const reviewType = document.getElementById('reviewType').value;
+            const priority = document.getElementById('priority').value;
+            const submitter = document.getElementById('submitter').value;
+
+            const items = document.querySelectorAll('.review-item');
+            items.forEach(item => {
+                let show = true;
+
+                if (reviewType && item.dataset.type !== reviewType) {
+                    show = false;
+                }
+
+                if (priority && item.dataset.priority !== priority) {
+                    show = false;
+                }
+
+                item.style.display = show ? 'block' : 'none';
+            });
+
+            updateQueueCount();
+        }
+
+        function updateQueueCount() {
+            const visibleItems = document.querySelectorAll('.review-item:not([style*="display: none"])');
+            const urgentItems = Array.from(visibleItems).filter(item => item.classList.contains('urgent'));
+            
+            const countElement = document.querySelector('.queue-count');
+            countElement.innerHTML = `共 <strong>${visibleItems.length}</strong> 项待审核，<strong>${urgentItems.length}</strong> 项高优先级`;
+        }
+
+        function refreshQueue() {
+            showNotification('正在刷新审核队列...', 'info');
+            
+            setTimeout(() => {
+                showNotification('审核队列已刷新', 'success');
+            }, 1000);
+        }
+
+        function exportQueue() {
+            showNotification('正在导出审核列表...', 'info');
+            
+            setTimeout(() => {
+                showNotification('审核列表已导出', 'success');
+            }, 1500);
+        }
+
+        function openReview(reviewId) {
+            console.log('打开审核详情:', reviewId);
+            showNotification('正在加载审核详情...', 'info');
+        }
+
+        function approveReview(reviewId) {
+            const reviewItem = event.target.closest('.review-item');
+            
+            // Add approval animation
+            reviewItem.style.transition = 'all 0.5s ease';
+            reviewItem.style.background = 'rgba(16, 185, 129, 0.1)';
+            reviewItem.style.borderLeft = '4px solid var(--success)';
+            
+            setTimeout(() => {
+                reviewItem.style.opacity = '0.5';
+                reviewItem.style.transform = 'translateX(100%)';
+                
+                setTimeout(() => {
+                    reviewItem.remove();
+                    updateQueueCount();
+                }, 500);
+            }, 1000);
+
+            showNotification('审核已通过', 'success');
+        }
+
+        function rejectReview(reviewId) {
+            const reviewItem = event.target.closest('.review-item');
+            
+            // Show rejection modal (simplified)
+            const reason = prompt('请输入驳回原因:');
+            if (reason) {
+                reviewItem.style.transition = 'all 0.5s ease';
+                reviewItem.style.background = 'rgba(239, 68, 68, 0.1)';
+                reviewItem.style.borderLeft = '4px solid var(--danger)';
+                
+                setTimeout(() => {
+                    reviewItem.style.opacity = '0.5';
+                    reviewItem.style.transform = 'translateX(-100%)';
+                    
+                    setTimeout(() => {
+                        reviewItem.remove();
+                        updateQueueCount();
+                    }, 500);
+                }, 1000);
+
+                showNotification('审核已驳回', 'warning');
+            }
+        }
+
+        function assignReview(reviewId) {
+            const assignee = prompt('分配给谁进行审核?');
+            if (assignee) {
+                showNotification(`已分配给${assignee}`, 'info');
+            }
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 20px;
+                border-radius: 8px;
+                color: white;
+                font-size: 14px;
+                z-index: 1001;
+                animation: slideIn 0.3s ease;
+            `;
+            
+            switch(type) {
+                case 'success':
+                    notification.style.background = 'var(--success)';
+                    break;
+                case 'warning':
+                    notification.style.background = 'var(--warning)';
+                    break;
+                case 'error':
+                    notification.style.background = 'var(--danger)';
+                    break;
+                default:
+                    notification.style.background = 'var(--primary)';
+            }
+            
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Filter change handlers
+        document.getElementById('reviewType').addEventListener('change', applyFilters);
+        document.getElementById('priority').addEventListener('change', applyFilters);
+        document.getElementById('submitter').addEventListener('change', applyFilters);
+
+        // CSS animation for notifications
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Page initialization
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('totalItems').textContent = '95';
+            document.getElementById('pendingItems').textContent = '23';
+            console.log('人工审核页面已加载');
+        });
+
+        // Add missing functions for the actions
+        function approveItem(itemId) {
+            showNotification('项目已通过审核', 'success');
+            // Update the row status
+            event.target.closest('tr').querySelector('.status-badge').className = 'status-badge status-approved';
+            event.target.closest('tr').querySelector('.status-badge').textContent = '已通过';
+        }
+
+        function rejectItem(itemId) {
+            const reason = prompt('请输入驳回原因:');
+            if (reason) {
+                showNotification('项目已驳回', 'warning');
+                event.target.closest('tr').querySelector('.status-badge').className = 'status-badge status-rejected';
+                event.target.closest('tr').querySelector('.status-badge').textContent = '已驳回';
+            }
+        }
+
+        function viewItem(itemId) {
+            showNotification('正在加载详情...', 'info');
+            console.log('查看项目:', itemId);
+            // Open the review item document in law-document.html
+            const itemData = {
+                'item1': { url: 'law-document.html?doc=compliance-review-report&title=关于保险资金投资股权的合规审查报告' },
+                'item2': { url: 'law-document.html?doc=solvency-calculation-draft&title=偿付能力充足率计算方法修订草案' },
+                'item3': { url: 'law-document.html?doc=internal-audit-opinion&title=关联交易管理制度内部审核意见' },
+                'item4': { url: 'law-document.html?doc=governance-assessment&title=保险公司治理评估报告' },
+                'item5': { url: 'law-document.html?doc=disclosure-compliance-check&title=信息披露管理办法执行情况检查' },
+                'item6': { url: 'law-document.html?doc=asset-liability-management&title=资产负债管理制度更新方案' },
+                'item7': { url: 'law-document.html?doc=anti-money-laundering&title=反洗钱工作年度总结及改进计划' },
+                'item8': { url: 'law-document.html?doc=consumer-protection&title=消费者权益保护工作评估' }
+            };
+            
+            if (itemData[itemId]) {
+                window.open(itemData[itemId].url, '_blank');
+            }
+        }
+
+        function downloadItem(itemId) {
+            showNotification('正在准备下载...', 'info');
+            console.log('下载项目:', itemId);
+        }
+
+        function viewComments(itemId) {
+            alert('审核意见:\n\n该报告需要补充以下内容：\n1. 风险评估数据不完整\n2. 缺少合规性分析\n3. 建议增加对标分析\n\n请修改后重新提交。');
+        }
+    </script>
+</body>
+</html>

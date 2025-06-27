@@ -1,0 +1,1993 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大家智库 - 法律合规智能系统</title>
+    <style>
+        :root {
+            --primary: #f59e0b; /* From research-report-detail */
+            --primary-light: #fbbf24; /* From research-report-detail */
+            --primary-dark: #d97706; /* From research-report-detail */
+            --primary-rgb: 245, 158, 11; /* Keep for existing rgba uses if any, or adapt */
+            --success: #10b981;  /* From research-report-detail */
+            --warning: #f59e0b; /* From research-report-detail */
+            --danger: #ef4444;   /* From research-report-detail */
+            --background: #f8fafc; /* From research-report-detail */
+            --surface: #ffffff;    /* From research-report-detail */
+            --text: #1e293b;       /* From research-report-detail */
+            --text-light: #64748b;  /* From research-report-detail */
+            --text-muted: #9ca3af;  /* Keep if useful, else can be removed */
+            --border: #e2e8f0;      /* From research-report-detail */
+            --border-light: #f3f4f6; /* Keep if useful for lighter lines, else use --border */
+            
+            /* Shadows - research-report-detail is mostly flat, so we'll minimize these */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.03); /* Softest shadow */
+            --shadow-md: 0 2px 4px -1px rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.03); /* Subtle shadow for interactives */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: var(--background);
+            color: var(--text);
+            line-height: 1.6;
+            font-size: 14px; /* Consistent base font size */
+            overflow-x: hidden;
+        }
+
+        /* Top Navigation Header - Styled like research-report-detail.html */
+        .top-header {
+            background: var(--surface);
+            padding: 0.75rem 2rem; /* Matches research-report-detail */
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid var(--border);
+            box-shadow: none; /* research-report-detail has no shadow on header */
+        }
+
+        .top-header-content {
+            max-width: 1600px; /* Matches research-report-detail */
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .top-logo {
+            font-size: 1.375rem; /* Matches research-report-detail .logo */
+            font-weight: 500;   /* Matches research-report-detail .logo */
+            color: var(--text); /* Matches research-report-detail .logo */
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .top-logo i { /* Icon within logo */
+            font-size: 1.5rem; /* Adjust if an icon is used */
+            color: var(--primary); /* Keep a touch of primary for the icon */
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.5rem; /* research-report-detail nav-links gap is 2rem, but this might be too wide here */
+            align-items: center;
+        }
+
+        .nav-link {
+            color: var(--text-light);
+            text-decoration: none;
+            transition: color 0.2s ease, border-color 0.2s ease;
+            padding: 0.6rem 0.25rem; /* Matches research-report-detail */
+            border-bottom: 2px solid transparent; /* Matches research-report-detail */
+            font-size: 0.875rem; /* Matches research-report-detail */
+            font-weight: 500;   /* Matches research-report-detail */
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        
+        .nav-link i {
+            font-size: 1rem;
+        }
+
+        .nav-link:hover {
+            color: var(--primary); /* Matches research-report-detail */
+        }
+
+        .nav-link.active {
+            color: var(--primary); /* Matches research-report-detail */
+            border-bottom: 2px solid var(--primary); /* Matches research-report-detail */
+            font-weight: 500; /* research-report-detail active link is not bolder */
+        }
+        
+        .nav-link .badge {
+            background: var(--danger);
+            color: white;
+            font-size: 0.65rem;
+            padding: 0.1rem 0.4rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            line-height: 1;
+            margin-left: 0.25rem;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 2rem; /* Matches research-report-detail .main-container */
+            max-width: 1600px; /* Matches research-report-detail .main-container */
+            margin: 0 auto; /* Center main content */
+        }
+
+        /* Search Section - Styled like a panel from research-report-detail.html */
+        .search-section {
+            background: var(--surface);
+            padding: 1.5rem 2rem; /* Slightly less padding than document-item */
+            border-radius: 8px; /* Matches research-report-detail panels */
+            border: 1px solid var(--border); /* Matches research-report-detail panels */
+            box-shadow: none; /* Matches research-report-detail panels */
+            margin-bottom: 2rem;
+        }
+
+        .search-section h1 {
+            font-size: 1.5rem; /* research-report-detail .report-title-main */
+            font-weight: 500; /* research-report-detail .report-title-main */
+            color: var(--text);
+            margin-bottom: 0.75rem; /* research-report-detail .report-title-main */
+        }
+
+        .search-section p { /* Optional descriptive text */
+            color: var(--text-light);
+            font-size: 0.875rem; /* Smaller than body text */
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+
+        .search-form {
+            display: flex; /* Simpler layout */
+            gap: 0.75rem; /* Matches research-report-detail .report-actions-bar */
+            margin-bottom: 1.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 250px; /* Ensure it has some base width */
+            padding: 0.625rem 0.875rem; /* Between .action-button and textarea */
+            border: 1px solid var(--border);
+            border-radius: 4px; /* Matches research-report-detail form elements */
+            font-size: 0.875rem;
+            font-family: inherit;
+            background: var(--surface); /* or var(--background) for slight contrast */
+            color: var(--text);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.2); /* Subtle focus ring */
+        }
+
+        .search-input::placeholder {
+            color: var(--text-light);
+        }
+
+        /* Buttons - Styled like .action-button from research-report-detail.html */
+        .btn {
+            padding: 0.5rem 1rem; /* Matches .action-button */
+            border: 1px solid var(--border); /* Matches .action-button */
+            border-radius: 4px; /* Matches .action-button */
+            cursor: pointer;
+            font-size: 0.8125rem; /* Matches .action-button */
+            font-weight: 500;    /* Matches .action-button */
+            transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem; /* Matches .action-button */
+            text-decoration: none;
+            background: var(--surface);
+            color: var(--text); /* Default button text color */
+            font-family: inherit;
+            white-space: nowrap;
+        }
+        
+        .btn i { /* Icon within buttons */
+            font-size: 1rem; /* Matches .action-button .ai-icon (adjust if needed) */
+            color: var(--text-light); /* Default icon color */
+        }
+
+        .btn-primary {
+            background: var(--primary); /* Matches .action-button.primary */
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark); /* Matches .action-button.primary:hover */
+            border-color: var(--primary-dark);
+        }
+         .btn-primary i {
+            color: white;
+        }
+
+        .btn-secondary { /* Default button style from .action-button */
+            background: var(--surface);
+            color: var(--text);
+            border-color: var(--border);
+        }
+
+        .btn-secondary:hover {
+            background-color: rgba(var(--primary-rgb), 0.1); /* Matches .action-button:hover */
+            border-color: var(--primary); /* Matches .action-button:hover */
+            color: var(--primary-dark); /* Make text primary on hover for secondary */
+        }
+        .btn-secondary:hover i {
+            color: var(--primary-dark);
+        }
+
+        /* Active state for toggle buttons (like Semantic Search, Advanced Filters) */
+        .btn.active { /* A subtle active state */
+            background-color: rgba(var(--primary-rgb), 0.15);
+            border-color: var(--primary);
+            color: var(--primary-dark);
+        }
+        .btn.active i {
+            color: var(--primary-dark);
+        }
+        
+        .btn-secondary.active { /* Specifically for semantic search button if it uses .btn-secondary */
+            background: var(--success); /* Or a different color if needed */
+            color: white;
+            border-color: var(--success);
+        }
+        .btn-secondary.active i {
+            color: white;
+        }
+
+
+        /* Filter Options - Styled like a sub-panel or simpler form group */
+        .filter-options {
+            display: flex; /* Keep flex for wrapping */
+            gap: 0.75rem;
+            padding: 1rem 0; /* Vertical padding, horizontal comes from items */
+            background: transparent; /* No separate background, part of search-section */
+            border-radius: 0;
+            border: none; /* No separate border */
+            margin-bottom: 1.5rem; /* Spacing before results info */
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            position: relative;
+            flex: 1 1 180px; /* Allow wrapping and growth */
+        }
+
+        .filter-group select {
+            width: 100%;
+            padding: 0.625rem 0.875rem; /* Consistent with search-input */
+            border: 1px solid var(--border);
+            border-radius: 4px; /* Consistent radius */
+            font-size: 0.875rem; /* Consistent font size */
+            background: var(--surface);
+            color: var(--text);
+            font-weight: 500;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            appearance: none; /* Basic reset, consider custom arrow if needed */
+            cursor: pointer;
+        }
+
+        .filter-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.2); /* Consistent focus */
+        }
+        
+        /* Search Mode Info */
+        .search-mode-info {
+            background: rgba(var(--primary-rgb), 0.05); /* Subtle primary tint */
+            border: 1px solid rgba(var(--primary-rgb), 0.2);
+            border-radius: 4px; /* Consistent radius */
+            padding: 0.75rem 1rem;
+            font-size: 0.8125rem;
+            color: var(--primary-dark); /* Darker primary for text */
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+            display: none; /* JS will toggle */
+        }
+
+        .search-mode-info i {
+            margin-right: 0.5rem;
+            font-size: 1rem;
+        }
+
+        /* Results Info */
+        .results-info {
+            font-size: 0.875rem;
+            color: var(--text-light);
+            margin-bottom: 1.5rem;
+            padding: 0.75rem 1rem;
+            background: var(--surface);
+            border-radius: 4px;
+            border: 1px solid var(--border-light); /* Lighter border for info box */
+            font-weight: 500;
+        }
+
+        /* Enhanced Document List */
+        .document-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem; /* Spacing between items */
+            margin-bottom: 2rem;
+        }
+
+        .document-item {
+            background: var(--surface); /* Matches research-report-detail panels */
+            padding: 1.5rem; /* Consistent padding */
+            border-radius: 8px; /* Matches research-report-detail panels */
+            border: 1px solid var(--border); /* Matches research-report-detail panels */
+            box-shadow: none; /* Matches research-report-detail panels */
+            transition: background-color 0.2s ease; /* Subtle hover */
+            /* Removed complex ::before, hover transform, and heavy shadows */
+        }
+
+        .document-item:hover {
+            background-color: rgba(var(--primary-rgb), 0.03); /* Very subtle hover, similar to table rows in other files */
+        }
+
+        .document-item-content { /* This class was already in the HTML structure */
+            display: flex;
+            gap: 1.25rem; /* Slightly reduced gap */
+            align-items: flex-start;
+        }
+
+        .document-icon {
+            width: 40px; /* Slightly smaller */
+            height: 40px;
+            background: rgba(var(--primary-rgb), 0.1); /* Subtle primary background */
+            border-radius: 6px; /* Smaller radius */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem; /* Adjusted icon character size */
+            color: var(--primary-dark);
+            flex-shrink: 0;
+            /* Removed complex icon animations and shadows */
+        }
+
+        .document-main-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .document-header {
+            margin-bottom: 0.75rem;
+        }
+
+        .document-title {
+            font-size: 1.125rem; /* Slightly reduced */
+            font-weight: 500; /* Consistent with titles in research-report-detail */
+            color: var(--text);
+            margin-bottom: 0.5rem;
+            line-height: 1.4;
+        }
+
+        .document-title a {
+            text-decoration: none;
+            color: inherit;
+            transition: color 0.2s ease;
+        }
+
+        .document-title a:hover {
+            color: var(--primary-dark);
+        }
+
+        .document-meta {
+            font-size: 0.8125rem; /* Matches research-report-detail meta */
+            color: var(--text-light);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem 1rem; /* Adjusted gap */
+            margin-bottom: 0.75rem;
+            font-weight: normal; /* research-report-detail meta is not bold */
+        }
+
+        .document-meta span {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+
+        .document-meta i {
+            font-size: 0.875rem; /* Slightly smaller icon in meta */
+            opacity: 0.9;
+        }
+
+        .document-summary {
+            font-size: 0.875rem; /* Matches research-report-detail body text */
+            color: var(--text-light);
+            line-height: 1.6;
+            margin-bottom: 1rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2; /* Reduced line clamp for cleaner look */
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .document-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 0.5rem; /* Add some space above footer */
+        }
+
+        .document-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            flex: 1;
+        }
+
+        /* Simplified Tags - inspired by rating-badge in research-report-detail */
+        .tag {
+            padding: 0.25rem 0.625rem; /* Smaller padding */
+            border-radius: 3px; /* Matches rating-badge */
+            font-size: 0.75rem;   /* Matches rating-badge */
+            font-weight: 500;     /* Matches rating-badge */
+            border: 1px solid transparent;
+            transition: none; /* No complex transitions */
+            cursor: default; /* Tags are usually not interactive buttons */
+            /* Removed hover transform and shadow */
+        }
+
+        .tag-law { 
+            background-color: rgba(239, 68, 68, 0.1); /* Danger tint background */
+            color: var(--danger);
+            border-color: rgba(239, 68, 68, 0.3); /* Danger tint border */
+        }
+        .tag-policy { 
+            background-color: rgba(var(--primary-rgb), 0.1); /* Warning/Primary tint background */
+            color: var(--primary-dark);
+            border-color: rgba(var(--primary-rgb), 0.3); /* Warning/Primary tint border */
+        }
+        .tag-internal { 
+            background-color: rgba(16, 185, 129, 0.1); /* Success tint background */
+            color: var(--success);
+            border-color: rgba(16, 185, 129, 0.3); /* Success tint border */
+        }
+        .tag-guide { 
+            background-color: rgba(59, 130, 246, 0.1); /* Info/Blue tint background */
+            color: #2563eb; /* Darker blue for text */
+            border-color: rgba(59, 130, 246, 0.3); /* Info/Blue tint border */
+        }
+
+        .document-actions {
+            display: flex;
+            gap: 0.5rem; /* Reduced gap to match button style */
+            flex-shrink: 0;
+        }
+
+        /* .document-actions .btn will inherit from .btn defined earlier */
+
+        /* Enhanced Pagination - uses .btn styling */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem 0;
+            gap: 0.5rem;
+        }
+
+        .pagination-btn, .pagination-link {
+            /* All styling inherited from .btn */
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background-color: var(--surface); /* Keep background on disabled */
+            border-color: var(--border);
+            color: var(--text-light);
+        }
+        .pagination-btn:disabled:hover {
+            background-color: var(--surface); /* Prevent hover style on disabled */
+            border-color: var(--border);
+            color: var(--text-light);
+        }
+
+        /* .pagination-link:hover styling inherited from .btn:hover */
+
+        .pagination-link.active {
+            /* Uses .btn-primary styling effectively */
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+         .pagination-link.active:hover {
+            background: var(--primary-dark);
+            border-color: var(--primary-dark);
+        }
+
+        /* Enhanced Loading & No Results - Styled as simple panels */
+        .no-results, .loading-overlay {
+            text-align: center;
+            padding: 2rem; /* Consistent padding */
+            color: var(--text-light);
+            background: var(--surface);
+            border-radius: 8px; /* Consistent radius */
+            border: 1px solid var(--border); /* Consistent border */
+            box-shadow: none; /* Consistent shadow */
+            margin-top: 2rem; /* Add some margin if they appear alone */
+        }
+
+        .no-results h3, .loading-overlay h3 {
+            font-size: 1.25rem; /* Slightly smaller heading */
+            color: var(--text);
+            margin-bottom: 0.75rem;
+            font-weight: 500;
+        }
+
+        .loading-spinner {
+            width: 2.5rem; /* Adjusted size */
+            height: 2.5rem;
+            border: 3px solid var(--border-light); /* Thinner border */
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; transform: scale(1); }
+            to { opacity: 0; transform: scale(0.9); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .main-content {
+                padding: 1.5rem;
+            }
+            
+            .search-section {
+                padding: 1.5rem; /* Adjust search section padding */
+            }
+            
+            .filter-options {
+                /* Grid handled by flex-wrap on .filter-group */
+            }
+        }
+
+        @media (max-width: 768px) {
+            .top-header {
+                padding: 0.75rem 1rem; /* Adjust header padding */
+            }
+            
+            .nav-links {
+                gap: 0.5rem; /* Smaller gap for mobile nav */
+                 /* overflow-x: auto; if too many items */
+            }
+            
+            .nav-link {
+                padding: 0.5rem 0.1rem; /* Smaller padding for mobile nav links */
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+            
+            .search-section {
+                padding: 1rem;
+            }
+            
+            .search-section h1 {
+                font-size: 1.25rem;
+            }
+            
+            .search-form {
+                flex-direction: column; /* Stack form elements */
+                align-items: stretch; /* Full width buttons/inputs */
+            }
+            .search-form .btn, .search-form .search-input {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .filter-options {
+                flex-direction: column; /* Stack filter dropdowns */
+                gap: 0.75rem;
+            }
+            .filter-group {
+                flex-basis: auto; /* Reset flex-basis for stacked items */
+            }
+            
+            .document-item {
+                padding: 1rem;
+            }
+            
+            .document-item-content {
+                flex-direction: column; /* Stack icon and content */
+                gap: 1rem;
+            }
+            
+            .document-icon {
+                width: 36px;
+                height: 36px;
+                font-size: 1.125rem;
+                align-self: flex-start;
+            }
+            
+            .document-footer {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 1rem;
+            }
+            
+            .document-actions {
+                justify-content: flex-start; /* Align actions left on mobile */
+                flex-wrap: wrap;
+            }
+            
+            .document-actions .btn {
+                flex-grow: 1; /* Allow buttons to grow */
+                min-width: 120px; /* Min width for action buttons */
+                justify-content: center;
+            }
+            
+            .pagination {
+                flex-wrap: wrap;
+                gap: 0.25rem;
+            }
+            
+            .pagination-btn, .pagination-link {
+                padding: 0.5rem 0.75rem; /* Smaller pagination buttons */
+                font-size: 0.8125rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="top-header">
+        <div class="top-header-content">
+            <a href="law-analytics.html" class="top-logo"><i>⚖️</i>法律合规智能系统</a>
+            <nav class="nav-links">
+                <a href="law-analytics.html" class="nav-link"><i>🏠</i>首页概览</a>
+                <a href="law-knowledge.html" class="nav-link active"><i>📚</i>大家智库</a>
+                <a href="law-updates.html" class="nav-link"><i>📰</i>法规更新 <span class="badge">23</span></a>
+                <a href="law-db.html" class="nav-link"><i>✏️</i>人工审核 <span class="badge">23</span></a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="main-content">
+        <section class="search-section">
+            <h1>法规与文件大家智库</h1>
+            <p>搜索和浏览法律法规、政策文件、典型案例和解读材料，获取最新的合规信息和专业指导。</p>
+            <form class="search-form" id="searchForm">
+                <input type="text" class="search-input" id="searchInput" placeholder="输入关键词搜索法规、案例、解读...">
+                <button type="submit" class="btn btn-primary"><i>🔍</i> 搜索</button>
+                <button type="button" class="btn btn-secondary" id="semanticSearchToggle"><i>🧠</i> 智能搜索</button>
+                <button type="button" class="btn btn-secondary" id="favoritesToggle"><i>⭐</i> 我的收藏</button>
+                <button type="button" class="btn btn-secondary" id="advancedSearchToggle"><i>⚙️</i> 高级筛选</button>
+            </form>
+            <div class="search-mode-info" id="searchModeInfo">
+                <i>🧠</i> 智能搜索模式已启用 - 系统将理解您的搜索意图，匹配相关概念和同义词
+            </div>
+            <div class="filter-options" id="advancedSearchOptions">
+                <div class="filter-group">
+                    <select id="filterCategory">
+                        <option value="all">全部分类</option>
+                        <option value="law">法律法规</option>
+                        <option value="policy">监管政策</option>
+                        <option value="interpretation">司法解读</option>
+                        <option value="case">典型案例</option>
+                        <option value="internal">内部规章</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <select id="filterDate">
+                        <option value="all">全部时间</option>
+                        <option value="last_month">近一月</option>
+                        <option value="last_quarter">近一季度</option>
+                        <option value="last_year">近一年</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <select id="filterSource">
+                        <option value="all">全部来源</option>
+                        <option value="regulator">监管机构</option>
+                        <option value="court">法院</option>
+                        <option value="industry_assoc">行业协会</option>
+                        <option value="internal_legal">内部法务</option>
+                    </select>
+                </div>
+                 <div class="filter-group">
+                    <select id="filterSort">
+                        <option value="date_desc">按发布日期 (新→旧)</option>
+                        <option value="date_asc">按发布日期 (旧→新)</option>
+                        <option value="title_asc">按标题 (A→Z)</option>
+                        <option value="title_desc">按标题 (Z→A)</option>
+                        <option value="importance">按重要性</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <div class="results-info" id="resultsInfo">
+            共找到 <span id="totalResults">0</span> 条相关信息
+        </div>
+
+        <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+            <div class="loading-spinner"></div>
+            <h3>正在努力加载中...</h3>
+            <p>请稍候，我们正在为您检索信息。</p>
+        </div>
+
+        <div class="no-results" id="noResults" style="display: none;">
+            <h3>未能找到相关结果</h3>
+            <p>请尝试调整您的搜索关键词或筛选条件。</p>
+        </div>
+
+        <div class="document-list" id="documentList">
+            <!-- Document cards will be dynamically inserted here by JavaScript -->
+            <div class="document-item">
+                <div class="document-item-content">
+                    <div class="document-icon">📄</div>
+                    <div class="document-main-content">
+                        <div class="document-header">
+                            <h3 class="document-title"><a href="law-document.html?doc=insurance-equity-investment&title=保险资金股权投资管理暂行办法">保险资金股权投资管理暂行办法</a></h3>
+                            <div class="document-meta">
+                                <span><i>📅</i> 2024-01-15</span>
+                                <span><i>🏢</i> 金融监管总局</span>
+                                <span><i>👁</i> 2,156 阅读</span>
+                            </div>
+                        </div>
+                        <p class="document-summary">规范保险资金股权投资行为，防范投资风险，保护被保险人利益。明确股权投资的基本原则、投资范围、投资比例等核心要求...</p>
+                        <div class="document-footer">
+                            <div class="document-tags">
+                                <span class="tag tag-law">法律法规</span>
+                                <span class="tag tag-policy">资金运用</span>
+                            </div>
+                            <div class="document-actions">
+                                <button class="btn btn-secondary" onclick="viewDocument('doc1')"><i>👁</i> 查看</button>
+                                <button class="btn btn-secondary" onclick="downloadDocument('doc1')"><i>📥</i> 下载</button>
+                                <button class="btn btn-secondary" onclick="collectDocument('doc1')"><i>⭐</i> 收藏</button>
+                                <button class="btn btn-secondary btn-edit" onclick="editDocument('doc1', '保险资金股权投资管理暂行办法')"><i>✏️</i> 编辑</button>
+                                <button class="btn btn-secondary" onclick="removeDocument('doc1')"><i>🗑️</i> 移除</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="document-item">
+                <div class="document-item-content">
+                    <div class="document-icon">📄</div>
+                    <div class="document-main-content">
+                        <div class="document-header">
+                            <h3 class="document-title"><a href="law-document.html?doc=solvency-regulation&title=偿付能力监管规则第1号">偿付能力监管规则第1号：保险公司偿付能力充足率</a></h3>
+                            <div class="document-meta">
+                                <span><i>📅</i> 2024-01-10</span>
+                                <span><i>🏢</i> 金融监管总局</span>
+                                <span><i>👁</i> 1,845 阅读</span>
+                            </div>
+                        </div>
+                        <p class="document-summary">建立健全偿付能力监管制度，规范保险公司偿付能力计算标准，确保保险公司具备与其风险相适应的资本水平...</p>
+                        <div class="document-footer">
+                            <div class="document-tags">
+                                <span class="tag tag-law">监管规则</span>
+                                <span class="tag tag-internal">偿付能力</span>
+                            </div>
+                            <div class="document-actions">
+                                <button class="btn btn-secondary" onclick="viewDocument('doc2')"><i>👁</i> 查看</button>
+                                <button class="btn btn-secondary" onclick="downloadDocument('doc2')"><i>📥</i> 下载</button>
+                                <button class="btn btn-secondary" onclick="collectDocument('doc2')"><i>⭐</i> 收藏</button>
+                                <button class="btn btn-secondary btn-edit" onclick="editDocument('doc2', '偿付能力监管规则第1号：保险公司偿付能力充足率')"><i>✏️</i> 编辑</button>
+                                <button class="btn btn-secondary" onclick="removeDocument('doc2')"><i>🗑️</i> 移除</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="document-item">
+                <div class="document-item-content">
+                    <div class="document-icon">📄</div>
+                    <div class="document-main-content">
+                        <div class="document-header">
+                            <h3 class="document-title"><a href="law-document.html?doc=related-transactions&title=关联交易管理办法">关联交易管理办法（2022年修订）</a></h3>
+                            <div class="document-meta">
+                                <span><i>📅</i> 2023-12-28</span>
+                                <span><i>🏢</i> 金融监管总局</span>
+                                <span><i>👁</i> 3,267 阅读</span>
+                            </div>
+                        </div>
+                        <p class="document-summary">加强保险公司关联交易监管，规范关联交易行为，防控关联交易风险，保护保险消费者合法权益和保险公司稳健经营...</p>
+                        <div class="document-footer">
+                            <div class="document-tags">
+                                <span class="tag tag-law">管理办法</span>
+                                <span class="tag tag-policy">关联交易</span>
+                            </div>
+                            <div class="document-actions">
+                                <button class="btn btn-secondary" onclick="viewDocument('doc3')"><i>👁</i> 查看</button>
+                                <button class="btn btn-secondary" onclick="downloadDocument('doc3')"><i>📥</i> 下载</button>
+                                <button class="btn btn-secondary" onclick="collectDocument('doc3')"><i>⭐</i> 收藏</button>
+                                <button class="btn btn-secondary btn-edit" onclick="editDocument('doc3', '关联交易管理办法（2022年修订）')"><i>✏️</i> 编辑</button>
+                                <button class="btn btn-secondary" onclick="removeDocument('doc3')"><i>🗑️</i> 移除</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="document-item">
+                <div class="document-item-content">
+                    <div class="document-icon">📄</div>
+                    <div class="document-main-content">
+                        <div class="document-header">
+                            <h3 class="document-title"><a href="law-document.html?doc=information-disclosure&title=保险公司信息披露管理办法">保险公司信息披露管理办法</a></h3>
+                            <div class="document-meta">
+                                <span><i>📅</i> 2023-12-15</span>
+                                <span><i>🏢</i> 金融监管总局</span>
+                                <span><i>👁</i> 1,523 阅读</span>
+                            </div>
+                        </div>
+                        <p class="document-summary">规范保险公司信息披露行为，保护投保人、被保险人和受益人的合法权益，促进保险市场健康发展...</p>
+                        <div class="document-footer">
+                            <div class="document-tags">
+                                <span class="tag tag-law">管理办法</span>
+                                <span class="tag tag-internal">信息披露</span>
+                            </div>
+                            <div class="document-actions">
+                                <button class="btn btn-secondary" onclick="viewDocument('doc4')"><i>👁</i> 查看</button>
+                                <button class="btn btn-secondary" onclick="downloadDocument('doc4')"><i>📥</i> 下载</button>
+                                <button class="btn btn-secondary" onclick="collectDocument('doc4')"><i>⭐</i> 收藏</button>
+                                <button class="btn btn-secondary btn-edit" onclick="editDocument('doc4', '保险公司信息披露管理办法')"><i>✏️</i> 编辑</button>
+                                <button class="btn btn-secondary" onclick="removeDocument('doc4')"><i>🗑️</i> 移除</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="document-item">
+                <div class="document-item-content">
+                    <div class="document-icon">📄</div>
+                    <div class="document-main-content">
+                        <div class="document-header">
+                            <h3 class="document-title"><a href="law-document.html?doc=asset-management&title=保险资产管理公司管理规定">保险资产管理公司管理规定</a></h3>
+                            <div class="document-meta">
+                                <span><i>📅</i> 2023-11-30</span>
+                                <span><i>🏢</i> 金融监管总局</span>
+                                <span><i>👁</i> 987 阅读</span>
+                            </div>
+                        </div>
+                        <p class="document-summary">规范保险资产管理公司经营行为，加强监督管理，促进保险资产管理行业健康发展，更好服务保险业和实体经济发展...</p>
+                        <div class="document-footer">
+                            <div class="document-tags">
+                                <span class="tag tag-law">管理规定</span>
+                                <span class="tag tag-policy">资产管理</span>
+                            </div>
+                            <div class="document-actions">
+                                <button class="btn btn-secondary" onclick="viewDocument('doc5')"><i>👁</i> 查看</button>
+                                <button class="btn btn-secondary" onclick="downloadDocument('doc5')"><i>📥</i> 下载</button>
+                                <button class="btn btn-secondary" onclick="collectDocument('doc5')"><i>⭐</i> 收藏</button>
+                                <button class="btn btn-secondary btn-edit" onclick="editDocument('doc5', '保险资产管理公司管理规定')"><i>✏️</i> 编辑</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="document-item">
+                <div class="document-item-content">
+                    <div class="document-icon">📄</div>
+                    <div class="document-main-content">
+                        <div class="document-header">
+                            <h3 class="document-title"><a href="law-document.html?doc=case-related-transaction&title=典型案例：某保险公司违规关联交易处罚案">典型案例：某保险公司违规关联交易处罚案</a></h3>
+                            <div class="document-meta">
+                                <span><i>📅</i> 2023-11-20</span>
+                                <span><i>🏢</i> 内部法务</span>
+                                <span><i>👁</i> 1,234 阅读</span>
+                            </div>
+                        </div>
+                        <p class="document-summary">某大型保险公司因未严格执行关联交易审查程序，违规开展关联交易被监管部门处罚。案例分析了违规行为的具体表现和合规要点...</p>
+                        <div class="document-footer">
+                            <div class="document-tags">
+                                <span class="tag tag-guide">典型案例</span>
+                                <span class="tag tag-internal">合规分析</span>
+                            </div>
+                            <div class="document-actions">
+                                <button class="btn btn-secondary" onclick="viewDocument('doc6')"><i>👁</i> 查看</button>
+                                <button class="btn btn-secondary" onclick="downloadDocument('doc6')"><i>📥</i> 下载</button>
+                                <button class="btn btn-secondary" onclick="collectDocument('doc6')"><i>⭐</i> 收藏</button>
+                                <button class="btn btn-secondary btn-edit" onclick="editDocument('doc6', '典型案例：某保险公司违规关联交易处罚案')"><i>✏️</i> 编辑</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="pagination" id="pagination">
+            <button class="pagination-btn" disabled>‹ 上一页</button>
+            <a href="#" class="pagination-link active">1</a>
+            <a href="#" class="pagination-link">2</a>
+            <a href="#" class="pagination-link">3</a>
+            <a href="#" class="pagination-link">4</a>
+            <a href="#" class="pagination-link">5</a>
+            <span style="padding: 0.5rem;">...</span>
+            <a href="#" class="pagination-link">12</a>
+            <button class="pagination-btn">下一页 ›</button>
+        </div>
+    </div>
+
+    <script>
+        // Semantic search configuration
+        let isSemanticSearchEnabled = false;
+        let isAdvancedSearchVisible = true; // Changed to true for default open state
+        let isFavoritesMode = false; // Track if we're showing only favorites
+        
+        // Favorites management
+        let favoriteDocuments = JSON.parse(localStorage.getItem('favoriteDocuments') || '[]');
+        
+        // Update favorites count in button
+        function updateFavoritesButton() {
+            const button = document.getElementById('favoritesToggle');
+            const count = favoriteDocuments.length;
+            if (count > 0) {
+                button.innerHTML = `<i>⭐</i> 我的收藏 (${count})`;
+            } else {
+                button.innerHTML = '<i>⭐</i> 我的收藏';
+            }
+        }
+
+        // Synonym and concept mappings for semantic search
+        const semanticMappings = {
+            // Financial concepts
+            '资金': ['资产', '资本', '资金运用', '投资', '融资', '财务'],
+            '投资': ['资金运用', '资产配置', '投资管理', '资本运作', '资产投资'],
+            '风险': ['风险管理', '风险控制', '风险防范', '合规风险', '操作风险', '信用风险'],
+            '合规': ['监管', '法规', '规范', '合规管理', '合规检查', '法律风险'],
+            
+            // Insurance specific terms
+            '保险': ['保险业', '保险公司', '保险产品', '保险服务', '保险监管'],
+            '偿付': ['偿付能力', '资本充足率', '偿还能力', '财务状况', '资本实力'],
+            '理赔': ['理赔服务', '赔付', '保险理赔', '理赔处理', '给付'],
+            '保费': ['保险费', '缴费', '费率', '保险成本'],
+            
+            // Legal and regulatory terms
+            '法规': ['法律', '规定', '办法', '规则', '制度', '政策', '监管规定'],
+            '监管': ['监督', '管理', '审查', '检查', '合规', '规制'],
+            '处罚': ['罚款', '处分', '制裁', '惩罚', '违法处理', '行政处罚'],
+            '违规': ['违法', '违反', '不合规', '违章', '违纪'],
+            
+            // Corporate governance
+            '治理': ['公司治理', '管理', '治理结构', '内控', '内部管理'],
+            '董事': ['董事会', '董事长', '独立董事', '治理层'],
+            '审计': ['内审', '外审', '审计监督', '财务审计', '合规审计'],
+            '披露': ['信息披露', '公开', '报告', '透明度', '信息公开'],
+            
+            // Business operations
+            '经营': ['业务', '运营', '管理', '经营活动', '商业运作'],
+            '业务': ['经营', '服务', '产品', '业务活动', '商业活动'],
+            '客户': ['投保人', '被保险人', '消费者', '客户服务'],
+            '产品': ['保险产品', '服务', '业务', '险种'],
+            
+            // Financial reporting
+            '财务': ['会计', '财务报告', '财务状况', '经济', '资金'],
+            '报告': ['报表', '披露', '公告', '信息', '文件'],
+            '审查': ['检查', '审核', '评估', '监督', '审计'],
+            
+            // Documentation and compliance
+            '制度': ['规定', '办法', '规则', '政策', '管理制度', '内控制度'],
+            '流程': ['程序', '过程', '步骤', '操作流程', '业务流程'],
+            '标准': ['规范', '要求', '准则', '标准化', '规格'],
+            '管理': ['治理', '监督', '控制', '运营', '经营管理']
+        };
+
+        // Concept categories for semantic matching
+        const conceptCategories = {
+            'regulatory': ['监管', '法规', '合规', '规定', '办法', '政策', '制度'],
+            'financial': ['资金', '投资', '财务', '资产', '资本', '偿付'],
+            'risk': ['风险', '风险管理', '合规风险', '操作风险', '信用风险'],
+            'governance': ['治理', '董事', '审计', '披露', '内控', '管理'],
+            'insurance': ['保险', '理赔', '保费', '偿付', '产品', '客户'],
+            'operations': ['经营', '业务', '流程', '标准', '服务', '运营']
+        };
+
+        // Document data for search functionality
+        const documentData = [
+            {
+                id: 'doc1',
+                title: '保险资金股权投资管理暂行办法',
+                date: '2024-01-15',
+                source: '金融监管总局',
+                sourceType: 'regulator',
+                views: 2156,
+                summary: '规范保险资金股权投资行为，防范投资风险，保护被保险人利益。明确股权投资的基本原则、投资范围、投资比例等核心要求...',
+                tags: ['法律法规', '资金运用'],
+                category: 'law',
+                url: 'law-document.html?doc=insurance-equity-investment&title=保险资金股权投资管理暂行办法'
+            },
+            {
+                id: 'doc2',
+                title: '偿付能力监管规则第1号：保险公司偿付能力充足率',
+                date: '2024-01-10',
+                source: '金融监管总局',
+                sourceType: 'regulator',
+                views: 1845,
+                summary: '建立健全偿付能力监管制度，规范保险公司偿付能力计算标准，确保保险公司具备与其风险相适应的资本水平...',
+                tags: ['监管规则', '偿付能力'],
+                category: 'law',
+                url: 'law-document.html?doc=solvency-regulation&title=偿付能力监管规则第1号'
+            },
+            {
+                id: 'doc3',
+                title: '关联交易管理办法（2022年修订）',
+                date: '2023-12-28',
+                source: '金融监管总局',
+                sourceType: 'regulator',
+                views: 3267,
+                summary: '加强保险公司关联交易监管，规范关联交易行为，防控关联交易风险，保护保险消费者合法权益和保险公司稳健经营...',
+                tags: ['管理办法', '关联交易'],
+                category: 'policy',
+                url: 'law-document.html?doc=related-transactions&title=关联交易管理办法'
+            },
+            {
+                id: 'doc4',
+                title: '保险公司信息披露管理办法',
+                date: '2023-12-15',
+                source: '金融监管总局',
+                sourceType: 'regulator',
+                views: 1523,
+                summary: '规范保险公司信息披露行为，保护投保人、被保险人和受益人的合法权益，促进保险市场健康发展...',
+                tags: ['管理办法', '信息披露'],
+                category: 'policy',
+                url: 'law-document.html?doc=information-disclosure&title=保险公司信息披露管理办法'
+            },
+            {
+                id: 'doc5',
+                title: '保险资产管理公司管理规定',
+                date: '2023-11-30',
+                source: '金融监管总局',
+                sourceType: 'regulator',
+                views: 987,
+                summary: '规范保险资产管理公司经营行为，加强监督管理，促进保险资产管理行业健康发展，更好服务保险业和实体经济发展...',
+                tags: ['管理规定', '资产管理'],
+                category: 'policy',
+                url: 'law-document.html?doc=asset-management&title=保险资产管理公司管理规定'
+            },
+            {
+                id: 'doc6',
+                title: '典型案例：某保险公司违规关联交易处罚案',
+                date: '2023-11-20',
+                source: '内部法务',
+                sourceType: 'internal_legal',
+                views: 1234,
+                summary: '某大型保险公司因未严格执行关联交易审查程序，违规开展关联交易被监管部门处罚。案例分析了违规行为的具体表现和合规要点...',
+                tags: ['典型案例', '合规分析'],
+                category: 'case',
+                url: 'law-document.html?doc=case-related-transaction&title=典型案例：某保险公司违规关联交易处罚案'
+            }
+        ];
+
+        let filteredDocuments = [...documentData];
+
+        // Enhanced search functionality with semantic capabilities
+        function performSearch() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            const category = document.getElementById('filterCategory').value;
+            const dateFilter = document.getElementById('filterDate').value;
+            const sourceFilter = document.getElementById('filterSource').value;
+            const sortOrder = document.getElementById('filterSort').value;
+
+            // Show loading state with enhanced animation
+            showLoading();
+
+            // Simulate search delay for better UX
+            setTimeout(() => {
+                // Start with appropriate base set of documents
+                let baseDocuments = isFavoritesMode ? 
+                    documentData.filter(doc => favoriteDocuments.includes(doc.id)) : 
+                    documentData;
+
+                // Filter documents
+                filteredDocuments = baseDocuments.filter(doc => {
+                    // Text search filter - enhanced with semantic matching
+                    const matchesQuery = !query || matchesDocumentQuery(doc, query);
+
+                    // Category filter
+                    const matchesCategory = category === 'all' || doc.category === category;
+
+                    // Date filter
+                    const matchesDate = dateFilter === 'all' || checkDateFilter(doc.date, dateFilter);
+
+                    // Source filter
+                    const matchesSource = sourceFilter === 'all' || doc.sourceType === sourceFilter;
+
+                    return matchesQuery && matchesCategory && matchesDate && matchesSource;
+                });
+
+                // If semantic search is enabled, score and sort by relevance
+                if (isSemanticSearchEnabled && query) {
+                    filteredDocuments = filteredDocuments.map(doc => ({
+                        ...doc,
+                        semanticScore: calculateSemanticScore(doc, query)
+                    }));
+                    
+                    // Sort by semantic relevance first, then by other criteria
+                    filteredDocuments.sort((a, b) => {
+                        if (b.semanticScore !== a.semanticScore) {
+                            return b.semanticScore - a.semanticScore;
+                        }
+                        // Fall back to regular sorting if scores are equal
+                        return compareDocuments(a, b, sortOrder);
+                    });
+                } else {
+                    // Regular sorting
+                    sortDocuments(sortOrder);
+                }
+
+                // Update display with enhanced animations
+                updateSearchResults(query);
+                renderDocuments();
+                hideLoading();
+                
+                // Show success feedback
+                if (query) {
+                    const modeText = isFavoritesMode ? '在收藏中' : '';
+                    showNotification(`搜索完成，${modeText}找到 ${filteredDocuments.length} 条结果`, 'success');
+                }
+            }, 800);
+        }
+
+        // Enhanced document matching with semantic capabilities
+        function matchesDocumentQuery(doc, query) {
+            if (isSemanticSearchEnabled) {
+                return semanticMatch(doc, query);
+            } else {
+                // Original exact matching
+                return doc.title.toLowerCase().includes(query) ||
+                       doc.summary.toLowerCase().includes(query) ||
+                       doc.tags.some(tag => tag.toLowerCase().includes(query)) ||
+                       doc.source.toLowerCase().includes(query);
+            }
+        }
+
+        // Semantic matching function
+        function semanticMatch(doc, query) {
+            const queryTerms = query.split(/\s+/).filter(term => term.length > 0);
+            const expandedTerms = expandQueryWithSynonyms(queryTerms);
+            
+            // Check direct matches first
+            const directMatch = doc.title.toLowerCase().includes(query) ||
+                               doc.summary.toLowerCase().includes(query) ||
+                               doc.tags.some(tag => tag.toLowerCase().includes(query)) ||
+                               doc.source.toLowerCase().includes(query);
+            
+            if (directMatch) return true;
+            
+            // Check expanded terms (synonyms and related concepts)
+            const docText = (doc.title + ' ' + doc.summary + ' ' + doc.tags.join(' ')).toLowerCase();
+            
+            return expandedTerms.some(term => docText.includes(term.toLowerCase()));
+        }
+
+        // Expand query terms with synonyms and related concepts
+        function expandQueryWithSynonyms(terms) {
+            const expandedTerms = [...terms];
+            
+            terms.forEach(term => {
+                // Add direct synonyms
+                if (semanticMappings[term]) {
+                    expandedTerms.push(...semanticMappings[term]);
+                }
+                
+                // Add related terms from same concept category
+                Object.keys(conceptCategories).forEach(category => {
+                    if (conceptCategories[category].includes(term)) {
+                        expandedTerms.push(...conceptCategories[category]);
+                    }
+                });
+                
+                // Add partial matches for compound terms
+                Object.keys(semanticMappings).forEach(key => {
+                    if (key.includes(term) || term.includes(key)) {
+                        expandedTerms.push(key);
+                        expandedTerms.push(...semanticMappings[key]);
+                    }
+                });
+            });
+            
+            return [...new Set(expandedTerms)]; // Remove duplicates
+        }
+
+        // Calculate semantic relevance score
+        function calculateSemanticScore(doc, query) {
+            let score = 0;
+            const queryTerms = query.split(/\s+/).filter(term => term.length > 0);
+            const docText = (doc.title + ' ' + doc.summary + ' ' + doc.tags.join(' ')).toLowerCase();
+            
+            queryTerms.forEach(term => {
+                // Direct match - highest score
+                if (docText.includes(term)) {
+                    score += 10;
+                }
+                
+                // Title match - higher weight
+                if (doc.title.toLowerCase().includes(term)) {
+                    score += 15;
+                }
+                
+                // Tag match - medium weight
+                if (doc.tags.some(tag => tag.toLowerCase().includes(term))) {
+                    score += 8;
+                }
+                
+                // Synonym matches - lower weight
+                if (semanticMappings[term]) {
+                    semanticMappings[term].forEach(synonym => {
+                        if (docText.includes(synonym)) {
+                            score += 5;
+                        }
+                    });
+                }
+                
+                // Concept category matches - lowest weight
+                Object.keys(conceptCategories).forEach(category => {
+                    if (conceptCategories[category].includes(term)) {
+                        conceptCategories[category].forEach(relatedTerm => {
+                            if (docText.includes(relatedTerm) && relatedTerm !== term) {
+                                score += 2;
+                            }
+                        });
+                    }
+                });
+            });
+            
+            return Math.min(100, score); // Cap at 100%
+        }
+
+        function checkDateFilter(docDate, filter) {
+            const docDateTime = new Date(docDate);
+            const now = new Date();
+            
+            switch(filter) {
+                case 'last_month':
+                    const lastMonth = new Date();
+                    lastMonth.setMonth(now.getMonth() - 1);
+                    return docDateTime >= lastMonth;
+                case 'last_quarter':
+                    const lastQuarter = new Date();
+                    lastQuarter.setMonth(now.getMonth() - 3);
+                    return docDateTime >= lastQuarter;
+                case 'last_year':
+                    const lastYear = new Date();
+                    lastYear.setFullYear(now.getFullYear() - 1);
+                    return docDateTime >= lastYear;
+                default:
+                    return true;
+            }
+        }
+
+        function sortDocuments(sortOrder) {
+            switch(sortOrder) {
+                case 'date_desc':
+                    filteredDocuments.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    break;
+                case 'date_asc':
+                    filteredDocuments.sort((a, b) => new Date(a.date) - new Date(b.date));
+                    break;
+                case 'title_asc':
+                    filteredDocuments.sort((a, b) => a.title.localeCompare(b.title));
+                    break;
+                case 'title_desc':
+                    filteredDocuments.sort((a, b) => b.title.localeCompare(a.title));
+                    break;
+                case 'importance':
+                    filteredDocuments.sort((a, b) => b.views - a.views);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        // Helper function for individual document comparison
+        function compareDocuments(a, b, sortOrder) {
+            switch(sortOrder) {
+                case 'date_desc':
+                    return new Date(b.date) - new Date(a.date);
+                case 'date_asc':
+                    return new Date(a.date) - new Date(b.date);
+                case 'title_asc':
+                    return a.title.localeCompare(b.title);
+                case 'title_desc':
+                    return b.title.localeCompare(a.title);
+                case 'importance':
+                    return b.views - a.views;
+                default:
+                    return 0;
+            }
+        }
+
+        function updateSearchResults(query) {
+            const resultsInfo = document.getElementById('resultsInfo');
+            
+            if (query) {
+                resultsInfo.innerHTML = `搜索"<strong>${query}</strong>"找到 <strong>${filteredDocuments.length}</strong> 条相关信息`;
+            } else {
+                resultsInfo.innerHTML = `共找到 <strong>${filteredDocuments.length}</strong> 条相关信息`;
+            }
+        }
+
+        function renderDocuments() {
+            const container = document.getElementById('documentList');
+            const noResults = document.getElementById('noResults');
+            
+            if (filteredDocuments.length === 0) {
+                container.style.display = 'none';
+                noResults.style.display = 'block';
+                return;
+            }
+
+            container.style.display = 'flex';
+            noResults.style.display = 'none';
+            
+            // Add staggered animation
+            container.innerHTML = filteredDocuments.map((doc, index) => 
+                createDocumentItem(doc, index)
+            ).join('');
+            
+            // Trigger animation
+            setTimeout(() => {
+                const items = container.querySelectorAll('.document-item');
+                items.forEach((item, index) => {
+                    setTimeout(() => {
+                        item.style.opacity = '1';
+                        item.style.transform = 'translateY(0)';
+                    }, index * 100);
+                });
+            }, 50);
+        }
+
+        function createDocumentItem(doc, index) {
+            const tagClass = {
+                'law': 'tag-law',
+                'policy': 'tag-policy', 
+                'case': 'tag-guide',
+                'internal': 'tag-internal',
+                'interpretation': 'tag-guide'
+            };
+
+            const tagsHtml = doc.tags.map(tag => {
+                const className = tagClass[doc.category] || 'tag-policy';
+                return `<span class="tag ${className}">${tag}</span>`;
+            }).join('');
+
+            // Add semantic score indicator if semantic search is enabled
+            const semanticScoreHtml = isSemanticSearchEnabled && doc.semanticScore ? 
+                `<div style="display: inline-flex; align-items: center; gap: 0.25rem; color: var(--success); font-size: 0.75rem; font-weight: 600;">
+                    <i>🧠</i> 相关度: ${Math.round(doc.semanticScore)}%
+                </div>` : '';
+
+            return `
+                <div class="document-item" style="opacity: 0; transform: translateY(20px); transition: all 0.4s ease;">
+                    <div class="document-item-content">
+                        <div class="document-icon">📄</div>
+                        <div class="document-main-content">
+                            <div class="document-header">
+                                <h3 class="document-title"><a href="${doc.url}">${doc.title}</a></h3>
+                                <div class="document-meta">
+                                    <span><i>📅</i> ${doc.date}</span>
+                                    <span><i>🏢</i> ${doc.source}</span>
+                                    <span><i>👁</i> ${doc.views.toLocaleString()} 阅读</span>
+                                    ${semanticScoreHtml}
+                                </div>
+                            </div>
+                            <p class="document-summary">${doc.summary}</p>
+                            <div class="document-footer">
+                                <div class="document-tags">
+                                    ${tagsHtml}
+                                </div>
+                                <div class="document-actions">
+                                    <button class="btn btn-secondary" onclick="viewDocument('${doc.id}')"><i>👁</i> 查看</button>
+                                    <button class="btn btn-secondary" onclick="downloadDocument('${doc.id}')"><i>📥</i> 下载</button>
+                                    <button class="btn btn-secondary" onclick="collectDocument('${doc.id}')"><i>⭐</i> 收藏</button>
+                                    <button class="btn btn-secondary btn-edit" onclick="editDocument('${doc.id}', '${doc.title}')"><i>✏️</i> 编辑</button>
+                                    <button class="btn btn-secondary" onclick="removeDocument('${doc.id}')"><i>🗑️</i> 移除</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showLoading() {
+            const container = document.getElementById('documentList');
+            const loading = document.getElementById('loadingOverlay');
+            const noResults = document.getElementById('noResults');
+            
+            container.style.display = 'none';
+            noResults.style.display = 'none';
+            loading.style.display = 'block';
+        }
+
+        function hideLoading() {
+            const loading = document.getElementById('loadingOverlay');
+            loading.style.display = 'none';
+        }
+
+        // Enhanced advanced search toggle
+        function toggleAdvancedSearch() {
+            const filters = document.getElementById('advancedSearchOptions');
+            const button = document.getElementById('advancedSearchToggle');
+            
+            isAdvancedSearchVisible = !isAdvancedSearchVisible;
+            
+            if (isAdvancedSearchVisible) {
+                filters.style.display = 'flex'; // Changed from 'grid' to 'flex'
+                filters.style.opacity = '0';
+                filters.style.transform = 'translateY(-10px)';
+                
+                // Animate in
+                setTimeout(() => {
+                    filters.style.transition = 'all 0.3s ease';
+                    filters.style.opacity = '1';
+                    filters.style.transform = 'translateY(0)';
+                }, 50);
+                
+                button.innerHTML = '<i>⚙️</i> 收起筛选';
+                button.classList.add('active');
+            } else {
+                filters.style.transition = 'all 0.3s ease';
+                filters.style.opacity = '0';
+                filters.style.transform = 'translateY(-10px)';
+                
+                setTimeout(() => {
+                    filters.style.display = 'none';
+                }, 300);
+                
+                button.innerHTML = '<i>⚙️</i> 高级筛选';
+                button.classList.remove('active');
+            }
+        }
+
+        // Enhanced semantic search toggle
+        function toggleSemanticSearch() {
+            isSemanticSearchEnabled = !isSemanticSearchEnabled;
+            const button = document.getElementById('semanticSearchToggle');
+            const info = document.getElementById('searchModeInfo');
+            
+            if (isSemanticSearchEnabled) {
+                button.innerHTML = '<i>🧠</i> 智能搜索 (开启)';
+                button.classList.add('active');
+                
+                info.style.display = 'block';
+                info.style.opacity = '0';
+                info.style.transform = 'translateY(-10px)';
+                
+                setTimeout(() => {
+                    info.style.transition = 'all 0.3s ease';
+                    info.style.opacity = '1';
+                    info.style.transform = 'translateY(0)';
+                }, 50);
+                
+                showNotification('智能搜索已开启，将使用AI语义匹配', 'success');
+            } else {
+                button.innerHTML = '<i>🧠</i> 智能搜索';
+                button.classList.remove('active');
+                
+                info.style.transition = 'all 0.3s ease';
+                info.style.opacity = '0';
+                info.style.transform = 'translateY(-10px)';
+                
+                setTimeout(() => {
+                    info.style.display = 'none';
+                }, 300);
+                
+                showNotification('智能搜索已关闭', 'info');
+            }
+            
+            // Re-run search if there's an active query
+            const query = document.getElementById('searchInput').value.trim();
+            if (query) {
+                performSearch();
+            }
+        }
+
+        function viewDocument(docId) {
+            const doc = documentData.find(d => d.id === docId);
+            if (doc) {
+                showNotification(`正在打开: ${doc.title}`, 'info');
+                setTimeout(() => {
+                    window.open(doc.url, '_blank');
+                }, 500);
+            }
+        }
+
+        function downloadDocument(docId) {
+            const doc = documentData.find(d => d.id === docId);
+            console.log('下载文档:', doc?.title);
+            showNotification(`正在准备下载: ${doc?.title}`, 'info');
+            
+            // Simulate download progress
+            setTimeout(() => {
+                showNotification(`下载已开始: ${doc?.title}`, 'success');
+            }, 1500);
+        }
+
+        function collectDocument(docId) {
+            const btn = event.target.closest('button');
+            const doc = documentData.find(d => d.id === docId);
+            
+            if (btn.innerHTML.includes('⭐')) {
+                btn.innerHTML = '<i>✅</i> 已收藏';
+                btn.classList.add('active');
+                console.log('收藏文档:', doc?.title);
+                showNotification(`已收藏: ${doc?.title}`, 'success');
+            } else {
+                btn.innerHTML = '<i>⭐</i> 收藏';
+                btn.classList.remove('active');
+                showNotification(`已取消收藏: ${doc?.title}`, 'info');
+            }
+        }
+
+        function removeDocument(docId) {
+            const doc = documentData.find(d => d.id === docId);
+            if (!doc) return;
+            
+            // Show confirmation dialog
+            if (confirm(`确定要移除文档"${doc.title}"吗？此操作不可撤销。`)) {
+                console.log('移除文档:', doc.title);
+                
+                // Add removal animation to the document item
+                const documentItem = event.target.closest('.document-item');
+                if (documentItem) {
+                    documentItem.style.transition = 'all 0.4s ease';
+                    documentItem.style.transform = 'translateX(-100%) scale(0.9)';
+                    documentItem.style.opacity = '0';
+                    
+                    // Remove from document data and re-render after animation
+                    setTimeout(() => {
+                        // Remove from documentData array
+                        const docIndex = documentData.findIndex(d => d.id === docId);
+                        if (docIndex !== -1) {
+                            documentData.splice(docIndex, 1);
+                        }
+                        
+                        // Remove from filteredDocuments array
+                        const filteredIndex = filteredDocuments.findIndex(d => d.id === docId);
+                        if (filteredIndex !== -1) {
+                            filteredDocuments.splice(filteredIndex, 1);
+                        }
+                        
+                        // Update display
+                        renderDocuments();
+                        updateSearchResults(document.getElementById('searchInput').value.trim());
+                        
+                        showNotification(`文档"${doc.title}"已移除`, 'success');
+                    }, 400);
+                } else {
+                    // Fallback if animation element not found
+                    const docIndex = documentData.findIndex(d => d.id === docId);
+                    if (docIndex !== -1) {
+                        documentData.splice(docIndex, 1);
+                    }
+                    
+                    const filteredIndex = filteredDocuments.findIndex(d => d.id === docId);
+                    if (filteredIndex !== -1) {
+                        filteredDocuments.splice(filteredIndex, 1);
+                    }
+                    
+                    renderDocuments();
+                    updateSearchResults(document.getElementById('searchInput').value.trim());
+                    showNotification(`文档"${doc.title}"已移除`, 'success');
+                }
+            }
+        }
+
+        // Enhanced notification system
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = 'custom-notification';
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 1rem 1.25rem;
+                border-radius: 12px;
+                color: white;
+                font-size: 0.875rem;
+                font-weight: 500;
+                z-index: 2000;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+                opacity: 0;
+                transform: translateX(100%) scale(0.9);
+                transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255,255,255,0.1);
+                max-width: 300px;
+            `;
+            
+            let bgColor = 'rgba(245, 158, 11, 0.9)'; // primary with transparency
+            let icon = '📝';
+            
+            switch(type) {
+                case 'success': 
+                    bgColor = 'rgba(16, 185, 129, 0.9)'; 
+                    icon = '✅';
+                    break;
+                case 'warning': 
+                    bgColor = 'rgba(245, 158, 11, 0.9)'; 
+                    icon = '⚠️';
+                    break;
+                case 'error': 
+                    bgColor = 'rgba(239, 68, 68, 0.9)'; 
+                    icon = '❌';
+                    break;
+                case 'info':
+                default:
+                    bgColor = 'rgba(59, 130, 246, 0.9)';
+                    icon = 'ℹ️';
+                    break;
+            }
+            
+            notification.style.background = bgColor;
+            notification.innerHTML = `<span style="margin-right: 0.5rem;">${icon}</span>${message}`;
+            document.body.appendChild(notification);
+
+            // Animate in
+            setTimeout(() => {
+                notification.style.opacity = '1';
+                notification.style.transform = 'translateX(0) scale(1)';
+            }, 50);
+
+            // Animate out
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100%) scale(0.9)';
+                setTimeout(() => notification.remove(), 400);
+            }, 3000);
+        }
+
+        // Placeholder function for the new Edit button
+        function editDocument(docId, docTitle) {
+            console.log(`尝试编辑文档: ${docTitle} (ID: ${docId}). 此处将触发文件上传流程。`);
+            
+            // Create file input element
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = '.pdf,.doc,.docx,.txt'; // Specify acceptable file types
+            fileInput.style.display = 'none';
+            
+            fileInput.onchange = (event) => {
+                const file = event.target.files[0];
+                if (file) {
+                    // Validate file
+                    if (validateFile(file)) {
+                        startFileUpload(docId, docTitle, file);
+                    }
+                } else {
+                    showNotification('未选择文件', 'warning');
+                }
+                // Remove the file input from DOM
+                document.body.removeChild(fileInput);
+            };
+            
+            // Add to DOM and trigger click
+            document.body.appendChild(fileInput);
+            fileInput.click();
+        }
+
+        // File validation function
+        function validateFile(file) {
+            const maxSize = 10 * 1024 * 1024; // 10MB
+            const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'];
+            
+            // Check file size
+            if (file.size > maxSize) {
+                showNotification('文件大小不能超过10MB', 'error');
+                return false;
+            }
+            
+            // Check file type
+            if (!allowedTypes.includes(file.type)) {
+                showNotification('仅支持PDF、DOC、DOCX、TXT格式的文件', 'error');
+                return false;
+            }
+            
+            return true;
+        }
+
+        // Start file upload process
+        function startFileUpload(docId, docTitle, file) {
+            showNotification(`开始上传 "${file.name}" 更新文档 "${docTitle}"`, 'info');
+            
+            // Create upload progress modal
+            const uploadModal = createUploadModal(docTitle, file.name);
+            document.body.appendChild(uploadModal);
+            
+            // Simulate upload process
+            simulateFileUpload(docId, docTitle, file, uploadModal);
+        }
+
+        // Create upload progress modal
+        function createUploadModal(docTitle, fileName) {
+            const modal = document.createElement('div');
+            modal.className = 'upload-modal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 3000;
+                animation: fadeIn 0.3s ease;
+            `;
+            
+            const modalContent = document.createElement('div');
+            modalContent.style.cssText = `
+                background: var(--surface);
+                border-radius: 12px;
+                padding: 2rem;
+                max-width: 500px;
+                width: 90%;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+                text-align: center;
+                border: 1px solid var(--border);
+            `;
+            
+            modalContent.innerHTML = `
+                <div style="margin-bottom: 1.5rem;">
+                    <div style="width: 60px; height: 60px; background: rgba(var(--primary-rgb), 0.1); border-radius: 50%; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: var(--primary);">📄</div>
+                    <h3 style="font-size: 1.25rem; font-weight: 500; color: var(--text); margin-bottom: 0.5rem;">正在更新文档</h3>
+                    <p style="color: var(--text-light); font-size: 0.875rem; margin-bottom: 0.25rem;">文档: ${docTitle}</p>
+                    <p style="color: var(--text-light); font-size: 0.875rem;">文件: ${fileName}</p>
+                </div>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <div class="upload-progress-bar" style="width: 100%; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden;">
+                        <div class="upload-progress-fill" style="width: 0%; height: 100%; background: var(--primary); transition: width 0.3s ease; border-radius: 4px;"></div>
+                    </div>
+                    <div class="upload-progress-text" style="margin-top: 0.75rem; font-size: 0.875rem; color: var(--text-light);">准备上传...</div>
+                </div>
+                
+                <div class="upload-status" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; font-size: 0.875rem; color: var(--text-light);">
+                    <div class="upload-spinner" style="width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                    <span>正在处理...</span>
+                </div>
+            `;
+            
+            modal.appendChild(modalContent);
+            return modal;
+        }
+
+        // Simulate file upload with progress
+        function simulateFileUpload(docId, docTitle, file, modal) {
+            const progressFill = modal.querySelector('.upload-progress-fill');
+            const progressText = modal.querySelector('.upload-progress-text');
+            const statusElement = modal.querySelector('.upload-status');
+            
+            let progress = 0;
+            const totalSteps = 100;
+            const uploadInterval = setInterval(() => {
+                progress += Math.random() * 15 + 5; // Random progress increment
+                
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(uploadInterval);
+                    
+                    // Update progress bar and text
+                    progressFill.style.width = '100%';
+                    progressText.textContent = '上传完成';
+                    
+                    // Show processing status
+                    statusElement.innerHTML = `
+                        <div class="upload-spinner" style="width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--success); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                        <span style="color: var(--success);">正在验证和更新合规数据...</span>
+                    `;
+                    
+                    // Simulate processing time
+                    setTimeout(() => {
+                        completeUpload(docId, docTitle, file, modal);
+                    }, 2000);
+                } else {
+                    progressFill.style.width = progress + '%';
+                    progressText.textContent = `上传进度: ${Math.round(progress)}%`;
+                }
+            }, 200);
+        }
+
+        // Complete upload process
+        function completeUpload(docId, docTitle, file, modal) {
+            const statusElement = modal.querySelector('.upload-status');
+            
+            // Show success status
+            statusElement.innerHTML = `
+                <div style="color: var(--success); font-size: 1.5rem;">✅</div>
+                <span style="color: var(--success); font-weight: 500;">文档更新成功！</span>
+            `;
+            
+            // Update document metadata in the UI
+            updateDocumentInUI(docId, file);
+            
+            // Close modal after delay
+            setTimeout(() => {
+                modal.style.animation = 'fadeOut 0.3s ease';
+                setTimeout(() => {
+                    if (modal.parentNode) {
+                        document.body.removeChild(modal);
+                    }
+                }, 300);
+                
+                // Show success notification
+                showNotification(`文档 "${docTitle}" 已成功更新，合规数据已同步`, 'success');
+                
+                // Log completion
+                console.log(`文档更新完成: ${docTitle} (ID: ${docId}), 新文件: ${file.name}`);
+            }, 1500);
+        }
+
+        // Update document metadata in UI
+        function updateDocumentInUI(docId, file) {
+            // Find the document in the documentData array
+            const docIndex = documentData.findIndex(doc => doc.id === docId);
+            if (docIndex !== -1) {
+                // Update the document's metadata
+                const currentDate = new Date().toISOString().split('T')[0];
+                documentData[docIndex].date = currentDate;
+                documentData[docIndex].summary = `文档已更新 (${file.name}) - ` + documentData[docIndex].summary.substring(0, 100) + '...';
+                
+                // Re-render the documents to show updated information
+                renderDocuments();
+                
+                // Add visual indicator for recently updated document
+                setTimeout(() => {
+                    const documentItems = document.querySelectorAll('.document-item');
+                    const updatedItem = Array.from(documentItems).find(item => {
+                        const viewButton = item.querySelector('[onclick*="' + docId + '"]');
+                        return viewButton !== null;
+                    });
+                    
+                    if (updatedItem) {
+                        updatedItem.style.border = '2px solid var(--success)';
+                        updatedItem.style.background = 'rgba(var(--success-rgb, 16, 185, 129), 0.05)';
+                        
+                        // Add "recently updated" badge
+                        const badge = document.createElement('div');
+                        badge.style.cssText = `
+                            position: absolute;
+                            top: 10px;
+                            right: 10px;
+                            background: var(--success);
+                            color: white;
+                            padding: 0.25rem 0.5rem;
+                            border-radius: 4px;
+                            font-size: 0.75rem;
+                            font-weight: 500;
+                            z-index: 10;
+                        `;
+                        badge.textContent = '刚刚更新';
+                        updatedItem.style.position = 'relative';
+                        updatedItem.appendChild(badge);
+                        
+                        // Remove highlighting after a few seconds
+                        setTimeout(() => {
+                            updatedItem.style.border = '';
+                            updatedItem.style.background = '';
+                            if (badge.parentNode) {
+                                badge.remove();
+                            }
+                        }, 5000);
+                    }
+                }, 100);
+            }
+        }
+
+        // Event listeners with enhanced functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('大家智库信息页面已加载');
+
+            const advancedSearchButton = document.getElementById('advancedSearchToggle');
+            // const advancedSearchOptions = document.getElementById('advancedSearchOptions'); // Already visible via CSS if inline style is removed
+
+            // Set initial state for Advanced Search button (open by default)
+            if (isAdvancedSearchVisible) { 
+                advancedSearchButton.innerHTML = '<i>⚙️</i> 收起筛选';
+                advancedSearchButton.classList.add('active');
+            }
+            
+            // Set up search form with enhanced handling
+            document.getElementById('searchForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                performSearch();
+            });
+
+            // Enhanced search input with debouncing
+            let searchTimeout;
+            document.getElementById('searchInput').addEventListener('input', function(e) {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    const query = e.target.value.trim();
+                    if (query.length >= 2) {
+                        performSearch();
+                    } else if (query.length === 0) {
+                        // Reset to show all documents
+                        filteredDocuments = [...documentData];
+                        renderDocuments();
+                        updateSearchResults('');
+                    }
+                }, 500);
+            });
+
+            // Set up advanced search toggle with enhanced animation
+            document.getElementById('advancedSearchToggle').addEventListener('click', toggleAdvancedSearch);
+
+            // Set up semantic search toggle with enhanced feedback
+            document.getElementById('semanticSearchToggle').addEventListener('click', toggleSemanticSearch);
+
+            // Set up filter change handlers with immediate feedback
+            ['filterCategory', 'filterDate', 'filterSource', 'filterSort'].forEach(filterId => {
+                document.getElementById(filterId).addEventListener('change', () => {
+                    showNotification('筛选条件已更新', 'info');
+                    setTimeout(performSearch, 200);
+                });
+            });
+
+            // Enhanced keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                // Ctrl/Cmd + K to focus search
+                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                    e.preventDefault();
+                    document.getElementById('searchInput').focus();
+                    showNotification('搜索框已激活', 'info');
+                }
+                
+                // Escape to clear search
+                if (e.key === 'Escape') {
+                    const searchInput = document.getElementById('searchInput');
+                    if (searchInput.value) {
+                        searchInput.value = '';
+                        filteredDocuments = [...documentData];
+                        renderDocuments();
+                        updateSearchResults('');
+                        showNotification('搜索已清空', 'info');
+                    }
+                }
+            });
+
+            // Initial render with animation
+            setTimeout(() => {
+                renderDocuments();
+                updateSearchResults('');
+                showNotification('大家智库信息已加载完成', 'success');
+            }, 300);
+        });
+    </script>
+</body>
+</html>

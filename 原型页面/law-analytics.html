@@ -1,0 +1,1945 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>首页概览 - 法律合规智能系统</title>
+    <style>
+        :root {
+            --primary: #f59e0b; /* Gold/Yellow */
+            --primary-light: #fbbf24;
+            --primary-dark: #d97706;
+            --primary-rgb: 245, 158, 11; /* Added for rgba consistency */
+            --success: #10b981; 
+            --warning: #f59e0b; /* Consistent with primary for this theme */
+            --danger: #ef4444;
+            --danger-rgb: 239, 68, 68; /* Added for rgba consistency */
+            --background: #f7f7f7; /* Light gray background */
+            --surface: #ffffff;   /* White for card backgrounds, headers */
+            --text: #202124;      /* Dark gray for main text */
+            --text-light: #5f6368; /* Lighter gray for secondary text */
+            --border: #dadce0;     /* Subtle border color */
+            --border-light: #e8eaed; /* Even Lighter subtle border */
+            --chart-label-color: var(--text-light);
+            --chart-axis-line-color: var(--border);
+            --chart-split-line-color: var(--border-light);
+            --chart-tooltip-bg: rgba(32, 33, 36, 0.9);
+            --chart-tooltip-text: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: var(--background);
+            color: var(--text);
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        /* Top Navigation Header */
+        .top-header {
+            background: var(--surface);
+            padding: 0.75rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid var(--border);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .top-header-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .top-logo {
+            font-size: 1.375rem;
+            font-weight: 600;
+            color: var(--primary); /* Themed logo */
+            text-decoration: none;
+        }
+        
+        .top-logo i {
+            margin-right: 0.5rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.5rem; /* Adjusted gap */
+            align-items: center;
+        }
+
+        .nav-link {
+            color: var(--text-light);
+            text-decoration: none;
+            transition: color 0.2s ease, border-color 0.2s ease;
+            padding: 0.6rem 0.25rem;
+            border-bottom: 2px solid transparent;
+            font-size: 0.875rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        
+        .nav-link i {
+            font-size: 1rem; /* Adjust icon size if needed */
+        }
+
+        .nav-link:hover {
+            color: var(--primary-dark); /* Align with law-updates */
+            background-color: rgba(var(--primary-rgb), 0.05); /* Align with law-updates */
+            border-bottom-color: transparent; /* Align with law-updates */
+        }
+
+        .nav-link.active {
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+            font-weight: 600;
+        }
+        
+        .nav-link .badge {
+            background: var(--danger);
+            color: white;
+            font-size: 0.65rem;
+            padding: 0.1rem 0.4rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            margin-left: 0.3rem;
+            line-height: 1;
+        }
+
+        .nav-link.active:hover {
+             background-color: transparent; /* Align with law-updates */
+        }
+
+        /* Main Content */
+        .main-content {
+            /* margin-left: 240px; */ /* Removed sidebar margin */
+            padding: 1.5rem;
+            max-width: 1600px; /* Optional: to align with top-header-content */
+            margin: 0 auto; /* Center main content if max-width is set */
+        }
+
+        /* Page Header (below top nav) */
+        .page-header {
+            background: var(--surface);
+            padding: 1.5rem 2rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.07), 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border);
+        }
+
+        .page-header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .page-header h1 {
+            font-size: 1.5rem; /* 24px */
+            font-weight: 600;
+            color: var(--text);
+            margin: 0; /* Removed default margin from h1 */
+            line-height: 1.3; /* Improved line-height */
+        }
+
+        .page-header-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.15s ease-in-out; /* Aligned with law-updates */
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            background: var(--surface);
+            color: var(--text-light); /* Aligned with law-updates for secondary/default */
+            font-family: inherit;
+        }
+        
+        .btn i { /* Icon styling within buttons */
+            font-size: 0.875rem; /* Match text size or adjust */
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            border-color: var(--primary-dark);
+            transform: translateY(-1px); /* Added effect */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05); /* Added effect */
+        }
+
+        .btn-secondary {
+            background: var(--surface);
+            color: var(--text-light); /* For secondary actions */
+            border-color: var(--border);
+        }
+
+        .btn-secondary:hover {
+            background-color: rgba(var(--primary-rgb), 0.07); /* Aligned with law-updates */
+            border-color: var(--primary-light);
+            color: var(--primary-dark);
+            transform: translateY(-1px); /* Added effect */
+        }
+
+        /* Time Range Selector */
+        .time-range {
+            display: flex;
+            background: var(--border-light); /* Lighter background for the group */
+            border-radius: 6px;
+            padding: 0.25rem;
+            gap: 0.25rem;
+        }
+
+        .time-btn {
+            padding: 0.5rem 0.75rem;
+            background: transparent;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8125rem; /* 13px */
+            font-weight: 500;
+            transition: all 0.15s ease-in-out; /* Aligned transition */
+            color: var(--text-light);
+            font-family: inherit; /* Added for consistency */
+        }
+
+        .time-btn:hover {
+            background: rgba(var(--primary-rgb), 0.08); /* Aligned with filter-tab hover */
+            color: var(--primary-dark);
+        }
+
+        .time-btn.active {
+            background: var(--primary); /* Aligned with filter-tab active */
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1); /* Aligned with filter-tab active */
+        }
+
+        /* Stats Cards Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(calc(50% - 0.75rem), 1fr)); /* To ensure two cards fit well */
+            gap: 1.5rem;
+            margin-bottom: 2rem; /* Increased margin */
+        }
+
+        /* New styles for the three-column top row */
+        .dashboard-top-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* Changed from 1fr 1fr 2fr to 1fr 1fr for two main columns */
+            gap: 1.5rem;
+            margin-bottom: 1.5rem; /* Space before the next chart section */
+            align-items: stretch; /* Changed from start to stretch for bottom alignment */
+        }
+
+        /* New style for the left panel in the top row */
+        .dashboard-left-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem; /* Space between the stat cards group and the table below */
+        }
+
+        /* New style for the container of the two top stat cards */
+        .top-stat-cards-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* Two stat cards side-by-side */
+            gap: 1.5rem;
+        }
+
+        .dashboard-top-row .stat-card,
+        .dashboard-top-row .chart-card {
+            /* height: 100%; REMOVED - Cards will take natural height */
+        }
+
+        .stat-card {
+            background: var(--surface);
+            padding: 1.5rem; /* Maintained padding */
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05), 0 0px 1px 0 rgba(0, 0, 0, 0.03); /* Softer shadow */
+            transition: all 0.2s ease-in-out; /* Smoother transition */
+            display: flex;
+            align-items: center; /* Vertically center icon and text block */
+            gap: 1.25rem; /* Adjusted gap */
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px); /* Consistent hover effect */
+            border-color: var(--primary-light);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.07), 0 2px 6px rgba(0,0,0,0.05); /* Refined hover shadow */
+        }
+        
+        .stat-icon {
+            flex-shrink: 0;
+            width: 3rem; /* 48px */
+            height: 3rem; /* 48px */
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem; /* 24px Icon size */
+            /* Specific background and color will be applied by .updates or .manual-review */
+        }
+        
+        .stat-icon.updates { /* Specific style for updates icon */
+            background-color: rgba(var(--primary-rgb), 0.1);
+            color: var(--primary);
+        }
+        .stat-icon.manual-review { /* Specific style for manual review icon */
+            background-color: rgba(var(--danger-rgb), 0.1);
+            color: var(--danger);
+        }
+
+        .stat-info {
+            flex-grow: 1; /* Ensure stat-info takes available space */
+            /* display: flex; and flex-direction: column; are not needed if .stat-value and .stat-label are block */
+        }
+
+        .stat-value {
+            font-size: 1.75rem; /* 28px, slightly larger for emphasis */
+            font-weight: 600;
+            color: var(--text);
+            line-height: 1.2;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.875rem; /* 14px */
+            color: var(--text-light);
+            line-height: 1.4;
+             /* margin-top: 0.25rem; Removed as margin-bottom on .stat-value handles spacing */
+        }
+        
+        .stat-card .stat-change { /* Style for trend indicators, if any */
+            font-size: 0.8125rem;
+            margin-left: 0.5rem;
+        }
+        .stat-card .stat-change.positive {
+            color: var(--success);
+        }
+        .stat-card .stat-change.negative {
+            color: var(--danger);
+        }
+
+        /* Charts Section */
+        .charts-section {
+            display: grid;
+            grid-template-columns: 1fr; /* Default to single column for charts, can be overridden by specific page layouts */
+            gap: 1.5rem;
+            /* margin-bottom: 1.5rem; */ /* Already applied to stats-grid, or apply here if charts are last element */
+        }
+
+        /* New style for the two-column chart grid */
+        .two-column-chart-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            /* We might not need margin-bottom here if charts-section gap handles it */
+        }
+
+        /* Style for individual chart cards */
+        .chart-card {
+            background: var(--surface);
+            padding: 1.5rem; /* Consistent padding */
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05), 0 0px 1px 0 rgba(0, 0, 0, 0.03); /* Softer shadow */
+            transition: all 0.2s ease-in-out;
+            display: flex; /* Added to allow vertical flex for header and container */
+            flex-direction: column; /* Stack header and container */
+        }
+
+        .chart-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary-light); /* Use a subtle highlight */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.07), 0 2px 6px rgba(0,0,0,0.05);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem; /* Increased margin */
+            padding-bottom: 0.75rem; /* Added padding */
+            border-bottom: 1px solid var(--border-light); /* Subtle separator */
+            flex-shrink: 0; /* Prevent header from shrinking */
+        }
+
+        .chart-title {
+            font-size: 1.125rem; /* 18px */
+            font-weight: 600;
+            color: var(--text);
+            margin: 0; /* Reset margin */
+        }
+
+        .chart-actions { /* For dropdowns or buttons next to chart title */
+            display: flex;
+            gap: 0.5rem;
+        }
+        .chart-actions .btn, .chart-actions select.btn { /* Make buttons/selects in chart headers smaller */
+            padding: 0.375rem 0.75rem; /* Smaller padding */
+            font-size: 0.8125rem; /* Smaller font */
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 320px; /* Default height, can be overridden */
+            position: relative; /* For potential overlays or tooltips */
+            flex-grow: 1; /* Allow chart container to take remaining space */
+        }
+        
+        #complianceTrendCard > .chart-container { /* Specific height for the trend chart */
+            height: 350px;
+        }
+        
+        /* === END: Review Item Styles === */
+
+        /* === START: Review Item Styles (Top 5 Manual Review Section) === */
+        /* This block is designed to make .review-item look like items in law-db.html */
+
+        .review-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start; /* Align items to the top for consistent vertical alignment */
+            padding: 1rem 0; /* Vertical padding similar to table cells, horizontal handled by hover/children */
+            border-bottom: 1px solid var(--border-light);
+            transition: all 0.2s ease-in-out;
+            gap: 1rem; /* Add gap between sections */
+        }
+
+        .review-item:last-child {
+            border-bottom: none;
+        }
+
+        .review-item:hover {
+            background-color: rgba(var(--primary-rgb), 0.03);
+            border-radius: 6px;
+            margin: 0 -0.75rem;
+            padding: 1rem 0.75rem;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+        }
+
+        .review-content { /* Holds title and subtitle */
+            flex-grow: 1;
+            margin-right: 0.5rem; /* Reduced margin */
+            min-width: 0; /* Allow flex item to shrink */
+        }
+
+        .review-title {
+            font-weight: 500;
+            color: var(--text);
+            font-size: 0.875rem; /* 14px */
+            line-height: 1.4;
+            margin-bottom: 0.25rem;
+        }
+
+        .review-subtitle {
+            font-size: 0.75rem; /* 12px, matches law-db.html doc number */
+            color: var(--text-light);
+            line-height: 1.3;
+        }
+
+        .review-info { /* Holds category tag and source */
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.375rem;
+            flex-shrink: 0;
+            min-width: 90px; /* Ensure enough space */
+        }
+
+        .review-category {
+            /* Category tag styles - matching law-db.html */
+            padding: 0.25rem 0.625rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            border: 1px solid transparent;
+            white-space: nowrap;
+        }
+
+        .review-category.tag-law { 
+            background-color: rgba(239, 68, 68, 0.1); 
+            color: var(--danger); 
+            border-color: rgba(239, 68, 68, 0.3); 
+        }
+        .review-category.tag-policy { 
+            background-color: rgba(245, 158, 11, 0.1); 
+            color: var(--warning); 
+            border-color: rgba(245, 158, 11, 0.3); 
+        }
+        .review-category.tag-internal { 
+            background-color: rgba(16, 185, 129, 0.1); 
+            color: var(--success); 
+            border-color: rgba(16, 185, 129, 0.3); 
+        }
+
+        .review-source {
+            font-size: 0.75rem;
+            color: var(--text-light);
+            white-space: nowrap;
+        }
+
+        .review-meta { /* Holds date and status badge */
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end; /* Align badge/date to the right */
+            gap: 0.375rem; /* Space between date and badge */
+            flex-shrink: 0; /* Prevent shrinking */
+            min-width: 95px; /* Ensure enough space for badge and date */
+            text-align: right;
+        }
+
+        .review-date {
+            font-size: 0.75rem; /* 12px, consistent with subtitle */
+            color: var(--text-light);
+            white-space: nowrap;
+            order: 1; /* Put date first (top) */
+        }
+
+        /* Status badge styling - Main definition, matches law-db.html */
+        .status-badge {
+            padding: 0.25rem 0.625rem; /* 4px 10px */
+            border-radius: 1rem; /* Rounded */
+            font-size: 0.75rem; /* 12px */
+            font-weight: 500;
+            line-height: 1.2;
+            text-align: center;
+            white-space: nowrap;
+            display: inline-block;
+            transition: all 0.15s ease-in-out;
+            border: 1px solid transparent; /* Base for colored borders */
+            order: 2; /* Put status badge second (bottom) */
+        }
+
+        .status-badge.status-pending {
+            background-color: rgba(var(--primary-rgb), 0.1);
+            color: var(--primary-dark); /* #d97706 */
+            border-color: rgba(var(--primary-rgb), 0.2);
+        }
+
+        .status-badge.status-approved {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: #059669; /* Darker green from law-db.html */
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+
+        .status-badge.status-rejected {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: #dc2626; /* Darker red from law-db.html */
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+        /* === END: Review Item Styles === */
+
+        /* Table Section Styles (from law-db.html) */
+        .table-section {
+            background: var(--surface);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.07), 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+            overflow: hidden; 
+        }
+
+        .table-controls {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .table-controls input[type="search"] {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.875rem;
+            min-width: 250px;
+            background: var(--background);
+            color: var(--text);
+        }
+        .table-controls input[type="search"]:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+        }
+
+        .responsive-table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+
+        th, td {
+            padding: 0.875rem 1.5rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-light);
+            color: var(--text);
+            white-space: nowrap;
+        }
+
+        th {
+            background: var(--background);
+            font-weight: 500;
+            color: var(--text-light);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.025em;
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover {
+            background-color: rgba(245, 158, 11, 0.03);
+        }
+
+        .status-badge::before {
+            content: '';
+            width: 0.5rem;
+            height: 0.5rem;
+            border-radius: 50%;
+        }
+
+        .status-pending::before { background-color: var(--warning); }
+        .status-approved::before { background-color: var(--success); }
+        .status-rejected::before { background-color: var(--danger); }
+
+        .tag {
+            padding: 0.25rem 0.625rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            border: 1px solid transparent;
+        }
+        .tag-law { background-color: rgba(239, 68, 68, 0.1); color: var(--danger); border-color: rgba(239, 68, 68, 0.3); }
+        .tag-policy { background-color: rgba(245, 158, 11, 0.1); color: var(--warning); border-color: rgba(245, 158, 11, 0.3); }
+        .tag-internal { background-color: rgba(16, 185, 129, 0.1); color: var(--success); border-color: rgba(16, 185, 129, 0.3); }
+
+        /* Update Items Section (for newest regulatory updates) */
+        .update-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-light);
+            transition: all 0.2s ease-in-out;
+        }
+
+        .update-item:last-child {
+            border-bottom: none;
+        }
+
+        .update-item:hover {
+            background-color: rgba(var(--primary-rgb), 0.03);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+        }
+
+        .update-icon-container {
+            flex-shrink: 0;
+            width: 3rem;
+            height: 3rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .update-icon-container.law {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .update-icon-container.policy {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .update-icon-container.internal {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .update-content {
+            flex-grow: 1;
+            min-width: 0;
+        }
+
+        .update-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+            gap: 1rem;
+        }
+
+        .update-title {
+            font-size: 1rem;
+            font-weight: 500;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .update-title a {
+            color: var(--text);
+            text-decoration: none;
+        }
+
+        .update-title a:hover {
+            color: var(--primary-dark);
+        }
+
+        .update-time {
+            font-size: 0.75rem;
+            color: var(--text-light);
+            white-space: nowrap;
+            margin-left: auto;
+        }
+
+        .update-summary {
+            font-size: 0.875rem;
+            color: var(--text-light);
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .update-tags {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        /* Enhanced chart container for review list */
+        .chart-card .chart-container {
+            padding: 0.5rem 0; /* Add some padding for better visual balance */
+        }
+
+        /* Specific styling for the review list container */
+        .chart-card .chart-container#recentAlertsList {
+            height: auto; /* Allow height to adjust to content */
+            min-height: 200px; /* Minimum height */
+            padding: 0.75rem 0; /* Better padding for list items */
+        }
+
+        /* Specific styling for the latest updates list container */
+        .chart-card .chart-container#latestUpdatesListContainer {
+            height: auto;
+            max-height: 450px; 
+            overflow-y: auto;
+            padding: 0; 
+        }
+
+        /* Original Alert Item Styles (if still used elsewhere, ensure they are correct) */
+        .alert-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border-light);
+            font-size: 0.875rem;
+        }
+        .alert-item:last-child {
+            border-bottom: none;
+        }
+        .alert-item .description {
+            color: var(--text);
+            flex-grow: 1;
+            margin-right: 1rem;
+        }
+        .alert-item .description strong {
+            font-weight: 500;
+        }
+        .alert-item .date {
+            color: var(--text-light);
+            font-size: 0.8125rem;
+            white-space: nowrap;
+        }
+        .alert-item .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 0.75rem;
+            flex-shrink: 0;
+        }
+        .alert-item .status-indicator.high { background-color: var(--danger); }
+        .alert-item .status-indicator.medium { background-color: var(--warning); }
+        .alert-item .status-indicator.low { background-color: var(--success); }
+
+        /* Responsive adjustments */
+        @media (max-width: 992px) { /* Tablet and smaller */
+            .charts-section {
+                grid-template-columns: 1fr; /* Stack charts */
+            }
+        }
+        
+        @media (max-width: 768px) { /* Mobile */
+            .top-header {
+                padding: 0.75rem 1rem;
+            }
+            .top-header-content {
+                flex-direction: column;
+                gap: 0.5rem;
+                align-items: flex-start;
+            }
+            .nav-links {
+                width: 100%;
+                justify-content: space-between;
+                gap: 0.5rem;
+                overflow-x: auto;
+                padding-bottom: 0.5rem;
+            }
+            .nav-link {
+                padding: 0.5rem 0.1rem;
+                font-size: 0.8125rem;
+            }
+            .nav-link i {
+                font-size: 0.9rem;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+
+            .page-header {
+                padding: 1rem 1.5rem;
+            }
+
+            .page-header-top {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            .page-header-actions {
+                width: 100%;
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .time-range {
+                width: 100%;
+                justify-content: space-around;
+            }
+            .time-btn {
+                flex: 1;
+                text-align: center;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            .stat-card {
+                padding: 1.25rem;
+                gap: 1rem;
+            }
+            .stat-icon {
+                width: 2.5rem;
+                height: 2.5rem;
+                font-size: 1.25rem;
+            }
+            .stat-value {
+                font-size: 1.5rem;
+            }
+
+            .charts-section {
+                gap: 1rem;
+            }
+            .chart-card {
+                padding: 1.25rem;
+            }
+            .chart-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.75rem;
+                margin-bottom: 1rem;
+                padding-bottom: 0.5rem;
+            }
+            .chart-actions {
+                width: 100%;
+            }
+            .chart-actions .btn, .chart-actions select.btn {
+                flex-grow: 1;
+                justify-content: center;
+            }
+            .chart-container {
+                height: 280px;
+            }
+
+            /* Override chart container height for review list on mobile */
+            .chart-card .chart-container#recentAlertsList {
+                height: auto;
+                padding: 0.5rem 0;
+            }
+            
+            /* Mobile table styles */
+            .table-controls {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.75rem;
+            }
+            .table-controls input[type="search"] {
+                min-width: 0;
+                width: 100%;
+            }
+            th, td {
+                padding: 0.75rem 1rem;
+                white-space: normal;
+            }
+            .table-actions .btn {
+                margin-bottom: 0.5rem;
+            }
+            
+            /* Mobile update item styles */
+            .update-item {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1rem;
+            }
+            .update-icon-container {
+                align-self: flex-start;
+                margin-bottom: 0.5rem;
+            }
+            .update-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.25rem;
+            }
+            .update-time {
+                margin-left: 0;
+            }
+            
+            /* Mobile alert item styles (different from review items) */
+            .alert-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            .alert-item .description {
+                margin-right: 0;
+            }
+            .alert-item .date {
+                margin-left: 0;
+                align-self: flex-start;
+            }
+            
+            /* Remove old review item mobile styles - no longer needed */
+            /* The old review-item mobile styles have been removed since we're using table now */
+             /* === END: Mobile Review Item Styles === */
+        }
+
+        /* Specific styling for the latest updates list container */
+        .chart-card .chart-container#latestUpdatesListContainer {
+            height: auto;
+            max-height: 450px; 
+            overflow-y: auto;
+            padding: 0; 
+        }
+
+        /* Styles for Key Focus Areas card */
+        .focus-topics-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            justify-content: center; /* Center tags if they don't fill the line */
+            padding: 0.5rem; /* Add some padding inside the container */
+        }
+        .focus-topics-tags .tag {
+            font-size: 0.875rem; /* 14px */
+            padding: 0.5rem 0.875rem; /* 8px 14px */
+        }
+
+        /* Styles for Recently Completed Reviews card */
+        .completed-review-item {
+            display: flex;
+            gap: 1rem; /* Space between icon and content */
+            padding: 0.875rem 1.5rem; /* Vertical and horizontal padding */
+            border-bottom: 1px solid var(--border-light);
+            align-items: center; /* Vertically align icon and text */
+        }
+        .completed-review-item:last-child {
+            border-bottom: none;
+        }
+        .completed-review-icon {
+            flex-shrink: 0;
+            font-size: 1.25rem; /* Adjust icon size as needed */
+        }
+        .completed-review-content {
+            flex-grow: 1;
+            min-width: 0; /* Allow content to shrink if needed */
+        }
+        .completed-review-title {
+            font-weight: 500;
+            font-size: 0.875rem; /* 14px */
+            color: var(--text);
+            margin-bottom: 0.25rem;
+            line-height: 1.4;
+        }
+        .completed-review-meta {
+            font-size: 0.75rem; /* 12px */
+            color: var(--text-light);
+            line-height: 1.3;
+        }
+
+        /* AI Summary Section Styles (copied from law-updates.html) */
+        .ai-summary-section {
+            margin-top: 1.25rem; /* Added margin-top for spacing from summary */
+            margin-bottom: 1rem; /* Added margin-bottom for spacing before tags */
+            padding: 1rem 1.25rem;
+            background-color: rgba(var(--primary-rgb, 245, 158, 11), 0.03);
+            border-radius: 6px;
+            border: 1px solid rgba(var(--primary-rgb, 245, 158, 11), 0.1);
+        }
+
+        .ai-summary-title {
+            font-size: 1rem; /* 16px */
+            font-weight: 600;
+            color: var(--primary-dark);
+            margin-bottom: 0.75rem;
+        }
+
+        .ai-summary-list {
+            list-style-type: none;
+            padding-left: 0;
+            margin-bottom: 0; /* Remove bottom margin if it's the last element in its container */
+        }
+
+        .ai-summary-list li {
+            font-size: 0.875rem; /* 14px */
+            color: var(--text-light);
+            margin-bottom: 0.625rem; /* 10px */
+            line-height: 1.6;
+            position: relative;
+            padding-left: 1.375rem; /* 22px for bullet */
+        }
+
+        .ai-summary-list li:last-child {
+            margin-bottom: 0;
+        }
+
+        .ai-summary-list li::before {
+            content: "▹"; /* Using a triangle bullet */
+            position: absolute;
+            left: 0;
+            top: 2px; /* Adjust vertical alignment of bullet */
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 0.875rem; /* Match li font size or slightly larger */
+        }
+
+        .ai-summary-list li strong {
+            font-weight: 500;
+            color: var(--text); /* Make bolded text slightly darker */
+        }
+    </style>
+</head>
+<body>
+    <header class="top-header">
+        <div class="top-header-content">
+            <a href="law-analytics.html" class="top-logo"><i>⚖️</i>法律合规智能系统</a>
+            <nav class="nav-links">
+                <a href="law-analytics.html" class="nav-link active"><i>🏠</i>首页概览</a>
+                <a href="law-knowledge.html" class="nav-link"><i>📚</i>大家智库</a>
+                <a href="law-updates.html" class="nav-link"><i>📰</i>法规更新 <span class="badge">23</span></a>
+                <a href="law-db.html" class="nav-link"><i>✏️</i>人工审核 <span class="badge">23</span></a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="main-content">
+        <div class="page-header">
+            <div class="page-header-top">
+                <h1>首页概览仪表盘</h1>
+                <div class="page-header-actions">
+                    <div class="time-range" id="timeRangeSelector">
+                        <button class="time-btn active" data-range="month">本月</button>
+                        <button class="time-btn" data-range="quarter">本季</button>
+                        <button class="time-btn" data-range="year">本年</button>
+                    </div>
+                    <button class="btn btn-secondary" id="exportReportBtn"><i>📄</i> 导出报告</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-top-row">
+            <div class="dashboard-left-panel"> <!-- New wrapper for left column -->
+                <div class="top-stat-cards-container"> <!-- New wrapper for the two stat cards -->
+                    <div class="stat-card">
+                        <div class="stat-icon updates">📰</div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="regulatoryUpdatesCount">0</div>
+                            <div class="stat-label">本月法规更新</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon manual-review">✏️</div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="manualReviewCount">0</div>
+                            <div class="stat-label">待人工审核</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-card" id="completedReviewsCard"> <!-- MOVED HERE -->
+                    <div class="chart-header">
+                        <h2 class="chart-title">近期完成审核</h2>
+                        <div class="chart-actions">
+                            <a href="law-db.html?status=completed" class="btn btn-secondary btn-sm"><i>📖</i> 查看历史记录</a>
+                        </div>
+                    </div>
+                    <div class="chart-container" id="completedReviewsContainer" style="height: auto; max-height: 320px; overflow-y: auto; padding:0;">
+                        <!-- Completed items will be dynamically inserted or mocked here -->
+                    </div>
+                </div>
+            </div>
+            <div class="chart-card" id="complianceTrendCard">
+                <div class="chart-header">
+                    <h2 class="chart-title">法规更新趋势</h2>
+                    <div class="chart-actions">
+                        <select id="complianceTrendFilter" class="btn btn-secondary" style="padding-right: 2rem; min-width: 100px;">
+                            <option value="monthly">月度</option>
+                            <option value="quarterly">季度</option>
+                            <option value="annually">年度</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <div id="trendChart" style="width: 100%; height: 100%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <section class="charts-section">
+            <div class="chart-card" id="pendingReviewsCard">
+                <div class="chart-header">
+                    <h2 class="chart-title">Top 5 需要人工审核</h2>
+                    <div class="chart-actions">
+                        <a href="law-db.html" class="btn btn-secondary"><i>➡️</i> 查看全部</a>
+                    </div>
+                </div>
+                <div class="table-section">
+                    <div class="table-controls">
+                        <div>显示前5条待审核项目</div>
+                        <div>总计: <strong>5</strong> 条 / 待审核: <strong>5</strong> 条</div>
+                    </div>
+                    <div class="responsive-table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>标题 / 文号</th>
+                                    <th>分类</th>
+                                    <th>来源</th>
+                                    <th>提交时间</th>
+                                    <th>状态</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div style="font-weight: 500;">关于保险资金投资股权的合规审查报告</div>
+                                        <div style="font-size: 0.75rem; color: var(--text-light);">文号：合规审[2024]001号</div>
+                                    </td>
+                                    <td><span class="tag tag-law">法律法规</span></td>
+                                    <td>合规部</td>
+                                    <td>2024-01-15 14:30</td>
+                                    <td><span class="status-badge status-pending">待审核</span></td>
+                                    <td class="table-actions">
+                                        <a href="law-document-compare.html" class="btn btn-sm btn-secondary">查看</a>
+                                        <button class="btn btn-sm btn-success">批准</button>
+                                        <button class="btn btn-sm btn-danger">驳回</button>
+                                        <button class="btn btn-sm btn-warning">移除</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div style="font-weight: 500;">偿付能力充足率计算方法修订草案</div>
+                                        <div style="font-size: 0.75rem; color: var(--text-light);">文号：偿付[2024]002号</div>
+                                    </td>
+                                    <td><span class="tag tag-policy">监管政策</span></td>
+                                    <td>风险管理部</td>
+                                    <td>2024-01-14 16:20</td>
+                                    <td><span class="status-badge status-pending">待审核</span></td>
+                                    <td class="table-actions">
+                                        <a href="law-document-compare.html" class="btn btn-sm btn-secondary">查看</a>
+                                        <button class="btn btn-sm btn-success">批准</button>
+                                        <button class="btn btn-sm btn-danger">驳回</button>
+                                        <button class="btn btn-sm btn-warning">移除</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div style="font-weight: 500;">信息披露管理办法执行情况检查</div>
+                                        <div style="font-size: 0.75rem; color: var(--text-light);">文号：披露[2024]005号</div>
+                                    </td>
+                                    <td><span class="tag tag-policy">监管政策</span></td>
+                                    <td>信息披露部</td>
+                                    <td>2024-01-12 15:30</td>
+                                    <td><span class="status-badge status-pending">待审核</span></td>
+                                    <td class="table-actions">
+                                        <a href="law-document-compare.html" class="btn btn-sm btn-secondary">查看</a>
+                                        <button class="btn btn-sm btn-success">批准</button>
+                                        <button class="btn btn-sm btn-danger">驳回</button>
+                                        <button class="btn btn-sm btn-warning">移除</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div style="font-weight: 500;">反洗钱工作年度总结及改进计划</div>
+                                        <div style="font-size: 0.75rem; color: var(--text-light);">文号：反洗[2024]007号</div>
+                                    </td>
+                                    <td><span class="tag tag-law">法律法规</span></td>
+                                    <td>合规部</td>
+                                    <td>2024-01-10 08:45</td>
+                                    <td><span class="status-badge status-pending">待审核</span></td>
+                                    <td class="table-actions">
+                                        <a href="law-document-compare.html" class="btn btn-sm btn-secondary">查看</a>
+                                        <button class="btn btn-sm btn-success">批准</button>
+                                        <button class="btn btn-sm btn-danger">驳回</button>
+                                        <button class="btn btn-sm btn-warning">移除</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div style="font-weight: 500;">数据安全管理制度完善建议书</div>
+                                        <div style="font-size: 0.75rem; color: var(--text-light);">文号：数安[2024]008号</div>
+                                    </td>
+                                    <td><span class="tag tag-internal">内部规章</span></td>
+                                    <td>信息技术部</td>
+                                    <td>2024-01-09 14:00</td>
+                                    <td><span class="status-badge status-pending">待审核</span></td>
+                                    <td class="table-actions">
+                                        <a href="law-document-compare.html" class="btn btn-sm btn-secondary">查看</a>
+                                        <button class="btn btn-sm btn-success">批准</button>
+                                        <button class="btn btn-sm btn-danger">驳回</button>
+                                        <button class="btn btn-sm btn-warning">移除</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="two-column-chart-grid">
+                <div class="chart-card" id="sourceDistributionCard">
+                    <div class="chart-header">
+                        <h2 class="chart-title">法规更新来源分布</h2>
+                        <div class="chart-actions">
+                            <!-- Toggle button removed -->
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <div id="sourceDistributionChart" style="width: 100%; height: 100%;"></div>
+                    </div>
+                </div>
+
+                <div class="chart-card" id="typeDistributionCard">
+                    <div class="chart-header">
+                        <h2 class="chart-title">法规更新类型分布</h2>
+                        <div class="chart-actions">
+                            <!-- Actions for this chart can be added here if needed -->
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <div id="typeDistributionChart" style="width: 100%; height: 100%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-card" id="latestUpdatesListContainerCard">
+                <div class="chart-header">
+                    <h2 class="chart-title">最新法规更新</h2>
+                    <div class="chart-actions">
+                        <a href="law-updates.html" class="btn btn-secondary"><i>➡️</i> 查看全部</a>
+                    </div>
+                </div>
+                <div class="chart-container" id="latestUpdatesListContainer">
+                    <div class="update-item">
+                        <div class="update-icon-container law">⚖️</div>
+                        <div class="update-content">
+                            <div class="update-header">
+                                <h3 class="update-title"><a href="law-document.html?doc=insurance-equity-notification&title=关于进一步规范保险资金股权投资有关事项的通知">关于进一步规范保险资金股权投资有关事项的通知</a></h3>
+                                <span class="update-time">2024-01-15 14:30</span>
+                            </div>
+                            <p class="update-summary">为进一步规范保险资金股权投资行为，防范投资风险，保护被保险人利益，现就有关事项通知如下：一是明确投资决策程序，二是加强风险管控措施，三是强化信息披露要求...</p>
+                            <div class="ai-summary-section">
+                                <h4 class="ai-summary-title">AI智能解读主要变更点：</h4>
+                                <ul class="ai-summary-list">
+                                    <li><strong>投资决策程序优化:</strong> 强调董事会在重大股权投资中的核心决策地位。</li>
+                                    <li><strong>风险管控体系强化:</strong> 新增对股权投资集中度风险的量化指标。</li>
+                                    <li><strong>信息披露标准提升:</strong> 扩大了信息披露范围，增强透明度。</li>
+                                </ul>
+                            </div>
+                            <div class="update-tags">
+                                <span class="tag tag-law">重要法规</span>
+                                <span class="tag tag-policy">资金运用</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="update-item">
+                        <div class="update-icon-container policy">📋</div>
+                        <div class="update-content">
+                            <div class="update-header">
+                                <h3 class="update-title"><a href="law-document.html?doc=solvency-consultation&title=偿付能力监管规则修订征求意见稿">偿付能力监管规则修订征求意见稿发布</a></h3>
+                                <span class="update-time">2024-01-12 10:15</span>
+                            </div>
+                            <p class="update-summary">为完善偿付能力监管制度，提高监管有效性，金融监管总局发布偿付能力监管规则修订征求意见稿，主要修订内容包括：风险因子调整、资本要求优化、监管指标完善等...</p>
+                            <div class="ai-summary-section">
+                                <h4 class="ai-summary-title">AI智能解读主要变更点：</h4>
+                                <ul class="ai-summary-list">
+                                    <li><strong>核心偿付能力充足率:</strong> 要求拟从50%提升至60%。</li>
+                                    <li><strong>风险综合评级（IRR）:</strong> 引入操作风险、战略风险的评估权重。</li>
+                                    <li><strong>资产穿透要求细化:</strong> 对特定资管产品的底层资产识别提出更严标准。</li>
+                                </ul>
+                            </div>
+                            <div class="update-tags">
+                                <span class="tag tag-policy">征求意见</span>
+                                <span class="tag tag-internal">偿付能力</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="update-item">
+                        <div class="update-icon-container internal">🏢</div>
+                        <div class="update-content">
+                            <div class="update-header">
+                                <h3 class="update-title"><a href="law-document.html?doc=related-transaction-revision&title=关联交易管理制度修订及执行指引">关联交易管理制度修订及执行指引</a></h3>
+                                <span class="update-time">2024-01-10 16:45</span>
+                            </div>
+                            <p class="update-summary">根据最新监管要求，公司修订关联交易管理制度，制定详细执行指引。修订要点：扩大关联方认定范围、完善审批流程、加强持续监管、明确责任追究机制...</p>
+                            <div class="ai-summary-section">
+                                <h4 class="ai-summary-title">AI智能解读主要变更点：</h4>
+                                <ul class="ai-summary-list">
+                                    <li><strong>关联方识别范围扩大:</strong> 新增特定情形的企业纳入关联方。</li>
+                                    <li><strong>审批权限调整:</strong> 特定关联交易审批权限上收。</li>
+                                    <li><strong>定价公允性要求提升:</strong> 强调明确的定价依据。</li>
+                                </ul>
+                            </div>
+                            <div class="update-tags">
+                                <span class="tag tag-internal">内部制度</span>
+                                <span class="tag tag-policy">关联交易</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="update-item">
+                        <div class="update-icon-container policy">📋</div>
+                        <div class="update-content">
+                            <div class="update-header">
+                                <h3 class="update-title"><a href="law-document.html?doc=disclosure-implementation&title=保险公司信息披露管理办法实施细则">保险公司信息披露管理办法实施细则</a></h3>
+                                <span class="update-time">2024-01-08 09:30</span>
+                            </div>
+                            <p class="update-summary">为贯彻落实《保险公司信息披露管理办法》，制定本实施细则。主要内容包括：披露时间要求、披露内容标准、监督管理措施、违规处罚规定等具体操作指引...</p>
+                            <div class="ai-summary-section">
+                                <h4 class="ai-summary-title">AI智能解读主要变更点：</h4>
+                                <ul class="ai-summary-list">
+                                    <li><strong>临时报告披露时限:</strong> 重大事件需在2个交易日内披露。</li>
+                                    <li><strong>年度报告内容扩展:</strong> 新增ESG信息、消费者权益保护情况专项披露。</li>
+                                    <li><strong>信息披露负责人制度:</strong> 要求设立首席信息披露官或指定高管负责。</li>
+                                </ul>
+                            </div>
+                            <div class="update-tags">
+                                <span class="tag tag-policy">实施细则</span>
+                                <span class="tag tag-law">信息披露</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="update-item">
+                        <div class="update-icon-container law">⚖️</div>
+                        <div class="update-content">
+                            <div class="update-header">
+                                <h3 class="update-title"><a href="law-document.html?doc=consumer-protection-guide&title=保险消费者权益保护工作指引">保险消费者权益保护工作指引</a></h3>
+                                <span class="update-time">2024-01-05 11:20</span>
+                            </div>
+                            <p class="update-summary">为进一步加强保险消费者权益保护，提升保险服务质量，现发布本工作指引。重点内容：消费者投诉处理机制、产品销售规范、信息安全保护、争议解决程序...</p>
+                            <div class="ai-summary-section">
+                                <h4 class="ai-summary-title">AI智能解读主要变更点：</h4>
+                                <ul class="ai-summary-list">
+                                    <li><strong>消费者投诉处理机制:</strong> 细化流程与时限要求。</li>
+                                    <li><strong>产品销售规范强化:</strong> 禁止误导性宣传，加强适当性管理。</li>
+                                    <li><strong>信息安全保护升级:</strong> 对个人信息收集、使用、存储提出更高标准。</li>
+                                </ul>
+                            </div>
+                            <div class="update-tags">
+                                <span class="tag tag-law">消费者保护</span>
+                                <span class="tag tag-policy">工作指引</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script>
+        // Ensure :root variables are accessible to JS if needed, or re-declare for charts
+        const rootStyle = getComputedStyle(document.documentElement);
+        const chartLabelColor = rootStyle.getPropertyValue('--chart-label-color').trim() || '#5f6368';
+        const chartAxisLineColor = rootStyle.getPropertyValue('--chart-axis-line-color').trim() || '#dadce0';
+        const chartSplitLineColor = rootStyle.getPropertyValue('--chart-split-line-color').trim() || '#e8eaed';
+        const chartTooltipBg = rootStyle.getPropertyValue('--chart-tooltip-bg').trim() || 'rgba(32, 33, 36, 0.9)';
+        const chartTooltipText = rootStyle.getPropertyValue('--chart-tooltip-text').trim() || '#ffffff';
+        const primaryColor = rootStyle.getPropertyValue('--primary').trim() || '#f59e0b';
+        const primaryColorDark = rootStyle.getPropertyValue('--primary-dark').trim() || '#d97706'; // Added for chart emphasis
+        const primaryRGB = rootStyle.getPropertyValue('--primary-rgb').trim() || '245, 158, 11'; // Added for chart areaStyle
+        const successColor = rootStyle.getPropertyValue('--success').trim() || '#10b981';
+        const warningColor = rootStyle.getPropertyValue('--warning').trim() || '#f59e0b';
+        const dangerColor = rootStyle.getPropertyValue('--danger').trim() || '#ef4444';
+
+        // Mock data generation and chart initialization
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize all charts
+            initComplianceTrendChart();
+            initSourceDistributionChart(); // Will become initSourceDistributionChart()
+            initTypeDistributionChart();   // New call to be added for the new chart
+            populateCompletedReviews(); // Add this line
+            
+            // Update stat cards with initial values
+            document.getElementById('regulatoryUpdatesCount').textContent = '12';
+            document.getElementById('manualReviewCount').textContent = '5';
+
+            // Event listeners for filters
+            document.querySelectorAll('.time-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    document.querySelectorAll('.time-btn').forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    const range = this.dataset.range;
+                    console.log('Time range selected:', range);
+                    refreshAllChartsForTimeRange(range);
+                });
+            });
+
+            document.getElementById('complianceTrendFilter').addEventListener('change', function() {
+                console.log('Compliance trend filter changed:', this.value);
+                initComplianceTrendChart(this.value);
+            });
+            
+            document.getElementById('exportReportBtn').addEventListener('click', function() {
+                showNotification('正在生成报告...', 'info');
+                setTimeout(() => {
+                    showNotification('报告已导出 (模拟)', 'success');
+                }, 1500);
+            });
+        });
+        
+        function populateCompletedReviews() {
+            const container = document.getElementById('completedReviewsContainer');
+            if (!container) return;
+
+            const completedItems = [
+                {
+                    title: '新版数据跨境传输安全管理办法解读',
+                    date: '2024-01-18',
+                    status: '已批准',
+                    statusClass: 'success',
+                    icon: '✅'
+                },
+                {
+                    title: '关于调整部分理财产品风险等级的建议',
+                    date: '2024-01-17',
+                    status: '已驳回',
+                    statusClass: 'danger',
+                    icon: '❌'
+                },
+                {
+                    title: '内部审计发现问题整改跟踪报告',
+                    date: '2024-01-16',
+                    status: '已批准',
+                    statusClass: 'success',
+                    icon: '✅'
+                },
+                {
+                    title: '年度合规培训材料审核',
+                    date: '2024-01-15',
+                    status: '已批准',
+                    statusClass: 'success',
+                    icon: '✅'
+                }
+            ];
+
+            let html = '';
+            completedItems.forEach(item => {
+                html += `
+                    <div class="completed-review-item">
+                        <div class="completed-review-icon" style="color: var(--${item.statusClass});">${item.icon}</div>
+                        <div class="completed-review-content">
+                            <div class="completed-review-title">${item.title}</div>
+                            <div class="completed-review-meta">
+                                完成日期: ${item.date} | 状态: <span style="color: var(--${item.statusClass}); font-weight: 500;">${item.status}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function refreshAllChartsForTimeRange(range) {
+            console.log(`Refreshing all charts for time range: ${range}`);
+            initComplianceTrendChart(document.getElementById('complianceTrendFilter').value, range);
+            // initCaseTypeDistributionChart(range); // Old call to be replaced
+            initSourceDistributionChart(range);   // New call for source chart
+            initTypeDistributionChart(range);     // New call for type chart
+            updateStatCardsForTimeRange(range);
+        }
+
+        function updateStatCardsForTimeRange(range) {
+            let updates = 0;
+            let reviews = 0;
+            switch(range) {
+                case 'month':
+                    updates = 12; reviews = 5; break;
+                case 'quarter':
+                    updates = 45; reviews = 18; break;
+                case 'year':
+                    updates = 150; reviews = 62; break;
+                default:
+                    updates = 12; reviews = 5;
+            }
+            
+            // Animate the number changes
+            animateValue('regulatoryUpdatesCount', parseInt(document.getElementById('regulatoryUpdatesCount').textContent), updates, 800);
+            animateValue('manualReviewCount', parseInt(document.getElementById('manualReviewCount').textContent), reviews, 800);
+        }
+
+        // Number animation function
+        function animateValue(elementId, start, end, duration) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                const current = Math.floor(progress * (end - start) + start);
+                element.textContent = current;
+                
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        // Chart initialization functions (using ECharts)
+        function initComplianceTrendChart(granularity = 'monthly', timeRange = 'month') {
+            const chartDom = document.getElementById('trendChart');
+            if (!chartDom) return;
+            
+            // Dispose existing chart if it exists
+            if (window.complianceTrendChartInstance) {
+                window.complianceTrendChartInstance.dispose();
+            }
+            
+            const myChart = echarts.init(chartDom, null, { renderer: 'svg' });
+            window.complianceTrendChartInstance = myChart;
+            
+            let xAxisData = [];
+            let newRegulationsData = [];
+            let amendmentsData = [];
+            let revocationsData = [];
+
+            // Adjust data based on timeRange and granularity
+            if (timeRange === 'month') {
+                if (granularity === 'monthly') {
+                    xAxisData = Array.from({length: 30}, (_, i) => `${i+1}日`);
+                    newRegulationsData = Array.from({length: 30}, () => Math.floor(Math.random() * 8) + 1);
+                    amendmentsData = Array.from({length: 30}, () => Math.floor(Math.random() * 5) + 1);
+                    revocationsData = Array.from({length: 30}, () => Math.floor(Math.random() * 3));
+                } else if (granularity === 'quarterly') {
+                     xAxisData = ['第1周', '第2周', '第3周', '第4周'];
+                     newRegulationsData = Array.from({length: 4}, () => Math.floor(Math.random() * 25) + 5);
+                     amendmentsData = Array.from({length: 4}, () => Math.floor(Math.random() * 15) + 3);
+                     revocationsData = Array.from({length: 4}, () => Math.floor(Math.random() * 8) + 1);
+                } else {
+                    xAxisData = ['本月累计'];
+                    newRegulationsData = [Math.floor(Math.random() * 50) + 20];
+                    amendmentsData = [Math.floor(Math.random() * 30) + 10];
+                    revocationsData = [Math.floor(Math.random() * 15) + 5];
+                }
+            } else if (timeRange === 'quarter') {
+                 if (granularity === 'monthly') {
+                    xAxisData = ['第1月', '第2月', '第3月'];
+                    newRegulationsData = Array.from({length: 3}, () => Math.floor(Math.random() * 40) + 15);
+                    amendmentsData = Array.from({length: 3}, () => Math.floor(Math.random() * 25) + 8);
+                    revocationsData = Array.from({length: 3}, () => Math.floor(Math.random() * 12) + 3);
+                } else if (granularity === 'quarterly') {
+                    xAxisData = Array.from({length: 12}, (_, i) => `第${i+1}周`);
+                    newRegulationsData = Array.from({length: 12}, () => Math.floor(Math.random() * 15) + 3);
+                    amendmentsData = Array.from({length: 12}, () => Math.floor(Math.random() * 10) + 2);
+                    revocationsData = Array.from({length: 12}, () => Math.floor(Math.random() * 5) + 1);
+                } else {
+                    xAxisData = ['本季累计'];
+                    newRegulationsData = [Math.floor(Math.random() * 120) + 50];
+                    amendmentsData = [Math.floor(Math.random() * 80) + 30];
+                    revocationsData = [Math.floor(Math.random() * 40) + 15];
+                }
+            } else { // timeRange === 'year'
+                if (granularity === 'monthly') {
+                    xAxisData = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+                    newRegulationsData = Array.from({length: 12}, () => Math.floor(Math.random() * 50) + 15);
+                    amendmentsData = Array.from({length: 12}, () => Math.floor(Math.random() * 30) + 8);
+                    revocationsData = Array.from({length: 12}, () => Math.floor(Math.random() * 15) + 3);
+                } else if (granularity === 'quarterly') {
+                    xAxisData = ['第一季度', '第二季度', '第三季度', '第四季度'];
+                    newRegulationsData = Array.from({length: 4}, () => Math.floor(Math.random() * 150) + 50);
+                    amendmentsData = Array.from({length: 4}, () => Math.floor(Math.random() * 100) + 30);
+                    revocationsData = Array.from({length: 4}, () => Math.floor(Math.random() * 50) + 15);
+                } else {
+                    xAxisData = ['本年累计'];
+                    newRegulationsData = [Math.floor(Math.random() * 400) + 200];
+                    amendmentsData = [Math.floor(Math.random() * 250) + 100];
+                    revocationsData = [Math.floor(Math.random() * 120) + 50];
+                }
+            }
+
+            const option = {
+                tooltip: {
+                    trigger: 'axis',
+                    backgroundColor: chartTooltipBg,
+                    borderColor: 'transparent',
+                    textStyle: { color: chartTooltipText, fontSize: 12 },
+                    formatter: function(params) {
+                        let result = params[0].name + '<br/>';
+                        params.forEach(param => {
+                            result += `${param.marker} ${param.seriesName}: ${param.value} 条<br/>`;
+                        });
+                        return result;
+                    }
+                },
+                legend: {
+                    data: ['新发布', '修订', '废止'],
+                    top: '5%',
+                    textStyle: { color: chartLabelColor, fontSize: 11 }
+                },
+                grid: { top: '20%', right: '5%', bottom: '15%', left: '12%' },
+                xAxis: {
+                    type: 'category',
+                    data: xAxisData,
+                    axisLine: { lineStyle: { color: chartAxisLineColor } },
+                    axisLabel: { color: chartLabelColor, fontSize: 11 },
+                    axisTick: { show: false }
+                },
+                yAxis: {
+                    type: 'value',
+                    axisLine: { show: true, lineStyle: { color: chartAxisLineColor } },
+                    axisLabel: { color: chartLabelColor, fontSize: 11 },
+                    splitLine: { lineStyle: { color: chartSplitLineColor, type: 'dashed' } }
+                },
+                series: [
+                    {
+                        name: '新发布',
+                        type: 'line',
+                        data: newRegulationsData,
+                        smooth: true,
+                        symbolSize: 6,
+                        itemStyle: { color: primaryColor },
+                        lineStyle: { width: 2, color: primaryColor },
+                        areaStyle: {
+                            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                { offset: 0, color: `rgba(${primaryRGB}, 0.3)` },
+                                { offset: 1, color: `rgba(${primaryRGB}, 0.05)` }
+                            ])
+                        }
+                    },
+                    {
+                        name: '修订',
+                        type: 'line',
+                        data: amendmentsData,
+                        smooth: true,
+                        symbolSize: 6,
+                        itemStyle: { color: successColor },
+                        lineStyle: { width: 2, color: successColor },
+                        areaStyle: {
+                            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                { offset: 0, color: `rgba(16, 185, 129, 0.3)` },
+                                { offset: 1, color: `rgba(16, 185, 129, 0.05)` }
+                            ])
+                        }
+                    },
+                    {
+                        name: '废止',
+                        type: 'line',
+                        data: revocationsData,
+                        smooth: true,
+                        symbolSize: 6,
+                        itemStyle: { color: dangerColor },
+                        lineStyle: { width: 2, color: dangerColor },
+                        areaStyle: {
+                            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                { offset: 0, color: `rgba(239, 68, 68, 0.3)` },
+                                { offset: 1, color: `rgba(239, 68, 68, 0.05)` }
+                            ])
+                        }
+                    }
+                ]
+            };
+            myChart.setOption(option);
+            window.addEventListener('resize', () => myChart.resize());
+        }
+
+        function initSourceDistributionChart(timeRange = 'month') {
+            const chartDom = document.getElementById('sourceDistributionChart');
+            if (!chartDom) return;
+            
+            if (window.sourceDistributionChartInstance) {
+                window.sourceDistributionChartInstance.dispose();
+            }
+            
+            const myChart = echarts.init(chartDom, null, { renderer: 'svg' });
+            window.sourceDistributionChartInstance = myChart;
+            
+            // Data should be specific to sources now, toggle logic removed
+            let data = [];
+            let factor = 1;
+            if (timeRange === 'quarter') factor = 3;
+            if (timeRange === 'year') factor = 10;
+            
+            data = [
+                { value: Math.floor(45 * factor * (0.8 + Math.random()*0.4)), name: '银保监会官网' },
+                { value: Math.floor(32 * factor * (0.8 + Math.random()*0.4)), name: '人民银行网站' },
+                { value: Math.floor(28 * factor * (0.8 + Math.random()*0.4)), name: '证监会公告' },
+                { value: Math.floor(25 * factor * (0.8 + Math.random()*0.4)), name: '财政部通知' },
+                { value: Math.floor(18 * factor * (0.8 + Math.random()*0.4)), name: '交易所规则' },
+                { value: Math.floor(15 * factor * (0.8 + Math.random()*0.4)), name: '行业协会' },
+                { value: Math.floor(12 * factor * (0.8 + Math.random()*0.4)), name: '其他机构' },
+                { value: Math.floor(10 * factor * (0.8 + Math.random()*0.4)), name: '内部法规' }
+            ];
+
+            const option = {
+                tooltip: {
+                    trigger: 'item',
+                    backgroundColor: chartTooltipBg,
+                    borderColor: 'transparent',
+                    textStyle: { color: chartTooltipText, fontSize: 12 },
+                    formatter: '{b}: {c} 条 ({d}%)'
+                },
+                legend: {
+                    orient: 'vertical',
+                    right: '5%',
+                    top: 'center',
+                    data: data.map(item => item.name),
+                    textStyle: { color: chartLabelColor, fontSize: 11 },
+                    itemGap: 10,
+                    icon: 'circle'
+                },
+                series: [{
+                    name: '更新来源', // Hardcoded series name
+                    type: 'pie',
+                    radius: ['45%', '70%'],
+                    center: ['40%', '50%'],
+                    avoidLabelOverlap: true,
+                    itemStyle: {
+                        borderRadius: 6,
+                        borderColor: rootStyle.getPropertyValue('--surface').trim(),
+                        borderWidth: 2
+                    },
+                    label: {
+                        show: true,
+                        position: 'outside',
+                        formatter: '{b}\n{c}条 ({d}%)', 
+                        color: chartLabelColor,
+                        fontSize: 10,
+                        lineHeight: 14,
+                        overflow: 'break'
+                    },
+                    labelLine: {
+                        show: true,
+                        length: 8,
+                        length2: 12,
+                        smooth: 0.2,
+                        lineStyle: {
+                            color: chartAxisLineColor
+                        }
+                    },
+                    emphasis: {
+                        label: {
+                            show: true,
+                            fontSize: 13,
+                            fontWeight: 'normal',
+                            formatter: '{b}\n{c} 条\n({d}%)',
+                            color: chartLabelColor,
+                            position: 'center'
+                        },
+                        itemStyle: {
+                             shadowBlur: 10,
+                             shadowOffsetX: 0,
+                             shadowColor: 'rgba(0, 0, 0, 0.2)'
+                        }
+                    },
+                    data: data,
+                    color: [primaryColor, successColor, '#5470c6', '#91cc75', warningColor, dangerColor, '#73c0de', '#3ba272', '#fc8452']
+                }]
+            };
+            myChart.setOption(option);
+            window.addEventListener('resize', () => myChart.resize());
+        }
+
+        function initTypeDistributionChart(timeRange = 'month') {
+            const chartDom = document.getElementById('typeDistributionChart');
+            if (!chartDom) return;
+            
+            if (window.typeDistributionChartInstance) {
+                window.typeDistributionChartInstance.dispose();
+            }
+            
+            const myChart = echarts.init(chartDom, null, { renderer: 'svg' });
+            window.typeDistributionChartInstance = myChart;
+            
+            // Data should be specific to types now, toggle logic removed
+            let data = [];
+            let factor = 1;
+            if (timeRange === 'quarter') factor = 3;
+            if (timeRange === 'year') factor = 10;
+            
+            data = [
+                { value: Math.floor(38 * factor * (0.8 + Math.random()*0.4)), name: '监管办法' },
+                { value: Math.floor(30 * factor * (0.8 + Math.random()*0.4)), name: '业务指引' },
+                { value: Math.floor(25 * factor * (0.8 + Math.random()*0.4)), name: '实施细则' },
+                { value: Math.floor(20 * factor * (0.8 + Math.random()*0.4)), name: '征求意见稿' },
+                { value: Math.floor(18 * factor * (0.8 + Math.random()*0.4)), name: '通知公告' },
+                { value: Math.floor(12 * factor * (0.8 + Math.random()*0.4)), name: '问答解释' }
+            ];
+
+            const option = {
+                tooltip: {
+                    trigger: 'item',
+                    backgroundColor: chartTooltipBg,
+                    borderColor: 'transparent',
+                    textStyle: { color: chartTooltipText, fontSize: 12 },
+                    formatter: '{b}: {c} 条 ({d}%)'
+                },
+                legend: {
+                    orient: 'vertical',
+                    right: '5%',
+                    top: 'center',
+                    data: data.map(item => item.name),
+                    textStyle: { color: chartLabelColor, fontSize: 11 },
+                    itemGap: 10,
+                    icon: 'circle'
+                },
+                series: [{
+                    name: '更新类型', // Hardcoded series name
+                    type: 'pie',
+                    radius: ['45%', '70%'], 
+                    center: ['40%', '50%'],
+                    avoidLabelOverlap: true,
+                    itemStyle: {
+                        borderRadius: 6,
+                        borderColor: rootStyle.getPropertyValue('--surface').trim(),
+                        borderWidth: 2
+                    },
+                    label: {
+                        show: true,
+                        position: 'outside',
+                        formatter: '{b}\n{c}条 ({d}%)', 
+                        color: chartLabelColor,
+                        fontSize: 10,
+                        lineHeight: 14,
+                        overflow: 'break'
+                    },
+                    labelLine: {
+                        show: true,
+                        length: 8,
+                        length2: 12,
+                        smooth: 0.2,
+                        lineStyle: {
+                            color: chartAxisLineColor
+                        }
+                    },
+                    emphasis: {
+                        label: {
+                            show: true,
+                            fontSize: 13,
+                            fontWeight: 'normal',
+                            formatter: '{b}\n{c} 条\n({d}%)',
+                            color: chartLabelColor,
+                            position: 'center'
+                        },
+                        itemStyle: {
+                             shadowBlur: 10,
+                             shadowOffsetX: 0,
+                             shadowColor: 'rgba(0, 0, 0, 0.2)'
+                        }
+                    },
+                    data: data,
+                    color: ['#8ECDDD', '#F3CDB8', '#BC85A3', '#97C1A9', '#FAD02E', '#E5707A', '#AFE3C0', '#D6BCE4'] // Different color palette
+                }]
+            };
+            myChart.setOption(option);
+            window.addEventListener('resize', () => myChart.resize());
+        }
+
+        // Helper for notifications
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = 'custom-notification';
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 12px 18px;
+                border-radius: 6px;
+                color: white;
+                font-size: 0.875rem;
+                z-index: 2000;
+                box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+                opacity: 0;
+                transform: translateX(100%);
+                transition: opacity 0.3s ease, transform 0.3s ease;
+            `;
+            
+            let bgColor = primaryColor;
+            if (type === 'success') bgColor = successColor;
+            else if (type === 'warning') bgColor = warningColor;
+            else if (type === 'error') bgColor = dangerColor;
+            
+            notification.style.background = bgColor;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.opacity = '1';
+                notification.style.transform = 'translateX(0)';
+            }, 50);
+
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
