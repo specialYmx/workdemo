@@ -201,6 +201,7 @@ export default class KnowledgePage extends Vue {
   currentPage = 1;
   pageSize = 10;
   totalDocuments = 36;
+  documents: DocumentItem[] = [];
 
   // 搜索按钮数据
   get searchButtons() {
@@ -291,79 +292,13 @@ export default class KnowledgePage extends Vue {
     合规: ["监管", "法规", "规范", "合规管理"],
   };
 
-  // 文档列表（模拟数据）
-  documents: DocumentItem[] = [
-    {
-      id: "1",
-      title: "保险资金股权投资管理暂行办法",
-      summary:
-        "规范保险资金股权投资行为，防范投资风险，保护被保险人利益。明确股权投资的基本原则、投资范围、投资比例等核心要求...",
-      date: "2024-01-15",
-      source: "金融监管总局",
-      sourceType: "regulator",
-      views: 2156,
-      tags: ["法律法规", "资金运用"],
-      category: "law",
-      type: "law",
-    },
-    {
-      id: "2",
-      title: "偿付能力监管规则第1号：保险公司偿付能力充足率",
-      summary:
-        "建立健全偿付能力监管制度，规范保险公司偿付能力计算标准，确保保险公司具备与其风险相适应的资本水平...",
-      date: "2024-01-10",
-      source: "金融监管总局",
-      sourceType: "regulator",
-      views: 1845,
-      tags: ["监管规则", "偿付能力"],
-      category: "law",
-      type: "law",
-    },
-    {
-      id: "3",
-      title: "关联交易管理办法（2022年修订）",
-      summary:
-        "加强保险公司关联交易监管，规范关联交易行为，防控关联交易风险，保护保险消费者合法权益和保险公司稳健经营...",
-      date: "2023-12-28",
-      source: "金融监管总局",
-      sourceType: "regulator",
-      views: 3267,
-      tags: ["管理办法", "关联交易"],
-      category: "policy",
-      type: "policy",
-    },
-    {
-      id: "4",
-      title: "保险公司信息披露管理办法",
-      summary:
-        "规范保险公司信息披露行为，保护投保人、被保险人和受益人的合法权益，促进保险市场健康发展...",
-      date: "2023-12-15",
-      source: "金融监管总局",
-      sourceType: "regulator",
-      views: 1523,
-      tags: ["管理办法", "信息披露"],
-      category: "policy",
-      type: "policy",
-    },
-    {
-      id: "5",
-      title: "保险资产管理公司管理规定",
-      summary:
-        "规范保险资产管理公司经营行为，加强监督管理，促进保险资产管理行业健康发展，更好服务保险业和实体经济发展...",
-      date: "2023-11-30",
-      source: "金融监管总局",
-      sourceType: "regulator",
-      views: 987,
-      tags: ["管理规定", "资产管理"],
-      category: "policy",
-      type: "policy",
-    },
-  ];
-
   // 生命周期钩子
-  mounted() {
+  async mounted() {
     // 从本地存储加载收藏夹文档
     this.loadFavorites();
+
+    // 加载文档数据
+    this.loadDocuments();
   }
 
   // 加载用户收藏的文档
@@ -760,6 +695,90 @@ export default class KnowledgePage extends Vue {
         handler: () => this.removeDocument(doc.id),
       },
     ];
+  }
+
+  // 加载文档数据
+  async loadDocuments() {
+    this.listLoading = true;
+
+    try {
+      // 模拟异步请求
+      const mockData = [
+        {
+          id: "1",
+          title: "保险资金股权投资管理暂行办法",
+          summary:
+            "规范保险资金股权投资行为，防范投资风险，保护被保险人利益。明确股权投资的基本原则、投资范围、投资比例等核心要求...",
+          date: "2024-01-15",
+          source: "金融监管总局",
+          sourceType: "regulator",
+          views: 2156,
+          tags: ["法律法规", "资金运用"],
+          category: "law",
+          type: "law",
+        },
+        {
+          id: "2",
+          title: "偿付能力监管规则第1号：保险公司偿付能力充足率",
+          summary:
+            "建立健全偿付能力监管制度，规范保险公司偿付能力计算标准，确保保险公司具备与其风险相适应的资本水平...",
+          date: "2024-01-10",
+          source: "金融监管总局",
+          sourceType: "regulator",
+          views: 1845,
+          tags: ["监管规则", "偿付能力"],
+          category: "law",
+          type: "law",
+        },
+        {
+          id: "3",
+          title: "关联交易管理办法（2022年修订）",
+          summary:
+            "加强保险公司关联交易监管，规范关联交易行为，防控关联交易风险，保护保险消费者合法权益和保险公司稳健经营...",
+          date: "2023-12-28",
+          source: "金融监管总局",
+          sourceType: "regulator",
+          views: 3267,
+          tags: ["管理办法", "关联交易"],
+          category: "policy",
+          type: "policy",
+        },
+        {
+          id: "4",
+          title: "保险公司信息披露管理办法",
+          summary:
+            "规范保险公司信息披露行为，保护投保人、被保险人和受益人的合法权益，促进保险市场健康发展...",
+          date: "2023-12-15",
+          source: "金融监管总局",
+          sourceType: "regulator",
+          views: 1523,
+          tags: ["管理办法", "信息披露"],
+          category: "policy",
+          type: "policy",
+        },
+        {
+          id: "5",
+          title: "保险资产管理公司管理规定",
+          summary:
+            "规范保险资产管理公司经营行为，加强监督管理，促进保险资产管理行业健康发展，更好服务保险业和实体经济发展...",
+          date: "2023-11-30",
+          source: "金融监管总局",
+          sourceType: "regulator",
+          views: 987,
+          tags: ["管理规定", "资产管理"],
+          category: "policy",
+          type: "policy",
+        },
+      ];
+
+      await new Promise((r) => setTimeout(r, 1200));
+      this.documents = mockData;
+    } catch (error) {
+      console.error("加载文档数据失败", error);
+      this.$message.error("加载数据失败，请刷新页面重试");
+    } finally {
+      this.listLoading = false;
+    }
   }
 }
 </script>

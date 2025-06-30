@@ -1,8 +1,12 @@
 <template>
   <div class="lawyer-document-page">
     <!-- 页面头部 -->
-    <header class="lawyer-document-header">
-      <div class="lawyer-header-left">
+    <header
+      class="lawyer-document-header lawyer-flex lawyer-justify-between lawyer-items-center"
+    >
+      <div
+        class="lawyer-header-left lawyer-flex lawyer-items-center lawyer-gap-md"
+      >
         <a-button class="lawyer-back-btn" @click="goBack">
           <a-icon type="arrow-left" />
           返回
@@ -10,7 +14,7 @@
 
         <div class="lawyer-document-info">
           <h1>{{ document.title }}</h1>
-          <div class="lawyer-document-meta">
+          <div class="lawyer-document-meta lawyer-flex lawyer-gap-lg">
             <span v-for="(item, index) in documentMetaItems" :key="index">
               <a-icon :type="item.icon" /> {{ item.content }}
             </span>
@@ -18,7 +22,7 @@
         </div>
       </div>
 
-      <div class="lawyer-header-actions">
+      <div class="lawyer-header-actions lawyer-flex lawyer-gap-sm">
         <!-- 目录按钮 -->
         <a-popover
           placement="bottomRight"
@@ -58,11 +62,15 @@
     </header>
 
     <!-- 主要内容区 -->
-    <div class="lawyer-main-layout">
+    <div class="lawyer-main-layout lawyer-flex">
       <!-- 文档查看器 -->
       <div class="lawyer-document-viewer">
-        <div class="lawyer-viewer-toolbar">
-          <div class="lawyer-toolbar-left">
+        <div
+          class="lawyer-viewer-toolbar lawyer-flex lawyer-justify-between lawyer-items-center"
+        >
+          <div
+            class="lawyer-toolbar-left lawyer-flex lawyer-items-center lawyer-gap-sm"
+          >
             <a-input-search
               placeholder="搜索文档内容"
               style="width: 250px"
@@ -71,8 +79,12 @@
             />
           </div>
 
-          <div class="lawyer-toolbar-right">
-            <div class="lawyer-zoom-controls">
+          <div
+            class="lawyer-toolbar-right lawyer-flex lawyer-items-center lawyer-gap-sm"
+          >
+            <div
+              class="lawyer-zoom-controls lawyer-flex lawyer-items-center lawyer-gap-sm"
+            >
               <a-button class="lawyer-zoom-btn" @click="zoomOut">
                 <a-icon type="minus" />
               </a-button>
@@ -85,7 +97,7 @@
         </div>
 
         <div
-          class="lawyer-document-content lawyer-markdown-content"
+          class="lawyer-document-content lawyer-markdown-content lawyer-scrollable"
           :style="{ fontSize: `${(zoomLevel / 100) * 16}px` }"
           ref="documentContent"
         >
@@ -482,7 +494,7 @@ export default class DocumentViewer extends Vue {
 
 .lawyer-header-actions {
   display: flex;
-  gap: 10px;
+  gap: 8px;
 }
 
 // 主布局
@@ -518,17 +530,17 @@ export default class DocumentViewer extends Vue {
 }
 
 .lawyer-toolbar-left {
-  gap: 10px;
+  gap: 8px;
 }
 
 .lawyer-toolbar-right {
-  gap: 10px;
+  gap: 8px;
 }
 
 .lawyer-zoom-controls {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
 }
 
 .lawyer-zoom-level {
@@ -656,9 +668,18 @@ export default class DocumentViewer extends Vue {
     font-size: 16px;
     font-weight: 500;
     color: var(--lawyer-text);
-    margin-bottom: 12px;
-    border-bottom: 1px solid var(--lawyer-border);
-    padding-bottom: 8px;
+    margin-bottom: 15px;
+    position: relative;
+
+    &::after {
+      content: "";
+      position: absolute;
+      bottom: -5px;
+      left: 0;
+      width: 40px;
+      height: 2px;
+      background-color: var(--lawyer-primary);
+    }
   }
 }
 
@@ -687,9 +708,10 @@ export default class DocumentViewer extends Vue {
   display: flex;
   flex-direction: column;
   flex: 1;
+  background: var(--lawyer-surface);
   border: 1px solid var(--lawyer-border);
   border-radius: 8px;
-  overflow: hidden;
+  padding: 20px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
   height: calc(100% - 40px);
 }
@@ -703,19 +725,6 @@ export default class DocumentViewer extends Vue {
   flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 15px;
-}
-
-.lawyer-question-chip {
-  cursor: pointer;
-  background-color: rgba(var(--lawyer-primary-rgb), 0.05);
-  border-color: rgba(var(--lawyer-primary-rgb), 0.2);
-  color: var(--lawyer-primary);
-  transition: all 0.2s ease;
-
-  &:hover {
-    background-color: rgba(var(--lawyer-primary-rgb), 0.1);
-    border-color: var(--lawyer-primary);
-  }
 }
 
 .lawyer-ai-messages {

@@ -3,6 +3,12 @@
   这些样式和变量可以在任何组件中使用
 */
 
+/* 全局设置 */
+#__nuxt,
+#__layout {
+  height: 100%;
+}
+
 /* 全局变量 */
 :root {
   /* 颜色 */
@@ -41,8 +47,8 @@
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
     "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-  background: var(--analysis-background);
-  color: var(--analysis-text);
+  background: var(--lawyer-background);
+  color: var(--lawyer-text);
   line-height: 1.6;
   overflow-x: hidden;
 }
@@ -623,4 +629,84 @@ body {
   margin-top: 1.5rem;
   display: flex;
   justify-content: center;
+}
+
+/* 新增公共样式类 */
+
+// 弹性布局
+.lawyer-flex {
+  display: flex;
+}
+
+.lawyer-flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.lawyer-items-center {
+  align-items: center;
+}
+
+.lawyer-justify-between {
+  justify-content: space-between;
+}
+
+// 间距
+.lawyer-gap-sm {
+  gap: 8px;
+}
+
+.lawyer-gap-md {
+  gap: 15px;
+}
+
+.lawyer-gap-lg {
+  gap: 20px;
+}
+
+// 卡片和容器
+.lawyer-card {
+  background: var(--lawyer-surface);
+  border: 1px solid var(--lawyer-border);
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.lawyer-scrollable {
+  overflow-y: auto;
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 3px;
+  }
+}
+
+// 文本和标题
+.lawyer-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--lawyer-text);
+  margin-bottom: 15px;
+  position: relative;
+
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 40px;
+    height: 2px;
+    background-color: var(--lawyer-primary);
+  }
+}
+
+.lawyer-text-primary {
+  color: var(--lawyer-primary);
+}
+
+.lawyer-text-light {
+  color: var(--lawyer-text-light);
 }

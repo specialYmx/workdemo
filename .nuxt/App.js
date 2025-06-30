@@ -8,9 +8,7 @@ import NuxtBuildIndicator from './components/nuxt-build-indicator'
 
 import '..\\node_modules\\ant-design-vue\\dist\\antd.less'
 
-import '..\\assets\\styles\\analysis.less'
-
-import '..\\assets\\styles\\global.css'
+import '..\\assets\\styles\\lawyer.less'
 
 import _6f6c098b from '..\\layouts\\default.vue'
 

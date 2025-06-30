@@ -72,25 +72,27 @@
             </div>
           </div>
 
-          <div class="lawyer-review-list">
-            <div
-              class="lawyer-review-item"
-              v-for="(item, index) in recentReviews"
-              :key="index"
-            >
-              <div class="lawyer-review-content">
-                <div class="lawyer-review-title">{{ item.title }}</div>
-                <div class="lawyer-review-subtitle">
-                  <span>{{ item.date }}</span>
-                  <a-divider type="vertical" />
-                  <span>审核人: {{ item.reviewer }}</span>
+          <a-spin :spinning="listLoading.recentReviews">
+            <div class="lawyer-review-list">
+              <div
+                class="lawyer-review-item"
+                v-for="(item, index) in recentReviews"
+                :key="index"
+              >
+                <div class="lawyer-review-content">
+                  <div class="lawyer-review-title">{{ item.title }}</div>
+                  <div class="lawyer-review-subtitle">
+                    <span>{{ item.date }}</span>
+                    <a-divider type="vertical" />
+                    <span>审核人: {{ item.reviewer }}</span>
+                  </div>
                 </div>
+                <a-tag :color="getReviewStatusColor(item.status)">{{
+                  getReviewStatusText(item.status)
+                }}</a-tag>
               </div>
-              <a-tag :color="getReviewStatusColor(item.status)">{{
-                getReviewStatusText(item.status)
-              }}</a-tag>
             </div>
-          </div>
+          </a-spin>
         </a-card>
       </div>
 
@@ -102,24 +104,22 @@
       >
         <div class="lawyer-chart-header">
           <h3 class="lawyer-chart-title">法规更新趋势</h3>
-          <div class="lawyer-chart-actions">
-            <a-select
-              v-model="trendChartPeriod"
-              size="small"
-              style="width: 120px"
-              class="lawyer-btn"
-            >
-              <a-select-option value="month">本月</a-select-option>
-              <a-select-option value="quarter">本季度</a-select-option>
-              <a-select-option value="year">全年</a-select-option>
-            </a-select>
-          </div>
+
+          <a-select
+            v-model="trendChartPeriod"
+            size="small"
+            @change="onTrendChartPeriodChange"
+          >
+            <a-select-option value="month">月度</a-select-option>
+            <a-select-option value="quarter">季度</a-select-option>
+            <a-select-option value="year">全年</a-select-option>
+          </a-select>
         </div>
         <div class="lawyer-chart-container">
-          <v-chart
+          <chart-component
             :options="trendChartOptions"
+            :loading="chartLoading.trend"
             :auto-resize="true"
-            style="width: 100%; height: 100%"
           />
         </div>
       </a-card>
@@ -145,52 +145,54 @@
         </div>
       </div>
 
-      <a-table
-        :columns="reviewColumns"
-        :dataSource="topReviews"
-        :pagination="false"
-        size="middle"
-      >
-        <template slot="titleColumn" slot-scope="text, record">
-          <div style="font-weight: 500">{{ record.title }}</div>
-          <div style="font-size: 12px; color: var(--lawyer-text-light)">
-            文号：{{ record.docNumber }}
-          </div>
-        </template>
+      <a-spin :spinning="listLoading.topReviews">
+        <a-table
+          :columns="reviewColumns"
+          :dataSource="topReviews"
+          :pagination="false"
+          size="middle"
+        >
+          <template slot="titleColumn" slot-scope="text, record">
+            <div style="font-weight: 500">{{ record.title }}</div>
+            <div style="font-size: 12px; color: var(--lawyer-text-light)">
+              文号：{{ record.docNumber }}
+            </div>
+          </template>
 
-        <template slot="category" slot-scope="text">
-          <a-tag :color="getCategoryColor(text)">{{ text }}</a-tag>
-        </template>
+          <template slot="category" slot-scope="text">
+            <a-tag :color="getCategoryColor(text)">{{ text }}</a-tag>
+          </template>
 
-        <template slot="status" slot-scope="text">
-          <a-tag :color="getReviewStatusColor(text)">{{
-            getReviewStatusText(text)
-          }}</a-tag>
-        </template>
+          <template slot="status" slot-scope="text">
+            <a-tag :color="getReviewStatusColor(text)">{{
+              getReviewStatusText(text)
+            }}</a-tag>
+          </template>
 
-        <template slot="action" slot-scope="text, record">
-          <div class="lawyer-table-actions">
-            <a-button
-              type="default"
-              size="small"
-              @click="() => viewReviewDetail(record)"
-            >
-              查看
-            </a-button>
-            <template v-if="record.status === 'pending'">
+          <template slot="action" slot-scope="text, record">
+            <div class="lawyer-table-actions">
               <a-button
-                v-for="(action, index) in getRecordActions(record)"
-                :key="index"
-                :type="action.type"
+                type="default"
                 size="small"
-                @click="() => action.handler(record)"
+                @click="() => viewReviewDetail(record)"
               >
-                {{ action.text }}
+                查看
               </a-button>
-            </template>
-          </div>
-        </template>
-      </a-table>
+              <template v-if="record.status === 'pending'">
+                <a-button
+                  v-for="(action, index) in getRecordActions(record)"
+                  :key="index"
+                  :type="action.type"
+                  size="small"
+                  @click="() => action.handler(record)"
+                >
+                  {{ action.text }}
+                </a-button>
+              </template>
+            </div>
+          </template>
+        </a-table>
+      </a-spin>
     </a-card>
 
     <!-- 环形图表 -->
@@ -207,10 +209,14 @@
           <div class="lawyer-chart-actions"></div>
         </div>
         <div class="lawyer-chart-container">
-          <v-chart
+          <chart-component
             :options="chart.options"
+            :loading="
+              chart.title.includes('来源')
+                ? chartLoading.sources
+                : chartLoading.types
+            "
             :auto-resize="true"
-            style="width: 100%; height: 100%; max-width: 100%"
           />
         </div>
       </a-card>
@@ -236,46 +242,50 @@
         </div>
       </div>
 
-      <div class="lawyer-update-list">
-        <div
-          v-for="(item, index) in latestUpdates"
-          :key="index"
-          class="lawyer-update-item"
-        >
-          <div :class="['lawyer-update-icon', getUpdateIconClass(item.status)]">
-            <a-icon :type="getUpdateIconType(item.status || item.icon)" />
-          </div>
-          <div class="lawyer-update-content">
-            <div class="lawyer-update-header">
-              <h4 class="lawyer-update-title">
-                <a @click="viewUpdateDetail(item)">{{ item.title }}</a>
-              </h4>
-              <span class="lawyer-update-time">{{ item.date }}</span>
+      <a-spin :spinning="listLoading.latestUpdates">
+        <div class="lawyer-update-list">
+          <div
+            v-for="(item, index) in latestUpdates"
+            :key="index"
+            class="lawyer-update-item"
+          >
+            <div
+              :class="['lawyer-update-icon', getUpdateIconClass(item.status)]"
+            >
+              <a-icon :type="getUpdateIconType(item.status || item.icon)" />
             </div>
-            <p class="lawyer-update-description">
-              {{ item.description }}
-            </p>
-            <div class="lawyer-update-ai-analysis" v-if="item.analysis">
-              <div class="lawyer-update-ai-header">
-                <a-icon type="robot" /> AI智能解读主要变更点
+            <div class="lawyer-update-content">
+              <div class="lawyer-update-header">
+                <h4 class="lawyer-update-title">
+                  <a @click="viewUpdateDetail(item)">{{ item.title }}</a>
+                </h4>
+                <span class="lawyer-update-time">{{ item.date }}</span>
               </div>
-              <ul class="lawyer-update-ai-points">
-                <li v-for="(point, i) in item.analysis" :key="i">
-                  {{ point }}
-                </li>
-              </ul>
-            </div>
-            <div class="lawyer-update-tags">
-              <a-tag :color="getCategoryColor(item.category)">
-                {{ item.category }}
-              </a-tag>
-              <a-tag :color="getUpdateStatusColor(item.status)">
-                {{ getUpdateStatusText(item.status) }}
-              </a-tag>
+              <p class="lawyer-update-description">
+                {{ item.description }}
+              </p>
+              <div class="lawyer-update-ai-analysis" v-if="item.analysis">
+                <div class="lawyer-update-ai-header">
+                  <a-icon type="robot" /> AI智能解读主要变更点
+                </div>
+                <ul class="lawyer-update-ai-points">
+                  <li v-for="(point, i) in item.analysis" :key="i">
+                    {{ point }}
+                  </li>
+                </ul>
+              </div>
+              <div class="lawyer-update-tags">
+                <a-tag :color="getCategoryColor(item.category)">
+                  {{ item.category }}
+                </a-tag>
+                <a-tag :color="getUpdateStatusColor(item.status)">
+                  {{ getUpdateStatusText(item.status) }}
+                </a-tag>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </a-spin>
     </a-card>
   </div>
 </template>
@@ -283,8 +293,12 @@
 <script lang="ts">
 // @ts-nocheck
 import { Component, Vue } from "nuxt-property-decorator";
+import ChartComponent from "@/components/common/ChartComponent.vue";
 
 @Component({
+  components: {
+    ChartComponent,
+  },
   head() {
     return {
       title: "首页概览 - 法律合规智能系统",
@@ -292,6 +306,325 @@ import { Component, Vue } from "nuxt-property-decorator";
   },
 })
 export default class IndexPage extends Vue {
+  // 数据加载状态
+  chartLoading = {
+    trend: true,
+    sources: true,
+    types: true,
+  };
+
+  // 图表数据
+  chartData = {
+    trend: {},
+    sources: {},
+    types: {},
+  };
+
+  // 列表数据加载状态
+  listLoading = {
+    recentReviews: true,
+    topReviews: true,
+    latestUpdates: true,
+  };
+
+  // 列表数据
+  recentReviews = [];
+  topReviews = [];
+  latestUpdates = [];
+
+  // 生命周期钩子
+  async mounted() {
+    // 加载所有数据
+    try {
+      await Promise.all([
+        // 加载图表数据
+        this.loadTrendChartData(),
+        this.loadSourcesChartData(),
+        this.loadTypesChartData(),
+        // 加载列表数据
+        this.loadRecentReviews(),
+        this.loadTopReviews(),
+        this.loadLatestUpdates(),
+      ]);
+    } catch (error) {
+      console.error("加载数据失败:", error);
+    }
+  }
+
+  // 加载趋势图数据
+  async loadTrendChartData() {
+    this.chartLoading.trend = true;
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // 模拟网络延迟
+
+      // 只更新数据部分，保持配置部分不变
+      const xAxisData = [
+        "1日",
+        "3日",
+        "5日",
+        "7日",
+        "9日",
+        "11日",
+        "13日",
+        "15日",
+        "17日",
+        "19日",
+        "21日",
+        "23日",
+        "25日",
+        "27日",
+        "29日",
+      ];
+
+      // 根据周期设置不同的数据
+      let seriesData = [
+        [3, 5, 2, 6, 5, 7, 4, 5, 2, 8, 3, 5, 3, 4, 5], // 新发布
+        [3, 3, 5, 4, 4, 3, 3, 4, 5, 3, 4, 4, 4, 5, 5], // 修订
+        [0, 2, 2, 1, 0, 2, 0, 0, 2, 1, 0, 2, 1, 1, 0], // 废止
+      ];
+
+      // 根据周期调整数据
+      if (this.trendChartPeriod === "quarter") {
+        seriesData = [
+          [5, 7, 3, 8, 6, 9, 5, 7, 3, 9, 4, 7, 5, 6, 7],
+          [4, 5, 6, 5, 6, 4, 5, 5, 7, 4, 5, 6, 5, 6, 7],
+          [1, 2, 3, 1, 1, 2, 1, 0, 3, 2, 1, 3, 2, 1, 1],
+        ];
+      } else if (this.trendChartPeriod === "year") {
+        seriesData = [
+          [8, 10, 6, 12, 9, 15, 7, 11, 5, 14, 8, 12, 9, 10, 11],
+          [7, 8, 9, 8, 9, 7, 8, 9, 10, 8, 9, 9, 8, 9, 10],
+          [2, 3, 4, 2, 2, 3, 1, 0, 4, 3, 2, 4, 3, 2, 2],
+        ];
+      }
+
+      this.chartData.trend = {
+        xAxis: { data: xAxisData },
+        series: seriesData.map((data) => ({ data })),
+      };
+    } finally {
+      this.chartLoading.trend = false;
+    }
+  }
+
+  // 加载图表数据的通用方法
+  async loadPieChartData(chartType, duration = 1500) {
+    const loadingKey = chartType === "sources" ? "sources" : "types";
+    this.chartLoading[loadingKey] = true;
+
+    try {
+      await new Promise((resolve) => setTimeout(resolve, duration)); // 模拟网络延迟
+
+      // 根据图表类型返回对应数据
+      const pieData =
+        chartType === "sources"
+          ? [
+              { value: 35, name: "全国人大" },
+              { value: 30, name: "国务院" },
+              { value: 20, name: "监管部门" },
+              { value: 10, name: "地方政府" },
+              { value: 5, name: "行业协会" },
+            ]
+          : [
+              { value: 15, name: "法律" },
+              { value: 25, name: "行政法规" },
+              { value: 35, name: "部门规章" },
+              { value: 25, name: "规范性文件" },
+            ];
+
+      this.chartData[loadingKey] = {
+        series: [{ data: pieData }],
+      };
+    } finally {
+      this.chartLoading[loadingKey] = false;
+    }
+  }
+
+  // 加载来源分布数据
+  loadSourcesChartData() {
+    return this.loadPieChartData("sources", 1500);
+  }
+
+  // 加载类型分布数据
+  loadTypesChartData() {
+    return this.loadPieChartData("types", 2000);
+  }
+
+  // 加载列表数据的通用方法
+  async loadListData(listType, mockData, duration = 1000) {
+    this.listLoading[listType] = true;
+    try {
+      await new Promise((resolve) => setTimeout(resolve, duration));
+      this[listType] = mockData;
+    } finally {
+      this.listLoading[listType] = false;
+    }
+  }
+
+  // 加载近期完成审核数据
+  loadRecentReviews() {
+    const mockData = [
+      {
+        title: "《新版数据跨境传输安全管理办法》解读",
+        date: "2023-06-18",
+        reviewer: "张律师",
+        status: "approved",
+      },
+      {
+        title: "关于临时部署特定数据安全措施的建议",
+        date: "2023-06-17",
+        reviewer: "王审核",
+        status: "rejected",
+      },
+      {
+        title: "内部审计计划更新与国税总局报告",
+        date: "2023-06-16",
+        reviewer: "李专家",
+        status: "approved",
+      },
+    ];
+    return this.loadListData("recentReviews", mockData, 800);
+  }
+
+  // 加载需要人工审核的数据
+  loadTopReviews() {
+    const mockData = [
+      {
+        key: "1",
+        title: "《个人信息保护法》第二十五条解释说明",
+        docNumber: "法规解释[2023]25号",
+        date: "2023-06-15 14:30",
+        category: "法律法规",
+        source: "合规部",
+        status: "pending",
+      },
+      {
+        key: "2",
+        title: "《网络安全法》实施细则修订版",
+        docNumber: "网安实施[2023]02号",
+        date: "2023-06-14 09:15",
+        category: "监管政策",
+        source: "安全部",
+        status: "pending",
+      },
+      {
+        key: "3",
+        title: "数据出境安全评估操作指南",
+        docNumber: "数据安全[2023]18号",
+        date: "2023-06-13 16:45",
+        category: "内部指南",
+        source: "数据部",
+        status: "pending",
+      },
+      {
+        key: "4",
+        title: "企业数据合规手册",
+        docNumber: "数据合规[2023]07号",
+        date: "2023-06-12 11:30",
+        category: "内部指南",
+        source: "合规部",
+        status: "pending",
+      },
+      {
+        key: "5",
+        title: "互联网行业广告合规指南",
+        docNumber: "广告合规[2023]03号",
+        date: "2023-06-11 10:00",
+        category: "法律法规",
+        source: "营销部",
+        status: "pending",
+      },
+    ];
+    return this.loadListData("topReviews", mockData, 1200);
+  }
+
+  // 加载最新法规更新数据
+  loadLatestUpdates() {
+    const mockData = [
+      {
+        id: "1",
+        title: "《中华人民共和国数据安全法》",
+        description:
+          "为了规范数据处理活动，保障数据安全，促进数据开发利用，保护个人、组织的合法权益，维护国家主权、安全和发展利益，制定本法。",
+        date: "2023-06-10 15:30",
+        status: "new",
+        category: "法律法规",
+        icon: "bank",
+        analysis: [
+          "确立了数据分类分级管理制度，明确了国家核心数据保护要求",
+          "设立数据安全工作协调机制，建立健全集中统一、协调高效的数据安全风险评估机制",
+          "明确数据处理者的安全保护义务，加强对数据安全事件的应急处置",
+          "明确禁止向外国司法或执法机构提供存储于中国境内的数据，除非经主管机关批准",
+        ],
+      },
+      {
+        id: "2",
+        title: "《个人信息保护法》",
+        description:
+          "为了保护个人信息权益，规范个人信息处理活动，促进个人信息合理利用，根据宪法，制定本法。本法明确了个人信息处理的规则，保障个人对个人信息处理的知情权和控制权。",
+        date: "2023-06-09 09:20",
+        status: "effective",
+        category: "法律法规",
+        icon: "safety-certificate",
+        analysis: [
+          "明确了个人信息处理应当遵循合法、正当、必要和诚信原则",
+          "个人信息处理应当取得个人的同意，并且提供便捷的撤回同意的方式",
+          "增强个人信息主体权利，包括知情权、决定权、查阅权、复制权等",
+          "规定了个人敏感信息的特殊保护规则，包括生物识别、宗教信仰、特定身份等",
+        ],
+      },
+      {
+        id: "3",
+        title: "《汽车数据安全管理若干规定（试行）》",
+        description:
+          "为规范汽车数据处理活动，保障汽车数据安全，保护个人、组织合法权益，促进汽车数据依法合理有效利用，根据相关法律法规，制定本规定。",
+        date: "2023-06-08 14:15",
+        status: "updated",
+        category: "监管政策",
+        icon: "car",
+        analysis: [
+          "新增对智能网联汽车运行中收集的个人信息和重要数据的特殊管理规定",
+          "汽车数据处理者应当建立汽车数据安全管理制度，并进行风险评估",
+          "处理重要数据的汽车数据处理者需要按照有关规定进行数据出境安全评估",
+          "要求车辆设计默认不记录车外图像、生物特征等敏感信息，除非驾驶员主动开启",
+        ],
+      },
+      {
+        id: "4",
+        title: "《网络安全审查办法》（修订征求意见稿）",
+        description:
+          "为了确保关键信息基础设施供应链安全、网络安全和数据安全，保障国家安全，修订本办法。主要修改内容包括扩大审查范围、调整审查重点等方面。",
+        date: "2023-06-07 11:30",
+        status: "draft",
+        category: "征求意见",
+        icon: "safety",
+        analysis: [
+          "扩大网络安全审查范围，新增对赴国外上市企业的审查要求",
+          "调整网络安全审查重点，增加对数据处理活动的国家安全风险评估",
+          "网络平台运营者掌握超过100万用户个人信息须申报网络安全审查",
+          "明确网络安全审查工作机制，增加网信办、证监会等部门协调职责",
+        ],
+      },
+      {
+        id: "5",
+        title: "关联交易管理制度修订及执行指引",
+        description:
+          "根据最新监管要求，公司修订关联交易管理制度，制定详细执行指引。修订要点：扩大关联方认定范围、完善审批流程、加强持续监管、明确责任追究机制。",
+        date: "2023-06-06 16:45",
+        status: "updated",
+        category: "内部制度",
+        icon: "apartment",
+        analysis: [
+          "扩大关联方认定范围，新增对实质控制关系的认定标准",
+          "完善关联交易审批流程，强化董事会和股东大会在重大关联交易中的决策职责",
+          "加强对持续性关联交易的跟踪监管，建立定期评估与报告机制",
+          "明确违规责任追究机制，对故意隐瞒关联关系等行为设定惩戒措施",
+        ],
+      },
+    ];
+    return this.loadListData("latestUpdates", mockData, 1500);
+  }
+
   // 时间范围选项
   timeOptions = [
     { label: "本月", value: "month" },
@@ -365,334 +698,6 @@ export default class IndexPage extends Vue {
       scopedSlots: { customRender: "action" },
     },
   ];
-
-  // 近期完成审核（模拟数据）
-  recentReviews = [
-    {
-      title: "《新版数据跨境传输安全管理办法》解读",
-      date: "2023-06-18",
-      reviewer: "张律师",
-      status: "approved",
-    },
-    {
-      title: "关于临时部署特定数据安全措施的建议",
-      date: "2023-06-17",
-      reviewer: "王审核",
-      status: "rejected",
-    },
-    {
-      title: "内部审计计划更新与国税总局报告",
-      date: "2023-06-16",
-      reviewer: "李专家",
-      status: "approved",
-    },
-  ];
-
-  // Top 5 需要人工审核（模拟数据）
-  topReviews = [
-    {
-      key: "1",
-      title: "《个人信息保护法》第二十五条解释说明",
-      docNumber: "法规解释[2023]25号",
-      date: "2023-06-15 14:30",
-      category: "法律法规",
-      source: "合规部",
-      status: "pending",
-    },
-    {
-      key: "2",
-      title: "《网络安全法》实施细则修订版",
-      docNumber: "网安实施[2023]02号",
-      date: "2023-06-14 09:15",
-      category: "监管政策",
-      source: "安全部",
-      status: "pending",
-    },
-    {
-      key: "3",
-      title: "数据出境安全评估操作指南",
-      docNumber: "数据安全[2023]18号",
-      date: "2023-06-13 16:45",
-      category: "内部指南",
-      source: "数据部",
-      status: "pending",
-    },
-    {
-      key: "4",
-      title: "企业数据合规手册",
-      docNumber: "数据合规[2023]07号",
-      date: "2023-06-12 11:30",
-      category: "内部指南",
-      source: "合规部",
-      status: "pending",
-    },
-    {
-      key: "5",
-      title: "互联网行业广告合规指南",
-      docNumber: "广告合规[2023]03号",
-      date: "2023-06-11 10:00",
-      category: "法律法规",
-      source: "营销部",
-      status: "pending",
-    },
-  ];
-
-  // 最新法规更新（模拟数据）
-  latestUpdates = [
-    {
-      id: "1",
-      title: "《中华人民共和国数据安全法》",
-      description:
-        "为了规范数据处理活动，保障数据安全，促进数据开发利用，保护个人、组织的合法权益，维护国家主权、安全和发展利益，制定本法。",
-      date: "2023-06-10 15:30",
-      status: "new",
-      category: "法律法规",
-      icon: "bank",
-      analysis: [
-        "确立了数据分类分级管理制度，明确了国家核心数据保护要求",
-        "设立数据安全工作协调机制，建立健全集中统一、协调高效的数据安全风险评估机制",
-        "明确数据处理者的安全保护义务，加强对数据安全事件的应急处置",
-        "明确禁止向外国司法或执法机构提供存储于中国境内的数据，除非经主管机关批准",
-      ],
-    },
-    {
-      id: "2",
-      title: "《个人信息保护法》",
-      description:
-        "为了保护个人信息权益，规范个人信息处理活动，促进个人信息合理利用，根据宪法，制定本法。本法明确了个人信息处理的规则，保障个人对个人信息处理的知情权和控制权。",
-      date: "2023-06-09 09:20",
-      status: "effective",
-      category: "法律法规",
-      icon: "safety-certificate",
-      analysis: [
-        "明确了个人信息处理应当遵循合法、正当、必要和诚信原则",
-        "个人信息处理应当取得个人的同意，并且提供便捷的撤回同意的方式",
-        "增强个人信息主体权利，包括知情权、决定权、查阅权、复制权等",
-        "规定了个人敏感信息的特殊保护规则，包括生物识别、宗教信仰、特定身份等",
-      ],
-    },
-    {
-      id: "3",
-      title: "《汽车数据安全管理若干规定（试行）》",
-      description:
-        "为规范汽车数据处理活动，保障汽车数据安全，保护个人、组织合法权益，促进汽车数据依法合理有效利用，根据相关法律法规，制定本规定。",
-      date: "2023-06-08 14:15",
-      status: "updated",
-      category: "监管政策",
-      icon: "car",
-      analysis: [
-        "新增对智能网联汽车运行中收集的个人信息和重要数据的特殊管理规定",
-        "汽车数据处理者应当建立汽车数据安全管理制度，并进行风险评估",
-        "处理重要数据的汽车数据处理者需要按照有关规定进行数据出境安全评估",
-        "要求车辆设计默认不记录车外图像、生物特征等敏感信息，除非驾驶员主动开启",
-      ],
-    },
-    {
-      id: "4",
-      title: "《网络安全审查办法》（修订征求意见稿）",
-      description:
-        "为了确保关键信息基础设施供应链安全、网络安全和数据安全，保障国家安全，修订本办法。主要修改内容包括扩大审查范围、调整审查重点等方面。",
-      date: "2023-06-07 11:30",
-      status: "draft",
-      category: "征求意见",
-      icon: "safety",
-      analysis: [
-        "扩大网络安全审查范围，新增对赴国外上市企业的审查要求",
-        "调整网络安全审查重点，增加对数据处理活动的国家安全风险评估",
-        "网络平台运营者掌握超过100万用户个人信息须申报网络安全审查",
-        "明确网络安全审查工作机制，增加网信办、证监会等部门协调职责",
-      ],
-    },
-    {
-      id: "5",
-      title: "关联交易管理制度修订及执行指引",
-      description:
-        "根据最新监管要求，公司修订关联交易管理制度，制定详细执行指引。修订要点：扩大关联方认定范围、完善审批流程、加强持续监管、明确责任追究机制。",
-      date: "2023-06-06 16:45",
-      status: "updated",
-      category: "内部制度",
-      icon: "apartment",
-      analysis: [
-        "扩大关联方认定范围，新增对实质控制关系的认定标准",
-        "完善关联交易审批流程，强化董事会和股东大会在重大关联交易中的决策职责",
-        "加强对持续性关联交易的跟踪监管，建立定期评估与报告机制",
-        "明确违规责任追究机制，对故意隐瞒关联关系等行为设定惩戒措施",
-      ],
-    },
-  ];
-
-  // 法规更新趋势图配置
-  get trendChartOptions() {
-    return {
-      color: ["#f59e0b", "#10b981", "#ef4444"],
-      tooltip: {
-        trigger: "axis",
-      },
-      legend: {
-        data: ["新发布", "修订", "废止"],
-        bottom: 0,
-      },
-      grid: {
-        left: "3%",
-        right: "4%",
-        bottom: "15%",
-        top: "3%",
-        containLabel: true,
-      },
-      xAxis: {
-        type: "category",
-        boundaryGap: false,
-        data: [
-          "1日",
-          "3日",
-          "5日",
-          "7日",
-          "9日",
-          "11日",
-          "13日",
-          "15日",
-          "17日",
-          "19日",
-          "21日",
-          "23日",
-          "25日",
-          "27日",
-          "29日",
-        ],
-      },
-      yAxis: {
-        type: "value",
-      },
-      series: [
-        {
-          name: "新发布",
-          type: "line",
-          smooth: true,
-          areaStyle: {
-            opacity: 0.15,
-          },
-          data: [3, 5, 2, 6, 5, 7, 4, 5, 2, 8, 3, 5, 3, 4, 5],
-        },
-        {
-          name: "修订",
-          type: "line",
-          smooth: true,
-          areaStyle: {
-            opacity: 0.15,
-          },
-          data: [3, 3, 5, 4, 4, 3, 3, 4, 5, 3, 4, 4, 4, 5, 5],
-        },
-        {
-          name: "废止",
-          type: "line",
-          smooth: true,
-          areaStyle: {
-            opacity: 0.15,
-          },
-          data: [0, 2, 2, 1, 0, 2, 0, 0, 2, 1, 0, 2, 1, 1, 0],
-        },
-      ],
-    };
-  }
-
-  // 法规更新来源分布图表配置
-  get sourcesChartOptions() {
-    return {
-      color: ["#f59e0b", "#10b981", "#ef4444", "#3b82f6", "#8b5cf6"],
-      tooltip: {
-        trigger: "item",
-        formatter: "{a} <br/>{b}: {c} ({d}%)",
-      },
-      legend: {
-        orient: "vertical",
-        right: 10,
-        top: "center",
-        textStyle: {
-          width: 100,
-          overflow: "break",
-        },
-        data: ["全国人大", "国务院", "监管部门", "地方政府", "行业协会"],
-      },
-      series: [
-        {
-          name: "来源分布",
-          type: "pie",
-          radius: ["40%", "60%"],
-          center: ["40%", "50%"],
-          avoidLabelOverlap: false,
-          label: {
-            show: false,
-          },
-          emphasis: {
-            label: {
-              show: true,
-              fontSize: "16",
-              fontWeight: "bold",
-            },
-          },
-          labelLine: {
-            show: false,
-          },
-          data: [
-            { value: 35, name: "全国人大" },
-            { value: 30, name: "国务院" },
-            { value: 20, name: "监管部门" },
-            { value: 10, name: "地方政府" },
-            { value: 5, name: "行业协会" },
-          ],
-        },
-      ],
-    };
-  }
-
-  // 法规更新类型分布图表配置
-  get typesChartOptions() {
-    return {
-      color: ["#f59e0b", "#10b981", "#ef4444", "#3b82f6"],
-      tooltip: {
-        trigger: "item",
-        formatter: "{a} <br/>{b}: {c} ({d}%)",
-      },
-      legend: {
-        orient: "vertical",
-        right: 10,
-        top: "center",
-        textStyle: {
-          width: 100,
-          overflow: "break",
-        },
-        data: ["法律", "行政法规", "部门规章", "规范性文件"],
-      },
-      series: [
-        {
-          name: "类型分布",
-          type: "pie",
-          radius: ["40%", "60%"],
-          center: ["40%", "50%"],
-          avoidLabelOverlap: false,
-          label: {
-            show: false,
-          },
-          emphasis: {
-            label: {
-              show: true,
-              fontSize: "16",
-              fontWeight: "bold",
-            },
-          },
-          labelLine: {
-            show: false,
-          },
-          data: [
-            { value: 15, name: "法律" },
-            { value: 25, name: "行政法规" },
-            { value: 35, name: "部门规章" },
-            { value: 25, name: "规范性文件" },
-          ],
-        },
-      ],
-    };
-  }
 
   // 获取审核状态标签颜色
   getReviewStatusColor(status: string): string {
@@ -844,6 +849,183 @@ export default class IndexPage extends Vue {
         options: this.typesChartOptions,
       },
     ];
+  }
+
+  // 法规更新趋势图配置 - 从异步数据中获取
+  get trendChartOptions() {
+    // 合并固定配置和动态数据
+    const baseOptions = {
+      color: ["#f59e0b", "#10b981", "#ef4444"],
+      tooltip: { trigger: "axis" },
+      legend: { data: ["新发布", "修订", "废止"], bottom: 0 },
+      grid: {
+        left: "3%",
+        right: "4%",
+        bottom: "15%",
+        top: "3%",
+        containLabel: true,
+      },
+      xAxis: {
+        type: "category",
+        boundaryGap: false,
+        data: [],
+      },
+      yAxis: { type: "value" },
+      series: [
+        {
+          name: "新发布",
+          type: "line",
+          smooth: true,
+          areaStyle: { opacity: 0.15 },
+          data: [],
+        },
+        {
+          name: "修订",
+          type: "line",
+          smooth: true,
+          areaStyle: { opacity: 0.15 },
+          data: [],
+        },
+        {
+          name: "废止",
+          type: "line",
+          smooth: true,
+          areaStyle: { opacity: 0.15 },
+          data: [],
+        },
+      ],
+    };
+
+    // 如果有异步加载的数据，则合并
+    if (this.chartData.trend && this.chartData.trend.xAxis) {
+      baseOptions.xAxis.data = this.chartData.trend.xAxis.data;
+    }
+
+    if (this.chartData.trend && this.chartData.trend.series) {
+      for (
+        let i = 0;
+        i <
+        Math.min(baseOptions.series.length, this.chartData.trend.series.length);
+        i++
+      ) {
+        baseOptions.series[i].data = this.chartData.trend.series[i].data;
+      }
+    }
+
+    return baseOptions;
+  }
+
+  // 法规更新来源分布图表配置
+  get sourcesChartOptions() {
+    // 合并固定配置和动态数据
+    const baseOptions = {
+      color: ["#f59e0b", "#10b981", "#ef4444", "#3b82f6", "#8b5cf6"],
+      tooltip: {
+        trigger: "item",
+        formatter: "{a} <br/>{b}: {c} ({d}%)",
+      },
+      legend: {
+        orient: "vertical",
+        right: 10,
+        top: "center",
+        textStyle: {
+          width: 100,
+          overflow: "break",
+        },
+        data: ["全国人大", "国务院", "监管部门", "地方政府", "行业协会"],
+      },
+      series: [
+        {
+          name: "来源分布",
+          type: "pie",
+          radius: ["40%", "60%"],
+          center: ["40%", "50%"],
+          avoidLabelOverlap: false,
+          label: { show: false },
+          emphasis: {
+            label: {
+              show: true,
+              fontSize: "16",
+              fontWeight: "bold",
+            },
+          },
+          labelLine: { show: false },
+          data: [],
+        },
+      ],
+    };
+
+    // 如果有异步加载的数据，则合并
+    if (
+      this.chartData.sources &&
+      this.chartData.sources.series &&
+      this.chartData.sources.series[0] &&
+      this.chartData.sources.series[0].data
+    ) {
+      baseOptions.series[0].data = this.chartData.sources.series[0].data;
+    }
+
+    return baseOptions;
+  }
+
+  // 法规更新类型分布图表配置
+  get typesChartOptions() {
+    // 合并固定配置和动态数据
+    const baseOptions = {
+      color: ["#f59e0b", "#10b981", "#ef4444", "#3b82f6"],
+      tooltip: {
+        trigger: "item",
+        formatter: "{a} <br/>{b}: {c} ({d}%)",
+      },
+      legend: {
+        orient: "vertical",
+        right: 10,
+        top: "center",
+        textStyle: {
+          width: 100,
+          overflow: "break",
+        },
+        data: ["法律", "行政法规", "部门规章", "规范性文件"],
+      },
+      series: [
+        {
+          name: "类型分布",
+          type: "pie",
+          radius: ["40%", "60%"],
+          center: ["40%", "50%"],
+          avoidLabelOverlap: false,
+          label: { show: false },
+          emphasis: {
+            label: {
+              show: true,
+              fontSize: "16",
+              fontWeight: "bold",
+            },
+          },
+          labelLine: { show: false },
+          data: [],
+        },
+      ],
+    };
+
+    // 如果有异步加载的数据，则合并
+    if (
+      this.chartData.types &&
+      this.chartData.types.series &&
+      this.chartData.types.series[0] &&
+      this.chartData.types.series[0].data
+    ) {
+      baseOptions.series[0].data = this.chartData.types.series[0].data;
+    }
+
+    return baseOptions;
+  }
+
+  // 监听趋势图周期变化
+  async onTrendChartPeriodChange(newPeriod) {
+    this.trendChartPeriod = newPeriod;
+    // 重新加载趋势图数据，模拟不同时间段的数据
+    await this.loadTrendChartData();
   }
 }
 </script>

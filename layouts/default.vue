@@ -54,5 +54,5 @@ export default class DefaultLayout extends Vue {}
 </script>
 
 <style lang="less" scoped>
-/* 所有样式已移至assets/styles/analysis.less，此处保留空白 */
+/* 所有样式已移至assets/styles/lawyer.less，此处保留空白 */
 </style>

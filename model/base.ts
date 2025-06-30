@@ -6,11 +6,16 @@
 export interface DocumentItem {
   id: string;
   title: string;
-  description: string;
-  date: string;
-  category: string;
-  type: string;
-  views: number;
+  source?: string;
+  sourceType?: string;
+  date?: string;
+  summary?: string;
+  description?: string;
+  category?: string;
+  type?: string;
+  views?: number;
+  tags?: string[];
+  semanticScore?: number;
 }
 
 // 更新项目接口
@@ -18,13 +23,15 @@ export interface UpdateItem {
   id: string;
   title: string;
   description: string;
-  summary?: string;
   date: string;
-  effectiveDate: string;
   source: string;
   category: string;
-  status: string;
-  keywords: string[];
+  type: string;
+  tags: string[];
+  aiSummary?: { title: string; content: string }[];
+  status?: string;
+  icon?: string;
+  analysis?: string[];
 }
 
 // 文档比较数据接口
@@ -70,4 +77,19 @@ export interface RelatedDocument {
   id: string;
   title: string;
   date: string;
+}
+
+export interface Document {
+  id: string;
+  title: string;
+  version: string;
+  docNumber?: string;
+  changeType: string;
+  type: string;
+  submitter: string;
+  submitTime: string;
+  reviewer?: string;
+  reviewTime?: string;
+  status: string;
+  source?: string;
 }

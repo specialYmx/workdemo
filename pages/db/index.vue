@@ -201,232 +201,223 @@ export default class DbPage extends Vue {
 
   // 表格加载状态
   tableLoading = false;
-  totalDocuments = 0;
 
   // 选中行
-  selectedRowKeys = [];
+  selectedRowKeys: string[] = [];
 
   // 审核弹窗
   reviewModalVisible = false;
-  reviewAction = "";
+  reviewAction = "approve";
   reviewComment = "";
   currentDocument: Document | null = null;
 
   // 批量审核弹窗
   batchReviewModalVisible = false;
-  batchReviewAction = "";
+  batchReviewAction = "approve";
   batchReviewComment = "";
+
+  // 状态选项
+  statusOptions = [
+    { label: "全部状态", value: "all" },
+    { label: "待审核", value: "pending" },
+    { label: "已通过", value: "approved" },
+    { label: "已驳回", value: "rejected" },
+  ];
+
+  // 文档类型选项
+  typeOptions = [
+    { label: "全部分类", value: "all" },
+    { label: "法律法规", value: "law" },
+    { label: "监管政策", value: "policy" },
+    { label: "内部规章", value: "internal" },
+    { label: "解读文件", value: "explanation" },
+  ];
+
+  // 表格列配置
+  columns = [
+    {
+      title: "标题 / 文号",
+      key: "titles",
+      scopedSlots: { customRender: "titles" },
+    },
+    {
+      title: "分类",
+      dataIndex: "type",
+      key: "type",
+      scopedSlots: { customRender: "type" },
+      width: 120,
+    },
+    {
+      title: "变更类型",
+      dataIndex: "changeType",
+      key: "changeType",
+      width: 100,
+    },
+    {
+      title: "提交人",
+      dataIndex: "submitter",
+      key: "submitter",
+      width: 100,
+    },
+    {
+      title: "提交时间",
+      dataIndex: "submitTime",
+      key: "submitTime",
+      width: 160,
+    },
+    {
+      title: "审核状态",
+      dataIndex: "status",
+      key: "status",
+      scopedSlots: { customRender: "status" },
+      width: 120,
+    },
+    {
+      title: "操作",
+      key: "action",
+      scopedSlots: { customRender: "action" },
+      fixed: "right",
+      width: 240,
+    },
+  ];
+
+  // 文档数据
+  documents: Document[] = [];
+
   head() {
     return {
       title: "人工审核 - 法律合规智能系统",
     };
   }
-  // 表格列定义
-  get columns() {
-    return [
-      {
-        title: "标题 / 文号",
-        dataIndex: "title",
-        key: "title",
-        scopedSlots: { customRender: "titles" },
-      },
-      {
-        title: "分类",
-        dataIndex: "type",
-        key: "type",
-        scopedSlots: { customRender: "type" },
-      },
-      {
-        title: "来源",
-        dataIndex: "source",
-        key: "source",
-      },
-      {
-        title: "提交时间",
-        dataIndex: "submitTime",
-        key: "submitTime",
-        sorter: (a, b) => this.compareDates(a.submitTime, b.submitTime),
-      },
-      {
-        title: "状态",
-        dataIndex: "status",
-        key: "status",
-        scopedSlots: { customRender: "status" },
-        filters: [
-          { text: "待审核", value: "pending" },
-          { text: "已通过", value: "approved" },
-          { text: "已驳回", value: "rejected" },
-        ],
-        onFilter: (value, record) => record.status === value,
-      },
-      {
-        title: "操作",
-        key: "action",
-        scopedSlots: { customRender: "action" },
-      },
-    ];
+
+  // 生命周期钩子
+  async mounted() {
+    // 加载文档数据
+    await this.loadDocuments();
   }
 
-  // 文档数据（模拟数据）
-  documents: Document[] = [
-    {
-      id: "d001",
-      title: "关于保险资金投资股权的合规审查报告",
-      docNumber: "合规审[2024]001号",
-      version: "v1.2",
-      changeType: "内容更新",
-      type: "law",
-      source: "合规部",
-      submitter: "张律师",
-      submitTime: "2024-01-15 14:30",
-      status: "pending",
-    },
-    {
-      id: "d002",
-      title: "偿付能力充足率计算方法修订草案",
-      docNumber: "偿付[2024]002号",
-      version: "v2.0",
-      changeType: "重大修订",
-      type: "policy",
-      source: "风险管理部",
-      submitter: "李分析师",
-      submitTime: "2024-01-14 16:20",
-      status: "pending",
-    },
-    {
-      id: "d003",
-      title: "关联交易管理制度内部审核意见",
-      docNumber: "内审[2024]003号",
-      version: "v1.5",
-      changeType: "内容更新",
-      type: "internal",
-      source: "法务部",
-      submitter: "王专家",
-      submitTime: "2024-01-14 10:45",
-      reviewer: "赵审核",
-      reviewTime: "2024-01-14 10:20",
-      status: "approved",
-    },
-    {
-      id: "d004",
-      title: "保险公司治理评估报告",
-      docNumber: "治理[2024]004号",
-      version: "v3.1",
-      changeType: "格式调整",
-      type: "law",
-      source: "董事会办公室",
-      submitter: "刘法务",
-      submitTime: "2024-01-13 09:15",
-      reviewer: "赵审核",
-      reviewTime: "2024-01-13 14:10",
-      status: "rejected",
-    },
-    {
-      id: "d005",
-      title: "信息披露管理办法执行情况检查",
-      docNumber: "披露[2024]005号",
-      version: "v1.0",
-      changeType: "新增文档",
-      type: "policy",
-      source: "信息披露部",
-      submitter: "陈专员",
-      submitTime: "2024-01-12 15:30",
-      reviewer: "钱审核",
-      reviewTime: "2024-01-12 09:30",
-      status: "pending",
-    },
-    {
-      id: "d006",
-      title: "资产负债管理制度更新方案",
-      docNumber: "资管[2024]006号",
-      version: "v2.3",
-      changeType: "内容更新",
-      type: "internal",
-      source: "资产管理部",
-      submitter: "赵律师",
-      submitTime: "2024-01-11 11:20",
-      status: "approved",
-    },
-    {
-      id: "d007",
-      title: "反洗钱工作年度总结及改进计划",
-      docNumber: "反洗[2024]007号",
-      version: "v1.1",
-      changeType: "格式调整",
-      type: "law",
-      source: "合规部",
-      submitter: "钱分析师",
-      submitTime: "2024-01-10 08:45",
-      reviewer: "孙审核",
-      reviewTime: "2024-01-10 11:15",
-      status: "pending",
-    },
-    {
-      id: "d008",
-      title: "消费者权益保护工作评估",
-      docNumber: "消保[2024]008号",
-      version: "v1.4",
-      changeType: "内容更新",
-      type: "policy",
-      source: "客户服务部",
-      submitter: "孙专家",
-      submitTime: "2024-01-09 14:00",
-      status: "approved",
-    },
-  ];
+  // 加载文档数据
+  async loadDocuments() {
+    this.tableLoading = true;
+    try {
+      // 模拟网络请求和数据
+      const mockData = [
+        {
+          id: "doc001",
+          title: "保险资金股权投资管理暂行办法",
+          version: "1.0",
+          docNumber: "金监发[2024]10号",
+          changeType: "新增",
+          type: "law",
+          submitter: "张三",
+          submitTime: "2024-01-15 14:30",
+          status: "pending",
+          source: "金融监管总局",
+        },
+        {
+          id: "doc002",
+          title: "偿付能力监管规则修订征求意见稿",
+          version: "2.1",
+          docNumber: "金监发[2024]8号",
+          changeType: "修订",
+          type: "policy",
+          submitter: "李四",
+          submitTime: "2024-01-12 10:15",
+          status: "pending",
+          source: "金融监管总局",
+        },
+        {
+          id: "doc003",
+          title: "关于加强保险资金另类投资风险管理的通知",
+          version: "1.0",
+          docNumber: "金监发[2024]6号",
+          changeType: "新增",
+          type: "policy",
+          submitter: "王五",
+          submitTime: "2024-01-08 16:45",
+          status: "approved",
+          reviewer: "赵经理",
+          reviewTime: "2024-01-10 09:30",
+          source: "金融监管总局",
+        },
+        {
+          id: "doc004",
+          title: "保险公司关联交易管理实施细则",
+          version: "3.0",
+          docNumber: "内规[2024]02号",
+          changeType: "修订",
+          type: "internal",
+          submitter: "赵六",
+          submitTime: "2024-01-05 11:20",
+          status: "rejected",
+          reviewer: "钱经理",
+          reviewTime: "2024-01-07 14:50",
+          source: "内部法务部",
+        },
+        {
+          id: "doc005",
+          title: "《个人信息保护法》解读及适用指南",
+          version: "2.0",
+          docNumber: "参考[2024]01号",
+          changeType: "更新",
+          type: "explanation",
+          submitter: "孙七",
+          submitTime: "2024-01-03 09:45",
+          status: "pending",
+          source: "法务部",
+        },
+      ];
 
-  created() {
-    this.totalDocuments = this.documents.length;
+      await new Promise((r) => setTimeout(r, 1500));
+      this.documents = mockData;
+    } catch (error) {
+      console.error("加载文档数据失败", error);
+      this.$message.error("加载数据失败，请刷新页面重试");
+    } finally {
+      this.tableLoading = false;
+    }
   }
 
-  // 计算属性：筛选后的文档
-  get filteredDocuments(): Document[] {
+  // 获取已筛选的文档列表
+  get filteredDocuments() {
     let result = [...this.documents];
 
-    // 按状态筛选
+    // 搜索过滤
+    if (this.searchText) {
+      const text = this.searchText.toLowerCase();
+      result = result.filter(
+        (doc) =>
+          doc.title.toLowerCase().includes(text) ||
+          (doc.docNumber && doc.docNumber.toLowerCase().includes(text)) ||
+          (doc.source && doc.source.toLowerCase().includes(text))
+      );
+    }
+
+    // 状态筛选
     if (this.filterStatus !== "all") {
       result = result.filter((doc) => doc.status === this.filterStatus);
     }
 
-    // 按分类筛选
+    // 文档类型筛选
     if (this.filterType !== "all") {
       result = result.filter((doc) => doc.type === this.filterType);
-    }
-
-    // 按关键词搜索
-    if (this.searchText) {
-      const keyword = this.searchText.toLowerCase();
-      result = result.filter(
-        (doc) =>
-          doc.title.toLowerCase().includes(keyword) ||
-          doc.submitter.toLowerCase().includes(keyword) ||
-          doc.changeType.toLowerCase().includes(keyword) ||
-          (doc.docNumber && doc.docNumber.toLowerCase().includes(keyword)) ||
-          (doc.source && doc.source.toLowerCase().includes(keyword))
-      );
-    }
-
-    // 按日期范围筛选
-    if (this.dateRange && this.dateRange.length === 2) {
-      const startDate = moment(this.dateRange[0]).startOf("day");
-      const endDate = moment(this.dateRange[1]).endOf("day");
-
-      result = result.filter((doc) => {
-        const docDate = moment(doc.submitTime);
-        return docDate.isBetween(startDate, endDate, null, "[]");
-      });
     }
 
     return result;
   }
 
-  // 计算待审核文档数量
-  get pendingCount(): number {
+  // 获取待审核文档数量
+  get pendingCount() {
     return this.documents.filter((doc) => doc.status === "pending").length;
   }
 
-  // 判断是否有选中行
-  get hasSelection(): boolean {
+  // 获取文档总数
+  get totalDocuments() {
+    return this.documents.length;
+  }
+
+  // 获取是否有选中的行
+  get hasSelection() {
     return this.selectedRowKeys.length > 0;
   }
 
@@ -631,33 +622,6 @@ export default class DbPage extends Vue {
         handler: (record: Document) => this.rejectDocument(record),
       },
     ];
-  }
-
-  // 审核状态选项
-  get statusOptions() {
-    return [
-      { value: "all", label: "全部状态" },
-      { value: "pending", label: "待审核" },
-      { value: "approved", label: "已通过" },
-      { value: "rejected", label: "已驳回" },
-    ];
-  }
-
-  // 文档分类选项
-  get typeOptions() {
-    return [
-      { value: "all", label: "全部分类" },
-      { value: "law", label: "法律法规" },
-      { value: "policy", label: "监管政策" },
-      { value: "internal", label: "内部规章" },
-    ];
-  }
-
-  // 日期比较方法
-  compareDates(date1: string, date2: string): number {
-    const date1Moment = moment(date1);
-    const date2Moment = moment(date2);
-    return date1Moment.diff(date2Moment);
   }
 }
 </script>
