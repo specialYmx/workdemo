@@ -66,7 +66,7 @@
       <!-- 文档查看器 -->
       <div class="lawyer-document-viewer">
         <div
-          class="lawyer-viewer-toolbar lawyer-flex lawyer-justify-between lawyer-items-center lawyer-sticky-toolbar"
+          class="lawyer-viewer-toolbar lawyer-flex lawyer-justify-between lawyer-items-center"
         >
           <div
             class="lawyer-toolbar-left lawyer-flex lawyer-items-center lawyer-gap-sm"
@@ -77,9 +77,7 @@
               v-model="searchText"
               @search="searchInDocument"
             />
-            <span v-if="searchMatchCount > 0" class="lawyer-search-count">
-              {{ searchCurrentMatch }}/{{ searchMatchCount }}
-            </span>
+            <span>“这里显示搜索的匹配数”</span>
           </div>
 
           <div
@@ -287,17 +285,7 @@ export default class DocumentViewer extends Vue {
       this.searchMatchCount = 0;
       this.searchCurrentMatch = 0;
     }
-
-    // 获取文档内容区域
-    const documentContentEl = this.$refs.documentContent;
-    if (!documentContentEl) return;
-
-    // 首先确保文档区域在视口中可见并且聚焦
-    documentContentEl.scrollIntoView({ block: "nearest" });
-    documentContentEl.focus();
-
-    // 使用浏览器内置的查找功能，限定搜索范围在文档内容区域
-    // 由于window.find不能完全限制搜索范围，我们需要监控搜索结果是否在文档内容区域内
+    // 使用浏览器内置的查找功能
     const found = window.find(
       value, // 搜索词
       false, // 不区分大小写
@@ -307,19 +295,6 @@ export default class DocumentViewer extends Vue {
       false, // 不匹配整个单词
       false // 不匹配大小写
     );
-
-    // 如果找到了，检查选中内容是否在文档内容区域内
-    if (found) {
-      const selection = window.getSelection();
-      if (selection && selection.rangeCount > 0) {
-        const range = selection.getRangeAt(0);
-        // 检查选中区域是否在文档内容区域内
-        if (!this.isSelectionInDocumentContent(range, documentContentEl)) {
-          // 如果不在，继续搜索下一个匹配项
-          return this.searchInDocument(value);
-        }
-      }
-    }
 
     // 如果未找到或是第一次搜索
     if (!found && this.searchStartPosition) {
@@ -334,11 +309,7 @@ export default class DocumentViewer extends Vue {
       this.searchStartPosition = true;
       // 重新执行搜索
       window.getSelection()?.removeAllRanges(); // 清除当前选择
-
-      // 滚动到文档内容顶部
-      if (documentContentEl) {
-        documentContentEl.scrollTop = 0;
-      }
+      window.scrollTo(0, 0); // 回到文档顶部
 
       // 重新调用搜索但显示已回到开头的消息
       this.$message.info("搜索已回到文档开头");
@@ -389,33 +360,15 @@ export default class DocumentViewer extends Vue {
       if (this.searchCurrentMatch > this.searchMatchCount) {
         this.searchCurrentMatch = 1;
       }
+      this.$message.success(
+        `显示第 ${this.searchCurrentMatch}/${this.searchMatchCount} 处匹配`
+      );
     }
-  }
-
-  // 检查选中区域是否在文档内容区域内
-  isSelectionInDocumentContent(
-    range: Range,
-    documentContentEl: HTMLElement
-  ): boolean {
-    // 检查range的公共祖先元素是否是文档内容区域的子元素
-    let containerEl = range.commonAncestorContainer;
-
-    // 如果containerEl是文本节点，获取其父元素
-    if (containerEl.nodeType === Node.TEXT_NODE) {
-      containerEl = containerEl.parentElement;
-    }
-
-    // 检查containerEl是否是documentContentEl的子元素
-    return documentContentEl.contains(containerEl);
   }
 
   // 计算总匹配数
   calculateTotalMatches(value: string): void {
     if (!value) return;
-
-    // 获取文档内容区域
-    const documentContentEl = this.$refs.documentContent;
-    if (!documentContentEl) return;
 
     // 保存当前选区
     const savedSelection = window.getSelection();
@@ -424,27 +377,23 @@ export default class DocumentViewer extends Vue {
       savedRange = savedSelection.getRangeAt(0).cloneRange();
     }
 
-    try {
-      // 获取文档内容区域的内容，而不是整个document.content
-      const contentDiv = documentContentEl.querySelector("div"); // 获取文档内容的div
-      if (!contentDiv) return;
+    // 创建临时DOM元素
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = this.document.content;
+    const text = tempDiv.textContent || "";
 
-      // 获取文本内容
-      const text = contentDiv.textContent || "";
+    // 使用正则表达式计算匹配数
+    const regex = new RegExp(
+      value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+      "gi"
+    );
+    const matches = text.match(regex);
+    this.searchMatchCount = matches ? matches.length : 0;
 
-      // 使用正则表达式计算匹配数
-      const regex = new RegExp(
-        value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
-        "gi"
-      );
-      const matches = text.match(regex);
-      this.searchMatchCount = matches ? matches.length : 0;
-    } finally {
-      // 恢复原选区
-      if (savedRange && savedSelection) {
-        savedSelection.removeAllRanges();
-        savedSelection.addRange(savedRange);
-      }
+    // 恢复原选区
+    if (savedRange && savedSelection) {
+      savedSelection.removeAllRanges();
+      savedSelection.addRange(savedRange);
     }
   }
 
@@ -938,22 +887,5 @@ export default class DocumentViewer extends Vue {
   padding: 15px;
   border-top: 1px solid var(--lawyer-border);
   background-color: #fff;
-}
-
-// 搜索计数样式
-.lawyer-search-count {
-  font-size: 12px;
-  color: #666;
-  margin-left: 8px;
-  min-width: 50px;
-}
-
-// 固定工具栏
-.lawyer-sticky-toolbar {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  background: var(--lawyer-background);
-  border-bottom: 1px solid var(--lawyer-border);
 }
 </style>
