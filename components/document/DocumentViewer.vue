@@ -77,7 +77,12 @@
               v-model="searchText"
               @search="searchInDocument"
             />
-            <span>“这里显示搜索的匹配数”</span>
+            <span v-if="searchMatchCount > 0"
+              >{{ searchCurrentMatch }}/{{ searchMatchCount }} 个匹配</span
+            >
+            <span v-else-if="currentSearchQuery && searchMatchCount === 0"
+              >无匹配结果</span
+            >
           </div>
 
           <div
@@ -101,6 +106,7 @@
           class="lawyer-document-content lawyer-markdown-content lawyer-scrollable"
           :style="{ fontSize: `${(zoomLevel / 100) * 16}px` }"
           ref="documentContent"
+          tabindex="0"
         >
           <div v-html="document.content"></div>
         </div>
@@ -169,7 +175,7 @@
 
 <script lang="ts">
 // @ts-nocheck
-import { Component, Vue, Prop } from "nuxt-property-decorator";
+import { Component, Vue, Prop, Watch } from "nuxt-property-decorator";
 
 interface TocItem {
   text: string;
@@ -278,55 +284,164 @@ export default class DocumentViewer extends Vue {
   // 文档内搜索
   searchInDocument(value: string): void {
     if (!value) return;
-    // 如果是新的搜索词或重置过搜索状态，重置搜索位置
+
+    // 获取文档内容区域
+    const contentDiv = this.$refs.documentContent;
+    if (!contentDiv) return;
+
+    // 获取内容元素
+    const contentElement = contentDiv.querySelector("div");
+    if (!contentElement) return;
+
+    // 如果是新的搜索词或重置过搜索状态，重置搜索位置并执行高亮
     if (this.currentSearchQuery !== value) {
+      // 清除旧的高亮
+      this.clearHighlights();
+
       this.currentSearchQuery = value;
       this.searchStartPosition = true;
-      this.searchMatchCount = 0;
       this.searchCurrentMatch = 0;
+
+      // 高亮所有匹配项
+      const count = this.highlightMatches(contentElement, value);
+      this.searchMatchCount = count;
+
+      // 如果没有匹配项，直接返回
+      if (this.searchMatchCount === 0) {
+        this.$message.warning(`未找到匹配内容: ${value}`);
+        return;
+      }
     }
-    // 使用浏览器内置的查找功能
-    const found = window.find(
-      value, // 搜索词
-      false, // 不区分大小写
-      false, // 不反向搜索
-      true, // 循环搜索
-      false, // 不限制搜索范围
-      false, // 不匹配整个单词
-      false // 不匹配大小写
+
+    // 如果是重复搜索同一关键词，切换到下一个匹配项
+    if (this.searchMatchCount > 0) {
+      this.searchCurrentMatch =
+        (this.searchCurrentMatch % this.searchMatchCount) + 1;
+
+      // 查找当前匹配项并滚动到可见位置
+      const highlights = contentElement.querySelectorAll(
+        ".lawyer-search-highlight"
+      );
+      if (highlights.length >= this.searchCurrentMatch) {
+        // 获取当前匹配项
+        const currentHighlight = highlights[
+          this.searchCurrentMatch - 1
+        ] as HTMLElement;
+
+        // 移除当前高亮标记
+        const previousActive = contentElement.querySelector(
+          ".lawyer-search-highlight-active"
+        );
+        if (previousActive) {
+          previousActive.classList.remove("lawyer-search-highlight-active");
+        }
+
+        // 添加当前高亮标记
+        currentHighlight.classList.add("lawyer-search-highlight-active");
+
+        // 滚动到当前匹配项位置
+        currentHighlight.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      }
+    }
+  }
+
+  // 高亮所有匹配项
+  highlightMatches(element: HTMLElement, searchText: string): number {
+    if (!searchText) return 0;
+
+    // 递归处理节点
+    const processNode = (node: Node): number => {
+      let count = 0;
+
+      // 如果是文本节点
+      if (node.nodeType === Node.TEXT_NODE) {
+        const text = node.textContent || "";
+        if (!text.trim()) return 0;
+
+        // 不区分大小写匹配搜索文本
+        const regex = new RegExp(
+          searchText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+          "gi"
+        );
+        let match;
+        let lastIndex = 0;
+        let result = "";
+
+        // 查找所有匹配并高亮
+        while ((match = regex.exec(text)) !== null) {
+          count++;
+          result += text.substring(lastIndex, match.index);
+          result += `<span class="lawyer-search-highlight">${match[0]}</span>`;
+          lastIndex = regex.lastIndex;
+        }
+
+        // 如果有匹配项，替换原文本节点
+        if (count > 0) {
+          result += text.substring(lastIndex);
+          const tempDiv = document.createElement("div");
+          tempDiv.innerHTML = result;
+
+          // 替换原节点内容
+          const fragment = document.createDocumentFragment();
+          while (tempDiv.firstChild) {
+            fragment.appendChild(tempDiv.firstChild);
+          }
+
+          node.parentNode?.replaceChild(fragment, node);
+        }
+
+        return count;
+      }
+      // 如果是元素节点且不是已高亮节点
+      else if (
+        node.nodeType === Node.ELEMENT_NODE &&
+        !(node as HTMLElement).classList?.contains("lawyer-search-highlight")
+      ) {
+        // 复制节点列表，因为在处理过程中节点可能会改变
+        const childNodes = Array.from(node.childNodes);
+        for (let i = 0; i < childNodes.length; i++) {
+          count += processNode(childNodes[i]);
+        }
+      }
+
+      return count;
+    };
+
+    return processNode(element);
+  }
+
+  // 清除所有高亮标记
+  clearHighlights(): void {
+    const contentDiv = this.$refs.documentContent;
+    if (!contentDiv) return;
+
+    const contentElement = contentDiv.querySelector("div");
+    if (!contentElement) return;
+
+    // 查找所有高亮元素
+    const highlights = contentElement.querySelectorAll(
+      ".lawyer-search-highlight"
     );
 
-    // 如果未找到或是第一次搜索
-    if (!found && this.searchStartPosition) {
-      // 表示真的没找到
-      this.$message.warning(`未找到匹配内容: ${value}`);
-      return;
-    }
+    // 遍历并还原原始文本
+    highlights.forEach((highlight) => {
+      const parent = highlight.parentNode;
+      if (parent) {
+        const text = highlight.textContent || "";
+        const textNode = document.createTextNode(text);
+        parent.replaceChild(textNode, highlight);
+      }
+    });
 
-    // 如果未找到但不是第一次搜索，说明已经搜索到文档末尾，从头继续
-    if (!found) {
-      // 从头开始搜索
-      this.searchStartPosition = true;
-      // 重新执行搜索
-      window.getSelection()?.removeAllRanges(); // 清除当前选择
-      window.scrollTo(0, 0); // 回到文档顶部
+    // 重新规范化文本节点
+    contentElement.normalize();
+  }
 
-      // 重新调用搜索但显示已回到开头的消息
-      this.$message.info("搜索已回到文档开头");
-      setTimeout(() => this.searchInDocument(value), 100);
-      return;
-    }
-
-    // 找到了匹配项
-    this.searchStartPosition = false;
-    this.searchCurrentMatch++;
-
-    // 如果是第一次找到匹配项，计算总匹配数
-    if (this.searchMatchCount === 0) {
-      this.calculateTotalMatches(value);
-    }
-
-    // 获取当前选中（高亮）的内容
+  // 使选中内容在视图中可见
+  makeSelectionVisible(): void {
     const selection = window.getSelection();
     if (selection && selection.rangeCount > 0) {
       const range = selection.getRangeAt(0);
@@ -354,46 +469,36 @@ export default class DocumentViewer extends Vue {
         }
       }
     }
-
-    // 显示当前匹配索引
-    if (this.searchMatchCount > 0) {
-      if (this.searchCurrentMatch > this.searchMatchCount) {
-        this.searchCurrentMatch = 1;
-      }
-      this.$message.success(
-        `显示第 ${this.searchCurrentMatch}/${this.searchMatchCount} 处匹配`
-      );
-    }
   }
 
   // 计算总匹配数
   calculateTotalMatches(value: string): void {
     if (!value) return;
 
-    // 保存当前选区
-    const savedSelection = window.getSelection();
-    let savedRange = null;
-    if (savedSelection && savedSelection.rangeCount > 0) {
-      savedRange = savedSelection.getRangeAt(0).cloneRange();
-    }
+    // 获取文档内容区域
+    const contentDiv = this.$refs.documentContent;
+    if (!contentDiv) return;
 
-    // 创建临时DOM元素
-    const tempDiv = document.createElement("div");
-    tempDiv.innerHTML = this.document.content;
-    const text = tempDiv.textContent || "";
+    // 获取内容区域的实际内容元素
+    const contentElement = contentDiv.querySelector("div");
+    if (!contentElement) return;
+
+    // 获取文本内容
+    const text = contentElement.textContent || "";
+
+    // 转义正则表达式中的特殊字符
+    const escapedValue = value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
     // 使用正则表达式计算匹配数
-    const regex = new RegExp(
-      value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
-      "gi"
-    );
+    const regex = new RegExp(escapedValue, "gi");
     const matches = text.match(regex);
     this.searchMatchCount = matches ? matches.length : 0;
 
-    // 恢复原选区
-    if (savedRange && savedSelection) {
-      savedSelection.removeAllRanges();
-      savedSelection.addRange(savedRange);
+    // 重置当前匹配索引
+    if (this.searchMatchCount > 0) {
+      this.searchCurrentMatch = 1;
+    } else {
+      this.searchCurrentMatch = 0;
     }
   }
 
@@ -540,6 +645,9 @@ export default class DocumentViewer extends Vue {
     if (contentDiv) {
       contentDiv.addEventListener("scroll", this.handleScroll);
     }
+
+    // 添加键盘快捷键支持
+    window.addEventListener("keydown", this.handleKeyDown);
   }
 
   // 处理滚动事件
@@ -547,12 +655,55 @@ export default class DocumentViewer extends Vue {
     // 实际项目中，这里可以实现阅读进度跟踪等功能
   }
 
+  // 处理键盘事件
+  handleKeyDown(event: KeyboardEvent): void {
+    // Ctrl+F 或 Cmd+F 打开搜索框并聚焦
+    if ((event.ctrlKey || event.metaKey) && event.key === "f") {
+      event.preventDefault(); // 阻止浏览器默认搜索
+      const searchInput = this.$el.querySelector(
+        ".lawyer-toolbar-left input"
+      ) as HTMLInputElement;
+      if (searchInput) {
+        searchInput.focus();
+      }
+    }
+
+    // F3 或 Enter 在输入框聚焦时搜索下一个
+    else if (
+      event.key === "F3" ||
+      (event.key === "Enter" &&
+        document.activeElement ===
+          this.$el.querySelector(".lawyer-toolbar-left input"))
+    ) {
+      event.preventDefault();
+      if (this.currentSearchQuery) {
+        this.searchInDocument(this.currentSearchQuery);
+      }
+    }
+  }
+
+  // 监听搜索文本变化
+  @Watch("searchText")
+  onSearchTextChange(newVal: string, oldVal: string): void {
+    // 当搜索框被清空时，重置搜索状态并清除高亮
+    if (!newVal && oldVal) {
+      this.currentSearchQuery = "";
+      this.searchMatchCount = 0;
+      this.searchCurrentMatch = 0;
+      this.clearHighlights();
+    }
+  }
+
   // 组件销毁前清理
   beforeDestroy(): void {
+    // 清除所有高亮
+    this.clearHighlights();
+
     const contentDiv = this.$refs.documentContent;
     if (contentDiv) {
       contentDiv.removeEventListener("scroll", this.handleScroll);
     }
+    window.removeEventListener("keydown", this.handleKeyDown);
   }
 }
 </script>
@@ -733,6 +884,24 @@ export default class DocumentViewer extends Vue {
     padding: 5px;
     border-radius: 4px;
     transition: background-color 0.5s ease;
+  }
+
+  /* 搜索结果高亮样式 */
+  ::selection {
+    background-color: rgba(var(--lawyer-primary-rgb), 0.3);
+    color: var(--lawyer-text-dark);
+  }
+
+  /* 搜索匹配高亮样式 */
+  .lawyer-search-highlight {
+    background-color: rgba(255, 255, 0, 0.3);
+    padding: 2px 0;
+    border-radius: 2px;
+  }
+
+  .lawyer-search-highlight-active {
+    background-color: rgba(255, 165, 0, 0.5);
+    font-weight: bold;
   }
 }
 
