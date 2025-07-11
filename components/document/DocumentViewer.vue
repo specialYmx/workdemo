@@ -66,7 +66,7 @@
       <!-- 文档查看器 -->
       <div class="lawyer-document-viewer">
         <div
-          class="lawyer-viewer-toolbar lawyer-flex lawyer-justify-between lawyer-items-center"
+          class="lawyer-viewer-toolbar lawyer-flex lawyer-justify-between lawyer-items-center lawyer-sticky-toolbar"
         >
           <div
             class="lawyer-toolbar-left lawyer-flex lawyer-items-center lawyer-gap-sm"
@@ -77,6 +77,9 @@
               v-model="searchText"
               @search="searchInDocument"
             />
+            <span v-if="searchMatchCount > 0" class="lawyer-search-count">
+              {{ searchCurrentMatch }}/{{ searchMatchCount }}
+            </span>
           </div>
 
           <div
@@ -199,6 +202,10 @@ export default class DocumentViewer extends Vue {
   // 搜索和缩放
   searchText = "";
   zoomLevel = 100;
+  currentSearchQuery = ""; // 当前搜索的文本
+  searchStartPosition = true; // 是否从文档开头开始搜索
+  searchMatchCount = 0; // 匹配计数
+  searchCurrentMatch = 0; // 当前匹配索引
 
   // 目录相关
   tocItems: TocItem[] = [];
@@ -273,12 +280,172 @@ export default class DocumentViewer extends Vue {
   // 文档内搜索
   searchInDocument(value: string): void {
     if (!value) return;
+    // 如果是新的搜索词或重置过搜索状态，重置搜索位置
+    if (this.currentSearchQuery !== value) {
+      this.currentSearchQuery = value;
+      this.searchStartPosition = true;
+      this.searchMatchCount = 0;
+      this.searchCurrentMatch = 0;
+    }
 
-    // 实际项目中，这里应该实现文档搜索功能
-    this.$message.info(`正在搜索: ${value}`);
+    // 获取文档内容区域
+    const documentContentEl = this.$refs.documentContent;
+    if (!documentContentEl) return;
 
-    // 简单实现：使用浏览器内置的查找功能
-    window.find(value);
+    // 首先确保文档区域在视口中可见并且聚焦
+    documentContentEl.scrollIntoView({ block: "nearest" });
+    documentContentEl.focus();
+
+    // 使用浏览器内置的查找功能，限定搜索范围在文档内容区域
+    // 由于window.find不能完全限制搜索范围，我们需要监控搜索结果是否在文档内容区域内
+    const found = window.find(
+      value, // 搜索词
+      false, // 不区分大小写
+      false, // 不反向搜索
+      true, // 循环搜索
+      false, // 不限制搜索范围
+      false, // 不匹配整个单词
+      false // 不匹配大小写
+    );
+
+    // 如果找到了，检查选中内容是否在文档内容区域内
+    if (found) {
+      const selection = window.getSelection();
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        // 检查选中区域是否在文档内容区域内
+        if (!this.isSelectionInDocumentContent(range, documentContentEl)) {
+          // 如果不在，继续搜索下一个匹配项
+          return this.searchInDocument(value);
+        }
+      }
+    }
+
+    // 如果未找到或是第一次搜索
+    if (!found && this.searchStartPosition) {
+      // 表示真的没找到
+      this.$message.warning(`未找到匹配内容: ${value}`);
+      return;
+    }
+
+    // 如果未找到但不是第一次搜索，说明已经搜索到文档末尾，从头继续
+    if (!found) {
+      // 从头开始搜索
+      this.searchStartPosition = true;
+      // 重新执行搜索
+      window.getSelection()?.removeAllRanges(); // 清除当前选择
+
+      // 滚动到文档内容顶部
+      if (documentContentEl) {
+        documentContentEl.scrollTop = 0;
+      }
+
+      // 重新调用搜索但显示已回到开头的消息
+      this.$message.info("搜索已回到文档开头");
+      setTimeout(() => this.searchInDocument(value), 100);
+      return;
+    }
+
+    // 找到了匹配项
+    this.searchStartPosition = false;
+    this.searchCurrentMatch++;
+
+    // 如果是第一次找到匹配项，计算总匹配数
+    if (this.searchMatchCount === 0) {
+      this.calculateTotalMatches(value);
+    }
+
+    // 获取当前选中（高亮）的内容
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      if (range) {
+        // 获取选中范围的边界矩形
+        const rect = range.getBoundingClientRect();
+
+        // 获取文档容器
+        const contentDiv = this.$refs.documentContent;
+        if (contentDiv) {
+          // 判断选中内容是否在可视区域内
+          const containerRect = contentDiv.getBoundingClientRect();
+
+          // 如果选中内容不在可视区域内，滚动到该位置
+          if (
+            rect.top < containerRect.top ||
+            rect.bottom > containerRect.bottom
+          ) {
+            // 使用scrollIntoView确保元素可见
+            range.startContainer.parentElement?.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+            });
+          }
+        }
+      }
+    }
+
+    // 显示当前匹配索引
+    if (this.searchMatchCount > 0) {
+      if (this.searchCurrentMatch > this.searchMatchCount) {
+        this.searchCurrentMatch = 1;
+      }
+    }
+  }
+
+  // 检查选中区域是否在文档内容区域内
+  isSelectionInDocumentContent(
+    range: Range,
+    documentContentEl: HTMLElement
+  ): boolean {
+    // 检查range的公共祖先元素是否是文档内容区域的子元素
+    let containerEl = range.commonAncestorContainer;
+
+    // 如果containerEl是文本节点，获取其父元素
+    if (containerEl.nodeType === Node.TEXT_NODE) {
+      containerEl = containerEl.parentElement;
+    }
+
+    // 检查containerEl是否是documentContentEl的子元素
+    return documentContentEl.contains(containerEl);
+  }
+
+  // 计算总匹配数
+  calculateTotalMatches(value: string): void {
+    if (!value) return;
+
+    // 获取文档内容区域
+    const documentContentEl = this.$refs.documentContent;
+    if (!documentContentEl) return;
+
+    // 保存当前选区
+    const savedSelection = window.getSelection();
+    let savedRange = null;
+    if (savedSelection && savedSelection.rangeCount > 0) {
+      savedRange = savedSelection.getRangeAt(0).cloneRange();
+    }
+
+    try {
+      // 获取文档内容区域的内容，而不是整个document.content
+      const contentDiv = documentContentEl.querySelector("div"); // 获取文档内容的div
+      if (!contentDiv) return;
+
+      // 获取文本内容
+      const text = contentDiv.textContent || "";
+
+      // 使用正则表达式计算匹配数
+      const regex = new RegExp(
+        value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+        "gi"
+      );
+      const matches = text.match(regex);
+      this.searchMatchCount = matches ? matches.length : 0;
+    } finally {
+      // 恢复原选区
+      if (savedRange && savedSelection) {
+        savedSelection.removeAllRanges();
+        savedSelection.addRange(savedRange);
+      }
+    }
   }
 
   // 获取状态颜色
@@ -568,7 +735,6 @@ export default class DocumentViewer extends Vue {
     text-align: center;
     color: var(--lawyer-text-light);
     margin-bottom: 30px;
-    font-size: 14px;
   }
 
   .doc-toc {
@@ -690,7 +856,6 @@ export default class DocumentViewer extends Vue {
 }
 
 .lawyer-toc-item {
-  font-size: 14px;
   color: var(--lawyer-text);
   text-decoration: none;
   padding: 4px 8px;
@@ -742,7 +907,6 @@ export default class DocumentViewer extends Vue {
   padding: 12px 15px;
   border-radius: 10px;
   position: relative;
-  font-size: 14px;
   line-height: 1.6;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 
@@ -774,5 +938,22 @@ export default class DocumentViewer extends Vue {
   padding: 15px;
   border-top: 1px solid var(--lawyer-border);
   background-color: #fff;
+}
+
+// 搜索计数样式
+.lawyer-search-count {
+  font-size: 12px;
+  color: #666;
+  margin-left: 8px;
+  min-width: 50px;
+}
+
+// 固定工具栏
+.lawyer-sticky-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--lawyer-background);
+  border-bottom: 1px solid var(--lawyer-border);
 }
 </style>
