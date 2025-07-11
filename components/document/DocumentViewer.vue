@@ -210,6 +210,7 @@ export default class DocumentViewer extends Vue {
   searchStartPosition = true; // 是否从文档开头开始搜索
   searchMatchCount = 0; // 匹配计数
   searchCurrentMatch = 0; // 当前匹配索引
+  allMatches: HTMLElement[] = []; // 存储所有匹配项元素
 
   // 目录相关
   tocItems: TocItem[] = [];
@@ -286,158 +287,103 @@ export default class DocumentViewer extends Vue {
     if (!value) return;
 
     // 获取文档内容区域
-    const contentDiv = this.$refs.documentContent;
+    const contentDiv = this.$refs.documentContent as HTMLElement;
     if (!contentDiv) return;
 
-    // 获取内容元素
-    const contentElement = contentDiv.querySelector("div");
-    if (!contentElement) return;
-
-    // 如果是新的搜索词或重置过搜索状态，重置搜索位置并执行高亮
+    // 如果是新的搜索词或重置过搜索状态
     if (this.currentSearchQuery !== value) {
       // 清除旧的高亮
       this.clearHighlights();
-
       this.currentSearchQuery = value;
-      this.searchStartPosition = true;
-      this.searchCurrentMatch = 0;
 
-      // 高亮所有匹配项
-      const count = this.highlightMatches(contentElement, value);
-      this.searchMatchCount = count;
+      // 记录原始内容
+      const originalContent = contentDiv.innerHTML;
 
-      // 如果没有匹配项，直接返回
+      // 创建临时的正则表达式用于匹配
+      const escapedValue = value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const regex = new RegExp(`(${escapedValue})`, "gi");
+
+      // 替换所有匹配项为带有标记的span
+      const markedContent = contentDiv.innerHTML.replace(
+        regex,
+        '<span class="lawyer-search-highlight">$1</span>'
+      );
+
+      // 更新内容
+      contentDiv.innerHTML = markedContent;
+
+      // 获取所有高亮元素
+      this.allMatches = Array.from(
+        contentDiv.querySelectorAll(".lawyer-search-highlight")
+      );
+      this.searchMatchCount = this.allMatches.length;
+
+      // 如果没有匹配项，还原内容并返回
       if (this.searchMatchCount === 0) {
+        contentDiv.innerHTML = originalContent;
         this.$message.warning(`未找到匹配内容: ${value}`);
         return;
       }
+
+      // 重置当前匹配索引
+      this.searchCurrentMatch = 0;
     }
 
-    // 如果是重复搜索同一关键词，切换到下一个匹配项
-    if (this.searchMatchCount > 0) {
-      this.searchCurrentMatch =
-        (this.searchCurrentMatch % this.searchMatchCount) + 1;
-
-      // 查找当前匹配项并滚动到可见位置
-      const highlights = contentElement.querySelectorAll(
-        ".lawyer-search-highlight"
-      );
-      if (highlights.length >= this.searchCurrentMatch) {
-        // 获取当前匹配项
-        const currentHighlight = highlights[
-          this.searchCurrentMatch - 1
-        ] as HTMLElement;
-
-        // 移除当前高亮标记
-        const previousActive = contentElement.querySelector(
-          ".lawyer-search-highlight-active"
-        );
-        if (previousActive) {
-          previousActive.classList.remove("lawyer-search-highlight-active");
-        }
-
-        // 添加当前高亮标记
-        currentHighlight.classList.add("lawyer-search-highlight-active");
-
-        // 滚动到当前匹配项位置
-        currentHighlight.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
-      }
+    // 移动到下一个匹配项
+    this.searchCurrentMatch++;
+    if (this.searchCurrentMatch > this.searchMatchCount) {
+      this.searchCurrentMatch = 1;
     }
+
+    // 更新高亮状态
+    this.updateHighlightState();
   }
 
-  // 高亮所有匹配项
-  highlightMatches(element: HTMLElement, searchText: string): number {
-    if (!searchText) return 0;
+  // 更新高亮状态
+  updateHighlightState(): void {
+    if (!this.allMatches.length) return;
 
-    // 递归处理节点
-    const processNode = (node: Node): number => {
-      let count = 0;
-
-      // 如果是文本节点
-      if (node.nodeType === Node.TEXT_NODE) {
-        const text = node.textContent || "";
-        if (!text.trim()) return 0;
-
-        // 不区分大小写匹配搜索文本
-        const regex = new RegExp(
-          searchText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
-          "gi"
-        );
-        let match;
-        let lastIndex = 0;
-        let result = "";
-
-        // 查找所有匹配并高亮
-        while ((match = regex.exec(text)) !== null) {
-          count++;
-          result += text.substring(lastIndex, match.index);
-          result += `<span class="lawyer-search-highlight">${match[0]}</span>`;
-          lastIndex = regex.lastIndex;
-        }
-
-        // 如果有匹配项，替换原文本节点
-        if (count > 0) {
-          result += text.substring(lastIndex);
-          const tempDiv = document.createElement("div");
-          tempDiv.innerHTML = result;
-
-          // 替换原节点内容
-          const fragment = document.createDocumentFragment();
-          while (tempDiv.firstChild) {
-            fragment.appendChild(tempDiv.firstChild);
-          }
-
-          node.parentNode?.replaceChild(fragment, node);
-        }
-
-        return count;
-      }
-      // 如果是元素节点且不是已高亮节点
-      else if (
-        node.nodeType === Node.ELEMENT_NODE &&
-        !(node as HTMLElement).classList?.contains("lawyer-search-highlight")
-      ) {
-        // 复制节点列表，因为在处理过程中节点可能会改变
-        const childNodes = Array.from(node.childNodes);
-        for (let i = 0; i < childNodes.length; i++) {
-          count += processNode(childNodes[i]);
-        }
-      }
-
-      return count;
-    };
-
-    return processNode(element);
-  }
-
-  // 清除所有高亮标记
-  clearHighlights(): void {
-    const contentDiv = this.$refs.documentContent;
-    if (!contentDiv) return;
-
-    const contentElement = contentDiv.querySelector("div");
-    if (!contentElement) return;
-
-    // 查找所有高亮元素
-    const highlights = contentElement.querySelectorAll(
-      ".lawyer-search-highlight"
+    // 移除所有活动高亮
+    this.allMatches.forEach((el) =>
+      el.classList.remove("lawyer-search-highlight-active")
     );
 
-    // 遍历并还原原始文本
-    highlights.forEach((highlight) => {
-      const parent = highlight.parentNode;
-      if (parent) {
-        const text = highlight.textContent || "";
-        const textNode = document.createTextNode(text);
-        parent.replaceChild(textNode, highlight);
+    // 添加当前高亮
+    const currentIndex = this.searchCurrentMatch - 1;
+    if (currentIndex >= 0 && currentIndex < this.allMatches.length) {
+      const currentMatch = this.allMatches[currentIndex];
+      currentMatch.classList.add("lawyer-search-highlight-active");
+
+      // 滚动到可见位置
+      currentMatch.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  }
+
+  // 清除所有高亮
+  clearHighlights(): void {
+    if (!this.allMatches.length) return;
+
+    const contentDiv = this.$refs.documentContent as HTMLElement;
+    if (!contentDiv) return;
+
+    // 还原所有高亮节点为普通文本
+    this.allMatches.forEach((el) => {
+      if (el.parentNode) {
+        const text = el.textContent;
+        const textNode = document.createTextNode(text || "");
+        el.parentNode.replaceChild(textNode, el);
       }
     });
 
-    // 重新规范化文本节点
-    contentElement.normalize();
+    // 清空匹配数组
+    this.allMatches = [];
+    this.searchMatchCount = 0;
+
+    // 规范化文本节点
+    contentDiv.normalize();
   }
 
   // 使选中内容在视图中可见
@@ -687,10 +633,10 @@ export default class DocumentViewer extends Vue {
   onSearchTextChange(newVal: string, oldVal: string): void {
     // 当搜索框被清空时，重置搜索状态并清除高亮
     if (!newVal && oldVal) {
+      this.clearHighlights();
       this.currentSearchQuery = "";
       this.searchMatchCount = 0;
       this.searchCurrentMatch = 0;
-      this.clearHighlights();
     }
   }
 
@@ -778,6 +724,7 @@ export default class DocumentViewer extends Vue {
   border-right: 1px solid var(--lawyer-border);
   display: flex;
   flex-direction: column;
+  height: 100%;
 }
 
 // 工具栏
@@ -788,19 +735,27 @@ export default class DocumentViewer extends Vue {
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-
-.lawyer-toolbar-left,
-.lawyer-toolbar-right {
-  display: flex;
-  align-items: center;
+  z-index: 2;
+  flex-shrink: 0;
+  width: 100%;
 }
 
 .lawyer-toolbar-left {
+  display: flex;
+  align-items: center;
   gap: 8px;
 }
 
+.lawyer-toolbar-left span {
+  white-space: nowrap;
+  min-width: 80px;
+  font-size: 13px;
+  display: inline-block;
+}
+
 .lawyer-toolbar-right {
+  display: flex;
+  align-items: center;
   gap: 8px;
 }
 
@@ -820,6 +775,7 @@ export default class DocumentViewer extends Vue {
   flex: 1;
   padding: 40px;
   overflow-y: auto;
+  height: calc(100% - 56px);
 }
 
 // 文档内容样式
@@ -909,11 +865,12 @@ export default class DocumentViewer extends Vue {
 .lawyer-document-sidebar {
   width: 400px;
   background: var(--lawyer-surface);
-  overflow-y: auto;
   padding: 20px;
-  height: calc(100vh - 120px);
+  height: 100%;
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
+  overflow-y: auto;
 }
 
 .lawyer-sidebar-section {
