@@ -137,7 +137,6 @@
                   v-for="(action, index) in getDocActions(doc)"
                   :key="index"
                   :type="action.type || 'default'"
-                  size="small"
                   @click="action.handler"
                 >
                   <a-icon :type="action.icon" /> {{ action.text }}
@@ -590,7 +589,7 @@ export default class KnowledgePage extends Vue {
   }
 
   // 编辑文档
-  editDocument(docId: string, docTitle: string) {
+  uploadDocument(docId: string, docTitle: string) {
     this.$message.info(`准备编辑文档: ${docTitle}`);
     // 实际项目中可能会跳转到编辑页面或打开编辑对话框
   }
@@ -686,8 +685,8 @@ export default class KnowledgePage extends Vue {
       },
       {
         icon: "edit",
-        text: "编辑",
-        handler: () => this.editDocument(doc.id, doc.title),
+        text: "上传/更新",
+        handler: () => this.uploadDocument(doc.id, doc.title),
       },
       {
         icon: "delete",
@@ -848,7 +847,7 @@ export default class KnowledgePage extends Vue {
   color: var(--lawyer-primary-dark);
   padding: 12px 16px;
   border-radius: 4px;
-  font-size: 14px;
+
   margin-bottom: 24px;
   display: flex;
   align-items: center;
@@ -870,7 +869,6 @@ export default class KnowledgePage extends Vue {
 
 // 结果信息
 .lawyer-results-info {
-  font-size: 14px;
   color: var(--lawyer-text-light);
   margin-bottom: 24px;
   padding: 12px 16px;
@@ -979,7 +977,6 @@ export default class KnowledgePage extends Vue {
   }
 
   &-summary {
-    font-size: 14px;
     color: var(--lawyer-text-light);
     line-height: 1.6;
     margin-bottom: 16px;

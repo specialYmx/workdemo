@@ -341,7 +341,7 @@ export default class UpdatesPage extends Vue {
     p {
       color: var(--lawyer-text-light);
       margin-bottom: 1.5rem;
-      font-size: 14px;
+
       line-height: 1.5;
     }
   }
@@ -378,7 +378,7 @@ export default class UpdatesPage extends Vue {
     background: transparent;
     border: none;
     cursor: pointer;
-    font-size: 14px;
+
     font-weight: 500;
     color: var(--lawyer-text-light);
     transition: all 0.2s ease;
@@ -487,7 +487,6 @@ export default class UpdatesPage extends Vue {
   }
 
   &-summary {
-    font-size: 14px;
     color: var(--lawyer-text-light);
     line-height: 1.5;
     margin-bottom: 12px;
@@ -533,7 +532,6 @@ export default class UpdatesPage extends Vue {
     margin-bottom: 10px;
 
     li {
-      font-size: 14px;
       color: var(--lawyer-text-light);
       margin-bottom: 10px;
       line-height: 1.6;
@@ -551,7 +549,6 @@ export default class UpdatesPage extends Vue {
         top: 2px;
         color: var(--lawyer-primary);
         font-weight: 600;
-        font-size: 14px;
       }
 
       strong {

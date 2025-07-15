@@ -39,6 +39,7 @@ export default {
   },
   data: () => ({
     chart: null,
+    resizeObserver: null,
     resizeHandler: null,
   }),
   computed: {
@@ -64,7 +65,17 @@ export default {
       this.resizeHandler = debounce(() => {
         this.chart && this.chart.resize();
       }, 100);
-      window.addEventListener("resize", this.resizeHandler);
+
+      // 使用ResizeObserver替代window resize事件
+      if (typeof ResizeObserver !== "undefined") {
+        this.resizeObserver = new ResizeObserver(this.resizeHandler);
+        if (this.$refs.chartContainer) {
+          this.resizeObserver.observe(this.$refs.chartContainer);
+        }
+      } else {
+        // 兼容不支持ResizeObserver的浏览器，使用传统方式
+        window.addEventListener("resize", this.resizeHandler);
+      }
     }
   },
   beforeDestroy() {
@@ -72,7 +83,12 @@ export default {
       this.chart.dispose();
       this.chart = null;
     }
-    if (this.resizeHandler) {
+
+    // 清理resize相关的监听
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+      this.resizeObserver = null;
+    } else if (this.resizeHandler) {
       window.removeEventListener("resize", this.resizeHandler);
     }
   },

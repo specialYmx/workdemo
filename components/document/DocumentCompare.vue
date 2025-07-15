@@ -315,7 +315,7 @@ export default class DocumentCompare extends Vue {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 14px;
+
   font-weight: 500;
   transition: all 0.2s ease;
 
@@ -394,7 +394,6 @@ export default class DocumentCompare extends Vue {
 }
 
 .lawyer-version-info {
-  font-size: 14px;
   color: var(--lawyer-text-light);
   font-weight: 400;
 }
@@ -402,7 +401,6 @@ export default class DocumentCompare extends Vue {
 .lawyer-column-content {
   padding: 20px;
   overflow-y: auto;
-  font-size: 14px;
   height: 100%;
 }
 
