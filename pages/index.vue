@@ -1,27 +1,26 @@
 <template>
   <div class="lawyer-page-container">
     <!-- 顶部仪表盘 -->
-    <a-card class="lawyer-dashboard-card">
-      <div class="lawyer-page-header">
-        <div class="lawyer-page-header-top">
-          <h1>首页概览仪表盘</h1>
-          <div class="lawyer-page-header-actions">
-            <div class="lawyer-time-range">
-              <button
-                v-for="(timeOption, index) in timeOptions"
-                :key="index"
-                :class="[
-                  'lawyer-time-btn',
-                  { active: activeTimeRange === timeOption.value },
-                ]"
-                @click="activeTimeRange = timeOption.value"
-              >
-                {{ timeOption.label }}
-              </button>
-            </div>
-            <a-button type="primary" icon="file-pdf"> 导出报告 </a-button>
-          </div>
+    <a-card
+      class="lawyer-dashboard-card lawyer-chart-card"
+      title="首页概览仪表盘"
+      :bordered="false"
+    >
+      <div class="lawyer-page-header-actions">
+        <div class="lawyer-time-range">
+          <button
+            v-for="(timeOption, index) in timeOptions"
+            :key="index"
+            :class="[
+              'lawyer-time-btn',
+              { active: activeTimeRange === timeOption.value },
+            ]"
+            @click="activeTimeRange = timeOption.value"
+          >
+            {{ timeOption.label }}
+          </button>
         </div>
+        <a-button type="primary" icon="file-pdf"> 导出报告 </a-button>
       </div>
 
       <div class="lawyer-dashboard-top-row">
@@ -140,20 +139,18 @@
       class="lawyer-chart-card"
       :bordered="false"
       style="margin-bottom: 24px"
+      title="Top 5 需要人工审核"
     >
-      <div class="lawyer-chart-header">
-        <h3 class="lawyer-chart-title">Top 5 需要人工审核</h3>
-        <div class="lawyer-chart-actions">
-          <a-button
-            size="small"
-            icon="arrow-right"
-            type="link"
-            @click="goToReviewPage"
-          >
-            查看全部
-          </a-button>
-        </div>
-      </div>
+      <template slot="extra">
+        <a-button
+          size="small"
+          icon="arrow-right"
+          type="link"
+          @click="goToReviewPage"
+        >
+          查看全部
+        </a-button>
+      </template>
 
       <a-spin :spinning="listLoading.topReviews">
         <a-table
@@ -210,29 +207,31 @@
     <!-- 环形图和来源分布 -->
     <div class="lawyer-two-column-chart-grid">
       <!-- 法规更新来源分布 -->
-      <a-card class="lawyer-chart-card" :bordered="false">
-        <div class="lawyer-chart-header">
-          <h3 class="lawyer-chart-title">法规更新来源分布</h3>
-        </div>
-        <div class="lawyer-chart-container">
-          <chart-component
-            :options="pieCharts[0].options"
-            :loading="chartLoading.sources"
-            :auto-resize="true"
-          />
-        </div>
-        <div class="lawyer-chart-legend lawyer-legend-grid">
-          <div
-            v-for="(item, index) in sourceLegendItems"
-            :key="index"
-            class="lawyer-legend-item"
-          >
-            <span
-              class="legend-color"
-              :style="{ backgroundColor: item.color }"
-            ></span>
-            <span class="legend-name">{{ item.name }}</span>
-            <span class="legend-value">{{ item.value }}%</span>
+      <a-card
+        class="lawyer-chart-card"
+        :bordered="false"
+        title="法规更新来源分布"
+      >
+        <div class="lawyer-pie-chart-layout">
+          <div class="lawyer-pie-chart-container">
+            <chart-component
+              :options="pieCharts[0].options"
+              :loading="chartLoading.sources"
+              :auto-resize="true"
+            />
+          </div>
+          <div class="lawyer-pie-legend-container">
+            <div
+              v-for="(item, index) in sourceLegendItems"
+              :key="index"
+              class="lawyer-pie-legend-item"
+            >
+              <span
+                class="legend-color"
+                :style="{ backgroundColor: item.color }"
+              ></span>
+              <span class="legend-name">{{ item.name }}</span>
+            </div>
           </div>
         </div>
       </a-card>
@@ -243,20 +242,18 @@
       class="lawyer-chart-card"
       :bordered="false"
       style="margin-top: 24px"
+      title="最新法规更新"
     >
-      <div class="lawyer-chart-header">
-        <h3 class="lawyer-chart-title">最新法规更新</h3>
-        <div class="lawyer-chart-actions">
-          <a-button
-            size="small"
-            icon="arrow-right"
-            type="link"
-            @click="goToUpdatesPage"
-          >
-            查看全部
-          </a-button>
-        </div>
-      </div>
+      <template slot="extra">
+        <a-button
+          size="small"
+          icon="arrow-right"
+          type="link"
+          @click="goToUpdatesPage"
+        >
+          查看全部
+        </a-button>
+      </template>
 
       <a-spin :spinning="listLoading.latestUpdates">
         <div class="lawyer-update-list">
@@ -281,9 +278,7 @@
                 {{ item.description }}
               </p>
               <div class="lawyer-update-ai-analysis" v-if="item.analysis">
-                <div class="lawyer-update-ai-header">
-                  <a-icon type="robot" /> AI智能解读主要变更点
-                </div>
+                <div class="lawyer-update-ai-header">AI智能解读主要变更点</div>
                 <ul class="lawyer-update-ai-points">
                   <li v-for="(point, i) in item.analysis" :key="i">
                     {{ point }}
@@ -826,38 +821,59 @@ export default class IndexPage extends Vue {
       color: colors,
       tooltip: {
         trigger: "item",
-        formatter: "{a} <br/>{b}: {c} ({d}%)",
+        formatter: function (params) {
+          return `${params.name}: ${params.percent}%`;
+        },
+        backgroundColor: "rgba(0, 0, 0, 0.8)",
+        borderColor: "transparent",
+        textStyle: {
+          color: "#fff",
+          fontSize: 12,
+        },
+        extraCssText:
+          "border-radius: 4px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);",
       },
       legend: {
         show: false,
-        orient: "horizontal",
-        bottom: 10,
-        data: (this.chartData[chartKey]?.series?.[0]?.data || []).map(
-          (item) => item.name
-        ),
-        textStyle: {
-          color: "#666",
-        },
       },
       series: [
         {
-          name: "来源分布",
+          name: "法规更新来源分布",
           type: "pie",
-          radius: ["40%", "70%"],
+          radius: ["55%", "75%"],
           center: ["50%", "50%"],
           avoidLabelOverlap: false,
           label: {
-            show: false,
+            show: true,
+            position: "outside",
+            formatter: function (params) {
+              return `${params.name} | ${params.percent}%`;
+            },
+            fontSize: 12,
+            color: "#333",
+            lineHeight: 16,
           },
           emphasis: {
             label: {
               show: true,
               fontSize: "14",
               fontWeight: "bold",
+              color: "#333",
+            },
+            itemStyle: {
+              shadowBlur: 10,
+              shadowOffsetX: 0,
+              shadowColor: "rgba(0, 0, 0, 0.5)",
             },
           },
           labelLine: {
-            show: false,
+            show: true,
+            length: 15,
+            length2: 10,
+            lineStyle: {
+              color: "#999",
+              width: 1,
+            },
           },
           data: this.chartData[chartKey]?.series?.[0]?.data || [],
         },
@@ -1043,6 +1059,56 @@ export default class IndexPage extends Vue {
   padding: 16px;
 }
 
+// 饼图专用布局样式
+.lawyer-pie-chart-layout {
+  display: flex;
+  align-items: center;
+  padding: 16px 24px;
+  min-height: 350px;
+
+  .lawyer-pie-chart-container {
+    flex: 1;
+    height: 320px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .lawyer-pie-legend-container {
+    width: 240px;
+    padding-left: 32px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    .lawyer-pie-legend-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 16px;
+      padding: 8px 0;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      .legend-color {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        margin-right: 12px;
+        border-radius: 2px;
+        flex-shrink: 0;
+      }
+
+      .legend-name {
+        font-size: 14px;
+        color: #333;
+        line-height: 1.4;
+      }
+    }
+  }
+}
+
 .lawyer-chart-card {
   background: #fff;
   border-radius: 4px;
@@ -1054,32 +1120,27 @@ export default class IndexPage extends Vue {
 
   .lawyer-dashboard-card {
     margin-bottom: 24px;
-
-    .lawyer-page-header {
+    .lawyer-page-header-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       padding: 0 24px 16px;
 
-      .lawyer-page-header-top {
-        .lawyer-page-header-actions {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          .lawyer-time-range {
-            display: flex;
-            .lawyer-time-btn {
-              width: 180px;
-              padding: 0 16px;
-              height: 32px;
-              line-height: 30px;
-              background-color: #fff;
-              border: 1px solid #e8e8e8;
-              cursor: pointer;
-              transition: all 0.3s;
-              &.active {
-                color: var(--lawyer-primary);
-                border-color: var(--lawyer-primary);
-                z-index: 1;
-              }
-            }
+      .lawyer-time-range {
+        display: flex;
+        .lawyer-time-btn {
+          width: 180px;
+          padding: 0 16px;
+          height: 32px;
+          line-height: 30px;
+          background-color: #fff;
+          border: 1px solid #e8e8e8;
+          cursor: pointer;
+          transition: all 0.3s;
+          &.active {
+            color: var(--lawyer-primary);
+            border-color: var(--lawyer-primary);
+            z-index: 1;
           }
         }
       }
@@ -1204,37 +1265,6 @@ export default class IndexPage extends Vue {
 
         &.deprecated {
           background-color: #f44336;
-        }
-      }
-    }
-
-    &.lawyer-legend-grid {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-around;
-      padding: 16px 24px;
-
-      .lawyer-legend-item {
-        display: flex;
-        align-items: center;
-        margin: 8px 0;
-        width: 33%;
-
-        .legend-color {
-          display: inline-block;
-          width: 12px;
-          height: 12px;
-          margin-right: 8px;
-          border-radius: 2px;
-        }
-
-        .legend-name {
-          flex: 1;
-          margin-right: 8px;
-        }
-
-        .legend-value {
-          font-weight: 500;
         }
       }
     }
@@ -1369,14 +1399,14 @@ export default class IndexPage extends Vue {
           .lawyer-update-title {
             margin: 0;
             font-size: 16px;
-            font-weight: 500;
+            font-weight: 600;
 
             a {
-              color: #1890ff;
+              color: #333;
               cursor: pointer;
 
               &:hover {
-                color: #40a9ff;
+                color: #1890ff;
               }
             }
           }
@@ -1394,20 +1424,14 @@ export default class IndexPage extends Vue {
         }
 
         .lawyer-update-ai-analysis {
-          background-color: #f9f9f9;
+          background-color: #fffbf0;
           padding: 12px;
           margin-bottom: 12px;
           border-radius: 4px;
-
           .lawyer-update-ai-header {
             font-weight: 500;
-            color: #333;
+            color: #d48806;
             margin-bottom: 8px;
-
-            i {
-              color: #1890ff;
-              margin-right: 6px;
-            }
           }
 
           .lawyer-update-ai-points {

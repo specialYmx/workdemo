@@ -65,51 +65,15 @@
     <div class="lawyer-main-layout lawyer-flex">
       <!-- 文档查看器 -->
       <div class="lawyer-document-viewer">
-        <div
-          class="lawyer-viewer-toolbar lawyer-flex lawyer-justify-between lawyer-items-center"
-        >
+        <DivTextSearch>
           <div
-            class="lawyer-toolbar-left lawyer-flex lawyer-items-center lawyer-gap-sm"
+            class="lawyer-document-content lawyer-markdown-content lawyer-scrollable"
+            ref="documentContent"
+            tabindex="0"
           >
-            <a-input-search
-              placeholder="搜索文档内容"
-              style="width: 250px"
-              v-model="searchText"
-              @search="searchInDocument"
-            />
-            <span v-if="searchMatchCount > 0"
-              >{{ searchCurrentMatch }}/{{ searchMatchCount }} 个匹配</span
-            >
-            <span v-else-if="currentSearchQuery && searchMatchCount === 0"
-              >无匹配结果</span
-            >
+            <div v-html="document.content"></div>
           </div>
-
-          <div
-            class="lawyer-toolbar-right lawyer-flex lawyer-items-center lawyer-gap-sm"
-          >
-            <div
-              class="lawyer-zoom-controls lawyer-flex lawyer-items-center lawyer-gap-sm"
-            >
-              <a-button class="lawyer-zoom-btn" @click="zoomOut">
-                <a-icon type="minus" />
-              </a-button>
-              <span class="lawyer-zoom-level">{{ zoomLevel }}%</span>
-              <a-button class="lawyer-zoom-btn" @click="zoomIn">
-                <a-icon type="plus" />
-              </a-button>
-            </div>
-          </div>
-        </div>
-
-        <div
-          class="lawyer-document-content lawyer-markdown-content lawyer-scrollable"
-          :style="{ fontSize: `${(zoomLevel / 100) * 16}px` }"
-          ref="documentContent"
-          tabindex="0"
-        >
-          <div v-html="document.content"></div>
-        </div>
+        </DivTextSearch>
       </div>
 
       <!-- 侧边栏 - AI助手 -->
@@ -176,6 +140,7 @@
 <script lang="ts">
 // @ts-nocheck
 import { Component, Vue, Prop, Watch } from "nuxt-property-decorator";
+import DivTextSearch from "@/components/common/DivTextSearch.vue";
 
 interface TocItem {
   text: string;
@@ -198,19 +163,14 @@ interface MetaItem {
   content: string;
 }
 
-@Component
+@Component({
+  components: {
+    DivTextSearch,
+  },
+})
 export default class DocumentViewer extends Vue {
   @Prop({ required: true }) document: any;
   @Prop({ default: () => [] }) relatedDocuments: any[];
-
-  // 搜索和缩放
-  searchText = "";
-  zoomLevel = 100;
-  currentSearchQuery = ""; // 当前搜索的文本
-  searchStartPosition = true; // 是否从文档开头开始搜索
-  searchMatchCount = 0; // 匹配计数
-  searchCurrentMatch = 0; // 当前匹配索引
-  allMatches: HTMLElement[] = []; // 存储所有匹配项元素
 
   // 目录相关
   tocItems: TocItem[] = [];
@@ -268,124 +228,6 @@ export default class DocumentViewer extends Vue {
     this.$emit("go-back");
   }
 
-  // 放大
-  zoomIn(): void {
-    if (this.zoomLevel < 200) {
-      this.zoomLevel += 10;
-    }
-  }
-
-  // 缩小
-  zoomOut(): void {
-    if (this.zoomLevel > 70) {
-      this.zoomLevel -= 10;
-    }
-  }
-
-  // 文档内搜索
-  searchInDocument(value: string): void {
-    if (!value) return;
-
-    // 获取文档内容区域
-    const contentDiv = this.$refs.documentContent as HTMLElement;
-    if (!contentDiv) return;
-
-    // 如果是新的搜索词或重置过搜索状态
-    if (this.currentSearchQuery !== value) {
-      // 清除旧的高亮
-      this.clearHighlights();
-      this.currentSearchQuery = value;
-
-      // 记录原始内容
-      const originalContent = contentDiv.innerHTML;
-
-      // 创建临时的正则表达式用于匹配
-      const escapedValue = value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      const regex = new RegExp(`(${escapedValue})`, "gi");
-
-      // 替换所有匹配项为带有标记的span
-      const markedContent = contentDiv.innerHTML.replace(
-        regex,
-        '<span class="lawyer-search-highlight">$1</span>'
-      );
-
-      // 更新内容
-      contentDiv.innerHTML = markedContent;
-
-      // 获取所有高亮元素
-      this.allMatches = Array.from(
-        contentDiv.querySelectorAll(".lawyer-search-highlight")
-      );
-      this.searchMatchCount = this.allMatches.length;
-
-      // 如果没有匹配项，还原内容并返回
-      if (this.searchMatchCount === 0) {
-        contentDiv.innerHTML = originalContent;
-        this.$message.warning(`未找到匹配内容: ${value}`);
-        return;
-      }
-
-      // 重置当前匹配索引
-      this.searchCurrentMatch = 0;
-    }
-
-    // 移动到下一个匹配项
-    this.searchCurrentMatch++;
-    if (this.searchCurrentMatch > this.searchMatchCount) {
-      this.searchCurrentMatch = 1;
-    }
-
-    // 更新高亮状态
-    this.updateHighlightState();
-  }
-
-  // 更新高亮状态
-  updateHighlightState(): void {
-    if (!this.allMatches.length) return;
-
-    // 移除所有活动高亮
-    this.allMatches.forEach((el) =>
-      el.classList.remove("lawyer-search-highlight-active")
-    );
-
-    // 添加当前高亮
-    const currentIndex = this.searchCurrentMatch - 1;
-    if (currentIndex >= 0 && currentIndex < this.allMatches.length) {
-      const currentMatch = this.allMatches[currentIndex];
-      currentMatch.classList.add("lawyer-search-highlight-active");
-
-      // 滚动到可见位置
-      currentMatch.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-      });
-    }
-  }
-
-  // 清除所有高亮
-  clearHighlights(): void {
-    if (!this.allMatches.length) return;
-
-    const contentDiv = this.$refs.documentContent as HTMLElement;
-    if (!contentDiv) return;
-
-    // 还原所有高亮节点为普通文本
-    this.allMatches.forEach((el) => {
-      if (el.parentNode) {
-        const text = el.textContent;
-        const textNode = document.createTextNode(text || "");
-        el.parentNode.replaceChild(textNode, el);
-      }
-    });
-
-    // 清空匹配数组
-    this.allMatches = [];
-    this.searchMatchCount = 0;
-
-    // 规范化文本节点
-    contentDiv.normalize();
-  }
-
   // 使选中内容在视图中可见
   makeSelectionVisible(): void {
     const selection = window.getSelection();
@@ -414,37 +256,6 @@ export default class DocumentViewer extends Vue {
           }
         }
       }
-    }
-  }
-
-  // 计算总匹配数
-  calculateTotalMatches(value: string): void {
-    if (!value) return;
-
-    // 获取文档内容区域
-    const contentDiv = this.$refs.documentContent;
-    if (!contentDiv) return;
-
-    // 获取内容区域的实际内容元素
-    const contentElement = contentDiv.querySelector("div");
-    if (!contentElement) return;
-
-    // 获取文本内容
-    const text = contentElement.textContent || "";
-
-    // 转义正则表达式中的特殊字符
-    const escapedValue = value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
-    // 使用正则表达式计算匹配数
-    const regex = new RegExp(escapedValue, "gi");
-    const matches = text.match(regex);
-    this.searchMatchCount = matches ? matches.length : 0;
-
-    // 重置当前匹配索引
-    if (this.searchMatchCount > 0) {
-      this.searchCurrentMatch = 1;
-    } else {
-      this.searchCurrentMatch = 0;
     }
   }
 
@@ -603,49 +414,12 @@ export default class DocumentViewer extends Vue {
 
   // 处理键盘事件
   handleKeyDown(event: KeyboardEvent): void {
-    // Ctrl+F 或 Cmd+F 打开搜索框并聚焦
-    if ((event.ctrlKey || event.metaKey) && event.key === "f") {
-      event.preventDefault(); // 阻止浏览器默认搜索
-      const searchInput = this.$el.querySelector(
-        ".lawyer-toolbar-left input"
-      ) as HTMLInputElement;
-      if (searchInput) {
-        searchInput.focus();
-      }
-    }
-
-    // F3 或 Enter 在输入框聚焦时搜索下一个
-    else if (
-      event.key === "F3" ||
-      (event.key === "Enter" &&
-        document.activeElement ===
-          this.$el.querySelector(".lawyer-toolbar-left input"))
-    ) {
-      event.preventDefault();
-      if (this.currentSearchQuery) {
-        this.searchInDocument(this.currentSearchQuery);
-      }
-    }
-  }
-
-  // 监听搜索文本变化
-  @Watch("searchText")
-  onSearchTextChange(newVal: string, oldVal: string): void {
-    // 当搜索框被清空时，重置搜索状态并清除高亮
-    if (!newVal && oldVal) {
-      this.clearHighlights();
-      this.currentSearchQuery = "";
-      this.searchMatchCount = 0;
-      this.searchCurrentMatch = 0;
-    }
+    // 键盘事件处理（搜索功能已移至 DivTextSearch 组件）
   }
 
   // 组件销毁前清理
   beforeDestroy(): void {
-    // 清除所有高亮
-    this.clearHighlights();
-
-    const contentDiv = this.$refs.documentContent;
+    const contentDiv = this.$refs.documentContent as HTMLElement;
     if (contentDiv) {
       contentDiv.removeEventListener("scroll", this.handleScroll);
     }
@@ -727,55 +501,11 @@ export default class DocumentViewer extends Vue {
   height: 100%;
 }
 
-// 工具栏
-.lawyer-viewer-toolbar {
-  padding: 10px 20px;
-  border-bottom: 1px solid var(--lawyer-border);
-  background: var(--lawyer-background);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  z-index: 2;
-  flex-shrink: 0;
-  width: 100%;
-}
-
-.lawyer-toolbar-left {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.lawyer-toolbar-left span {
-  white-space: nowrap;
-  min-width: 80px;
-  font-size: 13px;
-  display: inline-block;
-}
-
-.lawyer-toolbar-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.lawyer-zoom-controls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.lawyer-zoom-level {
-  padding: 0 8px;
-  font-size: 12px;
-  color: var(--lawyer-text-light);
-}
-
 .lawyer-document-content {
   flex: 1;
   padding: 40px;
   overflow-y: auto;
-  height: calc(100% - 56px);
+  height: 100%;
 }
 
 // 文档内容样式
@@ -846,18 +576,6 @@ export default class DocumentViewer extends Vue {
   ::selection {
     background-color: rgba(var(--lawyer-primary-rgb), 0.3);
     color: var(--lawyer-text-dark);
-  }
-
-  /* 搜索匹配高亮样式 */
-  .lawyer-search-highlight {
-    background-color: rgba(255, 255, 0, 0.3);
-    padding: 2px 0;
-    border-radius: 2px;
-  }
-
-  .lawyer-search-highlight-active {
-    background-color: rgba(255, 165, 0, 0.5);
-    font-weight: bold;
   }
 }
 
