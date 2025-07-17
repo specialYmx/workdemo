@@ -29,7 +29,7 @@ export default class DocumentPage extends Vue {
     fileNumber: "中华人民共和国主席令第九十一号",
     status: "已生效",
     views: 3254,
-    tags: ["个人信息", "数据安全", "隐私保护", "跨境数据"],
+    tags: ["公司治理", "董事会管理"],
     content: `
       <h1 class="doc-title">中华人民共和国个人信息保护法</h1>
       <p class="doc-meta">（2021年8月20日第十三届全国人民代表大会常务委员会第三十次会议通过）</p>

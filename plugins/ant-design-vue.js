@@ -27,6 +27,7 @@ import {
   Breadcrumb,
   Empty,
   Spin,
+  Cascader,
   message,
 } from "ant-design-vue";
 
@@ -58,6 +59,7 @@ Vue.use(List);
 Vue.use(Breadcrumb);
 Vue.use(Empty);
 Vue.use(Spin);
+Vue.use(Cascader);
 
 // 全局挂载message组件
 Vue.prototype.$message = message;

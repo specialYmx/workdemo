@@ -14,6 +14,26 @@
 
         <div class="lawyer-document-info">
           <h1>{{ document.title }}</h1>
+
+          <!-- 文档标签区域 -->
+          <div class="lawyer-document-tags">
+            <span
+              v-for="(tag, index) in documentTags"
+              :key="index"
+              :class="['lawyer-doc-tag', getTagClass(tag)]"
+            >
+              {{ tag }}
+            </span>
+            <a-button
+              size="small"
+              icon="edit"
+              @click="showTagEditModal"
+              class="lawyer-edit-tag-btn"
+            >
+              编辑标签
+            </a-button>
+          </div>
+
           <div class="lawyer-document-meta lawyer-flex lawyer-gap-lg">
             <span v-for="(item, index) in documentMetaItems" :key="index">
               <a-icon :type="item.icon" /> {{ item.content }}
@@ -64,7 +84,10 @@
     <!-- 主要内容区 -->
     <div class="lawyer-main-layout lawyer-flex">
       <!-- 文档查看器 -->
-      <div class="lawyer-document-viewer">
+      <a-card
+        class="lawyer-document-viewer lawyer-chart-card"
+        :bordered="false"
+      >
         <DivTextSearch>
           <div
             class="lawyer-document-content lawyer-markdown-content lawyer-scrollable"
@@ -74,10 +97,13 @@
             <div v-html="document.content"></div>
           </div>
         </DivTextSearch>
-      </div>
+      </a-card>
 
       <!-- 侧边栏 - AI助手 -->
-      <div class="lawyer-document-sidebar">
+      <a-card
+        class="lawyer-document-sidebar lawyer-chart-card"
+        :bordered="false"
+      >
         <div class="lawyer-sidebar-section">
           <h3 class="lawyer-section-title">AI助手</h3>
 
@@ -132,8 +158,32 @@
             </div>
           </div>
         </div>
-      </div>
+      </a-card>
     </div>
+
+    <!-- 标签编辑模态框 -->
+    <a-modal
+      title="选择分类"
+      :visible="tagEditVisible"
+      @ok="handleTagEditOk"
+      @cancel="handleTagEditCancel"
+      :width="500"
+      okText="确认"
+      cancelText="取消"
+    >
+      <div class="lawyer-tag-edit-content">
+        <div class="lawyer-tag-select-row">
+          <label>选择分类</label>
+          <a-cascader
+            v-model="selectedTagPath"
+            :options="tagOptions"
+            placeholder="全部分类"
+            :show-search="true"
+            style="width: 300px"
+          />
+        </div>
+      </div>
+    </a-modal>
   </div>
 </template>
 
@@ -181,6 +231,41 @@ export default class DocumentViewer extends Vue {
   aiLoading = false;
   aiMessages: AiMessage[] = [];
 
+  // 标签编辑相关
+  tagEditVisible = false;
+  selectedTagPath: string[] = [];
+
+  // 标签选项数据
+  tagOptions = [
+    {
+      value: "公司治理",
+      label: "公司治理",
+      children: [
+        { value: "董事会管理", label: "董事会管理" },
+        { value: "监事会管理", label: "监事会管理" },
+        { value: "高管管理", label: "高管管理" },
+      ],
+    },
+    {
+      value: "风险合规",
+      label: "风险合规",
+      children: [
+        { value: "重要管理", label: "重要管理" },
+        { value: "合规", label: "合规" },
+        { value: "风控", label: "风控" },
+      ],
+    },
+    {
+      value: "金融产品",
+      label: "金融产品",
+      children: [
+        { value: "保险产品", label: "保险产品" },
+        { value: "理财产品", label: "理财产品" },
+        { value: "投资产品", label: "投资产品" },
+      ],
+    },
+  ];
+
   // 常见问题
   commonQuestions = [
     "这个法规的主要内容是什么？",
@@ -206,6 +291,11 @@ export default class DocumentViewer extends Vue {
     ];
   }
 
+  // 文档标签
+  get documentTags(): string[] {
+    return this.document.tags || [];
+  }
+
   // 文档元数据项
   get documentMetaItems(): MetaItem[] {
     return [
@@ -226,6 +316,64 @@ export default class DocumentViewer extends Vue {
   // 返回上一页
   goBack(): void {
     this.$emit("go-back");
+  }
+
+  // 获取标签样式类
+  getTagClass(tag: string): string {
+    const tagColorMap: { [key: string]: string } = {
+      个人信息: "lawyer-tag-important",
+      数据安全: "lawyer-tag-fund",
+      隐私保护: "lawyer-tag-opinion",
+      跨境数据: "lawyer-tag-solvency",
+      公司治理: "lawyer-tag-governance",
+      董事会管理: "lawyer-tag-supervision",
+      监事会管理: "lawyer-tag-association",
+      高管管理: "lawyer-tag-compliance",
+      重要管理: "lawyer-tag-important",
+      合规: "lawyer-tag-compliance",
+      风控: "lawyer-tag-risk",
+      保险产品: "lawyer-tag-fund",
+      理财产品: "lawyer-tag-alternative",
+      投资产品: "lawyer-tag-related",
+    };
+    return tagColorMap[tag] || "lawyer-tag-default";
+  }
+
+  // 显示标签编辑模态框
+  showTagEditModal(): void {
+    this.tagEditVisible = true;
+    // 如果文档已有标签，设置默认选中值
+    if (this.documentTags.length > 0) {
+      // 这里可以根据现有标签设置默认选中的级联路径
+      this.selectedTagPath = [];
+    }
+  }
+
+  // 处理标签编辑确认
+  handleTagEditOk(): void {
+    if (this.selectedTagPath.length > 0) {
+      // 更新文档标签
+      const newTag = this.selectedTagPath[this.selectedTagPath.length - 1];
+      if (!this.document.tags) {
+        this.document.tags = [];
+      }
+
+      // 如果标签不存在则添加
+      if (!this.document.tags.includes(newTag)) {
+        this.document.tags.push(newTag);
+      }
+
+      this.$message.success(`已添加标签: ${newTag}`);
+    }
+
+    this.tagEditVisible = false;
+    this.selectedTagPath = [];
+  }
+
+  // 处理标签编辑取消
+  handleTagEditCancel(): void {
+    this.tagEditVisible = false;
+    this.selectedTagPath = [];
   }
 
   // 使选中内容在视图中可见
@@ -464,7 +612,126 @@ export default class DocumentViewer extends Vue {
   h1 {
     font-size: 18px;
     color: var(--lawyer-text);
-    margin: 0 0 5px 0;
+    margin: 0 0 8px 0;
+  }
+}
+
+// 文档标签样式
+.lawyer-document-tags {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.lawyer-doc-tag {
+  display: inline-block;
+  padding: 4px 12px;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  background-color: #fff;
+  color: var(--lawyer-text-light);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.2;
+  white-space: nowrap;
+
+  // 重要法规 - 红色
+  &.lawyer-tag-important {
+    border-color: #ff4d4f;
+    color: #ff4d4f;
+    background-color: rgba(255, 77, 79, 0.1);
+  }
+
+  // 资金运用 - 橙色
+  &.lawyer-tag-fund {
+    border-color: #fa8c16;
+    color: #fa8c16;
+    background-color: rgba(250, 140, 22, 0.1);
+  }
+
+  // 征求意见 - 蓝色
+  &.lawyer-tag-opinion {
+    border-color: #1890ff;
+    color: #1890ff;
+    background-color: rgba(24, 144, 255, 0.1);
+  }
+
+  // 偿付能力 - 紫色
+  &.lawyer-tag-solvency {
+    border-color: #722ed1;
+    color: #722ed1;
+    background-color: rgba(114, 46, 209, 0.1);
+  }
+
+  // 风险提示 - 红色
+  &.lawyer-tag-risk {
+    border-color: #ff4d4f;
+    color: #ff4d4f;
+    background-color: rgba(255, 77, 79, 0.1);
+  }
+
+  // 另类投资 - 青色
+  &.lawyer-tag-alternative {
+    border-color: #13c2c2;
+    color: #13c2c2;
+    background-color: rgba(19, 194, 194, 0.1);
+  }
+
+  // 机构监管 - 绿色
+  &.lawyer-tag-supervision {
+    border-color: #52c41a;
+    color: #52c41a;
+    background-color: rgba(82, 196, 26, 0.1);
+  }
+
+  // 公司治理 - 橙色
+  &.lawyer-tag-governance {
+    border-color: #fa8c16;
+    color: #fa8c16;
+    background-color: rgba(250, 140, 22, 0.1);
+  }
+
+  // 行业协会 - 蓝色
+  &.lawyer-tag-association {
+    border-color: #1890ff;
+    color: #1890ff;
+    background-color: rgba(24, 144, 255, 0.1);
+  }
+
+  // 风控合规 - 紫色
+  &.lawyer-tag-compliance {
+    border-color: #722ed1;
+    color: #722ed1;
+    background-color: rgba(114, 46, 209, 0.1);
+  }
+
+  // 关联交易 - 青色
+  &.lawyer-tag-related {
+    border-color: #13c2c2;
+    color: #13c2c2;
+    background-color: rgba(19, 194, 194, 0.1);
+  }
+
+  // 默认样式
+  &.lawyer-tag-default {
+    border-color: #d9d9d9;
+    color: #595959;
+    background-color: rgba(217, 217, 217, 0.1);
+  }
+}
+
+.lawyer-edit-tag-btn {
+  font-size: 12px;
+  height: 24px;
+  padding: 0 8px;
+  border-color: #d9d9d9;
+  color: var(--lawyer-text-light);
+
+  &:hover {
+    border-color: var(--lawyer-primary);
+    color: var(--lawyer-primary);
   }
 }
 
@@ -731,5 +998,22 @@ export default class DocumentViewer extends Vue {
   padding: 15px;
   border-top: 1px solid var(--lawyer-border);
   background-color: #fff;
+}
+
+// 标签编辑模态框样式
+.lawyer-tag-edit-content {
+  padding: 20px 0;
+}
+
+.lawyer-tag-select-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  label {
+    font-weight: 500;
+    color: var(--lawyer-text);
+    min-width: 80px;
+  }
 }
 </style>

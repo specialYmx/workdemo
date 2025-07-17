@@ -50,23 +50,7 @@ export default class DivTextSearch extends Vue {
 
   mounted() {
     (this.$refs.searchInput as HTMLInputElement).focus();
-    const content = this.$refs.searchableContent as HTMLElement;
-    this.observer = new MutationObserver(() => {
-      // 断开 observer，防止高亮操作引发死循环
-      if (this.observer) this.observer.disconnect();
-      this.clearHighlights();
-      this.highlightAll();
-      if (this.highlightSpans.length > 0) {
-        this.currentIndex = 0;
-        this.updateCurrentHighlight();
-      } else {
-        this.currentIndex = -1;
-      }
-      // 重新监听
-      if (this.observer)
-        this.observer.observe(content, { childList: true, subtree: true });
-    });
-    this.observer.observe(content, { childList: true, subtree: true });
+    this.initMutationObserver();
   }
 
   beforeDestroy() {
@@ -74,6 +58,41 @@ export default class DivTextSearch extends Vue {
       this.observer.disconnect();
       this.observer = null;
     }
+  }
+
+  // 初始化 DOM 变化监听器
+  initMutationObserver() {
+    const content = this.$refs.searchableContent as HTMLElement;
+    this.observer = new MutationObserver(() => {
+      // 如果用户正在搜索，需要重新高亮
+      if (this.searchTerm && this.lastSearchTerm) {
+        // 暂时断开观察器，避免高亮操作触发无限循环
+        if (this.observer) this.observer.disconnect();
+
+        // 重新高亮当前搜索词
+        this.clearHighlights();
+        this.highlightAll();
+
+        // 尝试保持当前搜索位置
+        if (this.highlightSpans.length > 0) {
+          // 确保当前索引在有效范围内
+          if (this.currentIndex >= this.highlightSpans.length) {
+            this.currentIndex = 0;
+          }
+          this.updateCurrentHighlight();
+        } else {
+          this.currentIndex = -1;
+        }
+
+        // 重新启动观察器
+        if (this.observer) {
+          this.observer.observe(content, { childList: true, subtree: true });
+        }
+      }
+    });
+
+    // 开始观察 DOM 变化
+    this.observer.observe(content, { childList: true, subtree: true });
   }
 
   // 转义正则特殊字符
@@ -85,11 +104,14 @@ export default class DivTextSearch extends Vue {
   clearHighlights() {
     const content = this.$refs.searchableContent as HTMLElement;
     const highlights = content.querySelectorAll(
-      "span.lawyer-highlight, span.lawyer-current-highlight"
+      ".lawyer-highlight, .lawyer-current-highlight"
     );
     highlights.forEach((span) => {
-      const textNode = document.createTextNode(span.textContent || "");
-      span.parentNode && span.parentNode.replaceChild(textNode, span);
+      const parent = span.parentNode;
+      if (parent) {
+        const textNode = document.createTextNode(span.textContent || "");
+        parent.replaceChild(textNode, span);
+      }
     });
     content.normalize();
   }
@@ -98,43 +120,51 @@ export default class DivTextSearch extends Vue {
   highlightAll() {
     this.highlightSpans = [];
     if (!this.searchTerm) return;
+
     const regex = new RegExp(this.escapeRegExp(this.searchTerm), "gi");
     const content = this.$refs.searchableContent as HTMLElement;
     const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT);
-    let node: Text | null;
     const nodesToProcess: Text[] = [];
+
+    let node: Text | null;
     while ((node = walker.nextNode() as Text | null)) {
       if (regex.test(node.nodeValue || "")) {
         nodesToProcess.push(node);
       }
     }
-    nodesToProcess.forEach((node) => {
-      const text = node.nodeValue || "";
+
+    nodesToProcess.forEach((textNode) => {
+      const text = textNode.nodeValue || "";
+      const fragment = document.createDocumentFragment();
       let lastIndex = 0;
       let match: RegExpExecArray | null;
+
       regex.lastIndex = 0;
-      const frag = document.createDocumentFragment();
       while ((match = regex.exec(text)) !== null) {
-        // 前面非匹配部分
         if (match.index > lastIndex) {
-          frag.appendChild(
+          fragment.appendChild(
             document.createTextNode(text.slice(lastIndex, match.index))
           );
         }
-        // 匹配部分
+
         const span = document.createElement("span");
         span.className = "lawyer-highlight";
         span.textContent = match[0];
-        frag.appendChild(span);
+        fragment.appendChild(span);
         this.highlightSpans.push(span);
         lastIndex = regex.lastIndex;
       }
-      // 剩余部分
+
       if (lastIndex < text.length) {
-        frag.appendChild(document.createTextNode(text.slice(lastIndex)));
+        fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
       }
-      node.parentNode && node.parentNode.replaceChild(frag, node);
+
+      const parent = textNode.parentNode;
+      if (parent) {
+        parent.replaceChild(fragment, textNode);
+      }
     });
+
     this.highlightCount = this.highlightSpans.length;
   }
 
@@ -143,38 +173,37 @@ export default class DivTextSearch extends Vue {
     this.highlightSpans.forEach((span) =>
       span.classList.remove("lawyer-current-highlight")
     );
+
     if (this.highlightSpans.length === 0) return;
-    if (this.currentIndex < 0) this.currentIndex = 0;
-    if (this.currentIndex >= this.highlightSpans.length) this.currentIndex = 0;
+
+    if (
+      this.currentIndex < 0 ||
+      this.currentIndex >= this.highlightSpans.length
+    ) {
+      this.currentIndex = 0;
+    }
+
     const currentSpan = this.highlightSpans[this.currentIndex];
     currentSpan.classList.add("lawyer-current-highlight");
-    // 滚动到当前
     currentSpan.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
   // 搜索/循环跳转
   onSearch() {
     if (!this.searchTerm) {
-      this.clearHighlights();
-      this.highlightSpans = [];
-      this.highlightCount = 0;
-      this.currentIndex = -1;
-      this.lastSearchTerm = "";
+      this.resetSearch();
       return;
     }
-    // 搜索词变了，重新高亮并跳到第一个
+
     if (this.searchTerm !== this.lastSearchTerm) {
       this.clearHighlights();
       this.highlightAll();
       this.currentIndex = 0;
       this.lastSearchTerm = this.searchTerm;
-    } else {
-      // 搜索词没变，跳到下一个
-      if (this.highlightSpans.length > 0) {
-        this.currentIndex =
-          (this.currentIndex + 1) % this.highlightSpans.length;
-      }
+    } else if (this.highlightSpans.length > 0) {
+      this.currentIndex = (this.currentIndex + 1) % this.highlightSpans.length;
     }
+
     if (this.highlightSpans.length > 0) {
       this.updateCurrentHighlight();
     } else {
@@ -182,9 +211,8 @@ export default class DivTextSearch extends Vue {
     }
   }
 
-  // 清空搜索
-  clearSearch() {
-    this.searchTerm = "";
+  // 重置搜索状态
+  resetSearch() {
     this.clearHighlights();
     this.highlightSpans = [];
     this.highlightCount = 0;
@@ -192,15 +220,17 @@ export default class DivTextSearch extends Vue {
     this.lastSearchTerm = "";
   }
 
+  // 清空搜索
+  clearSearch() {
+    this.searchTerm = "";
+    this.resetSearch();
+  }
+
   // 清空时自动清除高亮
   @Watch("searchTerm")
   onSearchTermChange(newVal: string) {
     if (!newVal) {
-      this.clearHighlights();
-      this.highlightSpans = [];
-      this.highlightCount = 0;
-      this.currentIndex = -1;
-      this.lastSearchTerm = "";
+      this.resetSearch();
     }
   }
 }
@@ -208,76 +238,80 @@ export default class DivTextSearch extends Vue {
 
 <style>
 .lawyer-div-text-search-container {
-  max-width: 1000px;
-  margin: 0 auto;
-  background: #fff;
+  background: var(--lawyer-surface);
   overflow: hidden;
 }
+
 .lawyer-search-bar {
   position: sticky;
   top: 0;
-  left: 0;
   width: 100%;
   z-index: 100;
-  background: #fff;
+  background: var(--lawyer-surface);
   display: flex;
-  flex-wrap: wrap;
   gap: 10px;
   align-items: center;
   padding: 10px 0 5px 0;
 }
+
 .lawyer-search-box {
   flex: 1;
   min-width: 200px;
   display: flex;
-  background: white;
-  overflow: hidden;
-  border: 1px solid #d9d9d9;
+  background: var(--lawyer-surface);
+  border: 1px solid var(--lawyer-border);
   margin-left: 10px;
 }
+
 .lawyer-search-input {
   flex: 1;
   border: none;
   padding: 6px 10px;
-  font-size: 0.9rem;
   outline: none;
   background: transparent;
+  color: var(--lawyer-text);
 }
+
 .lawyer-search-button {
-  background: #1890ff;
-  color: white;
+  background: var(--lawyer-primary);
+  color: var(--lawyer-surface);
   border: none;
   padding: 0 12px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: background 0.3s;
+  transition: background 0.3s ease;
+  border-radius: 50%;
 }
+
 .lawyer-search-button:hover {
-  background: #40a9ff;
+  background: var(--lawyer-primary-dark);
 }
+
 .lawyer-clear-button {
   background: transparent;
-  color: #999;
+  color: var(--lawyer-text-light);
   border: none;
   padding: 0 6px;
   cursor: pointer;
-  font-size: 1.2rem;
+  font-size: 18px;
   line-height: 1;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: color 0.3s ease;
 }
+
 .lawyer-clear-button:hover {
-  color: #666;
+  color: var(--lawyer-text);
 }
+
 .lawyer-match-count {
-  color: #666;
+  color: var(--lawyer-text-light);
   padding: 6px 10px;
-  font-size: 0.9rem;
+
   min-width: 100px;
   text-align: center;
   margin-right: 10px;
 }
+
 .lawyer-content-area {
   padding: 10px;
   min-height: 300px;
@@ -285,39 +319,28 @@ export default class DivTextSearch extends Vue {
   overflow-y: auto;
   position: relative;
 }
+
 .lawyer-highlight {
   background-color: #ffeb3b;
-  color: #000;
+  color: var(--lawyer-text);
   font-weight: bold;
   padding: 0 2px;
 }
+
 .lawyer-current-highlight {
-  background-color: #ff9800 !important;
+  background-color: var(--lawyer-warning) !important;
   animation: lawyer-pulse 1.5s infinite;
 }
+
 @keyframes lawyer-pulse {
   0% {
-    box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.7);
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7);
   }
   70% {
-    box-shadow: 0 0 0 4px rgba(255, 152, 0, 0);
+    box-shadow: 0 0 0 4px rgba(245, 158, 11, 0);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(255, 152, 0, 0);
-  }
-}
-@media (max-width: 768px) {
-  .lawyer-search-bar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .lawyer-match-count {
-    width: 100%;
-    justify-content: center;
-    margin: 0;
-  }
-  .lawyer-search-box {
-    margin: 0;
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
   }
 }
 </style>

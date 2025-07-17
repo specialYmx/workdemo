@@ -8,7 +8,7 @@
     >
       <div class="lawyer-page-header-actions">
         <div class="lawyer-time-range">
-          <button
+          <a-button
             v-for="(timeOption, index) in timeOptions"
             :key="index"
             :class="[
@@ -18,7 +18,7 @@
             @click="activeTimeRange = timeOption.value"
           >
             {{ timeOption.label }}
-          </button>
+          </a-button>
         </div>
         <a-button type="primary" icon="file-pdf"> 导出报告 </a-button>
       </div>
@@ -256,43 +256,58 @@
       </template>
 
       <a-spin :spinning="listLoading.latestUpdates">
-        <div class="lawyer-update-list">
+        <div class="lawyer-updates-list">
           <div
             v-for="(item, index) in latestUpdates"
             :key="index"
             class="lawyer-update-item"
           >
-            <div
-              :class="['lawyer-update-icon', getUpdateIconClass(item.status)]"
-            >
-              <a-icon :type="getUpdateIconType(item.status || item.icon)" />
+            <div class="lawyer-update-icon">
+              {{ getUpdateEmoji(item.status || item.icon) }}
             </div>
             <div class="lawyer-update-content">
               <div class="lawyer-update-header">
-                <h4 class="lawyer-update-title">
+                <h3 class="lawyer-update-title">
                   <a @click="viewUpdateDetail(item)">{{ item.title }}</a>
-                </h4>
+                </h3>
                 <span class="lawyer-update-time">{{ item.date }}</span>
               </div>
               <p class="lawyer-update-description">
                 {{ item.description }}
               </p>
               <div class="lawyer-update-ai-analysis" v-if="item.analysis">
-                <div class="lawyer-update-ai-header">AI智能解读主要变更点</div>
-                <ul class="lawyer-update-ai-points">
+                <h4 class="lawyer-ai-title">AI智能解读主要变更点：</h4>
+                <ul class="lawyer-ai-points">
                   <li v-for="(point, i) in item.analysis" :key="i">
+                    <span class="lawyer-ai-bullet">▹</span>
                     {{ point }}
                   </li>
                 </ul>
               </div>
-              <div class="lawyer-update-tags">
-                <a-tag
-                  v-for="(tag, i) in item.tags || []"
-                  :key="i"
-                  :color="getCategoryColor(tag)"
-                >
-                  {{ tag }}
-                </a-tag>
+              <div class="lawyer-update-footer">
+                <div class="lawyer-update-tags">
+                  <span
+                    :class="['lawyer-tag', getTagClass(tag)]"
+                    v-for="(tag, i) in item.tags || []"
+                    :key="i"
+                  >
+                    {{ tag }}
+                  </span>
+                </div>
+                <div class="lawyer-update-actions">
+                  <a-button
+                    class="lawyer-action-btn lawyer-btn-view"
+                    @click="viewUpdateDetail(item)"
+                  >
+                    查看详情
+                  </a-button>
+                  <a-button
+                    class="lawyer-action-btn lawyer-btn-download"
+                    @click="downloadUpdate(item)"
+                  >
+                    下载文件
+                  </a-button>
+                </div>
               </div>
             </div>
           </div>
@@ -995,6 +1010,45 @@ export default class IndexPage extends Vue {
     this.$router.push(`/document/${item.id}`);
   }
 
+  // 获取更新emoji
+  getUpdateEmoji(status) {
+    const emojiMap = {
+      new: "⚖️",
+      updated: "📋",
+      effective: "📋",
+      deprecated: "⚠️",
+    };
+    return emojiMap[status] || "📋";
+  }
+
+  // 获取标签样式类
+  getTagClass(tag) {
+    const tagColorMap = {
+      重要法规: "lawyer-tag-important",
+      资金运用: "lawyer-tag-fund",
+      征求意见: "lawyer-tag-opinion",
+      偿付能力: "lawyer-tag-solvency",
+      风险提示: "lawyer-tag-risk",
+      另类投资: "lawyer-tag-alternative",
+      机构监管: "lawyer-tag-supervision",
+      公司治理: "lawyer-tag-governance",
+      行业协会: "lawyer-tag-association",
+      风控合规: "lawyer-tag-compliance",
+      关联交易: "lawyer-tag-related",
+      其他机构: "lawyer-tag-other",
+      法律法规: "lawyer-tag-law",
+      监管政策: "lawyer-tag-policy",
+      内部指南: "lawyer-tag-guide",
+      综合类: "lawyer-tag-general",
+    };
+    return tagColorMap[tag] || "lawyer-tag-default";
+  }
+
+  // 下载更新文件
+  downloadUpdate(item) {
+    this.$message.success(`正在下载: ${item.title}`);
+  }
+
   // 获取记录的操作按钮
   getRecordActions(record) {
     const actions = [];
@@ -1334,58 +1388,28 @@ export default class IndexPage extends Vue {
     }
   }
 
-  .lawyer-update-list {
+  .lawyer-updates-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+
     .lawyer-update-item {
+      &:extend(.lawyer-card);
       display: flex;
-      padding: 20px 24px;
-      border-bottom: 1px solid #f0f0f0;
+      gap: 16px;
+      margin-bottom: 10px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--lawyer-border);
+
+      &:last-child {
+        margin-bottom: 0;
+        border-bottom: none;
+      }
 
       .lawyer-update-icon {
-        margin-right: 16px;
-        width: 40px;
-        height: 40px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        border-radius: 8px;
-        background-color: #f5f5f5;
-
-        i {
-          font-size: 22px;
-          color: #666;
-        }
-
-        &.status-new {
-          background-color: #e6f7ff;
-
-          i {
-            color: #1890ff;
-          }
-        }
-
-        &.status-updated {
-          background-color: #e6fffb;
-
-          i {
-            color: #13c2c2;
-          }
-        }
-
-        &.status-effective {
-          background-color: #f6ffed;
-
-          i {
-            color: #52c41a;
-          }
-        }
-
-        &.status-deprecated {
-          background-color: #fff1f0;
-
-          i {
-            color: #f5222d;
-          }
-        }
+        font-size: 24px;
+        line-height: 1;
+        flex-shrink: 0;
       }
 
       .lawyer-update-content {
@@ -1394,52 +1418,72 @@ export default class IndexPage extends Vue {
         .lawyer-update-header {
           display: flex;
           justify-content: space-between;
-          margin-bottom: 8px;
+          align-items: flex-start;
+          margin-bottom: 12px;
 
           .lawyer-update-title {
             margin: 0;
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 600;
+            line-height: 1.4;
 
             a {
-              color: #333;
+              color: var(--lawyer-text);
+              text-decoration: none;
               cursor: pointer;
 
               &:hover {
-                color: #1890ff;
+                color: var(--lawyer-primary);
               }
             }
           }
 
           .lawyer-update-time {
-            font-size: 12px;
-            color: #666;
+            font-size: 14px;
+            color: var(--lawyer-text-light);
+            white-space: nowrap;
+            margin-left: 16px;
           }
         }
 
         .lawyer-update-description {
-          margin-bottom: 12px;
-          color: #333;
-          line-height: 1.5;
+          margin-bottom: 16px;
+          color: var(--lawyer-text-light);
+          line-height: 1.6;
+          font-size: 14px;
         }
 
         .lawyer-update-ai-analysis {
           background-color: #fffbf0;
-          padding: 12px;
-          margin-bottom: 12px;
-          border-radius: 4px;
-          .lawyer-update-ai-header {
-            font-weight: 500;
-            color: #d48806;
-            margin-bottom: 8px;
+          padding: 16px;
+          margin-bottom: 16px;
+          border-radius: 6px;
+          .lawyer-ai-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--lawyer-text);
+            margin: 0 0 12px 0;
           }
 
-          .lawyer-update-ai-points {
+          .lawyer-ai-points {
             margin: 0;
-            padding-left: 20px;
+            padding: 0;
+            list-style: none;
 
             li {
-              margin-bottom: 4px;
+              margin-bottom: 8px;
+              color: var(--lawyer-text-light);
+              font-size: 14px;
+              line-height: 1.5;
+              display: flex;
+              align-items: flex-start;
+
+              .lawyer-ai-bullet {
+                color: var(--lawyer-primary);
+                margin-right: 8px;
+                font-weight: bold;
+                flex-shrink: 0;
+              }
 
               &:last-child {
                 margin-bottom: 0;
@@ -1448,21 +1492,203 @@ export default class IndexPage extends Vue {
           }
         }
 
-        .lawyer-update-tags {
+        .lawyer-update-footer {
           display: flex;
-          flex-wrap: wrap;
-          gap: 8px;
+          justify-content: space-between;
+          align-items: center;
+          margin-top: 16px;
+
+          .lawyer-update-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+          }
+
+          .lawyer-update-actions {
+            display: flex;
+            gap: 12px;
+          }
         }
       }
+    }
+  }
+}
 
-      &:first-child {
-        padding-top: 20px;
-      }
+// 标签样式
+.lawyer-tag {
+  display: inline-block;
+  padding: 4px 12px;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  background-color: #fff;
+  color: var(--lawyer-text-light);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.2;
+  white-space: nowrap;
+  transition: all 0.2s ease;
 
-      &:last-child {
-        padding-bottom: 20px;
-        border-bottom: none;
-      }
+  // 重要法规 - 红色
+  &.lawyer-tag-important {
+    border-color: #ff4d4f;
+    color: #ff4d4f;
+    background-color: rgba(255, 77, 79, 0.1);
+  }
+
+  // 资金运用 - 橙色
+  &.lawyer-tag-fund {
+    border-color: #fa8c16;
+    color: #fa8c16;
+    background-color: rgba(250, 140, 22, 0.1);
+  }
+
+  // 征求意见 - 蓝色
+  &.lawyer-tag-opinion {
+    border-color: #1890ff;
+    color: #1890ff;
+    background-color: rgba(24, 144, 255, 0.1);
+  }
+
+  // 偿付能力 - 紫色
+  &.lawyer-tag-solvency {
+    border-color: #722ed1;
+    color: #722ed1;
+    background-color: rgba(114, 46, 209, 0.1);
+  }
+
+  // 风险提示 - 红色
+  &.lawyer-tag-risk {
+    border-color: #ff4d4f;
+    color: #ff4d4f;
+    background-color: rgba(255, 77, 79, 0.1);
+  }
+
+  // 另类投资 - 青色
+  &.lawyer-tag-alternative {
+    border-color: #13c2c2;
+    color: #13c2c2;
+    background-color: rgba(19, 194, 194, 0.1);
+  }
+
+  // 机构监管 - 绿色
+  &.lawyer-tag-supervision {
+    border-color: #52c41a;
+    color: #52c41a;
+    background-color: rgba(82, 196, 26, 0.1);
+  }
+
+  // 公司治理 - 橙色
+  &.lawyer-tag-governance {
+    border-color: #fa8c16;
+    color: #fa8c16;
+    background-color: rgba(250, 140, 22, 0.1);
+  }
+
+  // 行业协会 - 蓝色
+  &.lawyer-tag-association {
+    border-color: #1890ff;
+    color: #1890ff;
+    background-color: rgba(24, 144, 255, 0.1);
+  }
+
+  // 风控合规 - 紫色
+  &.lawyer-tag-compliance {
+    border-color: #722ed1;
+    color: #722ed1;
+    background-color: rgba(114, 46, 209, 0.1);
+  }
+
+  // 关联交易 - 青色
+  &.lawyer-tag-related {
+    border-color: #13c2c2;
+    color: #13c2c2;
+    background-color: rgba(19, 194, 194, 0.1);
+  }
+
+  // 其他机构 - 灰色
+  &.lawyer-tag-other {
+    border-color: #8c8c8c;
+    color: #8c8c8c;
+    background-color: rgba(140, 140, 140, 0.1);
+  }
+
+  // 法律法规 - 蓝色
+  &.lawyer-tag-law {
+    border-color: #1890ff;
+    color: #1890ff;
+    background-color: rgba(24, 144, 255, 0.1);
+  }
+
+  // 监管政策 - 绿色
+  &.lawyer-tag-policy {
+    border-color: #52c41a;
+    color: #52c41a;
+    background-color: rgba(82, 196, 26, 0.1);
+  }
+
+  // 内部指南 - 紫色
+  &.lawyer-tag-guide {
+    border-color: #722ed1;
+    color: #722ed1;
+    background-color: rgba(114, 46, 209, 0.1);
+  }
+
+  // 综合类 - 青色
+  &.lawyer-tag-general {
+    border-color: #13c2c2;
+    color: #13c2c2;
+    background-color: rgba(19, 194, 194, 0.1);
+  }
+
+  // 默认样式
+  &.lawyer-tag-default {
+    border-color: #d9d9d9;
+    color: #595959;
+    background-color: rgba(217, 217, 217, 0.1);
+  }
+
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+// 操作按钮样式
+.lawyer-action-btn {
+  display: inline-block;
+  padding: 6px 16px;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  background-color: #fff;
+  color: var(--lawyer-text-light);
+  font-size: 14px;
+  font-weight: 400;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+
+  &:hover {
+    text-decoration: none;
+    border-color: var(--lawyer-primary);
+    color: var(--lawyer-primary);
+  }
+
+  &.lawyer-btn-view {
+    color: var(--lawyer-text-light);
+
+    &:hover {
+      color: var(--lawyer-text);
+      border-color: var(--lawyer-text);
+    }
+  }
+
+  &.lawyer-btn-download {
+    color: var(--lawyer-primary);
+    border-color: var(--lawyer-primary);
+
+    &:hover {
+      background-color: var(--lawyer-primary);
+      color: white;
     }
   }
 }

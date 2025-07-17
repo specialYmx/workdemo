@@ -1,76 +1,77 @@
 <template>
   <div class="lawyer-page-container">
-    <!-- 页面头部卡片 -->
-    <div class="lawyer-card lawyer-header-card">
-      <div class="lawyer-card-header">
-        <h1 class="lawyer-card-title">人工审核与数据管理</h1>
-        <div>
-          <a-select
-            v-model="filterStatus"
-            style="width: 150px"
-            placeholder="审核状态"
-            @change="onFilterChange"
-          >
-            <a-select-option
-              v-for="option in statusOptions"
-              :key="option.value"
-              :value="option.value"
-            >
-              {{ option.label }}
-            </a-select-option>
-          </a-select>
+    <!-- 页面头部 -->
+    <div class="lawyer-page-header">
+      <h1 class="lawyer-page-title">人工审核与数据管理</h1>
 
-          <a-select
-            v-model="filterType"
-            style="width: 150px"
-            placeholder="文档分类"
-            @change="onFilterChange"
-          >
-            <a-select-option
-              v-for="option in typeOptions"
-              :key="option.value"
-              :value="option.value"
-            >
-              {{ option.label }}
-            </a-select-option>
-          </a-select>
+      <!-- 搜索筛选和操作区域 -->
+      <div class="lawyer-controls-row">
+        <a-input-search
+          placeholder="搜索标题、文号、来源..."
+          v-model="searchText"
+          @search="onSearch"
+          class="lawyer-search-input"
+        />
 
-          <a-button
-            type="primary"
-            icon="check"
-            @click="batchApprove"
-            :disabled="!hasSelection"
+        <div class="lawyer-status-tags">
+          <span
+            v-for="option in statusOptions"
+            :key="option.value"
+            :class="[
+              'lawyer-status-tag',
+              { 'lawyer-status-tag-active': filterStatus === option.value },
+            ]"
+            @click="onStatusTagClick(option.value)"
           >
-            批量通过
-          </a-button>
-          <a-button
-            type="danger"
-            icon="close"
-            @click="batchReject"
-            :disabled="!hasSelection"
-          >
-            批量驳回
-          </a-button>
-          <a-button icon="download" @click="exportData"> 导出数据 </a-button>
+            {{ option.label }}
+          </span>
         </div>
+
+        <a-select
+          v-model="filterType"
+          placeholder="文档分类"
+          class="lawyer-filter-select"
+          @change="onFilterChange"
+        >
+          <a-select-option
+            v-for="option in typeOptions"
+            :key="option.value"
+            :value="option.value"
+          >
+            {{ option.label }}
+          </a-select-option>
+        </a-select>
+
+        <a-button
+          type="primary"
+          @click="batchApprove"
+          :disabled="!hasSelection"
+          class="lawyer-btn-approve"
+        >
+          批量通过
+        </a-button>
+        <a-button
+          type="danger"
+          @click="batchReject"
+          :disabled="!hasSelection"
+          class="lawyer-btn-reject"
+        >
+          批量驳回
+        </a-button>
+        <a-button @click="exportData" class="lawyer-btn-export">
+          导出数据
+        </a-button>
+      </div>
+
+      <!-- 统计信息 -->
+      <div class="lawyer-stats-info">
+        总计: <strong>{{ totalDocuments }}</strong> 条 / 待审核:
+        <strong>{{ pendingCount }}</strong> 条
       </div>
     </div>
 
-    <!-- 文档列表卡片 -->
-    <div class="lawyer-card lawyer-table-card">
-      <div class="lawyer-table-controls">
-        <a-input-search
-          placeholder="搜索标题、文号、来源..."
-          style="width: 300px"
-          v-model="searchText"
-          @search="onSearch"
-        />
-        <div>
-          总计: <strong>{{ totalDocuments }}</strong> 条 / 待审核:
-          <strong>{{ pendingCount }}</strong> 条
-        </div>
-      </div>
-
+    <!-- 文档列表表格 -->
+    <div class="lawyer-table-container">
       <a-table
         :columns="columns"
         :data-source="filteredDocuments"
@@ -97,29 +98,27 @@
 
         <!-- 分类列插槽 -->
         <span slot="type" slot-scope="text">
-          <a-tag :color="getTypeColor(text)">{{ getTypeText(text) }}</a-tag>
+          {{ getTypeText(text) }}
         </span>
 
         <!-- 状态列插槽 -->
         <span slot="status" slot-scope="text">
-          <span :class="['lawyer-status-badge', `status-${text}`]">
+          <span :class="['lawyer-status-text', `status-${text}`]">
             {{ getStatusText(text) }}
           </span>
         </span>
 
         <!-- 操作列插槽 -->
         <span slot="action" slot-scope="text, record">
-          <div>
-            <a-button @click="viewDocument(record)">查看</a-button>
+          <div class="lawyer-action-links">
+            <a @click="viewDocument(record)" class="lawyer-link-view"> 查看 </a>
             <template v-if="record.status === 'pending'">
-              <a-button
-                v-for="(action, index) in getPendingActions"
-                :key="index"
-                :type="action.type"
-                @click="() => action.handler(record)"
-              >
-                {{ action.text }}
-              </a-button>
+              <a @click="approveDocument(record)" class="lawyer-link-approve">
+                批准
+              </a>
+              <a @click="rejectDocument(record)" class="lawyer-link-reject">
+                驳回
+              </a>
             </template>
           </div>
         </span>
@@ -432,6 +431,12 @@ export default class DbPage extends Vue {
     this.refreshData();
   }
 
+  // 状态标签点击
+  onStatusTagClick(value: string): void {
+    this.filterStatus = this.filterStatus === value ? "all" : value;
+    this.refreshData();
+  }
+
   // 日期范围变化
   onDateRangeChange(dates: moment.Moment[], dateStrings: string[]): void {
     // 日期已经双向绑定到dateRange，这里可以加入额外处理
@@ -478,16 +483,6 @@ export default class DbPage extends Vue {
       internal: "内部规章",
     };
     return textMap[type] || "其他";
-  }
-
-  // 获取类型颜色
-  getTypeColor(type: string): string {
-    const colorMap: Record<string, string> = {
-      law: "red",
-      policy: "orange",
-      internal: "green",
-    };
-    return colorMap[type] || "blue";
   }
 
   // 查看文档
@@ -607,98 +602,191 @@ export default class DbPage extends Vue {
       this.$message.success("数据已导出到 审核数据.xlsx");
     }, 1500);
   }
-
-  // 计算属性：待审核文档操作按钮
-  get getPendingActions() {
-    return [
-      {
-        text: "批准",
-        type: "primary",
-        handler: (record: Document) => this.approveDocument(record),
-      },
-      {
-        text: "驳回",
-        type: "danger",
-        handler: (record: Document) => this.rejectDocument(record),
-      },
-    ];
-  }
 }
 </script>
 
 <style lang="less" scoped>
-// 基础样式
-.lawyer-page-container {
-  margin-bottom: 32px;
-}
-
-// 卡片样式
-.lawyer-card {
-  border-radius: 8px;
+// 页面头部样式
+.lawyer-page-header {
+  background: var(--lawyer-surface);
   border: 1px solid var(--lawyer-border);
+  border-radius: 8px;
+  padding: 24px;
   margin-bottom: 24px;
-  // 头部卡片样式
-  &.lawyer-header-card {
-    padding: 24px 32px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.lawyer-page-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--lawyer-text);
+  margin-bottom: 20px;
+}
+
+// 搜索筛选和操作区域（一行显示）
+.lawyer-controls-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.lawyer-search-input {
+  width: 300px;
+}
+
+.lawyer-filter-select {
+  width: 150px;
+}
+
+.lawyer-btn-approve {
+  background: var(--lawyer-primary);
+  border-color: var(--lawyer-primary);
+  color: white;
+
+  &:hover {
+    background: var(--lawyer-primary-dark);
+    border-color: var(--lawyer-primary-dark);
+    color: white;
   }
 }
 
-// 卡片头部
-.lawyer-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.lawyer-btn-reject {
+  background: var(--lawyer-danger);
+  border-color: var(--lawyer-danger);
+  color: white;
 
-  // 标题部分
-  .lawyer-card-title {
-    font-size: 24px;
-    margin-bottom: 0;
+  &:hover {
+    background: #dc2626;
+    border-color: #dc2626;
+    color: white;
   }
 }
 
-// 表格控制区
-.lawyer-table-controls {
-  padding: 16px 24px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid var(--lawyer-border);
+.lawyer-btn-export {
+  background: var(--lawyer-surface);
+  border-color: var(--lawyer-border);
+  color: var(--lawyer-text);
+
+  &:hover {
+    border-color: var(--lawyer-primary);
+    color: var(--lawyer-primary);
+  }
 }
 
-// 状态标识
-.lawyer-status-badge {
-  padding: 3.2px 8px;
-  border-radius: 4px;
-  border: 1px solid transparent;
-  // 不同状态样式
+// 统计信息
+.lawyer-stats-info {
+  color: var(--lawyer-text-light);
+  font-size: 14px;
+
+  strong {
+    color: var(--lawyer-text);
+    font-weight: 600;
+  }
+}
+
+// 表格容器
+.lawyer-table-container {
+  background: var(--lawyer-surface);
+  border: 1px solid var(--lawyer-border);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+// 操作链接组
+.lawyer-action-links {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.lawyer-link-view {
+  color: var(--lawyer-text-light);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: var(--lawyer-text);
+    text-decoration: underline;
+  }
+}
+
+.lawyer-link-approve {
+  color: var(--lawyer-primary);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: var(--lawyer-primary-dark);
+    text-decoration: underline;
+  }
+}
+
+.lawyer-link-reject {
+  color: var(--lawyer-danger);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: #dc2626;
+    text-decoration: underline;
+  }
+}
+
+// 状态文字样式
+.lawyer-status-text {
+  font-weight: 500;
+
+  // 不同状态颜色
   &.status-pending {
-    background-color: rgba(245, 158, 11, 0.1);
     color: var(--lawyer-warning);
-    border-color: rgba(245, 158, 11, 0.3);
-
-    &::before {
-      background-color: var(--lawyer-warning);
-    }
   }
 
   &.status-approved {
-    background-color: rgba(16, 185, 129, 0.1);
     color: var(--lawyer-success);
-    border-color: rgba(16, 185, 129, 0.3);
-
-    &::before {
-      background-color: var(--lawyer-success);
-    }
   }
 
   &.status-rejected {
-    background-color: rgba(239, 68, 68, 0.1);
     color: var(--lawyer-danger);
-    border-color: rgba(239, 68, 68, 0.3);
+  }
+}
 
-    &::before {
-      background-color: var(--lawyer-danger);
-    }
+// 状态标签样式
+.lawyer-status-tags {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.lawyer-status-tag {
+  display: inline-block;
+  padding: 6px 16px;
+  border: 1px solid #d9d9d9;
+  border-radius: 3px;
+  background-color: #fff;
+  color: var(--lawyer-text-light);
+  font-size: 14px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  user-select: none;
+
+  &:hover {
+    border-color: var(--lawyer-primary);
+    color: var(--lawyer-primary);
+  }
+
+  &.lawyer-status-tag-active {
+    background-color: var(--lawyer-primary);
+    border-color: var(--lawyer-primary);
+    color: white;
+    font-weight: 500;
   }
 }
 </style>
