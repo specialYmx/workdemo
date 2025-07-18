@@ -7,17 +7,23 @@
           v-model="searchTerm"
           placeholder="搜索..."
           @keyup.enter="onSearch"
-          ref="searchInput"
           class="lawyer-search-input"
         />
-        <button
+        <a-button
           v-if="searchTerm"
           @click="clearSearch"
+          type="link"
           class="lawyer-clear-button"
-        >
-          <span>&times;</span>
-        </button>
-        <button @click="onSearch" class="lawyer-search-button">搜索</button>
+          icon="close"
+          size="small"
+        />
+        <a-button
+          @click="onSearch"
+          type="primary"
+          icon="search"
+          class="lawyer-search-button"
+          size="small"
+        />
       </div>
       <div class="lawyer-match-count">
         <span v-if="highlightCount === 0">0 个匹配项</span>
@@ -49,7 +55,6 @@ export default class DivTextSearch extends Vue {
   private observer: MutationObserver | null = null;
 
   mounted() {
-    (this.$refs.searchInput as HTMLInputElement).focus();
     this.initMutationObserver();
   }
 
@@ -261,6 +266,7 @@ export default class DivTextSearch extends Vue {
   background: var(--lawyer-surface);
   border: 1px solid var(--lawyer-border);
   margin-left: 10px;
+  align-items: center;
 }
 
 .lawyer-search-input {
@@ -273,40 +279,18 @@ export default class DivTextSearch extends Vue {
 }
 
 .lawyer-search-button {
-  background: var(--lawyer-primary);
-  color: var(--lawyer-surface);
-  border: none;
-  padding: 0 12px;
-  transition: background 0.3s ease;
-  border-radius: 50%;
-}
-
-.lawyer-search-button:hover {
-  background: var(--lawyer-primary-dark);
+  border-radius: 0 !important;
 }
 
 .lawyer-clear-button {
-  background: transparent;
   color: var(--lawyer-text-light);
-  border: none;
-  padding: 0 6px;
-  cursor: pointer;
-  font-size: 18px;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: color 0.3s ease;
-}
-
-.lawyer-clear-button:hover {
-  color: var(--lawyer-text);
+  padding: 0 !important;
+  margin-right: 4px;
 }
 
 .lawyer-match-count {
   color: var(--lawyer-text-light);
   padding: 6px 10px;
-
   min-width: 100px;
   text-align: center;
   margin-right: 10px;
@@ -315,7 +299,7 @@ export default class DivTextSearch extends Vue {
 .lawyer-content-area {
   padding: 10px;
   min-height: 300px;
-  max-height: calc(100vh - 80px);
+  max-height: calc(100vh - 300px);
   overflow-y: auto;
   position: relative;
 }

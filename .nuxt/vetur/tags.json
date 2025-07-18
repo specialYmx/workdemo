@@ -1,14 +1,14 @@
 {
-  "CommonChartComponent": {
-    "description": "Auto imported from components/common/ChartComponent.vue"
-  },
-  "CommonDivTextSearch": {
-    "description": "Auto imported from components/common/DivTextSearch.vue"
-  },
   "DocumentCompare": {
     "description": "Auto imported from components/document/DocumentCompare.vue"
   },
   "DocumentViewer": {
     "description": "Auto imported from components/document/DocumentViewer.vue"
+  },
+  "CommonChartComponent": {
+    "description": "Auto imported from components/common/ChartComponent.vue"
+  },
+  "CommonDivTextSearch": {
+    "description": "Auto imported from components/common/DivTextSearch.vue"
   }
 }

@@ -7,11 +7,7 @@
       <div
         class="lawyer-header-left lawyer-flex lawyer-items-center lawyer-gap-md"
       >
-        <a-button class="lawyer-back-btn" @click="goBack">
-          <a-icon type="arrow-left" />
-          返回
-        </a-button>
-
+        
         <div class="lawyer-document-info">
           <h1>{{ document.title }}</h1>
 
@@ -43,40 +39,16 @@
       </div>
 
       <div class="lawyer-header-actions lawyer-flex lawyer-gap-sm">
-        <!-- 目录按钮 -->
-        <a-popover
-          placement="bottomRight"
-          trigger="click"
-          v-model="tocVisible"
-          :overlayClassName="'lawyer-toc-popover'"
-        >
-          <template slot="content">
-            <div class="lawyer-toc-container">
-              <h3>文档目录</h3>
-              <div class="lawyer-toc-list">
-                <a
-                  v-for="(item, index) in tocItems"
-                  :key="index"
-                  href="javascript:void(0)"
-                  class="lawyer-toc-item"
-                  @click="scrollToHeading(item.text)"
-                  :style="{ paddingLeft: `${item.level * 12}px` }"
-                >
-                  {{ item.text }}
-                </a>
-              </div>
-            </div>
-          </template>
-          <a-button icon="bars">目录</a-button>
-        </a-popover>
+        <a-button class="lawyer-back-btn" @click="goBack">
+          <a-icon type="arrow-left" />
+          返回
+        </a-button>
 
         <a-button
-          v-for="(action, index) in documentActions"
-          :key="index"
-          :icon="action.icon"
-          @click="action.handler"
+          icon="download"
+          @click="downloadDocument"
         >
-          {{ action.text }}
+          下载
         </a-button>
       </div>
     </header>
@@ -180,6 +152,7 @@
             placeholder="全部分类"
             :show-search="true"
             style="width: 300px"
+            :default-value="selectedTagPath"
           />
         </div>
       </div>
@@ -221,10 +194,6 @@ interface MetaItem {
 export default class DocumentViewer extends Vue {
   @Prop({ required: true }) document: any;
   @Prop({ default: () => [] }) relatedDocuments: any[];
-
-  // 目录相关
-  tocItems: TocItem[] = [];
-  tocVisible = false;
 
   // AI助手相关
   aiQuestion = "";
@@ -274,22 +243,6 @@ export default class DocumentViewer extends Vue {
     "该法规与其他法律的关系",
     "法规的生效时间",
   ];
-
-  // 文档操作按钮
-  get documentActions(): DocumentAction[] {
-    return [
-      {
-        icon: "printer",
-        text: "打印",
-        handler: this.printDocument,
-      },
-      {
-        icon: "download",
-        text: "下载",
-        handler: this.downloadDocument,
-      },
-    ];
-  }
 
   // 文档标签
   get documentTags(): string[] {
@@ -342,32 +295,79 @@ export default class DocumentViewer extends Vue {
   // 显示标签编辑模态框
   showTagEditModal(): void {
     this.tagEditVisible = true;
+    this.selectedTagPath = [];
+    
     // 如果文档已有标签，设置默认选中值
-    if (this.documentTags.length > 0) {
-      // 这里可以根据现有标签设置默认选中的级联路径
-      this.selectedTagPath = [];
+    if (this.documentTags.length >= 2) {
+      // 当已有两个标签时，假设第一个是一级标签，第二个是二级标签
+      const firstTag = this.documentTags[0];
+      const secondTag = this.documentTags[1];
+      
+      // 在tagOptions中查找匹配的路径
+      for (const option of this.tagOptions) {
+        if (option.value === firstTag && option.children) {
+          for (const child of option.children) {
+            if (child.value === secondTag) {
+              // 找到匹配的一级和二级标签
+              this.selectedTagPath = [firstTag, secondTag];
+              break;
+            }
+          }
+        }
+      }
+    } else if (this.documentTags.length === 1) {
+      // 只有一个标签时，尝试查找它是一级还是二级标签
+      const currentTag = this.documentTags[0];
+      const tagPath = this.findTagPath(currentTag);
+      if (tagPath.length > 0) {
+        this.selectedTagPath = [...tagPath];
+      }
     }
+    
+    console.log('设置级联路径:', this.selectedTagPath);
+  }
+
+  // 查找标签在级联选项中的路径
+  findTagPath(tag: string): string[] {
+    // 遍历所有标签选项查找匹配
+    for (const option of this.tagOptions) {
+      // 检查一级标签是否匹配
+      if (option.value === tag) {
+        return [option.value];
+      }
+      
+      // 检查二级标签是否匹配
+      if (option.children) {
+        for (const child of option.children) {
+          if (child.value === tag) {
+            return [option.value, child.value];
+          }
+        }
+      }
+    }
+    
+    return [];
   }
 
   // 处理标签编辑确认
   handleTagEditOk(): void {
     if (this.selectedTagPath.length > 0) {
-      // 更新文档标签
-      const newTag = this.selectedTagPath[this.selectedTagPath.length - 1];
-      if (!this.document.tags) {
-        this.document.tags = [];
+      // 清空现有标签
+      this.document.tags = [];
+      
+      if (this.selectedTagPath.length >= 2) {
+        // 如果选择了两级标签，则添加一级和二级标签
+        this.document.tags.push(this.selectedTagPath[0]); // 一级标签
+        this.document.tags.push(this.selectedTagPath[1]); // 二级标签
+        this.$message.success(`已设置标签为: ${this.selectedTagPath[0]}/${this.selectedTagPath[1]}`);
+      } else {
+        // 只选择了一级标签
+        this.document.tags.push(this.selectedTagPath[0]);
+        this.$message.success(`已设置标签为: ${this.selectedTagPath[0]}`);
       }
-
-      // 如果标签不存在则添加
-      if (!this.document.tags.includes(newTag)) {
-        this.document.tags.push(newTag);
-      }
-
-      this.$message.success(`已添加标签: ${newTag}`);
     }
 
     this.tagEditVisible = false;
-    this.selectedTagPath = [];
   }
 
   // 处理标签编辑取消
@@ -418,65 +418,10 @@ export default class DocumentViewer extends Vue {
     return colorMap[status] || "default";
   }
 
-  // 打印文档
-  printDocument(): void {
-    this.$message.info(`正在打印: ${this.document.title}`);
-    // 实际项目中，这里应该实现打印功能
-  }
-
   // 下载文档
   downloadDocument(): void {
     this.$message.info(`正在下载: ${this.document.title}`);
     // 实际项目中，这里应该实现下载功能
-  }
-
-  // 解析文档内容中的标题，生成目录
-  extractTocItems(): void {
-    if (!this.document.content) return;
-
-    // 创建临时DOM元素来解析HTML内容
-    const tempDiv = document.createElement("div");
-    tempDiv.innerHTML = this.document.content;
-
-    // 查找所有标题元素
-    const headings = tempDiv.querySelectorAll("h1, h2, h3, h4, h5, h6");
-
-    this.tocItems = Array.from(headings).map((heading) => {
-      const level = parseInt(heading.tagName.substring(1)) - 1;
-      return {
-        text: heading.textContent,
-        level: level,
-      };
-    });
-  }
-
-  // 滚动到指定标题
-  scrollToHeading(headingText: string): void {
-    const contentDiv = this.$refs.documentContent;
-    if (!contentDiv) return;
-
-    // 查找所有标题元素
-    const headings = contentDiv.querySelectorAll("h1, h2, h3, h4, h5, h6");
-
-    // 查找匹配文本的标题
-    for (const heading of headings) {
-      if (heading.textContent === headingText) {
-        // 滚动到标题位置
-        heading.scrollIntoView({ behavior: "smooth", block: "start" });
-
-        // 添加高亮效果
-        heading.classList.add("lawyer-highlight-heading");
-
-        // 2秒后移除高亮效果
-        setTimeout(() => {
-          heading.classList.remove("lawyer-highlight-heading");
-        }, 2000);
-
-        // 关闭目录弹窗
-        this.tocVisible = false;
-        break;
-      }
-    }
   }
 
   // 点击常见问题
@@ -543,8 +488,6 @@ export default class DocumentViewer extends Vue {
 
   // 生命周期钩子
   mounted(): void {
-    this.extractTocItems();
-
     // 添加滚动监听，可以用于实现阅读进度等功能
     const contentDiv = this.$refs.documentContent;
     if (contentDiv) {
@@ -756,16 +699,18 @@ export default class DocumentViewer extends Vue {
   display: flex;
   flex: 1;
   overflow: hidden;
+  padding: 16px;
+  gap: 16px;
 }
 
 // 文档查看器
 .lawyer-document-viewer {
   flex: 1;
   background: var(--lawyer-surface);
-  border-right: 1px solid var(--lawyer-border);
   display: flex;
   flex-direction: column;
   height: 100%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .lawyer-document-content {
@@ -832,13 +777,6 @@ export default class DocumentViewer extends Vue {
     color: #222;
   }
 
-  .lawyer-highlight-heading {
-    background-color: rgba(var(--lawyer-primary-rgb), 0.15);
-    padding: 5px;
-    border-radius: 4px;
-    transition: background-color 0.5s ease;
-  }
-
   /* 搜索结果高亮样式 */
   ::selection {
     background-color: rgba(var(--lawyer-primary-rgb), 0.3);
@@ -856,6 +794,7 @@ export default class DocumentViewer extends Vue {
   flex-direction: column;
   flex-shrink: 0;
   overflow-y: auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .lawyer-sidebar-section {
@@ -880,51 +819,6 @@ export default class DocumentViewer extends Vue {
     width: 40px;
     height: 2px;
     background-color: var(--lawyer-primary);
-  }
-}
-
-// 目录样式
-.lawyer-toc-container {
-  width: 280px;
-  max-height: 400px;
-  overflow-y: auto;
-  padding: 10px;
-
-  h3 {
-    font-size: 16px;
-    font-weight: 500;
-    color: var(--lawyer-text);
-    margin-bottom: 15px;
-    position: relative;
-
-    &::after {
-      content: "";
-      position: absolute;
-      bottom: -5px;
-      left: 0;
-      width: 40px;
-      height: 2px;
-      background-color: var(--lawyer-primary);
-    }
-  }
-}
-
-.lawyer-toc-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.lawyer-toc-item {
-  color: var(--lawyer-text);
-  text-decoration: none;
-  padding: 4px 8px;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background-color: rgba(var(--lawyer-primary-rgb), 0.1);
-    color: var(--lawyer-primary);
   }
 }
 

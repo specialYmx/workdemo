@@ -1,7 +1,7 @@
-export { default as CommonChartComponent } from '../..\\components\\common\\ChartComponent.vue'
-export { default as CommonDivTextSearch } from '../..\\components\\common\\DivTextSearch.vue'
 export { default as DocumentCompare } from '../..\\components\\document\\DocumentCompare.vue'
 export { default as DocumentViewer } from '../..\\components\\document\\DocumentViewer.vue'
+export { default as CommonChartComponent } from '../..\\components\\common\\ChartComponent.vue'
+export { default as CommonDivTextSearch } from '../..\\components\\common\\DivTextSearch.vue'
 
 // nuxt/nuxt.js#8607
 function wrapFunctional(options) {
