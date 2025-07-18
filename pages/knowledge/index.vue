@@ -1,164 +1,189 @@
 <template>
   <div class="lawyer-page-container">
-    <!-- 搜索区域 -->
-    <section class="lawyer-search-section">
-      <h1>法规与文件大家智库</h1>
-      <p>
-        搜索和浏览法律法规、政策文件、典型案例和解读材料，获取最新的合规信息和专业指导。
-      </p>
+    <!-- 整体内容容器 -->
+    <div class="lawyer-content-wrapper">
+      <!-- 搜索区域 -->
+      <section class="lawyer-search-section">
+        <h1>法规与文件大家智库</h1>
+        <p>
+          搜索和浏览法律法规、政策文件、典型案例和解读材料，获取最新的合规信息和专业指导。
+        </p>
 
-      <div class="lawyer-search-form">
-        <a-input
-          placeholder="输入关键词搜索法规、案例、解读..."
-          size="large"
-          v-model="searchText"
-          class="lawyer-search-input"
-          @keyup.enter="onSearch"
-        />
-        <a-button
-          v-for="(btn, index) in searchButtons"
-          :key="index"
-          :type="btn.isActive ? 'primary' : btn.type || 'default'"
-          :icon="btn.icon"
-          size="large"
-          :loading="btn.loading"
-          @click="btn.handler"
-          :class="{ 'lawyer-btn-active': btn.isActive }"
-        >
-          {{ btn.text }}{{ btn.count ? ` (${btn.count})` : "" }}
-        </a-button>
-      </div>
-
-      <!-- 智能搜索提示 -->
-      <div class="lawyer-search-mode-info" v-if="isSemanticSearchEnabled">
-        <a-icon type="bulb" /> 智能搜索模式已启用 -
-        系统将理解您的搜索意图，匹配相关概念和同义词
-      </div>
-
-      <!-- 高级筛选选项 -->
-      <div class="lawyer-filter-options" v-show="isAdvancedSearchVisible">
-        <div
-          class="lawyer-filter-group"
-          v-for="(filter, index) in filterOptions"
-          :key="index"
-        >
-          <a-select
-            v-model="filter.value"
-            style="width: 100%"
-            :placeholder="filter.placeholder"
-            @change="onSearch"
+        <div class="lawyer-search-form">
+          <a-input
+            placeholder="输入关键词搜索法规、案例、解读..."
+            size="large"
+            v-model="searchText"
+            class="lawyer-search-input"
+            @keyup.enter="onSearch"
+          />
+          <a-button
+            v-for="(btn, index) in searchButtons"
+            :key="index"
+            :type="btn.isActive ? 'primary' : btn.type || 'default'"
+            :icon="btn.icon"
+            size="large"
+            :loading="btn.loading"
+            @click="btn.handler"
+            :class="{ 'lawyer-btn-active': btn.isActive }"
           >
-            <a-select-option
-              v-for="option in filter.options"
-              :key="option.value"
-              :value="option.value"
-            >
-              {{ option.label }}
-            </a-select-option>
-          </a-select>
+            {{ btn.text }}{{ btn.count ? ` (${btn.count})` : "" }}
+          </a-button>
         </div>
+
+        <!-- 智能搜索提示 -->
+        <div class="lawyer-search-mode-info" v-if="isSemanticSearchEnabled">
+          <a-icon type="bulb" /> 智能搜索模式已启用 -
+          系统将理解您的搜索意图，匹配相关概念和同义词
+        </div>
+
+        <!-- 高级筛选选项 -->
+        <div class="lawyer-filter-options" v-show="isAdvancedSearchVisible">
+          <!-- 时效性选择器 -->
+          <div class="lawyer-filter-group">
+            <a-select
+              v-model="effectivenessFilter"
+              style="width: 100%"
+              placeholder="时效性"
+              @change="onSearch"
+            >
+              <a-select-option
+                v-for="option in effectivenessOptions"
+                :key="option.value"
+                :value="option.value"
+              >
+                {{ option.label }}
+              </a-select-option>
+            </a-select>
+          </div>
+          <!-- 专题分类级联选择器 -->
+          <div class="lawyer-filter-group">
+            <a-cascader
+              v-model="topicCategory"
+              :options="topicCategoryOptions"
+              placeholder="专题分类"
+              style="width: 100%"
+              @change="onSearch"
+              :show-search="true"
+            />
+          </div>
+          <div
+            class="lawyer-filter-group"
+            v-for="(filter, index) in filterOptions"
+            :key="index"
+          >
+            <a-select
+              v-model="filter.value"
+              style="width: 100%"
+              :placeholder="filter.placeholder"
+              @change="onSearch"
+            >
+              <a-select-option
+                v-for="option in filter.options"
+                :key="option.value"
+                :value="option.value"
+              >
+                {{ option.label }}
+              </a-select-option>
+            </a-select>
+          </div>
+        </div>
+      </section>
+
+      <!-- 加载中 -->
+      <div class="lawyer-loading-overlay" v-if="listLoading">
+        <a-spin size="large" />
+        <h3>正在努力加载中...</h3>
+        <p>请稍候，我们正在为您检索信息。</p>
       </div>
-    </section>
 
-    <!-- 结果信息 -->
-    <div class="lawyer-results-info">
-      <template v-if="searchText">
-        搜索"<strong>{{ searchText }}</strong
-        >"找到 <strong>{{ totalDocuments }}</strong> 条相关信息
-      </template>
-      <template v-else>
-        共找到 <strong>{{ totalDocuments }}</strong> 条相关信息
-      </template>
-    </div>
+      <!-- 无结果提示 -->
+      <div
+        class="lawyer-no-results"
+        v-if="!listLoading && documents.length === 0"
+      >
+        <h3>未能找到相关结果</h3>
+        <p>请尝试调整您的搜索关键词或筛选条件。</p>
+      </div>
 
-    <!-- 加载中 -->
-    <div class="lawyer-loading-overlay" v-if="listLoading">
-      <a-spin size="large" />
-      <h3>正在努力加载中...</h3>
-      <p>请稍候，我们正在为您检索信息。</p>
-    </div>
-
-    <!-- 无结果提示 -->
-    <div
-      class="lawyer-no-results"
-      v-if="!listLoading && documents.length === 0"
-    >
-      <h3>未能找到相关结果</h3>
-      <p>请尝试调整您的搜索关键词或筛选条件。</p>
-    </div>
-
-    <!-- 文档列表 -->
-    <div
-      class="lawyer-document-list"
-      v-if="!listLoading && documents.length > 0"
-    >
-      <div class="lawyer-document-item" v-for="doc in documents" :key="doc.id">
-        <div class="lawyer-document-item-content">
-          <div class="lawyer-document-icon">📄</div>
-          <div class="lawyer-document-main-content">
-            <div class="lawyer-document-header">
-              <h3 class="lawyer-document-title">
-                <nuxt-link :to="`/document/${doc.id}`">{{
-                  doc.title
-                }}</nuxt-link>
-              </h3>
-              <div class="lawyer-document-meta">
-                <span><a-icon type="calendar" /> {{ doc.date }}</span>
-                <span
-                  ><a-icon type="bank" /> {{ doc.source || doc.category }}</span
-                >
-                <span><a-icon type="eye" /> {{ doc.views }} 阅读</span>
-                <span
-                  v-if="isSemanticSearchEnabled && doc.semanticScore"
-                  class="lawyer-semantic-score"
-                >
-                  <a-icon type="bulb" /> 相关度:
-                  {{ Math.round(doc.semanticScore) }}%
-                </span>
+      <!-- 文档列表 -->
+      <div
+        class="lawyer-document-list"
+        v-if="!listLoading && documents.length > 0"
+      >
+        <div
+          class="lawyer-document-item"
+          v-for="doc in documents"
+          :key="doc.id"
+        >
+          <div class="lawyer-document-item-content">
+            <div class="lawyer-document-icon">📄</div>
+            <div class="lawyer-document-main-content">
+              <div class="lawyer-document-header">
+                <h3 class="lawyer-document-title">
+                  <nuxt-link :to="`/document/${doc.id}`">{{
+                    doc.title
+                  }}</nuxt-link>
+                </h3>
+                <div class="lawyer-document-meta">
+                  <span><a-icon type="calendar" /> {{ doc.date }}</span>
+                  <span
+                    ><a-icon type="bank" />
+                    {{ doc.source || doc.category }}</span
+                  >
+                  <span><a-icon type="eye" /> {{ doc.views }} 阅读</span>
+                  <span
+                    v-if="isSemanticSearchEnabled && doc.semanticScore"
+                    class="lawyer-semantic-score"
+                  >
+                    <a-icon type="bulb" /> 相关度:
+                    {{ Math.round(doc.semanticScore) }}%
+                  </span>
+                </div>
               </div>
-            </div>
-            <p class="lawyer-document-summary">
-              {{ doc.description || doc.summary }}
-            </p>
-            <div class="lawyer-document-footer">
-              <div class="lawyer-document-tags">
-                <a-tag :color="getTagColor(doc.type || doc.category)">{{
-                  getTypeText(doc.type || doc.category)
-                }}</a-tag>
-                <a-tag
-                  v-for="(tag, index) in doc.tags || []"
-                  :key="index"
-                  color="blue"
-                  >{{ tag }}</a-tag
-                >
-              </div>
-              <div class="lawyer-document-actions">
-                <a-button
-                  v-for="(action, index) in getDocActions(doc)"
-                  :key="index"
-                  :type="action.type || 'default'"
-                  @click="action.handler"
-                >
-                  <a-icon :type="action.icon" /> {{ action.text }}
-                </a-button>
+              <p class="lawyer-document-summary">
+                {{ doc.description || doc.summary }}
+              </p>
+              <div class="lawyer-document-footer">
+                <div class="lawyer-document-tags">
+                  <a-tag :color="getTagColor(doc.type || doc.category)">{{
+                    getTypeText(doc.type || doc.category)
+                  }}</a-tag>
+                  <a-tag
+                    v-for="(tag, index) in doc.tags || []"
+                    :key="index"
+                    color="blue"
+                    >{{ tag }}</a-tag
+                  >
+                </div>
+                <div class="lawyer-document-actions">
+                  <a-button
+                    v-for="(action, index) in getDocActions(doc)"
+                    :key="index"
+                    :type="action.type || 'default'"
+                    @click="action.handler"
+                  >
+                    <a-icon :type="action.icon" /> {{ action.text }}
+                  </a-button>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- 分页 -->
-      <div class="lawyer-pagination">
-        <a-pagination
-          :current="currentPage"
-          :total="totalDocuments"
-          :pageSize="pageSize"
-          @change="onPageChange"
-          showQuickJumper
-          showSizeChanger
-          :pageSizeOptions="['10', '20', '50', '100']"
-          @showSizeChange="onShowSizeChange"
-        />
+        <!-- 分页 -->
+        <div class="lawyer-pagination">
+          <a-pagination
+            :current="currentPage"
+            :total="totalDocuments"
+            :pageSize="pageSize"
+            @change="onPageChange"
+            showQuickJumper
+            showSizeChanger
+            :pageSizeOptions="['10', '20', '50', '100']"
+            @showSizeChange="onShowSizeChange"
+          />
+        </div>
       </div>
     </div>
 
@@ -201,6 +226,10 @@ export default class KnowledgePage extends Vue {
   filterDate = "all";
   filterSource = "all";
   sortOrder = "date_desc";
+
+  // 新增的筛选项
+  topicCategory = [];
+  effectivenessFilter = "all";
 
   // 智能搜索和收藏相关
   isSemanticSearchEnabled = false;
@@ -252,6 +281,53 @@ export default class KnowledgePage extends Vue {
         isActive: this.isAdvancedSearchVisible,
         handler: this.toggleAdvancedSearch,
       },
+    ];
+  }
+
+  // 专题分类级联选项
+  get topicCategoryOptions() {
+    return [
+      {
+        value: "finance",
+        label: "金融监管",
+        children: [
+          { value: "banking", label: "银行业监管" },
+          { value: "insurance", label: "保险业监管" },
+          { value: "securities", label: "证券业监管" },
+          { value: "fund", label: "基金业监管" },
+        ],
+      },
+      {
+        value: "corporate",
+        label: "公司治理",
+        children: [
+          { value: "governance", label: "治理结构" },
+          { value: "compliance", label: "合规管理" },
+          { value: "risk", label: "风险管理" },
+          { value: "internal_control", label: "内控制度" },
+        ],
+      },
+      {
+        value: "legal",
+        label: "法律事务",
+        children: [
+          { value: "contract", label: "合同管理" },
+          { value: "litigation", label: "诉讼仲裁" },
+          { value: "intellectual", label: "知识产权" },
+          { value: "labor", label: "劳动法务" },
+        ],
+      },
+    ];
+  }
+
+  // 时效性选项
+  get effectivenessOptions() {
+    return [
+      { value: "all", label: "全部" },
+      { value: "effective", label: "现行有效" },
+      { value: "abolished", label: "已废止" },
+      { value: "pending", label: "尚未生效" },
+      { value: "modified", label: "已修订" },
     ];
   }
 
@@ -833,10 +909,17 @@ export default class KnowledgePage extends Vue {
   border: 1px solid var(--lawyer-border);
 }
 
+// 整体内容容器
+.lawyer-content-wrapper {
+  &:extend(.lawyer-card);
+  padding: 32px;
+}
+
 // 搜索区域
 .lawyer-search-section {
-  &:extend(.lawyer-card);
-  margin-bottom: 24px;
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--lawyer-border-light);
 
   h1 {
     font-size: 28px;
