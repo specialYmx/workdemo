@@ -28,6 +28,7 @@ import {
   Empty,
   Spin,
   Cascader,
+  Upload,
   message,
 } from "ant-design-vue";
 
@@ -60,6 +61,7 @@ Vue.use(Breadcrumb);
 Vue.use(Empty);
 Vue.use(Spin);
 Vue.use(Cascader);
+Vue.use(Upload);
 
 // 全局挂载message组件
 Vue.prototype.$message = message;

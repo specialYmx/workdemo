@@ -1,7 +1,8 @@
 <template>
   <div class="lawyer-page-container">
-    <!-- 页面头部 -->
-    <div class="lawyer-page-header">
+    <!-- 整体卡片容器 -->
+    <div class="lawyer-main-card">
+      <!-- 页面标题 -->
       <h1 class="lawyer-page-title">人工审核与数据管理</h1>
 
       <!-- 搜索筛选和操作区域 -->
@@ -29,7 +30,7 @@
 
         <a-select
           v-model="filterType"
-          placeholder="文档分类"
+          placeholder="全部分类"
           class="lawyer-filter-select"
           @change="onFilterChange"
         >
@@ -42,22 +43,6 @@
           </a-select-option>
         </a-select>
 
-        <a-button
-          type="primary"
-          @click="batchApprove"
-          :disabled="!hasSelection"
-          class="lawyer-btn-approve"
-        >
-          批量通过
-        </a-button>
-        <a-button
-          type="danger"
-          @click="batchReject"
-          :disabled="!hasSelection"
-          class="lawyer-btn-reject"
-        >
-          批量驳回
-        </a-button>
         <a-button @click="exportData" class="lawyer-btn-export">
           导出数据
         </a-button>
@@ -68,61 +53,111 @@
         总计: <strong>{{ totalDocuments }}</strong> 条 / 待审核:
         <strong>{{ pendingCount }}</strong> 条
       </div>
-    </div>
 
-    <!-- 文档列表表格 -->
-    <div class="lawyer-table-container">
-      <a-table
-        :columns="columns"
-        :data-source="filteredDocuments"
-        :pagination="{
-          pageSize: 10,
-          total: filteredDocuments.length,
-          showTotal: (total) => `共 ${total} 条数据`,
-        }"
-        :loading="tableLoading"
-        :rowKey="(record) => record.id"
-        :rowSelection="{
-          selectedRowKeys: selectedRowKeys,
-          onChange: onSelectionChange,
-        }"
-        @change="handleTableChange"
-      >
-        <!-- 标题列插槽 -->
-        <template slot="titles" slot-scope="text, record">
-          <div>
-            <div>{{ record.title }}</div>
-            <div>文号：{{ record.docNumber || "未分配" }}</div>
-          </div>
-        </template>
+      <!-- 文档列表表格 -->
+      <div class="lawyer-table-wrapper">
+        <a-table
+          :columns="columns"
+          :data-source="filteredDocuments"
+          :pagination="{
+            pageSize: 10,
+            total: filteredDocuments.length,
+            showTotal: (total) => `共 ${total} 条数据`,
+          }"
+          :loading="tableLoading"
+          :rowKey="(record) => record.id"
+          @change="handleTableChange"
+        >
+          <!-- 标题列插槽 -->
+          <template slot="titles" slot-scope="text, record">
+            <div>
+              <div>{{ record.title }}</div>
+              <div style="color: #999; font-size: 12px">
+                文号：{{ record.docNumber || "未分配" }}
+              </div>
+            </div>
+          </template>
 
-        <!-- 分类列插槽 -->
-        <span slot="type" slot-scope="text">
-          {{ getTypeText(text) }}
-        </span>
-
-        <!-- 状态列插槽 -->
-        <span slot="status" slot-scope="text">
-          <span :class="['lawyer-status-text', `status-${text}`]">
-            {{ getStatusText(text) }}
+          <!-- 分类列插槽 -->
+          <span slot="type" slot-scope="text">
+            {{ getTypeText(text) }}
           </span>
-        </span>
 
-        <!-- 操作列插槽 -->
-        <span slot="action" slot-scope="text, record">
-          <div class="lawyer-action-links">
-            <a @click="viewDocument(record)" class="lawyer-link-view"> 查看 </a>
-            <template v-if="record.status === 'pending'">
-              <a @click="approveDocument(record)" class="lawyer-link-approve">
-                批准
+          <!-- 状态列插槽 -->
+          <span slot="status" slot-scope="text">
+            <span :class="['lawyer-status-text', `status-${text}`]">
+              {{ getStatusText(text) }}
+            </span>
+          </span>
+
+          <!-- 操作列插槽 -->
+          <span slot="action" slot-scope="text, record">
+            <div class="lawyer-action-links">
+              <a @click="viewDocument(record)" class="lawyer-link-view">
+                查看
               </a>
-              <a @click="rejectDocument(record)" class="lawyer-link-reject">
-                驳回
-              </a>
-            </template>
+              <template v-if="record.status === 'pending'">
+                <a @click="approveDocument(record)" class="lawyer-link-approve">
+                  批准
+                </a>
+                <a @click="rejectDocument(record)" class="lawyer-link-reject">
+                  驳回
+                </a>
+              </template>
+            </div>
+          </span>
+
+          <!-- 自定义筛选下拉框 -->
+          <div
+            slot="filterDropdown"
+            slot-scope="{
+              setSelectedKeys,
+              selectedKeys,
+              confirm,
+              clearFilters,
+              column,
+            }"
+            style="padding: 8px"
+          >
+            <a-input
+              ref="searchInput"
+              :placeholder="`搜索 ${column.title}`"
+              :value="selectedKeys[0]"
+              @change="
+                (e) => setSelectedKeys(e.target.value ? [e.target.value] : [])
+              "
+              @pressEnter="
+                () => handleSearch(selectedKeys, confirm, column.dataIndex)
+              "
+              style="width: 188px; margin-bottom: 8px; display: block"
+            />
+            <a-button
+              type="primary"
+              @click="
+                () => handleSearch(selectedKeys, confirm, column.dataIndex)
+              "
+              icon="search"
+              size="small"
+              style="width: 90px; margin-right: 8px"
+            >
+              搜索
+            </a-button>
+            <a-button
+              @click="() => handleReset(clearFilters)"
+              size="small"
+              style="width: 90px"
+            >
+              重置
+            </a-button>
           </div>
-        </span>
-      </a-table>
+          <a-icon
+            slot="filterIcon"
+            slot-scope="filtered"
+            type="search"
+            :style="{ color: filtered ? '#1890ff' : undefined }"
+          />
+        </a-table>
+      </div>
     </div>
 
     <!-- 审核意见弹窗 -->
@@ -139,30 +174,6 @@
             reviewAction === 'approve'
               ? '请输入通过意见（选填）'
               : '请输入驳回原因（必填）'
-          "
-        />
-      </a-form-item>
-    </a-modal>
-
-    <!-- 批量审核弹窗 -->
-    <a-modal
-      v-model="batchReviewModalVisible"
-      :title="batchReviewAction === 'approve' ? '批量通过审核' : '批量驳回文档'"
-      @ok="submitBatchReview"
-    >
-      <p>
-        您选择了 {{ selectedRowKeys.length }} 个文档进行{{
-          batchReviewAction === "approve" ? "通过" : "驳回"
-        }}操作
-      </p>
-      <a-form-item label="审核意见">
-        <a-textarea
-          v-model="batchReviewComment"
-          :rows="4"
-          :placeholder="
-            batchReviewAction === 'approve'
-              ? '请输入批量通过意见（选填）'
-              : '请输入批量驳回原因（必填）'
           "
         />
       </a-form-item>
@@ -201,19 +212,11 @@ export default class DbPage extends Vue {
   // 表格加载状态
   tableLoading = false;
 
-  // 选中行
-  selectedRowKeys: string[] = [];
-
   // 审核弹窗
   reviewModalVisible = false;
   reviewAction = "approve";
   reviewComment = "";
   currentDocument: Document | null = null;
-
-  // 批量审核弹窗
-  batchReviewModalVisible = false;
-  batchReviewAction = "approve";
-  batchReviewComment = "";
 
   // 状态选项
   statusOptions = [
@@ -235,48 +238,93 @@ export default class DbPage extends Vue {
   // 表格列配置
   columns = [
     {
-      title: "标题 / 文号",
+      title: "标题/文号",
       key: "titles",
-      scopedSlots: { customRender: "titles" },
+      scopedSlots: {
+        customRender: "titles",
+        filterDropdown: "filterDropdown",
+        filterIcon: "filterIcon",
+      },
+      onFilter: (value, record) =>
+        record.title.toLowerCase().includes(value.toLowerCase()) ||
+        (record.docNumber &&
+          record.docNumber.toLowerCase().includes(value.toLowerCase())),
+      onFilterDropdownVisibleChange: (visible) => {
+        if (visible) {
+          setTimeout(() => {
+            this.$refs.searchInput.focus();
+          }, 100);
+        }
+      },
     },
     {
       title: "分类",
       dataIndex: "type",
       key: "type",
-      scopedSlots: { customRender: "type" },
+      scopedSlots: {
+        customRender: "type",
+        filterDropdown: "filterDropdown",
+        filterIcon: "filterIcon",
+      },
       width: 120,
+      onFilter: (value, record) =>
+        this.getTypeText(record.type)
+          .toLowerCase()
+          .includes(value.toLowerCase()),
+      onFilterDropdownVisibleChange: (visible) => {
+        if (visible) {
+          setTimeout(() => {
+            this.$refs.searchInput.focus();
+          }, 100);
+        }
+      },
     },
     {
-      title: "变更类型",
-      dataIndex: "changeType",
-      key: "changeType",
-      width: 100,
-    },
-    {
-      title: "提交人",
-      dataIndex: "submitter",
-      key: "submitter",
-      width: 100,
+      title: "来源",
+      dataIndex: "source",
+      key: "source",
+      width: 150,
+      scopedSlots: {
+        filterDropdown: "filterDropdown",
+        filterIcon: "filterIcon",
+      },
+      onFilter: (value, record) =>
+        record.source &&
+        record.source.toLowerCase().includes(value.toLowerCase()),
+      onFilterDropdownVisibleChange: (visible) => {
+        if (visible) {
+          setTimeout(() => {
+            this.$refs.searchInput.focus();
+          }, 100);
+        }
+      },
     },
     {
       title: "提交时间",
       dataIndex: "submitTime",
       key: "submitTime",
       width: 160,
+      sorter: (a, b) => new Date(a.submitTime) - new Date(b.submitTime),
     },
     {
-      title: "审核状态",
+      title: "状态",
       dataIndex: "status",
       key: "status",
       scopedSlots: { customRender: "status" },
       width: 120,
+      filters: [
+        { text: "待审核", value: "pending" },
+        { text: "已通过", value: "approved" },
+        { text: "已驳回", value: "rejected" },
+      ],
+      onFilter: (value, record) => record.status === value,
     },
     {
       title: "操作",
       key: "action",
       scopedSlots: { customRender: "action" },
       fixed: "right",
-      width: 240,
+      width: 180,
     },
   ];
 
@@ -303,67 +351,133 @@ export default class DbPage extends Vue {
       const mockData = [
         {
           id: "doc001",
-          title: "保险资金股权投资管理暂行办法",
+          title: "关于保险资金投资政府和社会资本合作项目有关事项的通知",
           version: "1.0",
           docNumber: "金监发[2024]10号",
           changeType: "新增",
           type: "law",
           submitter: "张三",
-          submitTime: "2024-01-15 14:30",
+          submitTime: "2025-07-01 15:10:35",
           status: "pending",
-          source: "金融监管总局",
+          source: "综合会",
         },
         {
           id: "doc002",
-          title: "偿付能力监管规则修订征求意见稿",
+          title: "关于保险资金投资政府和社会资本合作项目有关事项的通知",
           version: "2.1",
           docNumber: "金监发[2024]8号",
           changeType: "修订",
           type: "policy",
           submitter: "李四",
-          submitTime: "2024-01-12 10:15",
+          submitTime: "2025-07-01 15:10:35",
           status: "pending",
-          source: "金融监管总局",
+          source: "机构监管",
         },
         {
           id: "doc003",
-          title: "关于加强保险资金另类投资风险管理的通知",
+          title: "关于保险资金投资政府和社会资本合作项目有关事项的通知",
           version: "1.0",
           docNumber: "金监发[2024]6号",
           changeType: "新增",
           type: "policy",
           submitter: "王五",
-          submitTime: "2024-01-08 16:45",
+          submitTime: "2025-07-01 15:10:35",
           status: "approved",
           reviewer: "赵经理",
           reviewTime: "2024-01-10 09:30",
-          source: "金融监管总局",
+          source: "公司监管",
         },
         {
           id: "doc004",
-          title: "保险公司关联交易管理实施细则",
+          title: "关于保险资金投资政府和社会资本合作项目有关事项的通知",
           version: "3.0",
           docNumber: "内规[2024]02号",
           changeType: "修订",
           type: "internal",
           submitter: "赵六",
-          submitTime: "2024-01-05 11:20",
+          submitTime: "2025-07-01 15:10:35",
           status: "rejected",
           reviewer: "钱经理",
           reviewTime: "2024-01-07 14:50",
-          source: "内部法务部",
+          source: "风控监管",
         },
         {
           id: "doc005",
-          title: "《个人信息保护法》解读及适用指南",
+          title: "关于保险资金投资政府和社会资本合作项目有关事项的通知",
           version: "2.0",
           docNumber: "参考[2024]01号",
           changeType: "更新",
           type: "explanation",
           submitter: "孙七",
-          submitTime: "2024-01-03 09:45",
+          submitTime: "2025-07-01 15:10:35",
           status: "pending",
-          source: "法务部",
+          source: "交易所监管",
+        },
+        {
+          id: "doc006",
+          title: "关于保险资金投资政府和社会资本合作项目有关事项的通知",
+          version: "1.0",
+          docNumber: "金监发[2024]11号",
+          changeType: "新增",
+          type: "law",
+          submitter: "周八",
+          submitTime: "2025-07-01 15:10:35",
+          status: "approved",
+          reviewer: "李经理",
+          reviewTime: "2024-01-15 10:20",
+          source: "综合会",
+        },
+        {
+          id: "doc007",
+          title: "关于保险资金投资政府和社会资本合作项目有关事项的通知",
+          version: "1.5",
+          docNumber: "金监发[2024]12号",
+          changeType: "修订",
+          type: "policy",
+          submitter: "吴九",
+          submitTime: "2025-07-01 15:10:35",
+          status: "pending",
+          source: "人民银行网站",
+        },
+        {
+          id: "doc008",
+          title: "关于保险资金投资政府和社会资本合作项目有关事项的通知",
+          version: "2.0",
+          docNumber: "金监发[2024]13号",
+          changeType: "新增",
+          type: "internal",
+          submitter: "郑十",
+          submitTime: "2025-07-01 15:10:35",
+          status: "approved",
+          reviewer: "王经理",
+          reviewTime: "2024-01-18 14:30",
+          source: "证监会公告",
+        },
+        {
+          id: "doc009",
+          title: "关于保险资金投资政府和社会资本合作项目有关事项的通知",
+          version: "1.0",
+          docNumber: "金监发[2024]14号",
+          changeType: "新增",
+          type: "law",
+          submitter: "钱十一",
+          submitTime: "2025-07-01 15:10:35",
+          status: "rejected",
+          reviewer: "张经理",
+          reviewTime: "2024-01-20 16:45",
+          source: "财政部规章",
+        },
+        {
+          id: "doc010",
+          title: "关于保险资金投资政府和社会资本合作项目有关事项的通知",
+          version: "3.0",
+          docNumber: "金监发[2024]15号",
+          changeType: "修订",
+          type: "explanation",
+          submitter: "孙十二",
+          submitTime: "2025-07-01 15:10:35",
+          status: "pending",
+          source: "行业协会",
         },
       ];
 
@@ -415,11 +529,6 @@ export default class DbPage extends Vue {
     return this.documents.length;
   }
 
-  // 获取是否有选中的行
-  get hasSelection() {
-    return this.selectedRowKeys.length > 0;
-  }
-
   // 搜索方法
   onSearch(value: string): void {
     this.searchText = value;
@@ -449,10 +558,15 @@ export default class DbPage extends Vue {
     console.log("表格变化:", pagination, filters, sorter);
   }
 
-  // 选择变化事件
-  onSelectionChange(selectedRowKeys, selectedRows): void {
-    this.selectedRowKeys = selectedRowKeys;
-    console.log("选中行:", selectedRows);
+  // 处理搜索
+  handleSearch(selectedKeys, confirm, dataIndex): void {
+    confirm();
+    console.log("搜索:", selectedKeys, dataIndex);
+  }
+
+  // 处理重置
+  handleReset(clearFilters): void {
+    clearFilters();
   }
 
   // 刷新数据
@@ -481,6 +595,7 @@ export default class DbPage extends Vue {
       law: "法律法规",
       policy: "监管政策",
       internal: "内部规章",
+      explanation: "解读文件",
     };
     return textMap[type] || "其他";
   }
@@ -537,62 +652,6 @@ export default class DbPage extends Vue {
     }, 500);
   }
 
-  // 批量审核通过
-  batchApprove(): void {
-    if (this.selectedRowKeys.length === 0) {
-      this.$message.warning("请先选择要操作的文档");
-      return;
-    }
-    this.batchReviewAction = "approve";
-    this.batchReviewComment = "";
-    this.batchReviewModalVisible = true;
-  }
-
-  // 批量审核驳回
-  batchReject(): void {
-    if (this.selectedRowKeys.length === 0) {
-      this.$message.warning("请先选择要操作的文档");
-      return;
-    }
-    this.batchReviewAction = "reject";
-    this.batchReviewComment = "";
-    this.batchReviewModalVisible = true;
-  }
-
-  // 提交批量审核
-  submitBatchReview(): void {
-    if (this.batchReviewAction === "reject" && !this.batchReviewComment) {
-      this.$message.error("批量驳回文档必须填写驳回原因");
-      return;
-    }
-
-    // 模拟API请求
-    setTimeout(() => {
-      let updatedCount = 0;
-      this.documents = this.documents.map((doc) => {
-        if (this.selectedRowKeys.includes(doc.id) && doc.status === "pending") {
-          updatedCount++;
-          return {
-            ...doc,
-            status:
-              this.batchReviewAction === "approve" ? "approved" : "rejected",
-            reviewer: "当前用户",
-            reviewTime: moment().format("YYYY-MM-DD HH:mm"),
-          };
-        }
-        return doc;
-      });
-
-      this.batchReviewModalVisible = false;
-      this.selectedRowKeys = [];
-      this.$message.success(
-        `已${
-          this.batchReviewAction === "approve" ? "通过" : "驳回"
-        }${updatedCount}个文档`
-      );
-    }, 500);
-  }
-
   // 导出数据
   exportData(): void {
     this.$message.info("正在导出数据，请稍候...");
@@ -606,21 +665,29 @@ export default class DbPage extends Vue {
 </script>
 
 <style lang="less" scoped>
-// 页面头部样式
-.lawyer-page-header {
+// CSS变量定义
+:root {
+  --lawyer-primary: #1890ff;
+  --lawyer-surface: #ffffff;
+  --lawyer-border: #e8e8e8;
+  --lawyer-text: #262626;
+  --lawyer-text-light: #8c8c8c;
+}
+
+// 整体卡片样式
+.lawyer-main-card {
   background: var(--lawyer-surface);
   border: 1px solid var(--lawyer-border);
   border-radius: 8px;
   padding: 24px;
-  margin-bottom: 24px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .lawyer-page-title {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 600;
   color: var(--lawyer-text);
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 // 搜索筛选和操作区域（一行显示）
@@ -633,45 +700,23 @@ export default class DbPage extends Vue {
 }
 
 .lawyer-search-input {
-  width: 300px;
+  width: 240px;
 }
 
 .lawyer-filter-select {
   width: 150px;
 }
 
-.lawyer-btn-approve {
-  background: var(--lawyer-primary);
-  border-color: var(--lawyer-primary);
-  color: white;
-
-  &:hover {
-    background: var(--lawyer-primary-dark);
-    border-color: var(--lawyer-primary-dark);
-    color: white;
-  }
-}
-
-.lawyer-btn-reject {
-  background: var(--lawyer-danger);
-  border-color: var(--lawyer-danger);
-  color: white;
-
-  &:hover {
-    background: #dc2626;
-    border-color: #dc2626;
-    color: white;
-  }
-}
-
 .lawyer-btn-export {
-  background: var(--lawyer-surface);
-  border-color: var(--lawyer-border);
-  color: var(--lawyer-text);
+  margin-left: auto;
+  background: #e6a23c;
+  border-color: #e6a23c;
+  color: white;
 
   &:hover {
-    border-color: var(--lawyer-primary);
-    color: var(--lawyer-primary);
+    background: #d39531;
+    border-color: #d39531;
+    color: white;
   }
 }
 
@@ -679,6 +724,7 @@ export default class DbPage extends Vue {
 .lawyer-stats-info {
   color: var(--lawyer-text-light);
   font-size: 14px;
+  margin-top: 10px;
 
   strong {
     color: var(--lawyer-text);
@@ -686,55 +732,59 @@ export default class DbPage extends Vue {
   }
 }
 
-// 表格容器
-.lawyer-table-container {
-  background: var(--lawyer-surface);
-  border: 1px solid var(--lawyer-border);
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+// 表格包装器
+.lawyer-table-wrapper {
+  margin-top: 24px;
+  border-top: 1px solid var(--lawyer-border);
+  padding-top: 24px;
 }
 
 // 操作链接组
 .lawyer-action-links {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   align-items: center;
 }
 
 .lawyer-link-view {
-  color: var(--lawyer-text-light);
+  color: #666;
   text-decoration: none;
   cursor: pointer;
   transition: color 0.2s ease;
+  padding: 2px 6px;
+  border-radius: 3px;
 
   &:hover {
-    color: var(--lawyer-text);
-    text-decoration: underline;
+    color: #333;
+    background-color: #f5f5f5;
   }
 }
 
 .lawyer-link-approve {
-  color: var(--lawyer-primary);
+  color: #52c41a;
   text-decoration: none;
   cursor: pointer;
-  transition: color 0.2s ease;
+  transition: all 0.2s ease;
+  padding: 2px 6px;
+  border-radius: 3px;
 
   &:hover {
-    color: var(--lawyer-primary-dark);
-    text-decoration: underline;
+    color: #389e0d;
+    background-color: #f6ffed;
   }
 }
 
 .lawyer-link-reject {
-  color: var(--lawyer-danger);
+  color: #ff4d4f;
   text-decoration: none;
   cursor: pointer;
-  transition: color 0.2s ease;
+  transition: all 0.2s ease;
+  padding: 2px 6px;
+  border-radius: 3px;
 
   &:hover {
-    color: #dc2626;
-    text-decoration: underline;
+    color: #cf1322;
+    background-color: #fff2f0;
   }
 }
 
@@ -744,15 +794,15 @@ export default class DbPage extends Vue {
 
   // 不同状态颜色
   &.status-pending {
-    color: var(--lawyer-warning);
+    color: #fa8c16;
   }
 
   &.status-approved {
-    color: var(--lawyer-success);
+    color: #52c41a;
   }
 
   &.status-rejected {
-    color: var(--lawyer-danger);
+    color: #ff4d4f;
   }
 }
 

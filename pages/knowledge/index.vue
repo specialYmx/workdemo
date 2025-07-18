@@ -161,6 +161,17 @@
         />
       </div>
     </div>
+
+    <!-- 文件上传组件 -->
+    <FileUploadModal
+      :visible="uploadModalVisible"
+      :title="`更新文档: ${currentUploadDocTitle}`"
+      :document-id="currentUploadDocId"
+      :document-title="currentUploadDocTitle"
+      @cancel="handleUploadCancel"
+      @complete="handleUploadComplete"
+      @upload-success="handleUploadSuccess"
+    />
   </div>
 </template>
 
@@ -168,8 +179,12 @@
 // @ts-nocheck
 import { Component, Vue } from "nuxt-property-decorator";
 import { DocumentItem } from "@/model/base";
+import FileUploadModal from "@/components/common/FileUploadModal.vue";
 
 @Component({
+  components: {
+    FileUploadModal,
+  },
   head() {
     return {
       title: "法规与文件大家智库 - 法律合规智能系统",
@@ -201,6 +216,11 @@ export default class KnowledgePage extends Vue {
   pageSize = 10;
   totalDocuments = 36;
   documents: DocumentItem[] = [];
+
+  // 上传相关
+  uploadModalVisible = false;
+  currentUploadDocId = "";
+  currentUploadDocTitle = "";
 
   // 搜索按钮数据
   get searchButtons() {
@@ -588,10 +608,32 @@ export default class KnowledgePage extends Vue {
     );
   }
 
-  // 编辑文档
+  // 上传更新文档
   uploadDocument(docId: string, docTitle: string) {
-    this.$message.info(`准备编辑文档: ${docTitle}`);
-    // 实际项目中可能会跳转到编辑页面或打开编辑对话框
+    this.uploadModalVisible = true;
+    this.currentUploadDocId = docId;
+    this.currentUploadDocTitle = docTitle;
+  }
+
+  // 处理上传取消
+  handleUploadCancel() {
+    this.uploadModalVisible = false;
+    this.currentUploadDocId = "";
+    this.currentUploadDocTitle = "";
+  }
+
+  // 处理上传完成
+  handleUploadComplete() {
+    this.uploadModalVisible = false;
+    this.currentUploadDocId = "";
+    this.currentUploadDocTitle = "";
+  }
+
+  // 处理上传成功
+  handleUploadSuccess(data: any) {
+    // 不在这里显示消息，因为组件内部已经处理了
+    // 这里可以刷新文档列表或更新特定文档的信息
+    this.loadDocuments();
   }
 
   // 移除文档
@@ -684,8 +726,8 @@ export default class KnowledgePage extends Vue {
         handler: () => this.collectDocument(doc.id),
       },
       {
-        icon: "edit",
-        text: "上传/更新",
+        icon: "upload",
+        text: "上传更新",
         handler: () => this.uploadDocument(doc.id, doc.title),
       },
       {
