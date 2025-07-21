@@ -7,7 +7,7 @@
           v-model="searchTerm"
           placeholder="搜索..."
           @keyup.enter="onSearch"
-          class="lawyer-search-input"
+          class="lawyer-detail-search-input"
         />
         <a-button
           v-if="searchTerm"
@@ -269,7 +269,7 @@ export default class DivTextSearch extends Vue {
   align-items: center;
 }
 
-.lawyer-search-input {
+.lawyer-detail-search-input {
   flex: 1;
   border: none;
   padding: 6px 10px;

@@ -1,9 +1,11 @@
 <template>
-  <div
-    ref="chartContainer"
-    :style="containerStyle"
-    class="chart-component"
-  ></div>
+  <div class="chart-component-wrapper">
+    <div
+      ref="chartContainer"
+      :style="containerStyle"
+      class="chart-container"
+    ></div>
+  </div>
 </template>
 
 <script>
@@ -138,9 +140,14 @@ export default {
 };
 </script>
 
-<style scoped>
-.chart-component {
+<style>
+.chart-component-wrapper {
   width: 100%;
   height: 100%;
+
+  .chart-container {
+    width: 100%;
+    height: 100%;
+  }
 }
 </style>

@@ -1,9 +1,11 @@
 <template>
-  <document-compare
-    :document="documentData"
-    @go-back="goBack"
-    @submit-review="handleReviewSubmit"
-  />
+  <div class="document-compare-page-wrapper">
+    <document-compare
+      :document="documentData"
+      @go-back="goBack"
+      @submit-review="handleReviewSubmit"
+    />
+  </div>
 </template>
 
 <script lang="ts">

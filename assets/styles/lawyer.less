@@ -36,7 +36,6 @@
   --lawyer-diff-del-border: #fdb8c0;
 }
 
-/* 深色主题变量 - 可以通过添加.dark类到body来启用 */
 /* 基础样式重置 */
 * {
   margin: 0;
@@ -516,10 +515,11 @@ body {
   margin-top: 0.5rem;
 }
 
-.lawyer-pagination-container {
+// 分页样式
+.lawyer-pagination {
   display: flex;
   justify-content: center;
-  margin: 2rem 0;
+  padding: 32px 0;
 }
 
 /* 摘要弹窗样式 */
@@ -554,8 +554,6 @@ body {
   display: flex;
   justify-content: center;
 }
-
-/* 新增公共样式类 */
 
 // 弹性布局
 .lawyer-flex {
@@ -605,25 +603,6 @@ body {
   &::-webkit-scrollbar-thumb {
     background: rgba(0, 0, 0, 0.1);
     border-radius: 3px;
-  }
-}
-
-// 文本和标题
-.lawyer-title {
-  font-size: 16px;
-  font-weight: 500;
-  color: var(--lawyer-text);
-  margin-bottom: 15px;
-  position: relative;
-
-  &::after {
-    content: "";
-    position: absolute;
-    bottom: -5px;
-    left: 0;
-    width: 40px;
-    height: 2px;
-    background-color: var(--lawyer-primary);
   }
 }
 

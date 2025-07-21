@@ -1,183 +1,188 @@
 <template>
-  <div class="lawyer-page-container">
-    <!-- 整体卡片容器 -->
-    <div class="lawyer-main-card">
-      <!-- 页面标题 -->
-      <h1 class="lawyer-page-title">人工审核与数据管理</h1>
+  <div class="db-page-wrapper">
+    <div class="lawyer-page-container">
+      <!-- 整体卡片容器 -->
+      <div class="lawyer-main-card">
+        <!-- 页面标题 -->
+        <h1 class="lawyer-page-title">人工审核与数据管理</h1>
 
-      <!-- 搜索筛选和操作区域 -->
-      <div class="lawyer-controls-row">
-        <a-input-search
-          placeholder="搜索标题、文号、来源..."
-          v-model="searchText"
-          @search="onSearch"
-          class="lawyer-search-input"
-        />
+        <!-- 搜索筛选和操作区域 -->
+        <div class="lawyer-controls-row">
+          <a-input-search
+            placeholder="搜索标题、文号、来源..."
+            v-model="searchText"
+            @search="onSearch"
+            class="lawyer-search-input"
+          />
 
-        <div class="lawyer-status-tags">
-          <span
-            v-for="option in statusOptions"
-            :key="option.value"
-            :class="[
-              'lawyer-status-tag',
-              { 'lawyer-status-tag-active': filterStatus === option.value },
-            ]"
-            @click="onStatusTagClick(option.value)"
+          <div class="lawyer-status-tags">
+            <span
+              v-for="option in statusOptions"
+              :key="option.value"
+              :class="[
+                'lawyer-status-tag',
+                { 'lawyer-status-tag-active': filterStatus === option.value },
+              ]"
+              @click="onStatusTagClick(option.value)"
+            >
+              {{ option.label }}
+            </span>
+          </div>
+
+          <a-select
+            v-model="filterType"
+            placeholder="全部分类"
+            class="lawyer-filter-select"
+            @change="onFilterChange"
           >
-            {{ option.label }}
-          </span>
+            <a-select-option
+              v-for="option in typeOptions"
+              :key="option.value"
+              :value="option.value"
+            >
+              {{ option.label }}
+            </a-select-option>
+          </a-select>
+
+          <a-button @click="exportData" class="lawyer-btn-export">
+            导出数据
+          </a-button>
         </div>
 
-        <a-select
-          v-model="filterType"
-          placeholder="全部分类"
-          class="lawyer-filter-select"
-          @change="onFilterChange"
-        >
-          <a-select-option
-            v-for="option in typeOptions"
-            :key="option.value"
-            :value="option.value"
-          >
-            {{ option.label }}
-          </a-select-option>
-        </a-select>
+        <!-- 统计信息 -->
+        <div class="lawyer-stats-info">
+          总计: <strong>{{ totalDocuments }}</strong> 条 / 待审核:
+          <strong>{{ pendingCount }}</strong> 条
+        </div>
 
-        <a-button @click="exportData" class="lawyer-btn-export">
-          导出数据
-        </a-button>
-      </div>
-
-      <!-- 统计信息 -->
-      <div class="lawyer-stats-info">
-        总计: <strong>{{ totalDocuments }}</strong> 条 / 待审核:
-        <strong>{{ pendingCount }}</strong> 条
-      </div>
-
-      <!-- 文档列表表格 -->
-      <div class="lawyer-table-wrapper">
-        <a-table
-          :columns="columns"
-          :data-source="filteredDocuments"
-          :pagination="{
-            pageSize: 10,
-            total: filteredDocuments.length,
-            showTotal: (total) => `共 ${total} 条数据`,
-          }"
-          :loading="tableLoading"
-          :rowKey="(record) => record.id"
-          @change="handleTableChange"
-        >
-          <!-- 标题列插槽 -->
-          <template slot="titles" slot-scope="text, record">
-            <div>
-              <div>{{ record.title }}</div>
-              <div style="color: #999; font-size: 12px">
-                文号：{{ record.docNumber || "未分配" }}
-              </div>
-            </div>
-          </template>
-
-          <!-- 分类列插槽 -->
-          <span slot="type" slot-scope="text">
-            {{ getTypeText(text) }}
-          </span>
-
-          <!-- 状态列插槽 -->
-          <span slot="status" slot-scope="text">
-            <span :class="['lawyer-status-text', `status-${text}`]">
-              {{ getStatusText(text) }}
-            </span>
-          </span>
-
-          <!-- 操作列插槽 -->
-          <span slot="action" slot-scope="text, record">
-            <div class="lawyer-action-links">
-              <a @click="viewDocument(record)" class="lawyer-link-view">
-                查看
-              </a>
-              <template v-if="record.status === 'pending'">
-                <a @click="approveDocument(record)" class="lawyer-link-approve">
-                  批准
-                </a>
-                <a @click="rejectDocument(record)" class="lawyer-link-reject">
-                  驳回
-                </a>
-              </template>
-            </div>
-          </span>
-
-          <!-- 自定义筛选下拉框 -->
-          <div
-            slot="filterDropdown"
-            slot-scope="{
-              setSelectedKeys,
-              selectedKeys,
-              confirm,
-              clearFilters,
-              column,
+        <!-- 文档列表表格 -->
+        <div class="lawyer-table-wrapper">
+          <a-table
+            :columns="columns"
+            :data-source="filteredDocuments"
+            :pagination="{
+              pageSize: 10,
+              total: filteredDocuments.length,
+              showTotal: (total) => `共 ${total} 条数据`,
             }"
-            style="padding: 8px"
+            :loading="tableLoading"
+            :rowKey="(record) => record.id"
+            @change="handleTableChange"
           >
-            <a-input
-              ref="searchInput"
-              :placeholder="`搜索 ${column.title}`"
-              :value="selectedKeys[0]"
-              @change="
-                (e) => setSelectedKeys(e.target.value ? [e.target.value] : [])
-              "
-              @pressEnter="
-                () => handleSearch(selectedKeys, confirm, column.dataIndex)
-              "
-              style="width: 188px; margin-bottom: 8px; display: block"
-            />
-            <a-button
-              type="primary"
-              @click="
-                () => handleSearch(selectedKeys, confirm, column.dataIndex)
-              "
-              icon="search"
-              size="small"
-              style="width: 90px; margin-right: 8px"
-            >
-              搜索
-            </a-button>
-            <a-button
-              @click="() => handleReset(clearFilters)"
-              size="small"
-              style="width: 90px"
-            >
-              重置
-            </a-button>
-          </div>
-          <a-icon
-            slot="filterIcon"
-            slot-scope="filtered"
-            type="search"
-            :style="{ color: filtered ? '#1890ff' : undefined }"
-          />
-        </a-table>
-      </div>
-    </div>
+            <!-- 标题列插槽 -->
+            <template slot="titles" slot-scope="text, record">
+              <div>
+                <div>{{ record.title }}</div>
+                <div style="color: #999; font-size: 12px">
+                  文号：{{ record.docNumber || "未分配" }}
+                </div>
+              </div>
+            </template>
 
-    <!-- 审核意见弹窗 -->
-    <a-modal
-      v-model="reviewModalVisible"
-      :title="reviewAction === 'approve' ? '通过审核' : '驳回文档'"
-      @ok="submitReview"
-    >
-      <a-form-item label="审核意见">
-        <a-textarea
-          v-model="reviewComment"
-          :rows="4"
-          :placeholder="
-            reviewAction === 'approve'
-              ? '请输入通过意见（选填）'
-              : '请输入驳回原因（必填）'
-          "
-        />
-      </a-form-item>
-    </a-modal>
+            <!-- 分类列插槽 -->
+            <span slot="type" slot-scope="text">
+              {{ getTypeText(text) }}
+            </span>
+
+            <!-- 状态列插槽 -->
+            <span slot="status" slot-scope="text">
+              <span :class="['lawyer-status-text', `status-${text}`]">
+                {{ getStatusText(text) }}
+              </span>
+            </span>
+
+            <!-- 操作列插槽 -->
+            <span slot="action" slot-scope="text, record">
+              <div class="lawyer-action-links">
+                <a @click="viewDocument(record)" class="lawyer-link-view">
+                  查看
+                </a>
+                <template v-if="record.status === 'pending'">
+                  <a
+                    @click="approveDocument(record)"
+                    class="lawyer-link-approve"
+                  >
+                    批准
+                  </a>
+                  <a @click="rejectDocument(record)" class="lawyer-link-reject">
+                    驳回
+                  </a>
+                </template>
+              </div>
+            </span>
+
+            <!-- 自定义筛选下拉框 -->
+            <div
+              slot="filterDropdown"
+              slot-scope="{
+                setSelectedKeys,
+                selectedKeys,
+                confirm,
+                clearFilters,
+                column,
+              }"
+              style="padding: 8px"
+            >
+              <a-input
+                ref="searchInput"
+                :placeholder="`搜索 ${column.title}`"
+                :value="selectedKeys[0]"
+                @change="
+                  (e) => setSelectedKeys(e.target.value ? [e.target.value] : [])
+                "
+                @pressEnter="
+                  () => handleSearch(selectedKeys, confirm, column.dataIndex)
+                "
+                style="width: 188px; margin-bottom: 8px; display: block"
+              />
+              <a-button
+                type="primary"
+                @click="
+                  () => handleSearch(selectedKeys, confirm, column.dataIndex)
+                "
+                icon="search"
+                size="small"
+                style="width: 90px; margin-right: 8px"
+              >
+                搜索
+              </a-button>
+              <a-button
+                @click="() => handleReset(clearFilters)"
+                size="small"
+                style="width: 90px"
+              >
+                重置
+              </a-button>
+            </div>
+            <a-icon
+              slot="filterIcon"
+              slot-scope="filtered"
+              type="search"
+              :style="{ color: filtered ? '#1890ff' : undefined }"
+            />
+          </a-table>
+        </div>
+      </div>
+
+      <!-- 审核意见弹窗 -->
+      <a-modal
+        v-model="reviewModalVisible"
+        :title="reviewAction === 'approve' ? '通过审核' : '驳回文档'"
+        @ok="submitReview"
+      >
+        <a-form-item label="审核意见">
+          <a-textarea
+            v-model="reviewComment"
+            :rows="4"
+            :placeholder="
+              reviewAction === 'approve'
+                ? '请输入通过意见（选填）'
+                : '请输入驳回原因（必填）'
+            "
+          />
+        </a-form-item>
+      </a-modal>
+    </div>
   </div>
 </template>
 
@@ -664,179 +669,181 @@ export default class DbPage extends Vue {
 }
 </script>
 
-<style lang="less" scoped>
-// CSS变量定义
-:root {
-  --lawyer-primary: #1890ff;
-  --lawyer-surface: #ffffff;
-  --lawyer-border: #e8e8e8;
-  --lawyer-text: #262626;
-  --lawyer-text-light: #8c8c8c;
-}
-
-// 整体卡片样式
-.lawyer-main-card {
-  background: var(--lawyer-surface);
-  border: 1px solid var(--lawyer-border);
-  border-radius: 8px;
-  padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-}
-
-.lawyer-page-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--lawyer-text);
-  margin-bottom: 16px;
-}
-
-// 搜索筛选和操作区域（一行显示）
-.lawyer-controls-row {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-}
-
-.lawyer-search-input {
-  width: 240px;
-}
-
-.lawyer-filter-select {
-  width: 150px;
-}
-
-.lawyer-btn-export {
-  margin-left: auto;
-  background: #e6a23c;
-  border-color: #e6a23c;
-  color: white;
-
-  &:hover {
-    background: #d39531;
-    border-color: #d39531;
-    color: white;
+<style lang="less">
+.db-page-wrapper {
+  // CSS变量定义
+  :root {
+    --lawyer-primary: #1890ff;
+    --lawyer-surface: #ffffff;
+    --lawyer-border: #e8e8e8;
+    --lawyer-text: #262626;
+    --lawyer-text-light: #8c8c8c;
   }
-}
 
-// 统计信息
-.lawyer-stats-info {
-  color: var(--lawyer-text-light);
-  font-size: 14px;
-  margin-top: 10px;
+  // 整体卡片样式
+  .lawyer-main-card {
+    background: var(--lawyer-surface);
+    border: 1px solid var(--lawyer-border);
+    border-radius: 8px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
 
-  strong {
-    color: var(--lawyer-text);
+  .lawyer-page-title {
+    font-size: 20px;
     font-weight: 600;
-  }
-}
-
-// 表格包装器
-.lawyer-table-wrapper {
-  margin-top: 24px;
-  border-top: 1px solid var(--lawyer-border);
-  padding-top: 24px;
-}
-
-// 操作链接组
-.lawyer-action-links {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.lawyer-link-view {
-  color: #666;
-  text-decoration: none;
-  cursor: pointer;
-  transition: color 0.2s ease;
-  padding: 2px 6px;
-  border-radius: 3px;
-
-  &:hover {
-    color: #333;
-    background-color: #f5f5f5;
-  }
-}
-
-.lawyer-link-approve {
-  color: #52c41a;
-  text-decoration: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  padding: 2px 6px;
-  border-radius: 3px;
-
-  &:hover {
-    color: #389e0d;
-    background-color: #f6ffed;
-  }
-}
-
-.lawyer-link-reject {
-  color: #ff4d4f;
-  text-decoration: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  padding: 2px 6px;
-  border-radius: 3px;
-
-  &:hover {
-    color: #cf1322;
-    background-color: #fff2f0;
-  }
-}
-
-// 状态文字样式
-.lawyer-status-text {
-  font-weight: 500;
-
-  // 不同状态颜色
-  &.status-pending {
-    color: #fa8c16;
+    color: var(--lawyer-text);
+    margin-bottom: 16px;
   }
 
-  &.status-approved {
-    color: #52c41a;
+  // 搜索筛选和操作区域（一行显示）
+  .lawyer-controls-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
   }
 
-  &.status-rejected {
-    color: #ff4d4f;
-  }
-}
-
-// 状态标签样式
-.lawyer-status-tags {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.lawyer-status-tag {
-  display: inline-block;
-  padding: 6px 16px;
-  border: 1px solid #d9d9d9;
-  border-radius: 3px;
-  background-color: #fff;
-  color: var(--lawyer-text-light);
-  font-size: 14px;
-  font-weight: 400;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-  user-select: none;
-
-  &:hover {
-    border-color: var(--lawyer-primary);
-    color: var(--lawyer-primary);
+  .lawyer-search-input {
+    width: 240px;
   }
 
-  &.lawyer-status-tag-active {
-    background-color: var(--lawyer-primary);
-    border-color: var(--lawyer-primary);
+  .lawyer-filter-select {
+    width: 150px;
+  }
+
+  .lawyer-btn-export {
+    margin-left: auto;
+    background: #e6a23c;
+    border-color: #e6a23c;
     color: white;
+
+    &:hover {
+      background: #d39531;
+      border-color: #d39531;
+      color: white;
+    }
+  }
+
+  // 统计信息
+  .lawyer-stats-info {
+    color: var(--lawyer-text-light);
+    font-size: 14px;
+    margin-top: 10px;
+
+    strong {
+      color: var(--lawyer-text);
+      font-weight: 600;
+    }
+  }
+
+  // 表格包装器
+  .lawyer-table-wrapper {
+    margin-top: 24px;
+    border-top: 1px solid var(--lawyer-border);
+    padding-top: 24px;
+  }
+
+  // 操作链接组
+  .lawyer-action-links {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .lawyer-link-view {
+    color: #666;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    padding: 2px 6px;
+    border-radius: 3px;
+
+    &:hover {
+      color: #333;
+      background-color: #f5f5f5;
+    }
+  }
+
+  .lawyer-link-approve {
+    color: #52c41a;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 2px 6px;
+    border-radius: 3px;
+
+    &:hover {
+      color: #389e0d;
+      background-color: #f6ffed;
+    }
+  }
+
+  .lawyer-link-reject {
+    color: #ff4d4f;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 2px 6px;
+    border-radius: 3px;
+
+    &:hover {
+      color: #cf1322;
+      background-color: #fff2f0;
+    }
+  }
+
+  // 状态文字样式
+  .lawyer-status-text {
     font-weight: 500;
+
+    // 不同状态颜色
+    &.status-pending {
+      color: #fa8c16;
+    }
+
+    &.status-approved {
+      color: #52c41a;
+    }
+
+    &.status-rejected {
+      color: #ff4d4f;
+    }
+  }
+
+  // 状态标签样式
+  .lawyer-status-tags {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .lawyer-status-tag {
+    display: inline-block;
+    padding: 6px 16px;
+    border: 1px solid #d9d9d9;
+    border-radius: 3px;
+    background-color: #fff;
+    color: var(--lawyer-text-light);
+    font-size: 14px;
+    font-weight: 400;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    user-select: none;
+
+    &:hover {
+      border-color: var(--lawyer-primary);
+      color: var(--lawyer-primary);
+    }
+
+    &.lawyer-status-tag-active {
+      background-color: var(--lawyer-primary);
+      border-color: var(--lawyer-primary);
+      color: white;
+      font-weight: 500;
+    }
   }
 }
 </style>

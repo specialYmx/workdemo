@@ -1,162 +1,158 @@
 <template>
-  <div class="lawyer-document-page">
-    <!-- 页面头部 -->
-    <header
-      class="lawyer-document-header lawyer-flex lawyer-justify-between lawyer-items-center"
-    >
-      <div
-        class="lawyer-header-left lawyer-flex lawyer-items-center lawyer-gap-md"
+  <div class="document-viewer-wrapper">
+    <div class="lawyer-document-page">
+      <!-- 页面头部 -->
+      <header
+        class="lawyer-document-header lawyer-flex lawyer-justify-between lawyer-items-center"
       >
-        
-        <div class="lawyer-document-info">
-          <h1>{{ document.title }}</h1>
-
-          <!-- 文档标签区域 -->
-          <div class="lawyer-document-tags">
-            <span
-              v-for="(tag, index) in documentTags"
-              :key="index"
-              :class="['lawyer-doc-tag', getTagClass(tag)]"
-            >
-              {{ tag }}
-            </span>
-            <a-button
-              size="small"
-              icon="edit"
-              @click="showTagEditModal"
-              class="lawyer-edit-tag-btn"
-            >
-              编辑标签
-            </a-button>
-          </div>
-
-          <div class="lawyer-document-meta lawyer-flex lawyer-gap-lg">
-            <span v-for="(item, index) in documentMetaItems" :key="index">
-              <a-icon :type="item.icon" /> {{ item.content }}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <div class="lawyer-header-actions lawyer-flex lawyer-gap-sm">
-        <a-button class="lawyer-back-btn" @click="goBack">
-          <a-icon type="arrow-left" />
-          返回
-        </a-button>
-
-        <a-button
-          icon="download"
-          @click="downloadDocument"
+        <div
+          class="lawyer-header-left lawyer-flex lawyer-items-center lawyer-gap-md"
         >
-          下载
-        </a-button>
-      </div>
-    </header>
+          <div class="lawyer-document-info">
+            <h1>{{ document.title }}</h1>
 
-    <!-- 主要内容区 -->
-    <div class="lawyer-main-layout lawyer-flex">
-      <!-- 文档查看器 -->
-      <a-card
-        class="lawyer-document-viewer lawyer-chart-card"
-        :bordered="false"
-      >
-        <DivTextSearch>
-          <div
-            class="lawyer-document-content lawyer-markdown-content lawyer-scrollable"
-            ref="documentContent"
-            tabindex="0"
-          >
-            <div v-html="document.content"></div>
-          </div>
-        </DivTextSearch>
-      </a-card>
-
-      <!-- 侧边栏 - AI助手 -->
-      <a-card
-        class="lawyer-document-sidebar lawyer-chart-card"
-        :bordered="false"
-      >
-        <div class="lawyer-sidebar-section">
-          <h3 class="lawyer-section-title">AI助手</h3>
-
-          <!-- 常见问题区域 -->
-          <div class="lawyer-ai-chat">
-            <div class="lawyer-ai-messages" ref="aiMessages">
-              <div class="lawyer-ai-message lawyer-ai-message-system">
-                <div class="lawyer-ai-message-content">
-                  <p>
-                    您好，我是您的法律AI助手。有关于《{{
-                      document.title
-                    }}》的任何问题，请随时提问。
-                  </p>
-                </div>
-              </div>
-              <div
-                v-for="(msg, index) in aiMessages"
+            <!-- 文档标签区域 -->
+            <div class="lawyer-document-tags">
+              <span
+                v-for="(tag, index) in documentTags"
                 :key="index"
-                :class="[
-                  'lawyer-ai-message',
-                  msg.isUser
-                    ? 'lawyer-ai-message-user'
-                    : 'lawyer-ai-message-ai',
-                ]"
+                :class="['lawyer-doc-tag', getTagClass(tag)]"
               >
-                <div class="lawyer-ai-message-content">
-                  <p>{{ msg.content }}</p>
-                </div>
-              </div>
+                {{ tag }}
+              </span>
+              <a-button
+                size="small"
+                icon="edit"
+                @click="showTagEditModal"
+                class="lawyer-edit-tag-btn"
+              >
+                编辑标签
+              </a-button>
             </div>
 
-            <div class="lawyer-ai-input">
-              <div class="lawyer-common-questions">
-                <div class="lawyer-question-chips">
-                  <a-tag
-                    v-for="(question, index) in commonQuestions"
-                    :key="index"
-                    class="lawyer-question-chip"
-                    @click="askCommonQuestion(question)"
-                  >
-                    {{ question }}
-                  </a-tag>
-                </div>
-              </div>
-              <a-input-search
-                placeholder="向AI提问关于此文档的问题..."
-                v-model="aiQuestion"
-                @search="askAi"
-                enterButton="发送"
-                :loading="aiLoading"
-              />
+            <div class="lawyer-document-meta lawyer-flex lawyer-gap-lg">
+              <span v-for="(item, index) in documentMetaItems" :key="index">
+                <a-icon :type="item.icon" /> {{ item.content }}
+              </span>
             </div>
           </div>
         </div>
-      </a-card>
-    </div>
 
-    <!-- 标签编辑模态框 -->
-    <a-modal
-      title="选择分类"
-      :visible="tagEditVisible"
-      @ok="handleTagEditOk"
-      @cancel="handleTagEditCancel"
-      :width="500"
-      okText="确认"
-      cancelText="取消"
-    >
-      <div class="lawyer-tag-edit-content">
-        <div class="lawyer-tag-select-row">
-          <label>选择分类</label>
-          <a-cascader
-            v-model="selectedTagPath"
-            :options="tagOptions"
-            placeholder="全部分类"
-            :show-search="true"
-            style="width: 300px"
-            :default-value="selectedTagPath"
-          />
+        <div class="lawyer-header-actions lawyer-flex lawyer-gap-sm">
+          <a-button class="lawyer-back-btn" @click="goBack">
+            <a-icon type="arrow-left" />
+            返回
+          </a-button>
+
+          <a-button icon="download" @click="downloadDocument"> 下载 </a-button>
         </div>
+      </header>
+
+      <!-- 主要内容区 -->
+      <div class="lawyer-main-layout lawyer-flex">
+        <!-- 文档查看器 -->
+        <a-card
+          class="lawyer-document-viewer lawyer-chart-card"
+          :bordered="false"
+        >
+          <DivTextSearch>
+            <div
+              class="lawyer-document-content lawyer-markdown-content lawyer-scrollable"
+              ref="documentContent"
+              tabindex="0"
+            >
+              <div v-html="document.content"></div>
+            </div>
+          </DivTextSearch>
+        </a-card>
+
+        <!-- 侧边栏 - AI助手 -->
+        <a-card
+          class="lawyer-document-sidebar lawyer-chart-card"
+          :bordered="false"
+        >
+          <div class="lawyer-sidebar-section">
+            <h3 class="lawyer-section-title">AI助手</h3>
+
+            <!-- 常见问题区域 -->
+            <div class="lawyer-ai-chat">
+              <div class="lawyer-ai-messages" ref="aiMessages">
+                <div class="lawyer-ai-message lawyer-ai-message-system">
+                  <div class="lawyer-ai-message-content">
+                    <p>
+                      您好，我是您的法律AI助手。有关于《{{
+                        document.title
+                      }}》的任何问题，请随时提问。
+                    </p>
+                  </div>
+                </div>
+                <div
+                  v-for="(msg, index) in aiMessages"
+                  :key="index"
+                  :class="[
+                    'lawyer-ai-message',
+                    msg.isUser
+                      ? 'lawyer-ai-message-user'
+                      : 'lawyer-ai-message-ai',
+                  ]"
+                >
+                  <div class="lawyer-ai-message-content">
+                    <p>{{ msg.content }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="lawyer-ai-input">
+                <div class="lawyer-common-questions">
+                  <div class="lawyer-question-chips">
+                    <a-tag
+                      v-for="(question, index) in commonQuestions"
+                      :key="index"
+                      class="lawyer-question-chip"
+                      @click="askCommonQuestion(question)"
+                    >
+                      {{ question }}
+                    </a-tag>
+                  </div>
+                </div>
+                <a-input-search
+                  placeholder="向AI提问关于此文档的问题..."
+                  v-model="aiQuestion"
+                  @search="askAi"
+                  enterButton="发送"
+                  :loading="aiLoading"
+                />
+              </div>
+            </div>
+          </div>
+        </a-card>
       </div>
-    </a-modal>
+
+      <!-- 标签编辑模态框 -->
+      <a-modal
+        title="选择分类"
+        :visible="tagEditVisible"
+        @ok="handleTagEditOk"
+        @cancel="handleTagEditCancel"
+        :width="500"
+        okText="确认"
+        cancelText="取消"
+      >
+        <div class="lawyer-tag-edit-content">
+          <div class="lawyer-tag-select-row">
+            <label>选择分类</label>
+            <a-cascader
+              v-model="selectedTagPath"
+              :options="tagOptions"
+              placeholder="全部分类"
+              :show-search="true"
+              style="width: 300px"
+              :default-value="selectedTagPath"
+            />
+          </div>
+        </div>
+      </a-modal>
+    </div>
   </div>
 </template>
 
@@ -296,13 +292,13 @@ export default class DocumentViewer extends Vue {
   showTagEditModal(): void {
     this.tagEditVisible = true;
     this.selectedTagPath = [];
-    
+
     // 如果文档已有标签，设置默认选中值
     if (this.documentTags.length >= 2) {
       // 当已有两个标签时，假设第一个是一级标签，第二个是二级标签
       const firstTag = this.documentTags[0];
       const secondTag = this.documentTags[1];
-      
+
       // 在tagOptions中查找匹配的路径
       for (const option of this.tagOptions) {
         if (option.value === firstTag && option.children) {
@@ -323,8 +319,8 @@ export default class DocumentViewer extends Vue {
         this.selectedTagPath = [...tagPath];
       }
     }
-    
-    console.log('设置级联路径:', this.selectedTagPath);
+
+    console.log("设置级联路径:", this.selectedTagPath);
   }
 
   // 查找标签在级联选项中的路径
@@ -335,7 +331,7 @@ export default class DocumentViewer extends Vue {
       if (option.value === tag) {
         return [option.value];
       }
-      
+
       // 检查二级标签是否匹配
       if (option.children) {
         for (const child of option.children) {
@@ -345,7 +341,7 @@ export default class DocumentViewer extends Vue {
         }
       }
     }
-    
+
     return [];
   }
 
@@ -354,12 +350,14 @@ export default class DocumentViewer extends Vue {
     if (this.selectedTagPath.length > 0) {
       // 清空现有标签
       this.document.tags = [];
-      
+
       if (this.selectedTagPath.length >= 2) {
         // 如果选择了两级标签，则添加一级和二级标签
         this.document.tags.push(this.selectedTagPath[0]); // 一级标签
         this.document.tags.push(this.selectedTagPath[1]); // 二级标签
-        this.$message.success(`已设置标签为: ${this.selectedTagPath[0]}/${this.selectedTagPath[1]}`);
+        this.$message.success(
+          `已设置标签为: ${this.selectedTagPath[0]}/${this.selectedTagPath[1]}`
+        );
       } else {
         // 只选择了一级标签
         this.document.tags.push(this.selectedTagPath[0]);
@@ -519,395 +517,397 @@ export default class DocumentViewer extends Vue {
 }
 </script>
 
-<style lang="less" scoped>
-// 基础布局
-.lawyer-document-page {
-  height: calc(100vh - 70px);
-  display: flex;
-  flex-direction: column;
-  background-color: var(--lawyer-background);
-}
-
-// 头部样式
-.lawyer-document-header {
-  background: var(--lawyer-surface);
-  padding: 15px 20px;
-  border-bottom: 1px solid var(--lawyer-border);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  z-index: 100;
-}
-
-.lawyer-header-left {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.lawyer-back-btn {
-  display: flex;
-  align-items: center;
-}
-
-// 文档信息样式
-.lawyer-document-info {
-  h1 {
-    font-size: 18px;
-    color: var(--lawyer-text);
-    margin: 0 0 8px 0;
-  }
-}
-
-// 文档标签样式
-.lawyer-document-tags {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-  flex-wrap: wrap;
-}
-
-.lawyer-doc-tag {
-  display: inline-block;
-  padding: 4px 12px;
-  border: 1px solid #ddd;
-  border-radius: 3px;
-  background-color: #fff;
-  color: var(--lawyer-text-light);
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 1.2;
-  white-space: nowrap;
-
-  // 重要法规 - 红色
-  &.lawyer-tag-important {
-    border-color: #ff4d4f;
-    color: #ff4d4f;
-    background-color: rgba(255, 77, 79, 0.1);
+<style lang="less">
+.document-viewer-wrapper {
+  // 基础布局
+  .lawyer-document-page {
+    height: calc(100vh - 70px);
+    display: flex;
+    flex-direction: column;
+    background-color: var(--lawyer-background);
   }
 
-  // 资金运用 - 橙色
-  &.lawyer-tag-fund {
-    border-color: #fa8c16;
-    color: #fa8c16;
-    background-color: rgba(250, 140, 22, 0.1);
+  // 头部样式
+  .lawyer-document-header {
+    background: var(--lawyer-surface);
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--lawyer-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 100;
   }
 
-  // 征求意见 - 蓝色
-  &.lawyer-tag-opinion {
-    border-color: #1890ff;
-    color: #1890ff;
-    background-color: rgba(24, 144, 255, 0.1);
+  .lawyer-header-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
   }
 
-  // 偿付能力 - 紫色
-  &.lawyer-tag-solvency {
-    border-color: #722ed1;
-    color: #722ed1;
-    background-color: rgba(114, 46, 209, 0.1);
+  .lawyer-back-btn {
+    display: flex;
+    align-items: center;
   }
 
-  // 风险提示 - 红色
-  &.lawyer-tag-risk {
-    border-color: #ff4d4f;
-    color: #ff4d4f;
-    background-color: rgba(255, 77, 79, 0.1);
-  }
-
-  // 另类投资 - 青色
-  &.lawyer-tag-alternative {
-    border-color: #13c2c2;
-    color: #13c2c2;
-    background-color: rgba(19, 194, 194, 0.1);
-  }
-
-  // 机构监管 - 绿色
-  &.lawyer-tag-supervision {
-    border-color: #52c41a;
-    color: #52c41a;
-    background-color: rgba(82, 196, 26, 0.1);
-  }
-
-  // 公司治理 - 橙色
-  &.lawyer-tag-governance {
-    border-color: #fa8c16;
-    color: #fa8c16;
-    background-color: rgba(250, 140, 22, 0.1);
-  }
-
-  // 行业协会 - 蓝色
-  &.lawyer-tag-association {
-    border-color: #1890ff;
-    color: #1890ff;
-    background-color: rgba(24, 144, 255, 0.1);
-  }
-
-  // 风控合规 - 紫色
-  &.lawyer-tag-compliance {
-    border-color: #722ed1;
-    color: #722ed1;
-    background-color: rgba(114, 46, 209, 0.1);
-  }
-
-  // 关联交易 - 青色
-  &.lawyer-tag-related {
-    border-color: #13c2c2;
-    color: #13c2c2;
-    background-color: rgba(19, 194, 194, 0.1);
-  }
-
-  // 默认样式
-  &.lawyer-tag-default {
-    border-color: #d9d9d9;
-    color: #595959;
-    background-color: rgba(217, 217, 217, 0.1);
-  }
-}
-
-.lawyer-edit-tag-btn {
-  font-size: 12px;
-  height: 24px;
-  padding: 0 8px;
-  border-color: #d9d9d9;
-  color: var(--lawyer-text-light);
-
-  &:hover {
-    border-color: var(--lawyer-primary);
-    color: var(--lawyer-primary);
-  }
-}
-
-.lawyer-document-meta {
-  font-size: 13px;
-  color: var(--lawyer-text-light);
-  display: flex;
-  gap: 20px;
-
-  .anticon {
-    margin-right: 5px;
-  }
-}
-
-.lawyer-header-actions {
-  display: flex;
-  gap: 8px;
-}
-
-// 主布局
-.lawyer-main-layout {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
-  padding: 16px;
-  gap: 16px;
-}
-
-// 文档查看器
-.lawyer-document-viewer {
-  flex: 1;
-  background: var(--lawyer-surface);
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.lawyer-document-content {
-  flex: 1;
-  padding: 40px;
-  overflow-y: auto;
-  height: 100%;
-}
-
-// 文档内容样式
-:deep(.lawyer-document-content) {
-  h1.doc-title {
-    font-size: 22px;
-    text-align: center;
-    margin-bottom: 16px;
-    font-weight: 600;
-  }
-
-  p.doc-meta {
-    text-align: center;
-    color: var(--lawyer-text-light);
-    margin-bottom: 30px;
-  }
-
-  .doc-toc {
-    background: var(--lawyer-border-light);
-    padding: 24px;
-    border-radius: 8px;
-    margin-bottom: 30px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-
-    h2 {
-      margin-top: 0;
-      margin-bottom: 12px;
+  // 文档信息样式
+  .lawyer-document-info {
+    h1 {
       font-size: 18px;
+      color: var(--lawyer-text);
+      margin: 0 0 8px 0;
     }
   }
 
-  h2 {
-    margin-top: 26px;
-    margin-bottom: 18px;
-    font-size: 20px;
-    color: #333;
-    border-bottom: 2px solid var(--lawyer-primary);
-    padding-bottom: 10px;
-  }
-
-  p.doc-article {
-    margin-bottom: 18px;
-    text-indent: 28px;
-    line-height: 26px;
-    color: #333;
-    letter-spacing: 0.3px;
-  }
-
-  /* 给条款编号添加颜色 */
-  .doc-article strong:first-child {
-    color: var(--lawyer-primary);
-    font-weight: 600;
-  }
-
-  strong {
-    font-weight: 600;
-    color: #222;
-  }
-
-  /* 搜索结果高亮样式 */
-  ::selection {
-    background-color: rgba(var(--lawyer-primary-rgb), 0.3);
-    color: var(--lawyer-text-dark);
-  }
-}
-
-// 侧边栏样式
-.lawyer-document-sidebar {
-  width: 400px;
-  background: var(--lawyer-surface);
-  padding: 20px;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
-  overflow-y: auto;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.lawyer-sidebar-section {
-  margin-bottom: 20px;
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
-}
-
-.lawyer-section-title {
-  font-size: 16px;
-  font-weight: 500;
-  color: var(--lawyer-text);
-  margin-bottom: 15px;
-  position: relative;
-
-  &::after {
-    content: "";
-    position: absolute;
-    bottom: -5px;
-    left: 0;
-    width: 40px;
-    height: 2px;
-    background-color: var(--lawyer-primary);
-  }
-}
-
-// AI助手样式
-.lawyer-ai-chat {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  background: var(--lawyer-surface);
-  border: 1px solid var(--lawyer-border);
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
-  height: calc(100% - 40px);
-}
-
-.lawyer-common-questions {
-  margin-bottom: 15px;
-}
-
-.lawyer-question-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 15px;
-}
-
-.lawyer-ai-messages {
-  flex: 1;
-  padding: 15px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  background-color: #fcfcfc;
-}
-
-.lawyer-ai-message {
-  max-width: 85%;
-  padding: 12px 15px;
-  border-radius: 10px;
-  position: relative;
-  line-height: 1.6;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-
-  &-system {
-    background-color: rgba(var(--lawyer-primary-rgb), 0.05);
-    border: 1px solid rgba(var(--lawyer-primary-rgb), 0.1);
-    align-self: center;
-    max-width: 95%;
+  // 文档标签样式
+  .lawyer-document-tags {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     margin-bottom: 8px;
+    flex-wrap: wrap;
   }
 
-  &-user {
-    background-color: rgba(var(--lawyer-primary-rgb), 0.1);
-    color: var(--lawyer-text);
-    align-self: flex-end;
-    border-bottom-right-radius: 4px;
+  .lawyer-doc-tag {
+    display: inline-block;
+    padding: 4px 12px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    background-color: #fff;
+    color: var(--lawyer-text-light);
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.2;
+    white-space: nowrap;
+
+    // 重要法规 - 红色
+    &.lawyer-tag-important {
+      border-color: #ff4d4f;
+      color: #ff4d4f;
+      background-color: rgba(255, 77, 79, 0.1);
+    }
+
+    // 资金运用 - 橙色
+    &.lawyer-tag-fund {
+      border-color: #fa8c16;
+      color: #fa8c16;
+      background-color: rgba(250, 140, 22, 0.1);
+    }
+
+    // 征求意见 - 蓝色
+    &.lawyer-tag-opinion {
+      border-color: #1890ff;
+      color: #1890ff;
+      background-color: rgba(24, 144, 255, 0.1);
+    }
+
+    // 偿付能力 - 紫色
+    &.lawyer-tag-solvency {
+      border-color: #722ed1;
+      color: #722ed1;
+      background-color: rgba(114, 46, 209, 0.1);
+    }
+
+    // 风险提示 - 红色
+    &.lawyer-tag-risk {
+      border-color: #ff4d4f;
+      color: #ff4d4f;
+      background-color: rgba(255, 77, 79, 0.1);
+    }
+
+    // 另类投资 - 青色
+    &.lawyer-tag-alternative {
+      border-color: #13c2c2;
+      color: #13c2c2;
+      background-color: rgba(19, 194, 194, 0.1);
+    }
+
+    // 机构监管 - 绿色
+    &.lawyer-tag-supervision {
+      border-color: #52c41a;
+      color: #52c41a;
+      background-color: rgba(82, 196, 26, 0.1);
+    }
+
+    // 公司治理 - 橙色
+    &.lawyer-tag-governance {
+      border-color: #fa8c16;
+      color: #fa8c16;
+      background-color: rgba(250, 140, 22, 0.1);
+    }
+
+    // 行业协会 - 蓝色
+    &.lawyer-tag-association {
+      border-color: #1890ff;
+      color: #1890ff;
+      background-color: rgba(24, 144, 255, 0.1);
+    }
+
+    // 风控合规 - 紫色
+    &.lawyer-tag-compliance {
+      border-color: #722ed1;
+      color: #722ed1;
+      background-color: rgba(114, 46, 209, 0.1);
+    }
+
+    // 关联交易 - 青色
+    &.lawyer-tag-related {
+      border-color: #13c2c2;
+      color: #13c2c2;
+      background-color: rgba(19, 194, 194, 0.1);
+    }
+
+    // 默认样式
+    &.lawyer-tag-default {
+      border-color: #d9d9d9;
+      color: #595959;
+      background-color: rgba(217, 217, 217, 0.1);
+    }
   }
 
-  &-ai {
-    background-color: #f0f2f5;
-    color: var(--lawyer-text);
-    align-self: flex-start;
-    white-space: pre-line;
-    border-bottom-left-radius: 4px;
+  .lawyer-edit-tag-btn {
+    font-size: 12px;
+    height: 24px;
+    padding: 0 8px;
+    border-color: #d9d9d9;
+    color: var(--lawyer-text-light);
+
+    &:hover {
+      border-color: var(--lawyer-primary);
+      color: var(--lawyer-primary);
+    }
   }
-}
 
-.lawyer-ai-input {
-  padding: 15px;
-  border-top: 1px solid var(--lawyer-border);
-  background-color: #fff;
-}
+  .lawyer-document-meta {
+    font-size: 13px;
+    color: var(--lawyer-text-light);
+    display: flex;
+    gap: 20px;
 
-// 标签编辑模态框样式
-.lawyer-tag-edit-content {
-  padding: 20px 0;
-}
+    .anticon {
+      margin-right: 5px;
+    }
+  }
 
-.lawyer-tag-select-row {
-  display: flex;
-  align-items: center;
-  gap: 16px;
+  .lawyer-header-actions {
+    display: flex;
+    gap: 8px;
+  }
 
-  label {
+  // 主布局
+  .lawyer-main-layout {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    padding: 16px;
+    gap: 16px;
+  }
+
+  // 文档查看器
+  .lawyer-document-viewer {
+    flex: 1;
+    background: var(--lawyer-surface);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .lawyer-document-content {
+    flex: 1;
+    padding: 40px;
+    overflow-y: auto;
+    height: 100%;
+  }
+
+  // 文档内容样式
+  :deep(.lawyer-document-content) {
+    h1.doc-title {
+      font-size: 22px;
+      text-align: center;
+      margin-bottom: 16px;
+      font-weight: 600;
+    }
+
+    p.doc-meta {
+      text-align: center;
+      color: var(--lawyer-text-light);
+      margin-bottom: 30px;
+    }
+
+    .doc-toc {
+      background: var(--lawyer-border-light);
+      padding: 24px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+      h2 {
+        margin-top: 0;
+        margin-bottom: 12px;
+        font-size: 18px;
+      }
+    }
+
+    h2 {
+      margin-top: 26px;
+      margin-bottom: 18px;
+      font-size: 20px;
+      color: #333;
+      border-bottom: 2px solid var(--lawyer-primary);
+      padding-bottom: 10px;
+    }
+
+    p.doc-article {
+      margin-bottom: 18px;
+      text-indent: 28px;
+      line-height: 26px;
+      color: #333;
+      letter-spacing: 0.3px;
+    }
+
+    /* 给条款编号添加颜色 */
+    .doc-article strong:first-child {
+      color: var(--lawyer-primary);
+      font-weight: 600;
+    }
+
+    strong {
+      font-weight: 600;
+      color: #222;
+    }
+
+    /* 搜索结果高亮样式 */
+    ::selection {
+      background-color: rgba(var(--lawyer-primary-rgb), 0.3);
+      color: var(--lawyer-text-dark);
+    }
+  }
+
+  // 侧边栏样式
+  .lawyer-document-sidebar {
+    width: 400px;
+    background: var(--lawyer-surface);
+    padding: 20px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    overflow-y: auto;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .lawyer-sidebar-section {
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+  }
+
+  .lawyer-section-title {
+    font-size: 16px;
     font-weight: 500;
     color: var(--lawyer-text);
-    min-width: 80px;
+    margin-bottom: 15px;
+    position: relative;
+
+    &::after {
+      content: "";
+      position: absolute;
+      bottom: -5px;
+      left: 0;
+      width: 40px;
+      height: 2px;
+      background-color: var(--lawyer-primary);
+    }
+  }
+
+  // AI助手样式
+  .lawyer-ai-chat {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    background: var(--lawyer-surface);
+    border: 1px solid var(--lawyer-border);
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+    height: calc(100% - 40px);
+  }
+
+  .lawyer-common-questions {
+    margin-bottom: 15px;
+  }
+
+  .lawyer-question-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 15px;
+  }
+
+  .lawyer-ai-messages {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    background-color: #fcfcfc;
+  }
+
+  .lawyer-ai-message {
+    max-width: 85%;
+    padding: 12px 15px;
+    border-radius: 10px;
+    position: relative;
+    line-height: 1.6;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+
+    &-system {
+      background-color: rgba(var(--lawyer-primary-rgb), 0.05);
+      border: 1px solid rgba(var(--lawyer-primary-rgb), 0.1);
+      align-self: center;
+      max-width: 95%;
+      margin-bottom: 8px;
+    }
+
+    &-user {
+      background-color: rgba(var(--lawyer-primary-rgb), 0.1);
+      color: var(--lawyer-text);
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+    }
+
+    &-ai {
+      background-color: #f0f2f5;
+      color: var(--lawyer-text);
+      align-self: flex-start;
+      white-space: pre-line;
+      border-bottom-left-radius: 4px;
+    }
+  }
+
+  .lawyer-ai-input {
+    padding: 15px;
+    border-top: 1px solid var(--lawyer-border);
+    background-color: #fff;
+  }
+
+  // 标签编辑模态框样式
+  .lawyer-tag-edit-content {
+    padding: 20px 0;
+  }
+
+  .lawyer-tag-select-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    label {
+      font-weight: 500;
+      color: var(--lawyer-text);
+      min-width: 80px;
+    }
   }
 }
 </style>

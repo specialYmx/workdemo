@@ -1,110 +1,112 @@
 <template>
-  <div class="lawyer-compare-page">
-    <header class="lawyer-compare-header">
-      <a-button class="lawyer-back-btn" @click="goBack">
-        <a-icon type="arrow-left" />
-        返回
-      </a-button>
-      <h1>{{ document.title }}</h1>
-      <div class="lawyer-header-actions">
-        <template v-if="document.status === 'pending'">
-          <a-button
-            v-for="(action, index) in reviewActions"
-            :key="index"
-            :type="action.type"
-            :class="action.class"
-            @click="action.handler"
-          >
-            <a-icon :type="action.icon" />
-            {{ action.text }}
-          </a-button>
-        </template>
-      </div>
-    </header>
-
-    <div class="lawyer-compare-main-container">
-      <!-- 文档列 -->
-      <div
-        v-for="(col, index) in documentColumns"
-        :key="index"
-        class="lawyer-document-column"
-      >
-        <div class="lawyer-column-header">
-          {{ col.title }}
-          <span class="lawyer-version-info" v-if="col.date">{{
-            col.date
-          }}</span>
+  <div class="document-compare-wrapper">
+    <div class="lawyer-compare-page">
+      <header class="lawyer-compare-header">
+        <a-button class="lawyer-back-btn" @click="goBack">
+          <a-icon type="arrow-left" />
+          返回
+        </a-button>
+        <h1>{{ document.title }}</h1>
+        <div class="lawyer-header-actions">
+          <template v-if="document.status === 'pending'">
+            <a-button
+              v-for="(action, index) in reviewActions"
+              :key="index"
+              :type="action.type"
+              :class="action.class"
+              @click="action.handler"
+            >
+              <a-icon :type="action.icon" />
+              {{ action.text }}
+            </a-button>
+          </template>
         </div>
-        <div :class="['lawyer-column-content', col.contentClass]">
-          <div v-html="col.content"></div>
-        </div>
-      </div>
+      </header>
 
-      <!-- 修改记录 -->
-      <div class="lawyer-changelog-column">
-        <div class="lawyer-column-header">审阅内容</div>
-        <div class="lawyer-column-content">
-          <div class="lawyer-change-summary">
-            共有 <strong>{{ document.changes.length }}</strong> 处修改
+      <div class="lawyer-compare-main-container">
+        <!-- 文档列 -->
+        <div
+          v-for="(col, index) in documentColumns"
+          :key="index"
+          class="lawyer-document-column"
+        >
+          <div class="lawyer-column-header">
+            {{ col.title }}
+            <span class="lawyer-version-info" v-if="col.date">{{
+              col.date
+            }}</span>
           </div>
+          <div class="lawyer-column-content">
+            <div v-html="col.content"></div>
+          </div>
+        </div>
 
-          <div
-            v-for="(change, index) in document.changes"
-            :key="index"
-            class="lawyer-changelog-item"
-          >
-            <div class="lawyer-change-location">
-              第 {{ change.section }} 章 第 {{ change.position }} 条
+        <!-- 修改记录 -->
+        <div class="lawyer-changelog-column">
+          <div class="lawyer-column-header">审阅内容</div>
+          <div class="lawyer-column-content">
+            <div class="lawyer-change-summary">
+              共有 <strong>{{ document.changes.length }}</strong> 处修改
             </div>
-            <div class="lawyer-change-content">
-              <div v-if="change.type === 'add'" class="lawyer-content-text">
-                <span class="lawyer-content-label">添加内容：</span>
-                {{ change.newText }}
+
+            <div
+              v-for="(change, index) in document.changes"
+              :key="index"
+              class="lawyer-changelog-item"
+            >
+              <div class="lawyer-change-location">
+                第 {{ change.section }} 章 第 {{ change.position }} 条
               </div>
-              <div
-                v-else-if="change.type === 'delete'"
-                class="lawyer-content-text"
-              >
-                <span class="lawyer-content-label">删除内容：</span>
-                {{ change.oldText }}
-              </div>
-              <template v-else>
-                <div class="lawyer-content-text">
-                  <span class="lawyer-content-label">原内容：</span>
-                  {{ change.oldText }}
-                </div>
-                <div class="lawyer-content-text">
-                  <span class="lawyer-content-label">修改内容：</span>
+              <div class="lawyer-change-content">
+                <div v-if="change.type === 'add'" class="lawyer-content-text">
+                  <span class="lawyer-content-label">添加内容：</span>
                   {{ change.newText }}
                 </div>
-              </template>
+                <div
+                  v-else-if="change.type === 'delete'"
+                  class="lawyer-content-text"
+                >
+                  <span class="lawyer-content-label">删除内容：</span>
+                  {{ change.oldText }}
+                </div>
+                <template v-else>
+                  <div class="lawyer-content-text">
+                    <span class="lawyer-content-label">原内容：</span>
+                    {{ change.oldText }}
+                  </div>
+                  <div class="lawyer-content-text">
+                    <span class="lawyer-content-label">修改内容：</span>
+                    {{ change.newText }}
+                  </div>
+                </template>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- 审核意见弹窗 -->
-    <a-modal
-      v-model="reviewModalVisible"
-      :title="reviewAction === 'approve' ? '通过审核' : '驳回文档'"
-      :okText="reviewAction === 'approve' ? '确认通过' : '确认驳回'"
-      okType="primary"
-      cancelText="取消"
-      @ok="submitReview"
-    >
-      <a-form-item label="审核意见">
-        <a-textarea
-          v-model="reviewComment"
-          :rows="4"
-          :placeholder="
-            reviewAction === 'approve'
-              ? '请输入通过意见（选填）'
-              : '请输入驳回原因（必填）'
-          "
-        />
-      </a-form-item>
-    </a-modal>
+      <!-- 审核意见弹窗 -->
+      <a-modal
+        v-model="reviewModalVisible"
+        :title="reviewAction === 'approve' ? '通过审核' : '驳回文档'"
+        :okText="reviewAction === 'approve' ? '确认通过' : '确认驳回'"
+        okType="primary"
+        cancelText="取消"
+        @ok="submitReview"
+      >
+        <a-form-item label="审核意见">
+          <a-textarea
+            v-model="reviewComment"
+            :rows="4"
+            :placeholder="
+              reviewAction === 'approve'
+                ? '请输入通过意见（选填）'
+                : '请输入驳回原因（必填）'
+            "
+          />
+        </a-form-item>
+      </a-modal>
+    </div>
   </div>
 </template>
 
@@ -281,194 +283,196 @@ export default class DocumentCompare extends Vue {
 }
 </script>
 
-<style lang="less" scoped>
-.lawyer-compare-page {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: var(--lawyer-background);
-}
-
-.lawyer-compare-header {
-  background: var(--lawyer-surface);
-  padding: 12px 24px;
-  border-bottom: 1px solid var(--lawyer-border);
-  display: flex;
-  align-items: center;
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-
-  h1 {
-    font-size: 20px;
-    font-weight: 600;
-    color: var(--lawyer-primary);
-    margin-left: 24px;
-    margin-right: auto;
-    margin-bottom: 0;
-  }
-}
-
-.lawyer-back-btn {
-  padding: 8px 16px;
-  border-radius: 6px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-
-  font-weight: 500;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background: var(--lawyer-border-light);
-    color: var(--lawyer-primary-dark);
-    border-color: var(--lawyer-primary-light);
-  }
-}
-
-.lawyer-header-actions {
-  display: flex;
-  gap: 12px;
-}
-
-.lawyer-approve-btn,
-.lawyer-reject-btn {
-  color: white;
-}
-
-.lawyer-approve-btn {
-  background-color: var(--lawyer-success);
-  border-color: var(--lawyer-success);
-
-  &:hover {
-    background-color: #0f9b6c;
-    border-color: #0f9b6c;
-  }
-}
-
-.lawyer-reject-btn {
-  background-color: var(--lawyer-danger);
-  border-color: var(--lawyer-danger);
-
-  &:hover {
-    background-color: #d73737;
-    border-color: #d73737;
-  }
-}
-
-.lawyer-compare-main-container {
-  display: flex;
-  padding: 24px;
-  gap: 24px;
-  flex: 1;
-  min-height: calc(100vh - 60px - 48px);
-}
-
-.lawyer-document-column,
-.lawyer-changelog-column {
-  background: var(--lawyer-surface);
-  border: 1px solid var(--lawyer-border);
-  border-radius: 8px;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.07);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.lawyer-document-column {
-  flex: 1;
-}
-
-.lawyer-changelog-column {
-  flex-basis: 300px;
-  border-left: 1px solid var(--lawyer-border);
-}
-
-.lawyer-column-header {
-  padding: 12px 20px;
-  font-size: 16px;
-  font-weight: 600;
-  color: #333;
-  background-color: #f5f5f5;
-  border-bottom: 1px solid var(--lawyer-border-light);
-}
-
-.lawyer-version-info {
-  color: var(--lawyer-text-light);
-  font-weight: 400;
-}
-
-.lawyer-column-content {
-  padding: 20px;
-  overflow-y: auto;
-  height: 100%;
-}
-
-:deep(.lawyer-column-content) {
-  h2,
-  h3 {
-    color: var(--lawyer-primary);
-    font-weight: 600;
-    margin-top: 16px;
-    margin-bottom: 12px;
+<style lang="less">
+.document-compare-wrapper {
+  .lawyer-compare-page {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--lawyer-background);
+    overflow: hidden;
   }
 
-  h2 {
-    font-size: 18px;
-    margin-top: 20px;
-    margin-bottom: 15px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid rgba(var(--lawyer-primary-rgb), 0.2);
+  .lawyer-compare-header {
+    background: var(--lawyer-surface);
+    padding: 12px 24px;
+    border-bottom: 1px solid var(--lawyer-border);
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    z-index: 1000;
+
+    h1 {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--lawyer-primary);
+      margin-left: 24px;
+      margin-right: auto;
+      margin-bottom: 0;
+    }
   }
 
-  h3 {
+  .lawyer-back-btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: var(--lawyer-border-light);
+      color: var(--lawyer-primary-dark);
+      border-color: var(--lawyer-primary-light);
+    }
+  }
+
+  .lawyer-header-actions {
+    display: flex;
+    gap: 12px;
+  }
+
+  .lawyer-approve-btn,
+  .lawyer-reject-btn {
+    color: white;
+  }
+
+  .lawyer-approve-btn {
+    background-color: var(--lawyer-success);
+    border-color: var(--lawyer-success);
+
+    &:hover {
+      background-color: #0f9b6c;
+      border-color: #0f9b6c;
+    }
+  }
+
+  .lawyer-reject-btn {
+    background-color: var(--lawyer-danger);
+    border-color: var(--lawyer-danger);
+
+    &:hover {
+      background-color: #d73737;
+      border-color: #d73737;
+    }
+  }
+
+  .lawyer-compare-main-container {
+    display: flex;
+    padding: 24px;
+    gap: 24px;
+    flex: 1;
+    height: calc(100vh - 76px);
+    overflow: hidden;
+  }
+
+  .lawyer-document-column,
+  .lawyer-changelog-column {
+    background: var(--lawyer-surface);
+    border: 1px solid var(--lawyer-border);
+    border-radius: 8px;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.07);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .lawyer-document-column {
+    flex: 1;
+  }
+
+  .lawyer-changelog-column {
+    flex-basis: 300px;
+    border-left: 1px solid var(--lawyer-border);
+  }
+
+  .lawyer-column-header {
+    padding: 12px 20px;
     font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    background-color: #f5f5f5;
+    border-bottom: 1px solid var(--lawyer-border-light);
   }
-}
 
-.lawyer-change-summary {
-  padding: 14px 20px;
-  background-color: #f9f9f9;
-  font-weight: 500;
-  border-bottom: 1px solid var(--lawyer-border-light);
-  color: var(--lawyer-text);
+  .lawyer-version-info {
+    color: var(--lawyer-text-light);
+    font-weight: 400;
+  }
 
-  strong {
+  .lawyer-column-content {
+    padding: 20px;
+    overflow-y: auto;
+    height: 100%;
+  }
+
+  :deep(.lawyer-column-content) {
+    h2,
+    h3 {
+      color: var(--lawyer-primary);
+      font-weight: 600;
+      margin-top: 16px;
+      margin-bottom: 12px;
+    }
+
+    h2 {
+      font-size: 18px;
+      margin-top: 20px;
+      margin-bottom: 15px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(var(--lawyer-primary-rgb), 0.2);
+    }
+
+    h3 {
+      font-size: 16px;
+    }
+  }
+
+  .lawyer-change-summary {
+    padding: 14px 20px;
+    background-color: #f9f9f9;
+    font-weight: 500;
+    border-bottom: 1px solid var(--lawyer-border-light);
+    color: var(--lawyer-text);
+
+    strong {
+      color: var(--lawyer-primary);
+      font-weight: 600;
+      margin: 0 4px;
+    }
+  }
+
+  .lawyer-changelog-item {
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--lawyer-border-light);
+  }
+
+  .lawyer-change-location {
     color: var(--lawyer-primary);
     font-weight: 600;
-    margin: 0 4px;
+    font-size: 15px;
+    margin-bottom: 10px;
   }
-}
 
-.lawyer-changelog-item {
-  padding: 15px 20px;
-  border-bottom: 1px solid var(--lawyer-border-light);
-}
-
-.lawyer-change-location {
-  color: var(--lawyer-primary);
-  font-weight: 600;
-  font-size: 15px;
-  margin-bottom: 10px;
-}
-
-.lawyer-change-content {
-  padding-left: 10px;
-}
-
-.lawyer-content-text {
-  line-height: 1.6;
-  margin-bottom: 8px;
-
-  &:last-child {
-    margin-bottom: 0;
+  .lawyer-change-content {
+    padding-left: 10px;
   }
-}
 
-.lawyer-content-label {
-  font-weight: 600;
-  color: #333;
-  display: inline-block;
-  margin-right: 8px;
+  .lawyer-content-text {
+    line-height: 1.6;
+    margin-bottom: 8px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  .lawyer-content-label {
+    font-weight: 600;
+    color: #333;
+    display: inline-block;
+    margin-right: 8px;
+  }
 }
 </style>

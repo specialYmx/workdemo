@@ -30,7 +30,9 @@ import {
   Cascader,
   Upload,
   message,
+  ConfigProvider,
 } from "ant-design-vue";
+import zhCN from "ant-design-vue/lib/locale-provider/zh_CN";
 
 // 注册组件
 Vue.use(Button);
@@ -62,6 +64,10 @@ Vue.use(Empty);
 Vue.use(Spin);
 Vue.use(Cascader);
 Vue.use(Upload);
+Vue.use(ConfigProvider);
+
+// 设置中文本地化
+Vue.prototype.$antLocale = zhCN;
 
 // 全局挂载message组件
 Vue.prototype.$message = message;

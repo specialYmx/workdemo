@@ -1,10 +1,12 @@
 <template>
-  <document-viewer
-    :document="document"
-    :relatedDocuments="relatedDocuments"
-    @go-back="goBack"
-    @open-related="openRelatedDocument"
-  />
+  <div class="document-page-wrapper">
+    <document-viewer
+      :document="document"
+      :relatedDocuments="relatedDocuments"
+      @go-back="goBack"
+      @open-related="openRelatedDocument"
+    />
+  </div>
 </template>
 
 <script lang="ts">

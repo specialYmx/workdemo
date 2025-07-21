@@ -1,202 +1,203 @@
 <template>
-  <div class="lawyer-page-container">
-    <!-- 整体内容容器 -->
-    <div class="lawyer-content-wrapper">
-      <!-- 搜索区域 -->
-      <section class="lawyer-search-section">
-        <h1>法规与文件大家智库</h1>
-        <p>
-          搜索和浏览法律法规、政策文件、典型案例和解读材料，获取最新的合规信息和专业指导。
-        </p>
+  <div class="knowledge-page-wrapper">
+    <div class="lawyer-page-container">
+      <!-- 整体内容容器 -->
+      <div class="lawyer-content-wrapper">
+        <!-- 搜索区域 -->
+        <section class="lawyer-search-section">
+          <h1>法规与文件大家智库</h1>
+          <p>
+            搜索和浏览法律法规、政策文件、典型案例和解读材料，获取最新的合规信息和专业指导。
+          </p>
 
-        <div class="lawyer-search-form">
-          <a-input
-            placeholder="输入关键词搜索法规、案例、解读..."
-            size="large"
-            v-model="searchText"
-            class="lawyer-search-input"
-            @keyup.enter="onSearch"
-          />
-          <a-button
-            v-for="(btn, index) in searchButtons"
-            :key="index"
-            :type="btn.isActive ? 'primary' : btn.type || 'default'"
-            :icon="btn.icon"
-            size="large"
-            :loading="btn.loading"
-            @click="btn.handler"
-            :class="{ 'lawyer-btn-active': btn.isActive }"
-          >
-            {{ btn.text }}{{ btn.count ? ` (${btn.count})` : "" }}
-          </a-button>
-        </div>
-
-        <!-- 智能搜索提示 -->
-        <div class="lawyer-search-mode-info" v-if="isSemanticSearchEnabled">
-          <a-icon type="bulb" /> 智能搜索模式已启用 -
-          系统将理解您的搜索意图，匹配相关概念和同义词
-        </div>
-
-        <!-- 高级筛选选项 -->
-        <div class="lawyer-filter-options" v-show="isAdvancedSearchVisible">
-          <!-- 时效性选择器 -->
-          <div class="lawyer-filter-group">
-            <a-select
-              v-model="effectivenessFilter"
-              style="width: 100%"
-              placeholder="时效性"
-              @change="onSearch"
-            >
-              <a-select-option
-                v-for="option in effectivenessOptions"
-                :key="option.value"
-                :value="option.value"
-              >
-                {{ option.label }}
-              </a-select-option>
-            </a-select>
-          </div>
-          <!-- 专题分类级联选择器 -->
-          <div class="lawyer-filter-group">
-            <a-cascader
-              v-model="topicCategory"
-              :options="topicCategoryOptions"
-              placeholder="专题分类"
-              style="width: 100%"
-              @change="onSearch"
-              :show-search="true"
+          <div class="lawyer-search-form">
+            <a-input
+              placeholder="输入关键词搜索法规、案例、解读..."
+              size="large"
+              v-model="searchText"
+              class="lawyer-search-input"
+              @keyup.enter="onSearch"
             />
-          </div>
-          <div
-            class="lawyer-filter-group"
-            v-for="(filter, index) in filterOptions"
-            :key="index"
-          >
-            <a-select
-              v-model="filter.value"
-              style="width: 100%"
-              :placeholder="filter.placeholder"
-              @change="onSearch"
+            <a-button
+              v-for="(btn, index) in searchButtons"
+              :key="index"
+              :type="btn.isActive ? 'primary' : btn.type || 'default'"
+              :icon="btn.icon"
+              size="large"
+              :loading="btn.loading"
+              @click="btn.handler"
+              :class="{ 'lawyer-btn-active': btn.isActive }"
             >
-              <a-select-option
-                v-for="option in filter.options"
-                :key="option.value"
-                :value="option.value"
-              >
-                {{ option.label }}
-              </a-select-option>
-            </a-select>
+              {{ btn.text }}{{ btn.count ? ` (${btn.count})` : "" }}
+            </a-button>
           </div>
+
+          <!-- 智能搜索提示 -->
+          <div class="lawyer-search-mode-info" v-if="isSemanticSearchEnabled">
+            <a-icon type="bulb" /> 智能搜索模式已启用 -
+            系统将理解您的搜索意图，匹配相关概念和同义词
+          </div>
+
+          <!-- 高级筛选选项 -->
+          <div class="lawyer-filter-options" v-show="isAdvancedSearchVisible">
+            <!-- 时效性选择器 -->
+            <div class="lawyer-filter-group">
+              <a-select
+                v-model="effectivenessFilter"
+                style="width: 100%"
+                placeholder="时效性"
+                @change="onSearch"
+              >
+                <a-select-option
+                  v-for="option in effectivenessOptions"
+                  :key="option.value"
+                  :value="option.value"
+                >
+                  {{ option.label }}
+                </a-select-option>
+              </a-select>
+            </div>
+            <!-- 专题分类级联选择器 -->
+            <div class="lawyer-filter-group">
+              <a-cascader
+                v-model="topicCategory"
+                :options="topicCategoryOptions"
+                placeholder="专题分类"
+                style="width: 100%"
+                @change="onSearch"
+                :show-search="true"
+              />
+            </div>
+            <div
+              class="lawyer-filter-group"
+              v-for="(filter, index) in filterOptions"
+              :key="index"
+            >
+              <a-select
+                v-model="filter.value"
+                style="width: 100%"
+                :placeholder="filter.placeholder"
+                @change="onSearch"
+              >
+                <a-select-option
+                  v-for="option in filter.options"
+                  :key="option.value"
+                  :value="option.value"
+                >
+                  {{ option.label }}
+                </a-select-option>
+              </a-select>
+            </div>
+          </div>
+        </section>
+
+        <!-- 加载中 -->
+        <div class="lawyer-loading-overlay" v-if="listLoading">
+          <a-spin size="large" />
+          <h3>正在努力加载中...</h3>
+          <p>请稍候，我们正在为您检索信息。</p>
         </div>
-      </section>
 
-      <!-- 加载中 -->
-      <div class="lawyer-loading-overlay" v-if="listLoading">
-        <a-spin size="large" />
-        <h3>正在努力加载中...</h3>
-        <p>请稍候，我们正在为您检索信息。</p>
-      </div>
-
-      <!-- 无结果提示 -->
-      <div
-        class="lawyer-no-results"
-        v-if="!listLoading && documents.length === 0"
-      >
-        <h3>未能找到相关结果</h3>
-        <p>请尝试调整您的搜索关键词或筛选条件。</p>
-      </div>
-
-      <!-- 文档列表 -->
-      <div
-        class="lawyer-document-list"
-        v-if="!listLoading && documents.length > 0"
-      >
+        <!-- 无结果提示 -->
         <div
-          class="lawyer-document-item"
-          v-for="doc in documents"
-          :key="doc.id"
+          class="lawyer-no-results"
+          v-if="!listLoading && documents.length === 0"
         >
-          <div class="lawyer-document-item-content">
-            <div class="lawyer-document-icon">📄</div>
-            <div class="lawyer-document-main-content">
-              <div class="lawyer-document-header">
-                <h3 class="lawyer-document-title">
-                  <nuxt-link :to="`/document/${doc.id}`">{{
-                    doc.title
-                  }}</nuxt-link>
-                </h3>
-                <div class="lawyer-document-meta">
-                  <span><a-icon type="calendar" /> {{ doc.date }}</span>
-                  <span
-                    ><a-icon type="bank" />
-                    {{ doc.source || doc.category }}</span
-                  >
-                  <span><a-icon type="eye" /> {{ doc.views }} 阅读</span>
-                  <span
-                    v-if="isSemanticSearchEnabled && doc.semanticScore"
-                    class="lawyer-semantic-score"
-                  >
-                    <a-icon type="bulb" /> 相关度:
-                    {{ Math.round(doc.semanticScore) }}%
-                  </span>
+          <h3>未能找到相关结果</h3>
+          <p>请尝试调整您的搜索关键词或筛选条件。</p>
+        </div>
+
+        <!-- 文档列表 -->
+        <div
+          class="lawyer-document-list"
+          v-if="!listLoading && documents.length > 0"
+        >
+          <div
+            class="lawyer-document-item"
+            v-for="doc in documents"
+            :key="doc.id"
+          >
+            <div class="lawyer-document-item-content">
+              <div class="lawyer-document-icon">📄</div>
+              <div class="lawyer-document-main-content">
+                <div class="lawyer-document-header">
+                  <h3 class="lawyer-document-title">
+                    <nuxt-link :to="`/document/${doc.id}`">{{
+                      doc.title
+                    }}</nuxt-link>
+                  </h3>
+                  <div class="lawyer-document-meta">
+                    <span><a-icon type="calendar" /> {{ doc.date }}</span>
+                    <span
+                      ><a-icon type="bank" />
+                      {{ doc.source || doc.category }}</span
+                    >
+                    <span><a-icon type="eye" /> {{ doc.views }} 阅读</span>
+                    <span
+                      v-if="isSemanticSearchEnabled && doc.semanticScore"
+                      class="lawyer-semantic-score"
+                    >
+                      <a-icon type="bulb" /> 相关度:
+                      {{ Math.round(doc.semanticScore) }}%
+                    </span>
+                  </div>
                 </div>
-              </div>
-              <p class="lawyer-document-summary">
-                {{ doc.description || doc.summary }}
-              </p>
-              <div class="lawyer-document-footer">
-                <div class="lawyer-document-tags">
-                  <a-tag :color="getTagColor(doc.type || doc.category)">{{
-                    getTypeText(doc.type || doc.category)
-                  }}</a-tag>
-                  <a-tag
-                    v-for="(tag, index) in doc.tags || []"
-                    :key="index"
-                    color="blue"
-                    >{{ tag }}</a-tag
-                  >
-                </div>
-                <div class="lawyer-document-actions">
-                  <a-button
-                    v-for="(action, index) in getDocActions(doc)"
-                    :key="index"
-                    :type="action.type || 'default'"
-                    @click="action.handler"
-                  >
-                    <a-icon :type="action.icon" /> {{ action.text }}
-                  </a-button>
+                <p class="lawyer-document-summary">
+                  {{ doc.description || doc.summary }}
+                </p>
+                <div class="lawyer-document-footer">
+                  <div class="lawyer-document-tags">
+                    <a-tag :color="getTagColor(doc.type || doc.category)">{{
+                      getTypeText(doc.type || doc.category)
+                    }}</a-tag>
+                    <a-tag
+                      v-for="(tag, index) in doc.tags || []"
+                      :key="index"
+                      color="blue"
+                      >{{ tag }}</a-tag
+                    >
+                  </div>
+                  <div class="lawyer-document-actions">
+                    <a-button
+                      v-for="(action, index) in getDocActions(doc)"
+                      :key="index"
+                      :type="action.type || 'default'"
+                      @click="action.handler"
+                    >
+                      <a-icon :type="action.icon" /> {{ action.text }}
+                    </a-button>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- 分页 -->
-        <div class="lawyer-pagination">
-          <a-pagination
-            :current="currentPage"
-            :total="totalDocuments"
-            :pageSize="pageSize"
-            @change="onPageChange"
-            showQuickJumper
-            showSizeChanger
-            :pageSizeOptions="['10', '20', '50', '100']"
-            @showSizeChange="onShowSizeChange"
-          />
+          <!-- 分页 -->
+          <div class="lawyer-pagination">
+            <a-pagination
+              :current="currentPage"
+              :total="totalDocuments"
+              :pageSize="pageSize"
+              show-size-changer
+              show-quick-jumper
+              @change="onPageChange"
+              @showSizeChange="onShowSizeChange"
+            />
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- 文件上传组件 -->
-    <FileUploadModal
-      :visible="uploadModalVisible"
-      :title="`更新文档: ${currentUploadDocTitle}`"
-      :document-id="currentUploadDocId"
-      :document-title="currentUploadDocTitle"
-      @cancel="handleUploadCancel"
-      @complete="handleUploadComplete"
-      @upload-success="handleUploadSuccess"
-    />
+      <!-- 文件上传组件 -->
+      <FileUploadModal
+        :visible="uploadModalVisible"
+        :title="`更新文档: ${currentUploadDocTitle}`"
+        :document-id="currentUploadDocId"
+        :document-title="currentUploadDocTitle"
+        @cancel="handleUploadCancel"
+        @complete="handleUploadComplete"
+        @upload-success="handleUploadSuccess"
+      />
+    </div>
   </div>
 </template>
 
@@ -237,7 +238,7 @@ export default class KnowledgePage extends Vue {
   favoriteDocuments: string[] = [];
 
   // 高级筛选展示状态
-  isAdvancedSearchVisible = true;
+  isAdvancedSearchVisible = false;
 
   // 列表相关
   listLoading = false;
@@ -900,254 +901,248 @@ export default class KnowledgePage extends Vue {
 }
 </script>
 
-<style lang="less" scoped>
-// 公共卡片样式
-.lawyer-card {
-  background: var(--lawyer-surface);
-  padding: 24px;
-  border-radius: 8px;
-  border: 1px solid var(--lawyer-border);
-}
-
-// 整体内容容器
-.lawyer-content-wrapper {
-  &:extend(.lawyer-card);
-  padding: 32px;
-}
-
-// 搜索区域
-.lawyer-search-section {
-  margin-bottom: 32px;
-  padding-bottom: 24px;
-  border-bottom: 1px solid var(--lawyer-border-light);
-
-  h1 {
-    font-size: 28px;
-    font-weight: 600;
-    color: var(--lawyer-text);
-    margin-bottom: 12px;
-  }
-
-  p {
-    color: var(--lawyer-text-light);
+<style lang="less">
+.knowledge-page-wrapper {
+  // 整个页面的灰色背景
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  // 整体内容容器 - 主要的白色卡片背景
+  .lawyer-content-wrapper {
+    background: #ffffff;
+    padding: 32px;
+    border-radius: 8px;
+    border: 1px solid #e8e8e8;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     margin-bottom: 24px;
-    font-size: 16px;
-  }
-}
-
-// 搜索表单
-.lawyer-search-form {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 24px;
-
-  .lawyer-search-input {
-    flex: 1;
-    min-width: 250px;
   }
 
-  .lawyer-search-btn {
-    background-color: var(--lawyer-primary);
-    border-color: var(--lawyer-primary);
-
-    &:hover,
-    &:focus {
-      background-color: var(--lawyer-primary-dark);
-      border-color: var(--lawyer-primary-dark);
-    }
-  }
-}
-
-// 按钮激活状态
-.lawyer-btn-active {
-  background-color: var(--lawyer-primary);
-  color: white;
-  border-color: var(--lawyer-primary);
-}
-
-// 智能搜索信息
-.lawyer-search-mode-info {
-  background-color: rgba(245, 158, 11, 0.1);
-  color: var(--lawyer-primary-dark);
-  padding: 12px 16px;
-  border-radius: 4px;
-
-  margin-bottom: 24px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-// 筛选选项
-.lawyer-filter-options {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-  margin-bottom: 24px;
-
-  .lawyer-filter-group {
-    flex: 1;
-    flex-basis: 200px;
-  }
-}
-
-// 结果信息
-.lawyer-results-info {
-  color: var(--lawyer-text-light);
-  margin-bottom: 24px;
-  padding: 12px 16px;
-  background: var(--lawyer-surface);
-  border-radius: 4px;
-  border: 1px solid var(--lawyer-border-light);
-  font-weight: 500;
-}
-
-// 加载中和无结果状态
-.lawyer-loading-overlay,
-.lawyer-no-results {
-  text-align: center;
-  padding: 32px;
-  color: var(--lawyer-text-light);
-  &:extend(.lawyer-card);
-  margin-top: 32px;
-
-  h3 {
-    font-size: 20px;
-    color: var(--lawyer-text);
-    margin-bottom: 12px;
-    font-weight: 500;
-  }
-}
-
-// 文档列表
-.lawyer-document-list {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  margin-bottom: 32px;
-}
-
-// 文档项
-.lawyer-document-item {
-  &:extend(.lawyer-card);
-  transition: background-color 0.2s ease;
-
-  &:hover {
-    background-color: rgba(var(--lawyer-primary-rgb), 0.03);
-  }
-
-  &-content {
+  // 搜索表单
+  .lawyer-search-form {
     display: flex;
-    gap: 20px;
-    align-items: flex-start;
-  }
-}
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 24px;
 
-// 文档图标
-.lawyer-document-icon {
-  width: 40px;
-  height: 40px;
-  background: rgba(var(--lawyer-primary-rgb), 0.1);
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  color: var(--lawyer-primary-dark);
-  flex-shrink: 0;
-}
+    // 搜索输入框
+    .lawyer-search-input {
+      flex: 1;
+      min-width: 300px;
+    }
 
-// 文档主内容
-.lawyer-document-main-content {
-  flex: 1;
-  min-width: 0;
-}
+    // 按钮样式
+    :deep(.ant-btn) {
+      flex-shrink: 0;
 
-// 文档标题和元数据
-.lawyer-document {
-  &-header {
-    margin-bottom: 12px;
-  }
+      &.lawyer-search-btn {
+        background-color: #1890ff;
+        border-color: #1890ff;
+        &:hover,
+        &:focus {
+          background-color: #096dd9;
+          border-color: #096dd9;
+        }
+      }
 
-  &-title {
-    font-size: 18px;
-    font-weight: 500;
-    color: var(--lawyer-text);
-    margin-bottom: 8px;
-    line-height: 1.4;
-
-    a {
-      text-decoration: none;
-      color: inherit;
-      transition: color 0.2s ease;
-
-      &:hover {
-        color: var(--lawyer-primary-dark);
+      &.lawyer-btn-active {
+        background-color: #1890ff;
+        color: white;
+        border-color: #1890ff;
       }
     }
   }
 
-  &-meta {
-    font-size: 13px;
-    color: var(--lawyer-text-light);
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px 16px;
-    margin-bottom: 12px;
+  // 智能搜索信息
+  .lawyer-search-mode-info {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: #096dd9;
+    padding: 12px 16px;
+    border-radius: 4px;
 
-    .anticon {
-      margin-right: 6px;
-    }
-  }
-
-  &-summary {
-    color: var(--lawyer-text-light);
-    line-height: 1.6;
-    margin-bottom: 16px;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  &-footer {
+    margin-bottom: 24px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: 8px;
-    flex-wrap: wrap;
-    margin-top: 8px;
   }
 
-  &-tags {
+  // 筛选选项
+  .lawyer-filter-options {
     display: flex;
+    gap: 16px;
     flex-wrap: wrap;
-    gap: 8px;
-    flex: 1;
-  }
+    margin-bottom: 24px;
 
-  &-actions {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-
-    .ant-btn .anticon {
-      font-size: 12px;
+    .lawyer-filter-group {
+      flex: 1;
+      flex-basis: 200px;
     }
   }
-}
 
-.lawyer-semantic-score {
-  color: var(--lawyer-success);
-  font-weight: 600;
-}
+  // 结果信息
+  .lawyer-results-info {
+    color: #8c8c8c;
+    margin-bottom: 24px;
+    padding: 12px 16px;
+    background: #ffffff;
+    border-radius: 4px;
+    border: 1px solid #f0f0f0;
+    font-weight: 500;
+  }
 
-// 分页
-.lawyer-pagination {
-  display: flex;
-  justify-content: center;
-  padding: 32px 0;
+  // 加载中和无结果状态
+  .lawyer-loading-overlay,
+  .lawyer-no-results {
+    text-align: center;
+    padding: 32px;
+    color: #8c8c8c;
+    background: #ffffff;
+    border-radius: 8px;
+    border: 1px solid #e8e8e8;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    margin-top: 32px;
+
+    h3 {
+      font-size: 20px;
+      color: #262626;
+      margin-bottom: 12px;
+      font-weight: 500;
+    }
+  }
+
+  // 文档列表
+  .lawyer-document-list {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin-bottom: 32px;
+  }
+
+  // 文档项 - 每个文档的独立卡片样式
+  .lawyer-document-item {
+    background: #ffffff;
+    padding: 24px;
+    border-radius: 8px;
+    border: 1px solid #e8e8e8;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+
+    &:hover {
+      background-color: #fafafa;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    &-content {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+    }
+  }
+
+  // 文档图标
+  .lawyer-document-icon {
+    width: 40px;
+    height: 40px;
+    background: rgba(24, 144, 255, 0.1);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: #1890ff;
+    flex-shrink: 0;
+  }
+
+  // 文档主内容
+  .lawyer-document-main-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  // 文档标题和元数据
+  .lawyer-document {
+    &-header {
+      margin-bottom: 12px;
+    }
+
+    &-title {
+      font-size: 18px;
+      font-weight: 500;
+      color: #262626;
+      margin-bottom: 8px;
+      line-height: 1.4;
+
+      a {
+        text-decoration: none;
+        color: inherit;
+        transition: color 0.2s ease;
+
+        &:hover {
+          color: #096dd9;
+        }
+      }
+    }
+
+    &-meta {
+      font-size: 13px;
+      color: #8c8c8c;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 16px;
+      margin-bottom: 12px;
+
+      .anticon {
+        margin-right: 6px;
+      }
+    }
+
+    &-summary {
+      color: #8c8c8c;
+      line-height: 1.6;
+      margin-bottom: 16px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    &-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    &-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      flex: 1;
+    }
+
+    &-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+
+      .ant-btn .anticon {
+        font-size: 12px;
+      }
+    }
+  }
+
+  .lawyer-semantic-score {
+    color: #52c41a;
+    font-weight: 600;
+  }
+
+  // 分页
+  .lawyer-pagination {
+    display: flex;
+    justify-content: center;
+    padding: 32px 0;
+  }
 }
 </style>
