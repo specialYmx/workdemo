@@ -4,7 +4,7 @@
       <!-- 整体内容容器 -->
       <div class="lawyer-content-wrapper">
         <!-- 搜索区域 -->
-        <section class="lawyer-search-section">
+        <section>
           <h1>法规与文件大家智库</h1>
           <p>
             搜索和浏览法律法规、政策文件、典型案例和解读材料，获取最新的合规信息和专业指导。
@@ -905,13 +905,21 @@ export default class KnowledgePage extends Vue {
 .knowledge-page-wrapper {
   // 整个页面的灰色背景
   min-height: 100vh;
-  background-color: #f5f5f5;
+  background-color: var(--lawyer-background);
+
+  // 页面容器
+  .lawyer-page-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+
   // 整体内容容器 - 主要的白色卡片背景
   .lawyer-content-wrapper {
-    background: #ffffff;
+    background: var(--lawyer-surface);
     padding: 32px;
     border-radius: 8px;
-    border: 1px solid #e8e8e8;
+    border: 1px solid var(--lawyer-border);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     margin-bottom: 24px;
   }
@@ -933,31 +941,20 @@ export default class KnowledgePage extends Vue {
     :deep(.ant-btn) {
       flex-shrink: 0;
 
-      &.lawyer-search-btn {
-        background-color: #1890ff;
-        border-color: #1890ff;
-        &:hover,
-        &:focus {
-          background-color: #096dd9;
-          border-color: #096dd9;
-        }
-      }
-
       &.lawyer-btn-active {
-        background-color: #1890ff;
+        background-color: var(--lawyer-primary);
         color: white;
-        border-color: #1890ff;
+        border-color: var(--lawyer-primary);
       }
     }
   }
 
   // 智能搜索信息
   .lawyer-search-mode-info {
-    background-color: rgba(245, 158, 11, 0.1);
-    color: #096dd9;
+    background-color: rgba(var(--lawyer-primary-rgb), 0.1);
+    color: var(--lawyer-primary-dark);
     padding: 12px 16px;
     border-radius: 4px;
-
     margin-bottom: 24px;
     display: flex;
     align-items: center;
@@ -979,12 +976,12 @@ export default class KnowledgePage extends Vue {
 
   // 结果信息
   .lawyer-results-info {
-    color: #8c8c8c;
+    color: var(--lawyer-text-light);
     margin-bottom: 24px;
     padding: 12px 16px;
-    background: #ffffff;
+    background: var(--lawyer-surface);
     border-radius: 4px;
-    border: 1px solid #f0f0f0;
+    border: 1px solid var(--lawyer-border-light);
     font-weight: 500;
   }
 
@@ -993,16 +990,16 @@ export default class KnowledgePage extends Vue {
   .lawyer-no-results {
     text-align: center;
     padding: 32px;
-    color: #8c8c8c;
-    background: #ffffff;
+    color: var(--lawyer-text-light);
+    background: var(--lawyer-surface);
     border-radius: 8px;
-    border: 1px solid #e8e8e8;
+    border: 1px solid var(--lawyer-border);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     margin-top: 32px;
 
     h3 {
       font-size: 20px;
-      color: #262626;
+      color: var(--lawyer-text);
       margin-bottom: 12px;
       font-weight: 500;
     }
@@ -1018,15 +1015,15 @@ export default class KnowledgePage extends Vue {
 
   // 文档项 - 每个文档的独立卡片样式
   .lawyer-document-item {
-    background: #ffffff;
+    background: var(--lawyer-surface);
     padding: 24px;
     border-radius: 8px;
-    border: 1px solid #e8e8e8;
+    border: 1px solid var(--lawyer-border);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     transition: background-color 0.2s ease, box-shadow 0.2s ease;
 
     &:hover {
-      background-color: #fafafa;
+      background-color: rgba(var(--lawyer-primary-rgb), 0.03);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
 
@@ -1041,13 +1038,13 @@ export default class KnowledgePage extends Vue {
   .lawyer-document-icon {
     width: 40px;
     height: 40px;
-    background: rgba(24, 144, 255, 0.1);
+    background: rgba(var(--lawyer-primary-rgb), 0.1);
     border-radius: 6px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 20px;
-    color: #1890ff;
+    color: var(--lawyer-primary);
     flex-shrink: 0;
   }
 
@@ -1066,7 +1063,7 @@ export default class KnowledgePage extends Vue {
     &-title {
       font-size: 18px;
       font-weight: 500;
-      color: #262626;
+      color: var(--lawyer-text);
       margin-bottom: 8px;
       line-height: 1.4;
 
@@ -1076,26 +1073,26 @@ export default class KnowledgePage extends Vue {
         transition: color 0.2s ease;
 
         &:hover {
-          color: #096dd9;
+          color: var(--lawyer-primary-dark);
         }
       }
     }
 
     &-meta {
       font-size: 13px;
-      color: #8c8c8c;
+      color: var(--lawyer-text-light);
       display: flex;
       flex-wrap: wrap;
       gap: 8px 16px;
       margin-bottom: 12px;
 
-      .anticon {
+      :deep(.anticon) {
         margin-right: 6px;
       }
     }
 
     &-summary {
-      color: #8c8c8c;
+      color: var(--lawyer-text-light);
       line-height: 1.6;
       margin-bottom: 16px;
       display: -webkit-box;
@@ -1127,14 +1124,14 @@ export default class KnowledgePage extends Vue {
       gap: 8px;
       flex-wrap: wrap;
 
-      .ant-btn .anticon {
+      :deep(.ant-btn .anticon) {
         font-size: 12px;
       }
     }
   }
 
   .lawyer-semantic-score {
-    color: #52c41a;
+    color: var(--lawyer-success);
     font-weight: 600;
   }
 
