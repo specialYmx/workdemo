@@ -158,7 +158,7 @@
 
 <script lang="ts">
 // @ts-nocheck
-import { Component, Vue, Prop, Watch } from "nuxt-property-decorator";
+import { Component, Vue, Prop, Watch, Emit } from "nuxt-property-decorator";
 import DivTextSearch from "@/components/common/DivTextSearch.vue";
 
 interface TocItem {
@@ -264,7 +264,7 @@ export default class DocumentViewer extends Vue {
 
   // 返回上一页
   goBack(): void {
-    this.$emit("go-back");
+    this.emitGoBack();
   }
 
   // 获取标签样式类
@@ -513,6 +513,17 @@ export default class DocumentViewer extends Vue {
       contentDiv.removeEventListener("scroll", this.handleScroll);
     }
     window.removeEventListener("keydown", this.handleKeyDown);
+  }
+
+  // Emit 装饰器方法
+  @Emit("go-back")
+  emitGoBack() {
+    // 无需返回值
+  }
+
+  @Emit("open-related")
+  emitOpenRelated(document: any) {
+    return document;
   }
 }
 </script>

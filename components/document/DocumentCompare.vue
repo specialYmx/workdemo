@@ -112,7 +112,7 @@
 
 <script lang="ts">
 // @ts-nocheck
-import { Component, Vue, Prop } from "nuxt-property-decorator";
+import { Component, Vue, Prop, Emit } from "nuxt-property-decorator";
 
 interface ReviewAction {
   text: string;
@@ -249,7 +249,7 @@ export default class DocumentCompare extends Vue {
 
   // 返回上一页
   goBack(): void {
-    this.$emit("go-back");
+    this.emitGoBack();
   }
 
   // 显示通过审核弹窗
@@ -273,12 +273,23 @@ export default class DocumentCompare extends Vue {
       return;
     }
 
-    this.$emit("submit-review", {
+    this.emitSubmitReview({
       action: this.reviewAction,
       comment: this.reviewComment,
     });
 
     this.reviewModalVisible = false;
+  }
+
+  // Emit 装饰器方法
+  @Emit("go-back")
+  emitGoBack() {
+    // 无需返回值
+  }
+
+  @Emit("submit-review")
+  emitSubmitReview(data: { action: string; comment: string }) {
+    return data;
   }
 }
 </script>

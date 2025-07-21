@@ -1,6 +1,6 @@
 <template>
   <div class="knowledge-page-wrapper">
-    <div class="lawyer-page-container">
+    <div>
       <!-- 整体内容容器 -->
       <div class="lawyer-content-wrapper">
         <!-- 搜索区域 -->
@@ -904,20 +904,12 @@ export default class KnowledgePage extends Vue {
 <style lang="less">
 .knowledge-page-wrapper {
   // 整个页面的灰色背景
-  min-height: 100vh;
-  background-color: var(--lawyer-background);
 
-  // 页面容器
-  .lawyer-page-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 24px;
-  }
+  background-color: var(--lawyer-background);
 
   // 整体内容容器 - 主要的白色卡片背景
   .lawyer-content-wrapper {
-    background: var(--lawyer-surface);
-    padding: 32px;
+    padding: 20px;
     border-radius: 8px;
     border: 1px solid var(--lawyer-border);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
@@ -938,7 +930,7 @@ export default class KnowledgePage extends Vue {
     }
 
     // 按钮样式
-    :deep(.ant-btn) {
+    .lawyer-search-form .ant-btn {
       flex-shrink: 0;
 
       &.lawyer-btn-active {
@@ -1086,7 +1078,7 @@ export default class KnowledgePage extends Vue {
       gap: 8px 16px;
       margin-bottom: 12px;
 
-      :deep(.anticon) {
+      .lawyer-document-meta .anticon {
         margin-right: 6px;
       }
     }
@@ -1124,7 +1116,7 @@ export default class KnowledgePage extends Vue {
       gap: 8px;
       flex-wrap: wrap;
 
-      :deep(.ant-btn .anticon) {
+      .lawyer-document-actions .ant-btn .anticon {
         font-size: 12px;
       }
     }
