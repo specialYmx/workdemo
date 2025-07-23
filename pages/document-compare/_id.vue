@@ -29,6 +29,7 @@ export default class DocumentComparePage extends Vue {
     id: "1",
     title: "《中华人民共和国个人信息保护法》修订版本对比",
     status: "pending",
+    tags: ["公司治理", "董事会管理"], // 添加标签数据
     originalVersion: "1.0",
     newVersion: "1.1",
     changeSummary:
@@ -122,7 +123,3 @@ export default class DocumentComparePage extends Vue {
   }
 }
 </script>
-
-<style lang="less" scoped>
-/* 所有样式已移至组件中 */
-</style>

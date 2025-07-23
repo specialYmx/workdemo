@@ -8,6 +8,9 @@
   "CommonFileUploadModal": {
     "description": "Auto imported from components/common/FileUploadModal.vue"
   },
+  "CommonTagEditModal": {
+    "description": "Auto imported from components/common/TagEditModal.vue"
+  },
   "DocumentCompare": {
     "description": "Auto imported from components/document/DocumentCompare.vue"
   },

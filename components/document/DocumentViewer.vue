@@ -13,21 +13,24 @@
 
             <!-- 文档标签区域 -->
             <div class="lawyer-document-tags">
-              <span
-                v-for="(tag, index) in documentTags"
-                :key="index"
-                :class="['lawyer-doc-tag', getTagClass(tag)]"
-              >
-                {{ tag }}
-              </span>
-              <a-button
-                size="small"
-                icon="edit"
+              <a-tag
+                v-if="displayTag"
+                color="orange"
                 @click="showTagEditModal"
-                class="lawyer-edit-tag-btn"
+                class="lawyer-editable-tag"
               >
-                编辑标签
-              </a-button>
+                {{ displayTag }}
+                <a-icon type="edit" class="lawyer-tag-edit-icon" />
+              </a-tag>
+              <a-tag
+                v-else
+                color="orange"
+                @click="showTagEditModal"
+                class="lawyer-editable-tag lawyer-empty-tag"
+              >
+                点击设置分类
+                <a-icon type="plus" class="lawyer-tag-edit-icon" />
+              </a-tag>
             </div>
 
             <div class="lawyer-document-meta lawyer-flex lawyer-gap-lg">
@@ -129,29 +132,16 @@
       </div>
 
       <!-- 标签编辑模态框 -->
-      <a-modal
-        title="选择分类"
+      <TagEditModal
         :visible="tagEditVisible"
-        @ok="handleTagEditOk"
+        title="编辑文档分类"
+        :current-tags="document.tags"
+        :current-status="document.status"
+        :show-document-status="true"
+        :allow-parent-select="true"
+        @confirm="handleTagEditConfirm"
         @cancel="handleTagEditCancel"
-        :width="500"
-        okText="确认"
-        cancelText="取消"
-      >
-        <div class="lawyer-tag-edit-content">
-          <div class="lawyer-tag-select-row">
-            <label>选择分类</label>
-            <a-cascader
-              v-model="selectedTagPath"
-              :options="tagOptions"
-              placeholder="全部分类"
-              :show-search="true"
-              style="width: 300px"
-              :default-value="selectedTagPath"
-            />
-          </div>
-        </div>
-      </a-modal>
+      />
     </div>
   </div>
 </template>
@@ -160,6 +150,7 @@
 // @ts-nocheck
 import { Component, Vue, Prop, Watch, Emit } from "nuxt-property-decorator";
 import DivTextSearch from "@/components/common/DivTextSearch.vue";
+import TagEditModal from "@/components/common/TagEditModal.vue";
 
 interface TocItem {
   text: string;
@@ -185,6 +176,7 @@ interface MetaItem {
 @Component({
   components: {
     DivTextSearch,
+    TagEditModal,
   },
 })
 export default class DocumentViewer extends Vue {
@@ -198,38 +190,6 @@ export default class DocumentViewer extends Vue {
 
   // 标签编辑相关
   tagEditVisible = false;
-  selectedTagPath: string[] = [];
-
-  // 标签选项数据
-  tagOptions = [
-    {
-      value: "公司治理",
-      label: "公司治理",
-      children: [
-        { value: "董事会管理", label: "董事会管理" },
-        { value: "监事会管理", label: "监事会管理" },
-        { value: "高管管理", label: "高管管理" },
-      ],
-    },
-    {
-      value: "风险合规",
-      label: "风险合规",
-      children: [
-        { value: "重要管理", label: "重要管理" },
-        { value: "合规", label: "合规" },
-        { value: "风控", label: "风控" },
-      ],
-    },
-    {
-      value: "金融产品",
-      label: "金融产品",
-      children: [
-        { value: "保险产品", label: "保险产品" },
-        { value: "理财产品", label: "理财产品" },
-        { value: "投资产品", label: "投资产品" },
-      ],
-    },
-  ];
 
   // 常见问题
   commonQuestions = [
@@ -243,6 +203,14 @@ export default class DocumentViewer extends Vue {
   // 文档标签
   get documentTags(): string[] {
     return this.document.tags || [];
+  }
+
+  // 显示标签（合并为单个标签）
+  get displayTag(): string {
+    const tags = this.documentTags;
+    if (tags.length === 0) return "";
+    if (tags.length === 1) return tags[0];
+    return `${tags[0]}/${tags[1]}`;
   }
 
   // 文档元数据项
@@ -291,78 +259,24 @@ export default class DocumentViewer extends Vue {
   // 显示标签编辑模态框
   showTagEditModal(): void {
     this.tagEditVisible = true;
-    this.selectedTagPath = [];
-
-    // 如果文档已有标签，设置默认选中值
-    if (this.documentTags.length >= 2) {
-      // 当已有两个标签时，假设第一个是一级标签，第二个是二级标签
-      const firstTag = this.documentTags[0];
-      const secondTag = this.documentTags[1];
-
-      // 在tagOptions中查找匹配的路径
-      for (const option of this.tagOptions) {
-        if (option.value === firstTag && option.children) {
-          for (const child of option.children) {
-            if (child.value === secondTag) {
-              // 找到匹配的一级和二级标签
-              this.selectedTagPath = [firstTag, secondTag];
-              break;
-            }
-          }
-        }
-      }
-    } else if (this.documentTags.length === 1) {
-      // 只有一个标签时，尝试查找它是一级还是二级标签
-      const currentTag = this.documentTags[0];
-      const tagPath = this.findTagPath(currentTag);
-      if (tagPath.length > 0) {
-        this.selectedTagPath = [...tagPath];
-      }
-    }
-
-    console.log("设置级联路径:", this.selectedTagPath);
-  }
-
-  // 查找标签在级联选项中的路径
-  findTagPath(tag: string): string[] {
-    // 遍历所有标签选项查找匹配
-    for (const option of this.tagOptions) {
-      // 检查一级标签是否匹配
-      if (option.value === tag) {
-        return [option.value];
-      }
-
-      // 检查二级标签是否匹配
-      if (option.children) {
-        for (const child of option.children) {
-          if (child.value === tag) {
-            return [option.value, child.value];
-          }
-        }
-      }
-    }
-
-    return [];
   }
 
   // 处理标签编辑确认
-  handleTagEditOk(): void {
-    if (this.selectedTagPath.length > 0) {
-      // 清空现有标签
-      this.document.tags = [];
+  handleTagEditConfirm(data: {
+    tags: string[];
+    tagDisplay: string;
+    status?: string;
+  }): void {
+    // 更新标签
+    if (data.tags.length > 0) {
+      this.document.tags = [...data.tags];
+      this.$message.success(`已设置标签为: ${data.tagDisplay}`);
+    }
 
-      if (this.selectedTagPath.length >= 2) {
-        // 如果选择了两级标签，则添加一级和二级标签
-        this.document.tags.push(this.selectedTagPath[0]); // 一级标签
-        this.document.tags.push(this.selectedTagPath[1]); // 二级标签
-        this.$message.success(
-          `已设置标签为: ${this.selectedTagPath[0]}/${this.selectedTagPath[1]}`
-        );
-      } else {
-        // 只选择了一级标签
-        this.document.tags.push(this.selectedTagPath[0]);
-        this.$message.success(`已设置标签为: ${this.selectedTagPath[0]}`);
-      }
+    // 更新状态（如果有）
+    if (data.status) {
+      this.document.status = data.status;
+      this.$message.success(`已更新文档状态`);
     }
 
     this.tagEditVisible = false;
@@ -371,7 +285,6 @@ export default class DocumentViewer extends Vue {
   // 处理标签编辑取消
   handleTagEditCancel(): void {
     this.tagEditVisible = false;
-    this.selectedTagPath = [];
   }
 
   // 使选中内容在视图中可见
@@ -576,6 +489,32 @@ export default class DocumentViewer extends Vue {
     gap: 8px;
     margin-bottom: 8px;
     flex-wrap: wrap;
+
+    .lawyer-editable-tag {
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+
+      &:hover {
+        opacity: 0.8;
+        transform: translateY(-1px);
+      }
+
+      .lawyer-tag-edit-icon {
+        font-size: 10px;
+        opacity: 0.7;
+      }
+
+      &.lawyer-empty-tag {
+        border-style: dashed;
+        opacity: 0.8;
+      }
+    }
   }
 
   .lawyer-doc-tag {
@@ -609,6 +548,14 @@ export default class DocumentViewer extends Vue {
       border-color: #1890ff;
       color: #1890ff;
       background-color: rgba(24, 144, 255, 0.1);
+    }
+
+    // 主要标签 - 金色（类似原型图）
+    &.lawyer-tag-primary {
+      border-color: #ffd666;
+      color: #d48806;
+      background-color: #fff7e6;
+      font-weight: 500;
     }
 
     // 偿付能力 - 紫色

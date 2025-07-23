@@ -9,5 +9,6 @@ You can directly use them in pages and other components without the need to impo
 - `<CommonChartComponent>` | `<common-chart-component>` (components/common/ChartComponent.vue)
 - `<CommonDivTextSearch>` | `<common-div-text-search>` (components/common/DivTextSearch.vue)
 - `<CommonFileUploadModal>` | `<common-file-upload-modal>` (components/common/FileUploadModal.vue)
+- `<CommonTagEditModal>` | `<common-tag-edit-modal>` (components/common/TagEditModal.vue)
 - `<DocumentCompare>` | `<document-compare>` (components/document/DocumentCompare.vue)
 - `<DocumentViewer>` | `<document-viewer>` (components/document/DocumentViewer.vue)

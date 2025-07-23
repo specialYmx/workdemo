@@ -44,51 +44,63 @@
             </a-select-option>
           </a-select>
 
-          <a-button @click="exportData" class="lawyer-btn-export">
-            导出数据
+          <a-button
+            @click="exportData"
+            class="lawyer-btn-export"
+            :disabled="selectedRowKeys.length === 0"
+          >
+            导出选中数据 ({{ selectedRowKeys.length }})
           </a-button>
         </div>
 
         <!-- 统计信息 -->
         <div class="lawyer-stats-info">
           总计: <strong>{{ totalDocuments }}</strong> 条 / 待审核:
-          <strong>{{ pendingCount }}</strong> 条
+          <strong>{{ pendingCount }}</strong> 条 / 已选中:
+          <strong>{{ selectedRowKeys.length }}</strong> 条
         </div>
 
         <!-- 文档列表表格 -->
         <div class="lawyer-table-wrapper">
           <a-table
             :columns="columns"
-            :data-source="filteredDocuments"
-            :pagination="{
-              pageSize: 10,
-              total: filteredDocuments.length,
-              showTotal: (total) => `共 ${total} 条数据`,
-            }"
+            :data-source="documents"
+            :pagination="currentPagination"
             :loading="tableLoading"
             :rowKey="(record) => record.id"
+            :row-selection="rowSelection"
             @change="handleTableChange"
           >
             <!-- 标题列插槽 -->
-            <template slot="titles" slot-scope="text, record">
+            <template slot="ruleName" slot-scope="text, record">
               <div>
-                <div>{{ record.title }}</div>
+                <div>{{ record.ruleName }}</div>
                 <div style="color: #999; font-size: 12px">
-                  文号：{{ record.docNumber || "未分配" }}
+                  文号：{{ record.docNo || "无" }}
                 </div>
               </div>
             </template>
 
             <!-- 分类列插槽 -->
             <span slot="type" slot-scope="text">
-              {{ getTypeText(text) }}
+              {{ text || "未分类" }}
             </span>
 
             <!-- 状态列插槽 -->
             <span slot="status" slot-scope="text">
               <span :class="['lawyer-status-text', `status-${text}`]">
-                {{ getStatusText(text) }}
+                {{ getCheckStatusText(text) }}
               </span>
+            </span>
+
+            <!-- 提交时间列插槽 -->
+            <span slot="createdTime" slot-scope="text">
+              {{ formatTime(text) }}
+            </span>
+
+            <!-- 施行日期列插槽 -->
+            <span slot="publishTime" slot-scope="text">
+              {{ formatTime(text) }}
             </span>
 
             <!-- 操作列插槽 -->
@@ -97,7 +109,12 @@
                 <a @click="viewDocument(record)" class="lawyer-link-view">
                   查看
                 </a>
-                <template v-if="record.status === 'pending'">
+                <template
+                  v-if="
+                    record.checkStatus === '待审核' ||
+                    record.checkStatus === null
+                  "
+                >
                   <a
                     @click="approveDocument(record)"
                     class="lawyer-link-approve"
@@ -190,6 +207,7 @@
 // @ts-nocheck
 import { Component, Vue } from "nuxt-property-decorator";
 import moment from "moment";
+import { ToDoRuleItem } from "~/model/LawyerModel";
 
 interface Document {
   id: string;
@@ -213,15 +231,25 @@ export default class DbPage extends Vue {
   filterStatus = "all";
   filterType = "all";
   dateRange = [];
-
   // 表格加载状态
   tableLoading = false;
+
+  // 表格勾选相关
+  selectedRowKeys: string[] = [];
+  selectedRows: ToDoRuleItem[] = [];
+
+  // 当前分页状态
+  currentPagination = {
+    current: 1,
+    pageSize: 10,
+    total: 0,
+  };
 
   // 审核弹窗
   reviewModalVisible = false;
   reviewAction = "approve";
   reviewComment = "";
-  currentDocument: Document | null = null;
+  currentDocument: ToDoRuleItem | null = null;
 
   // 状态选项
   statusOptions = [
@@ -231,29 +259,43 @@ export default class DbPage extends Vue {
     { label: "已驳回", value: "rejected" },
   ];
 
-  // 文档类型选项
+  // 文档类型选项（根据mock数据的categoryMain字段）
   typeOptions = [
     { label: "全部分类", value: "all" },
-    { label: "法律法规", value: "law" },
-    { label: "监管政策", value: "policy" },
-    { label: "内部规章", value: "internal" },
-    { label: "解读文件", value: "explanation" },
+    { label: "法律", value: "法律" },
+    { label: "行政法规", value: "行政法规" },
+    { label: "部门规章", value: "部门规章" },
+    { label: "规范性文件", value: "规范性文件" },
+    { label: "司法解释", value: "司法解释" },
   ];
+
+  // 表格行选择配置
+  get rowSelection() {
+    return {
+      selectedRowKeys: this.selectedRowKeys,
+      onChange: this.onSelectChange,
+      onSelectAll: this.onSelectAll,
+      getCheckboxProps: (record: ToDoRuleItem) => ({
+        disabled: false,
+        name: record.id,
+      }),
+    };
+  }
 
   // 表格列配置
   columns = [
     {
       title: "标题/文号",
-      key: "titles",
+      key: "ruleName",
       scopedSlots: {
-        customRender: "titles",
+        customRender: "ruleName",
         filterDropdown: "filterDropdown",
         filterIcon: "filterIcon",
       },
       onFilter: (value, record) =>
-        record.title.toLowerCase().includes(value.toLowerCase()) ||
-        (record.docNumber &&
-          record.docNumber.toLowerCase().includes(value.toLowerCase())),
+        record.ruleName.toLowerCase().includes(value.toLowerCase()) ||
+        (record.categorySub &&
+          record.categorySub.toLowerCase().includes(value.toLowerCase())),
       onFilterDropdownVisibleChange: (visible) => {
         if (visible) {
           setTimeout(() => {
@@ -264,8 +306,8 @@ export default class DbPage extends Vue {
     },
     {
       title: "分类",
-      dataIndex: "type",
-      key: "type",
+      dataIndex: "categoryMain",
+      key: "categoryMain",
       scopedSlots: {
         customRender: "type",
         filterDropdown: "filterDropdown",
@@ -273,9 +315,7 @@ export default class DbPage extends Vue {
       },
       width: 120,
       onFilter: (value, record) =>
-        this.getTypeText(record.type)
-          .toLowerCase()
-          .includes(value.toLowerCase()),
+        record.categoryMain.toLowerCase().includes(value.toLowerCase()),
       onFilterDropdownVisibleChange: (visible) => {
         if (visible) {
           setTimeout(() => {
@@ -286,16 +326,16 @@ export default class DbPage extends Vue {
     },
     {
       title: "来源",
-      dataIndex: "source",
-      key: "source",
+      dataIndex: "websiteName",
+      key: "websiteName",
       width: 150,
       scopedSlots: {
         filterDropdown: "filterDropdown",
         filterIcon: "filterIcon",
       },
       onFilter: (value, record) =>
-        record.source &&
-        record.source.toLowerCase().includes(value.toLowerCase()),
+        record.websiteName &&
+        record.websiteName.toLowerCase().includes(value.toLowerCase()),
       onFilterDropdownVisibleChange: (visible) => {
         if (visible) {
           setTimeout(() => {
@@ -306,23 +346,33 @@ export default class DbPage extends Vue {
     },
     {
       title: "提交时间",
-      dataIndex: "submitTime",
-      key: "submitTime",
+      dataIndex: "createdTime",
+      key: "createdTime",
       width: 160,
-      sorter: (a, b) => new Date(a.submitTime) - new Date(b.submitTime),
+      scopedSlots: { customRender: "createdTime" },
+      sorter: (a, b) => new Date(a.createdTime) - new Date(b.createdTime),
+    },
+    {
+      title: "施行日期",
+      dataIndex: "publishTime",
+      key: "publishTime",
+      width: 160,
+      scopedSlots: { customRender: "publishTime" },
+      sorter: (a, b) =>
+        new Date(a.publishTime || 0) - new Date(b.publishTime || 0),
     },
     {
       title: "状态",
-      dataIndex: "status",
-      key: "status",
+      dataIndex: "checkStatus",
+      key: "checkStatus",
       scopedSlots: { customRender: "status" },
       width: 120,
       filters: [
-        { text: "待审核", value: "pending" },
-        { text: "已通过", value: "approved" },
-        { text: "已驳回", value: "rejected" },
+        { text: "待审核", value: "待审核" },
+        { text: "已通过", value: "已通过" },
+        { text: "已驳回", value: "已驳回" },
       ],
-      onFilter: (value, record) => record.status === value,
+      onFilter: (value, record) => record.checkStatus === value,
     },
     {
       title: "操作",
@@ -334,7 +384,7 @@ export default class DbPage extends Vue {
   ];
 
   // 文档数据
-  documents: Document[] = [];
+  documents: ToDoRuleItem[] = [];
 
   head() {
     return {
@@ -351,182 +401,46 @@ export default class DbPage extends Vue {
   // 加载文档数据
   async loadDocuments() {
     this.tableLoading = true;
-    try {
-      // 模拟网络请求和数据
-      const mockData = [
-        {
-          id: "doc001",
-          title: "关于保险资金投资政府和社会资本合作项目有关事项的通知",
-          version: "1.0",
-          docNumber: "金监发[2024]10号",
-          changeType: "新增",
-          type: "law",
-          submitter: "张三",
-          submitTime: "2025-07-01 15:10:35",
-          status: "pending",
-          source: "综合会",
-        },
-        {
-          id: "doc002",
-          title: "关于保险资金投资政府和社会资本合作项目有关事项的通知",
-          version: "2.1",
-          docNumber: "金监发[2024]8号",
-          changeType: "修订",
-          type: "policy",
-          submitter: "李四",
-          submitTime: "2025-07-01 15:10:35",
-          status: "pending",
-          source: "机构监管",
-        },
-        {
-          id: "doc003",
-          title: "关于保险资金投资政府和社会资本合作项目有关事项的通知",
-          version: "1.0",
-          docNumber: "金监发[2024]6号",
-          changeType: "新增",
-          type: "policy",
-          submitter: "王五",
-          submitTime: "2025-07-01 15:10:35",
-          status: "approved",
-          reviewer: "赵经理",
-          reviewTime: "2024-01-10 09:30",
-          source: "公司监管",
-        },
-        {
-          id: "doc004",
-          title: "关于保险资金投资政府和社会资本合作项目有关事项的通知",
-          version: "3.0",
-          docNumber: "内规[2024]02号",
-          changeType: "修订",
-          type: "internal",
-          submitter: "赵六",
-          submitTime: "2025-07-01 15:10:35",
-          status: "rejected",
-          reviewer: "钱经理",
-          reviewTime: "2024-01-07 14:50",
-          source: "风控监管",
-        },
-        {
-          id: "doc005",
-          title: "关于保险资金投资政府和社会资本合作项目有关事项的通知",
-          version: "2.0",
-          docNumber: "参考[2024]01号",
-          changeType: "更新",
-          type: "explanation",
-          submitter: "孙七",
-          submitTime: "2025-07-01 15:10:35",
-          status: "pending",
-          source: "交易所监管",
-        },
-        {
-          id: "doc006",
-          title: "关于保险资金投资政府和社会资本合作项目有关事项的通知",
-          version: "1.0",
-          docNumber: "金监发[2024]11号",
-          changeType: "新增",
-          type: "law",
-          submitter: "周八",
-          submitTime: "2025-07-01 15:10:35",
-          status: "approved",
-          reviewer: "李经理",
-          reviewTime: "2024-01-15 10:20",
-          source: "综合会",
-        },
-        {
-          id: "doc007",
-          title: "关于保险资金投资政府和社会资本合作项目有关事项的通知",
-          version: "1.5",
-          docNumber: "金监发[2024]12号",
-          changeType: "修订",
-          type: "policy",
-          submitter: "吴九",
-          submitTime: "2025-07-01 15:10:35",
-          status: "pending",
-          source: "人民银行网站",
-        },
-        {
-          id: "doc008",
-          title: "关于保险资金投资政府和社会资本合作项目有关事项的通知",
-          version: "2.0",
-          docNumber: "金监发[2024]13号",
-          changeType: "新增",
-          type: "internal",
-          submitter: "郑十",
-          submitTime: "2025-07-01 15:10:35",
-          status: "approved",
-          reviewer: "王经理",
-          reviewTime: "2024-01-18 14:30",
-          source: "证监会公告",
-        },
-        {
-          id: "doc009",
-          title: "关于保险资金投资政府和社会资本合作项目有关事项的通知",
-          version: "1.0",
-          docNumber: "金监发[2024]14号",
-          changeType: "新增",
-          type: "law",
-          submitter: "钱十一",
-          submitTime: "2025-07-01 15:10:35",
-          status: "rejected",
-          reviewer: "张经理",
-          reviewTime: "2024-01-20 16:45",
-          source: "财政部规章",
-        },
-        {
-          id: "doc010",
-          title: "关于保险资金投资政府和社会资本合作项目有关事项的通知",
-          version: "3.0",
-          docNumber: "金监发[2024]15号",
-          changeType: "修订",
-          type: "explanation",
-          submitter: "孙十二",
-          submitTime: "2025-07-01 15:10:35",
-          status: "pending",
-          source: "行业协会",
-        },
-      ];
 
-      await new Promise((r) => setTimeout(r, 1500));
-      this.documents = mockData;
+    try {
+      // 构建查询参数
+      const params = {
+        condition: this.searchText || "",
+        checkStatus: this.getApiCheckStatus(this.filterStatus),
+        category: this.filterType === "all" ? "" : this.filterType,
+      };
+
+      // 调用真实API获取数据
+      const result = await this.$service.lawyer.getCheckRuleList(params);
+      if (result && result.length > 0) {
+        this.documents = result;
+      } else {
+        this.documents = [];
+      }
+
+      // 更新分页信息
+      this.currentPagination = {
+        current: 1,
+        pageSize: 10,
+        total: this.documents.length,
+        showTotal: (total) => `共 ${total} 条数据`,
+        showSizeChanger: true,
+        showQuickJumper: true,
+        pageSizeOptions: ["10", "20", "50", "100"],
+      };
     } catch (error) {
-      console.error("加载文档数据失败", error);
-      this.$message.error("加载数据失败，请刷新页面重试");
+      console.error("错误详情:", error);
+      this.documents = [];
     } finally {
       this.tableLoading = false;
     }
   }
 
-  // 获取已筛选的文档列表
-  get filteredDocuments() {
-    let result = [...this.documents];
-
-    // 搜索过滤
-    if (this.searchText) {
-      const text = this.searchText.toLowerCase();
-      result = result.filter(
-        (doc) =>
-          doc.title.toLowerCase().includes(text) ||
-          (doc.docNumber && doc.docNumber.toLowerCase().includes(text)) ||
-          (doc.source && doc.source.toLowerCase().includes(text))
-      );
-    }
-
-    // 状态筛选
-    if (this.filterStatus !== "all") {
-      result = result.filter((doc) => doc.status === this.filterStatus);
-    }
-
-    // 文档类型筛选
-    if (this.filterType !== "all") {
-      result = result.filter((doc) => doc.type === this.filterType);
-    }
-
-    return result;
-  }
-
   // 获取待审核文档数量
   get pendingCount() {
-    return this.documents.filter((doc) => doc.status === "pending").length;
+    return this.documents.filter(
+      (doc) => doc.checkStatus === "待审核" || doc.checkStatus === null
+    ).length;
   }
 
   // 获取文档总数
@@ -535,32 +449,94 @@ export default class DbPage extends Vue {
   }
 
   // 搜索方法
-  onSearch(value: string): void {
+  async onSearch(value: string): Promise<void> {
     this.searchText = value;
+    await this.loadDocuments();
   }
 
   // 筛选方法
-  onFilterChange(value: string): void {
-    // 筛选已在计算属性中处理
-    this.refreshData();
+  async onFilterChange(value: string): Promise<void> {
+    this.filterType = value;
+    await this.loadDocuments();
   }
 
   // 状态标签点击
-  onStatusTagClick(value: string): void {
+  async onStatusTagClick(value: string): Promise<void> {
     this.filterStatus = this.filterStatus === value ? "all" : value;
-    this.refreshData();
+    await this.loadDocuments();
+  }
+
+  // 将前端状态值转换为API状态值
+  getApiCheckStatus(status: string): string {
+    const statusMap: Record<string, string> = {
+      all: "",
+      pending: "0",
+      approved: "1",
+      rejected: "2",
+    };
+    return statusMap[status] || "";
   }
 
   // 日期范围变化
   onDateRangeChange(dates: moment.Moment[], dateStrings: string[]): void {
     // 日期已经双向绑定到dateRange，这里可以加入额外处理
-    this.refreshData();
   }
 
   // 表格变化事件
-  handleTableChange(pagination, filters, sorter): void {
-    // 处理排序和过滤
-    console.log("表格变化:", pagination, filters, sorter);
+  handleTableChange(pagination, filters, sorter, extra): void {
+    console.log("表格变化:", pagination, filters, sorter, extra);
+
+    // 计算筛选后的数据数量
+    let filteredCount = this.documents.length;
+
+    // 如果有筛选条件，计算筛选后的数量
+    if (filters && Object.keys(filters).length > 0) {
+      let result = [...this.documents];
+
+      // 应用筛选条件
+      Object.keys(filters).forEach((key) => {
+        const filterValues = filters[key];
+        if (filterValues && filterValues.length > 0) {
+          if (key === "titles") {
+            // 标题搜索筛选
+            const searchText = filterValues[0].toLowerCase();
+            result = result.filter(
+              (item) =>
+                item.ruleName.toLowerCase().includes(searchText) ||
+                (item.categorySub &&
+                  item.categorySub.toLowerCase().includes(searchText))
+            );
+          } else if (key === "checkStatus") {
+            result = result.filter((item) =>
+              filterValues.includes(item.checkStatus)
+            );
+          } else if (key === "categoryMain") {
+            result = result.filter((item) =>
+              filterValues.includes(item.categoryMain)
+            );
+          } else if (key === "websiteName") {
+            const searchText = filterValues[0].toLowerCase();
+            result = result.filter(
+              (item) =>
+                item.websiteName &&
+                item.websiteName.toLowerCase().includes(searchText)
+            );
+          }
+        }
+      });
+
+      filteredCount = result.length;
+    }
+
+    // 更新分页状态
+    this.currentPagination = {
+      ...pagination,
+      total: filteredCount,
+      showTotal: (total) => `共 ${total} 条数据`,
+      showSizeChanger: true,
+      showQuickJumper: true,
+      pageSizeOptions: ["10", "20", "50", "100"],
+    };
   }
 
   // 处理搜索
@@ -575,45 +551,41 @@ export default class DbPage extends Vue {
   }
 
   // 刷新数据
-  refreshData(): void {
-    this.tableLoading = true;
-    // 模拟API请求
-    setTimeout(() => {
-      this.tableLoading = false;
-      this.$message.success("数据已刷新");
-    }, 600);
+  async refreshData(): Promise<void> {
+    await this.loadDocuments();
+    this.$message.success("数据已刷新");
   }
 
-  // 获取状态文本
-  getStatusText(status: string): string {
+  // 获取审核状态文本
+  getCheckStatusText(status: string | null): string {
+    // 如果状态已经是汉字，直接返回
+    if (status === "待审核" || status === "已通过" || status === "已驳回") {
+      return status;
+    }
+    // 兼容数字格式的状态
     const textMap: Record<string, string> = {
-      pending: "待审核",
-      approved: "已通过",
-      rejected: "已驳回",
+      "0": "待审核",
+      "1": "已通过",
+      "2": "已驳回",
     };
-    return textMap[status] || "未知";
+    return textMap[status || "0"] || "待审核";
   }
 
-  // 获取类型文本
-  getTypeText(type: string): string {
-    const textMap: Record<string, string> = {
-      law: "法律法规",
-      policy: "监管政策",
-      internal: "内部规章",
-      explanation: "解读文件",
-    };
-    return textMap[type] || "其他";
+  // 格式化时间显示
+  formatTime(timeStr: string): string {
+    if (!timeStr) return "-";
+    return moment(timeStr).format("YYYY-MM-DD HH:mm");
   }
 
   // 查看文档
-  viewDocument(document: Document): void {
-    this.$message.info(`查看文档: ${document.title}`);
+  viewDocument(document: ToDoRuleItem): void {
+    this.$message.info(`查看文档: ${document.ruleName}`);
     // 实际项目中可能会跳转到文档比较页面
     this.$router.push(`/document-compare/${document.id}`);
   }
 
   // 审核通过
-  approveDocument(document: Document): void {
+  approveDocument(document: ToDoRuleItem): void {
     this.currentDocument = document;
     this.reviewAction = "approve";
     this.reviewComment = "";
@@ -621,7 +593,7 @@ export default class DbPage extends Vue {
   }
 
   // 审核驳回
-  rejectDocument(document: Document): void {
+  rejectDocument(document: ToDoRuleItem): void {
     this.currentDocument = document;
     this.reviewAction = "reject";
     this.reviewComment = "";
@@ -629,57 +601,100 @@ export default class DbPage extends Vue {
   }
 
   // 提交审核
-  submitReview(): void {
+  async submitReview(): Promise<void> {
     if (this.reviewAction === "reject" && !this.reviewComment) {
       this.$message.error("驳回文档必须填写驳回原因");
       return;
     }
 
-    // 模拟API请求
-    setTimeout(() => {
-      if (this.currentDocument) {
-        const index = this.documents.findIndex(
-          (d) => d.id === this.currentDocument?.id
-        );
-        if (index !== -1) {
-          this.documents[index].status =
-            this.reviewAction === "approve" ? "approved" : "rejected";
-          this.documents[index].reviewer = "当前用户";
-          this.documents[index].reviewTime =
-            moment().format("YYYY-MM-DD HH:mm");
-        }
-      }
+    try {
+      // 调用统一的审核接口，通过approvalComment传递状态
+      await this.$service.lawyer.approveToDoRule({
+        id: this.currentDocument?.id,
+        approvalComment: this.reviewAction === "approve" ? "已通过" : "已驳回",
+      });
 
+      // 关闭弹窗并显示成功消息
       this.reviewModalVisible = false;
       this.$message.success(
         this.reviewAction === "approve" ? "审核已通过" : "文档已驳回"
       );
-    }, 500);
+
+      // 重新加载表格数据，确保数据一致性
+      await this.loadDocuments();
+    } catch (error) {
+      console.error("审核操作失败:", error);
+      this.$message.error("审核操作失败，请重试");
+    }
+  }
+
+  // 表格行选择变化事件
+  onSelectChange(
+    selectedRowKeys: string[],
+    selectedRows: ToDoRuleItem[]
+  ): void {
+    console.log("选中行变化:", selectedRowKeys, selectedRows);
+    this.selectedRowKeys = selectedRowKeys;
+    this.selectedRows = selectedRows;
+  }
+
+  // 全选/取消全选
+  onSelectAll(
+    selected: boolean,
+    selectedRows: ToDoRuleItem[],
+    changeRows: ToDoRuleItem[]
+  ): void {
+    console.log("全选变化:", selected, selectedRows, changeRows);
+    if (selected) {
+      this.selectedRowKeys = selectedRows.map((row) => row.id);
+      this.selectedRows = selectedRows;
+    } else {
+      this.selectedRowKeys = [];
+      this.selectedRows = [];
+    }
   }
 
   // 导出数据
-  exportData(): void {
-    this.$message.info("正在导出数据，请稍候...");
+  async exportData(): Promise<void> {
+    if (this.selectedRowKeys.length === 0) {
+      this.$message.warning("请先选择要导出的数据");
+      return;
+    }
 
-    // 模拟导出延迟
-    setTimeout(() => {
-      this.$message.success("数据已导出到 审核数据.xlsx");
-    }, 1500);
+    this.$message.info(
+      `正在导出 ${this.selectedRowKeys.length} 条数据，请稍候...`
+    );
+
+    try {
+      // 使用真实的API调用，传入选中的ids数组
+      const result = await this.$service.lawyer.exportExcel({
+        ids: this.selectedRowKeys,
+      });
+
+      if (result) {
+        // 创建下载链接
+        const url = window.URL.createObjectURL(result.data);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `人工审核数据_${this.selectedRowKeys.length}条.xlsx`;
+        link.click();
+        window.URL.revokeObjectURL(url);
+        this.$message.success(
+          `已成功导出 ${this.selectedRowKeys.length} 条数据`
+        );
+      } else {
+        this.$message.error("导出失败，请重试");
+      }
+    } catch (error) {
+      console.error("导出失败:", error);
+      this.$message.error("导出失败，请重试");
+    }
   }
 }
 </script>
 
 <style lang="less">
 .db-page-wrapper {
-  // CSS变量定义
-  :root {
-    --lawyer-primary: #1890ff;
-    --lawyer-surface: #ffffff;
-    --lawyer-border: #e8e8e8;
-    --lawyer-text: #262626;
-    --lawyer-text-light: #8c8c8c;
-  }
-
   // 整体卡片样式
   .lawyer-main-card {
     background: var(--lawyer-surface);

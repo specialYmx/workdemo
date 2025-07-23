@@ -1,5 +1,6 @@
 import Vue from "vue";
 import { Route } from "vue-router";
+import { LawyerService } from "~/model/LawyerModel";
 
 // 扩展 Vue 实例类型
 declare module "vue/types/vue" {
@@ -21,6 +22,9 @@ declare module "vue/types/vue" {
     $error: any;
     $warning: any;
     $modal: any;
+    $service: {
+      lawyer: LawyerService;
+    };
   }
 }
 
@@ -28,6 +32,7 @@ declare module "vue/types/vue" {
 declare module "@nuxt/types" {
   interface Context {
     $message: Vue["$message"];
+    $service: Vue["$service"];
   }
 }
 

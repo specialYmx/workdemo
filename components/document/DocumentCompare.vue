@@ -6,7 +6,32 @@
           <a-icon type="arrow-left" />
           返回
         </a-button>
-        <h1>{{ document.title }}</h1>
+        <div class="lawyer-header-content">
+          <div class="lawyer-title-row">
+            <h3>{{ document.title }}</h3>
+            <!-- 文档标签区域 -->
+            <div class="lawyer-document-tags">
+              <a-tag
+                v-if="displayTag"
+                color="orange"
+                @click="showTagEditModal"
+                class="lawyer-editable-tag"
+              >
+                {{ displayTag }}
+                <a-icon type="edit" class="lawyer-tag-edit-icon" />
+              </a-tag>
+              <a-tag
+                v-else
+                color="orange"
+                @click="showTagEditModal"
+                class="lawyer-editable-tag lawyer-empty-tag"
+              >
+                点击设置分类
+                <a-icon type="plus" class="lawyer-tag-edit-icon" />
+              </a-tag>
+            </div>
+          </div>
+        </div>
         <div class="lawyer-header-actions">
           <template v-if="document.status === 'pending'">
             <a-button
@@ -106,6 +131,18 @@
           />
         </a-form-item>
       </a-modal>
+
+      <!-- 标签编辑模态框 -->
+      <TagEditModal
+        :visible="tagEditVisible"
+        title="编辑文档分类"
+        :current-tags="document.tags || []"
+        :current-status="document.status"
+        :show-document-status="false"
+        :allow-parent-select="true"
+        @confirm="handleTagEditConfirm"
+        @cancel="handleTagEditCancel"
+      />
     </div>
   </div>
 </template>
@@ -113,6 +150,7 @@
 <script lang="ts">
 // @ts-nocheck
 import { Component, Vue, Prop, Emit } from "nuxt-property-decorator";
+import TagEditModal from "@/components/common/TagEditModal.vue";
 
 interface ReviewAction {
   text: string;
@@ -130,7 +168,11 @@ interface DocumentColumn {
   contentClass: string;
 }
 
-@Component
+@Component({
+  components: {
+    TagEditModal,
+  },
+})
 export default class DocumentCompare extends Vue {
   @Prop({ required: true }) document: any;
 
@@ -138,6 +180,17 @@ export default class DocumentCompare extends Vue {
   reviewModalVisible = false;
   reviewAction = "";
   reviewComment = "";
+
+  // 标签编辑相关
+  tagEditVisible = false;
+
+  // 显示标签（合并为单个标签）
+  get displayTag(): string {
+    const tags = this.document.tags || [];
+    if (tags.length === 0) return "";
+    if (tags.length === 1) return tags[0];
+    return `${tags[0]}/${tags[1]}`;
+  }
 
   // 审核操作按钮
   get reviewActions(): ReviewAction[] {
@@ -281,6 +334,27 @@ export default class DocumentCompare extends Vue {
     this.reviewModalVisible = false;
   }
 
+  // 显示标签编辑模态框
+  showTagEditModal(): void {
+    this.tagEditVisible = true;
+  }
+
+  // 处理标签编辑确认
+  handleTagEditConfirm(data: { tags: string[]; tagDisplay: string }): void {
+    // 更新标签
+    if (data.tags.length > 0) {
+      this.document.tags = [...data.tags];
+      this.$message.success(`已设置标签为: ${data.tagDisplay}`);
+    }
+
+    this.tagEditVisible = false;
+  }
+
+  // 处理标签编辑取消
+  handleTagEditCancel(): void {
+    this.tagEditVisible = false;
+  }
+
   // Emit 装饰器方法
   @Emit("go-back")
   emitGoBack() {
@@ -296,6 +370,9 @@ export default class DocumentCompare extends Vue {
 
 <style lang="less">
 .document-compare-wrapper {
+  height: 100vh;
+  overflow: hidden;
+
   .lawyer-compare-page {
     height: 100vh;
     display: flex;
@@ -306,20 +383,62 @@ export default class DocumentCompare extends Vue {
 
   .lawyer-compare-header {
     background: var(--lawyer-surface);
-    padding: 12px 24px;
+    padding: 8px 10px;
     border-bottom: 1px solid var(--lawyer-border);
     display: flex;
     align-items: center;
     flex-shrink: 0;
     z-index: 1000;
 
-    h1 {
-      font-size: 20px;
-      font-weight: 600;
-      color: var(--lawyer-primary);
+    .lawyer-header-content {
       margin-left: 24px;
       margin-right: auto;
-      margin-bottom: 0;
+
+      .lawyer-title-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+
+      h3 {
+        margin: 0;
+        font-weight: 600;
+        font-size: 18px;
+        flex: 1;
+        min-width: 0; // 允许标题在必要时收缩
+      }
+      .lawyer-document-tags {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        .lawyer-editable-tag {
+          cursor: pointer;
+          transition: all 0.3s;
+          font-size: 12px;
+          padding: 4px;
+          border-radius: 4px;
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+
+          &:hover {
+            opacity: 0.8;
+            transform: translateY(-1px);
+          }
+
+          .lawyer-tag-edit-icon {
+            font-size: 10px;
+            opacity: 0.7;
+          }
+
+          &.lawyer-empty-tag {
+            border-style: dashed;
+            opacity: 0.8;
+          }
+        }
+      }
     }
   }
 
@@ -371,10 +490,10 @@ export default class DocumentCompare extends Vue {
 
   .lawyer-compare-main-container {
     display: flex;
-    padding: 24px;
+    padding: 5px;
     gap: 24px;
     flex: 1;
-    height: calc(100vh - 76px);
+    min-height: 0; // 关键：允许flex子项收缩
     overflow: hidden;
   }
 
@@ -387,6 +506,7 @@ export default class DocumentCompare extends Vue {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    min-height: 0; // 关键：允许flex子项收缩
   }
 
   .lawyer-document-column {
@@ -415,22 +535,18 @@ export default class DocumentCompare extends Vue {
   .lawyer-column-content {
     padding: 20px;
     overflow-y: auto;
-    height: 100%;
-  }
-
-  :deep(.lawyer-column-content) {
+    flex: 1; // 使用flex占据剩余空间
+    min-height: 0; // 允许收缩
     h2,
     h3 {
       color: var(--lawyer-primary);
       font-weight: 600;
       margin-top: 16px;
-      margin-bottom: 12px;
     }
 
     h2 {
       font-size: 18px;
       margin-top: 20px;
-      margin-bottom: 15px;
       padding-bottom: 8px;
       border-bottom: 1px solid rgba(var(--lawyer-primary-rgb), 0.2);
     }

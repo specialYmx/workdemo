@@ -906,7 +906,7 @@ export default class KnowledgePage extends Vue {
   // 整个页面的灰色背景
 
   background-color: var(--lawyer-background);
-
+  padding: 20px;
   // 整体内容容器 - 主要的白色卡片背景
   .lawyer-content-wrapper {
     padding: 20px;
@@ -914,6 +914,7 @@ export default class KnowledgePage extends Vue {
     border: 1px solid var(--lawyer-border);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     margin-bottom: 24px;
+    background-color: var(--lawyer-surface);
   }
 
   // 搜索表单
