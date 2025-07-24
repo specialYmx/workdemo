@@ -1,5 +1,9 @@
 import { AxiosInstance } from "axios";
-import { LawyerService, FileCompareDetail } from "~/model/LawyerModel";
+import {
+  LawyerService,
+  FileCompareDetail,
+  KnowledgeDataItem,
+} from "~/model/LawyerModel";
 import api from "~/api";
 
 // 将对象转换为FormData的辅助函数
@@ -150,7 +154,7 @@ export default ($axios: AxiosInstance): LawyerService => ({
     }
   },
 
-  async getRuleSourceList(params) {
+  async getRuleSourceList(params): Promise<KnowledgeDataItem[]> {
     try {
       const res = await $axios.post(
         `${api.lawyer.getRuleSourceList}`,
@@ -159,10 +163,10 @@ export default ($axios: AxiosInstance): LawyerService => ({
       if (res.data?.data !== undefined && res.data?.data !== null) {
         return res.data.data;
       }
-      return { list: [], total: 0, page: 1, pageSize: 10, totalPages: 0 };
+      return [];
     } catch (error) {
       console.error("Error fetching rule source list:", error);
-      return { list: [], total: 0, page: 1, pageSize: 10, totalPages: 0 };
+      return [];
     }
   },
 
@@ -268,14 +272,14 @@ export default ($axios: AxiosInstance): LawyerService => ({
     try {
       // 支持ids数组参数
       let requestUrl = `${api.lawyer.exportExcel}`;
-      
+
       if (params.ids && Array.isArray(params.ids)) {
         // 将ids数组转换为JSON字符串传递给后端
         const formData = new FormData();
-        formData.append('ids', JSON.stringify(params.ids));
-        
+        formData.append("ids", JSON.stringify(params.ids));
+
         console.log("导出参数:", JSON.stringify(params.ids));
-        
+
         const res = await $axios.post(requestUrl, formData, {
           responseType: "blob",
         });
@@ -322,13 +326,14 @@ export default ($axios: AxiosInstance): LawyerService => ({
         oldFileVersion: 1, // 添加修改前文档版本
         oldPublishTime: "2022-08-15", // 添加修改前文档发布时间
         categorySub: "银行保险机构公司治理监管评估办法",
-        checkResult: "[{第壹章-标题变更=由\"总则\"修改为\"总则22\"}, {第一章 总则-第二条=1. 修改内容：由\"本法\"修改为：\"本法aa\"；2. 新增条款：22}, {第一章 总则-第六条=1. 修改内容：由\"保险业务\"修改为：\"保险业务bb\"}, {第一章　总则 第八条=删除条款： 保险业和银行业、证券业、信托业实行分业经营、分业管理，保险公司与银行、证券、信托业务机构分别设立。国家另有规定的除外。}, {第一章=新增条款：第一章　总则22 第十条  cccc}]",
+        checkResult:
+          '[{第壹章-标题变更=由"总则"修改为"总则22"}, {第一章 总则-第二条=1. 修改内容：由"本法"修改为："本法aa"；2. 新增条款：22}, {第一章 总则-第六条=1. 修改内容：由"保险业务"修改为："保险业务bb"}, {第一章　总则 第八条=删除条款： 保险业和银行业、证券业、信托业实行分业经营、分业管理，保险公司与银行、证券、信托业务机构分别设立。国家另有规定的除外。}, {第一章=新增条款：第一章　总则22 第十条  cccc}]',
         currentMaxFileVersion: 2,
         id: params.id,
         checkStatus: "0", // 待审核状态
       };
       return data;
-      
+
       // 注释掉真实API调用
       // const res = await $axios.post(
       //   `${api.lawyer.getToDoRuleDetail}`,
@@ -349,7 +354,7 @@ export default ($axios: AxiosInstance): LawyerService => ({
         newPublishTime: "",
         oldFileContent: "",
         checkResult: "",
-        currentMaxFileVersion: 0
+        currentMaxFileVersion: 0,
       };
     }
   },

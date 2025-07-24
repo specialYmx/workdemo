@@ -32,12 +32,6 @@
             </a-button>
           </div>
 
-          <!-- 智能搜索提示 -->
-          <div class="lawyer-search-mode-info" v-if="isSemanticSearchEnabled">
-            <a-icon type="bulb" /> 智能搜索模式已启用 -
-            系统将理解您的搜索意图，匹配相关概念和同义词
-          </div>
-
           <!-- 高级筛选选项 -->
           <div class="lawyer-filter-options" v-show="isAdvancedSearchVisible">
             <!-- 时效性选择器 -->
@@ -123,39 +117,34 @@
                 <div class="lawyer-document-header">
                   <h3 class="lawyer-document-title">
                     <nuxt-link :to="`/document/${doc.id}`">{{
-                      doc.title
+                      doc.ruleName
                     }}</nuxt-link>
                   </h3>
                   <div class="lawyer-document-meta">
-                    <span><a-icon type="calendar" /> {{ doc.date }}</span>
                     <span
-                      ><a-icon type="bank" />
-                      {{ doc.source || doc.category }}</span
+                      ><a-icon type="calendar" /> {{ doc.publishDateStr }}</span
                     >
-                    <span><a-icon type="eye" /> {{ doc.views }} 阅读</span>
-                    <span
-                      v-if="isSemanticSearchEnabled && doc.semanticScore"
-                      class="lawyer-semantic-score"
-                    >
-                      <a-icon type="bulb" /> 相关度:
-                      {{ Math.round(doc.semanticScore) }}%
+                    <span><a-icon type="bank" /> {{ doc.websiteName }}</span>
+                    <span><a-icon type="eye" /> {{ doc.readCount }} 阅读</span>
+                    <span class="lawyer-timeliness-tag">
+                      <a-icon type="clock-circle" /> {{ doc.timeLiness }}
                     </span>
                   </div>
                 </div>
                 <p class="lawyer-document-summary">
-                  {{ doc.description || doc.summary }}
+                  {{ doc.fileContent || doc.summary || "暂无摘要" }}
                 </p>
                 <div class="lawyer-document-footer">
                   <div class="lawyer-document-tags">
-                    <a-tag :color="getTagColor(doc.type || doc.category)">{{
-                      getTypeText(doc.type || doc.category)
+                    <a-tag :color="getTagColor(doc.categoryMain, 'main')">{{
+                      doc.categoryMain
                     }}</a-tag>
-                    <a-tag
-                      v-for="(tag, index) in doc.tags || []"
-                      :key="index"
-                      color="blue"
-                      >{{ tag }}</a-tag
-                    >
+                    <a-tag v-if="doc.categorySub" :color="getTagColor(doc.categorySub, 'sub')">{{
+                      doc.categorySub
+                    }}</a-tag>
+                    <a-tag v-if="doc.effectivenessLevel" color="green">{{
+                      doc.effectivenessLevel
+                    }}</a-tag>
                   </div>
                   <div class="lawyer-document-actions">
                     <a-button
@@ -193,6 +182,7 @@
         :title="`更新文档: ${currentUploadDocTitle}`"
         :document-id="currentUploadDocId"
         :document-title="currentUploadDocTitle"
+        :config="uploadConfig"
         @cancel="handleUploadCancel"
         @complete="handleUploadComplete"
         @upload-success="handleUploadSuccess"
@@ -205,17 +195,15 @@
 // @ts-nocheck
 import { Component, Vue } from "nuxt-property-decorator";
 import { DocumentItem } from "@/model/base";
+import { KnowledgeDataItem } from "@/model/LawyerModel";
+import { cascaderOptions } from "@/enum/Category";
 import FileUploadModal from "@/components/common/FileUploadModal.vue";
 
 @Component({
   components: {
     FileUploadModal,
   },
-  head() {
-    return {
-      title: "法规与文件大家智库 - 法律合规智能系统",
-    };
-  },
+ 
 })
 export default class KnowledgePage extends Vue {
   // 搜索相关
@@ -232,8 +220,7 @@ export default class KnowledgePage extends Vue {
   topicCategory = [];
   effectivenessFilter = "all";
 
-  // 智能搜索和收藏相关
-  isSemanticSearchEnabled = false;
+  // 收藏相关
   isFavoritesMode = false;
   favoriteDocuments: string[] = [];
 
@@ -245,12 +232,25 @@ export default class KnowledgePage extends Vue {
   currentPage = 1;
   pageSize = 10;
   totalDocuments = 36;
-  documents: DocumentItem[] = [];
+  documents: KnowledgeDataItem[] = [];
 
   // 上传相关
   uploadModalVisible = false;
   currentUploadDocId = "";
   currentUploadDocTitle = "";
+
+  // 上传配置
+  get uploadConfig() {
+    return {
+      multiple: false,
+      acceptTypes: ".doc,.docx",
+      maxFileSize: 50 * 1024 * 1024, // 50MB
+      maxFileCount: 1,
+      uploadText: "点击或拖拽文件到此区域上传",
+      hintText: "支持 DOC、DOCX 格式，文件大小不超过 50MB",
+      autoUpload: false,
+    };
+  }
 
   // 搜索按钮数据
   get searchButtons() {
@@ -262,12 +262,6 @@ export default class KnowledgePage extends Vue {
         loading: this.searchLoading,
         isActive: false,
         handler: this.onSearch,
-      },
-      {
-        text: "智能搜索",
-        icon: "bulb",
-        isActive: this.isSemanticSearchEnabled,
-        handler: this.toggleSemanticSearch,
       },
       {
         text: "我的收藏",
@@ -287,38 +281,7 @@ export default class KnowledgePage extends Vue {
 
   // 专题分类级联选项
   get topicCategoryOptions() {
-    return [
-      {
-        value: "finance",
-        label: "金融监管",
-        children: [
-          { value: "banking", label: "银行业监管" },
-          { value: "insurance", label: "保险业监管" },
-          { value: "securities", label: "证券业监管" },
-          { value: "fund", label: "基金业监管" },
-        ],
-      },
-      {
-        value: "corporate",
-        label: "公司治理",
-        children: [
-          { value: "governance", label: "治理结构" },
-          { value: "compliance", label: "合规管理" },
-          { value: "risk", label: "风险管理" },
-          { value: "internal_control", label: "内控制度" },
-        ],
-      },
-      {
-        value: "legal",
-        label: "法律事务",
-        children: [
-          { value: "contract", label: "合同管理" },
-          { value: "litigation", label: "诉讼仲裁" },
-          { value: "intellectual", label: "知识产权" },
-          { value: "labor", label: "劳动法务" },
-        ],
-      },
-    ];
+    return cascaderOptions;
   }
 
   // 时效性选项
@@ -382,37 +345,17 @@ export default class KnowledgePage extends Vue {
     ];
   }
 
-  // 模拟的语义映射数据（真实项目中可能需要从后端获取）
-  semanticMappings = {
-    资金: ["资产", "资本", "资金运用", "投资"],
-    合规: ["监管", "法规", "规范", "合规管理"],
-  };
-
   // 生命周期钩子
   async mounted() {
-    // 从本地存储加载收藏夹文档
-    this.loadFavorites();
-
     // 加载文档数据
     this.loadDocuments();
   }
 
-  // 加载用户收藏的文档
-  loadFavorites() {
-    try {
-      const savedFavorites = localStorage.getItem("favoriteDocuments");
-      if (savedFavorites) {
-        this.favoriteDocuments = JSON.parse(savedFavorites);
-      }
-    } catch (error) {
-      console.error("加载收藏夹失败", error);
-      this.favoriteDocuments = [];
-    }
-  }
-
   // 收藏夹文档数量
   get favoriteCount() {
-    return this.favoriteDocuments.length;
+    // 如果不在收藏模式下，返回已知的收藏数量
+    // 如果在收藏模式下，返回当前文档列表的数量
+    return this.isFavoritesMode ? this.documents.length : this.favoriteDocuments.length;
   }
 
   // 判断文档是否已被收藏
@@ -421,207 +364,27 @@ export default class KnowledgePage extends Vue {
   }
 
   // 搜索方法
-  onSearch() {
+  async onSearch() {
     this.searchLoading = true;
-    this.listLoading = true;
 
-    // 模拟API请求延迟
-    setTimeout(() => {
-      // 实际应用需要调用后端API
-      this.performSearch();
+    try {
+      // 调用loadDocuments来获取数据
+      await this.loadDocuments();
+    } catch (error) {
+      console.error("搜索失败:", error);
+    } finally {
       this.searchLoading = false;
-      this.listLoading = false;
-    }, 800);
-  }
-
-  // 执行搜索
-  performSearch() {
-    // 模拟后端搜索和筛选逻辑
-    let results = [...this.documents];
-
-    // 筛选收藏文档
-    if (this.isFavoritesMode) {
-      results = results.filter((doc) =>
-        this.favoriteDocuments.includes(doc.id)
-      );
     }
-
-    // 关键词搜索
-    if (this.searchText) {
-      const query = this.searchText.toLowerCase();
-
-      // 根据是否启用智能搜索，使用不同的搜索逻辑
-      if (this.isSemanticSearchEnabled) {
-        // 语义搜索
-        results = results
-          .map((doc) => {
-            // 计算语义相关度分数
-            const semanticScore = this.calculateSemanticScore(doc, query);
-            return { ...doc, semanticScore };
-          })
-          .filter((doc) => doc.semanticScore > 0);
-
-        // 按语义相关度排序
-        results.sort((a, b) => b.semanticScore - a.semanticScore);
-      } else {
-        // 普通搜索
-        results = results.filter(
-          (doc) =>
-            doc.title.toLowerCase().includes(query) ||
-            doc.summary.toLowerCase().includes(query) ||
-            (doc.tags || []).some((tag) => tag.toLowerCase().includes(query)) ||
-            (doc.source || "").toLowerCase().includes(query)
-        );
-      }
-    }
-
-    // 分类筛选
-    if (this.filterCategory !== "all") {
-      results = results.filter(
-        (doc) =>
-          doc.category === this.filterCategory ||
-          doc.type === this.filterCategory
-      );
-    }
-
-    // 时间筛选
-    if (this.filterDate !== "all") {
-      results = this.filterByDate(results, this.filterDate);
-    }
-
-    // 来源筛选
-    if (this.filterSource !== "all") {
-      results = results.filter((doc) => doc.sourceType === this.filterSource);
-    }
-
-    // 排序
-    results = this.sortDocuments(results, this.sortOrder);
-
-    // 更新结果状态
-    this.totalDocuments = results.length;
-
-    // 根据分页计算当前显示的文档
-    const startIndex = (this.currentPage - 1) * this.pageSize;
-    const endIndex = startIndex + this.pageSize;
-    this.documents = results.slice(startIndex, endIndex);
-  }
-
-  // 按日期筛选文档
-  filterByDate(docs, dateFilter) {
-    const now = new Date();
-    let cutoffDate = new Date();
-
-    switch (dateFilter) {
-      case "last_month":
-        cutoffDate.setMonth(now.getMonth() - 1);
-        break;
-      case "last_quarter":
-        cutoffDate.setMonth(now.getMonth() - 3);
-        break;
-      case "last_year":
-        cutoffDate.setFullYear(now.getFullYear() - 1);
-        break;
-      default:
-        return docs;
-    }
-
-    return docs.filter((doc) => new Date(doc.date) >= cutoffDate);
-  }
-
-  // 计算语义相关度分数
-  calculateSemanticScore(doc, query) {
-    let score = 0;
-    const queryTerms = query.split(/\s+/).filter((term) => term.length > 0);
-    const docText = (
-      doc.title +
-      " " +
-      doc.summary +
-      " " +
-      (doc.tags || []).join(" ")
-    ).toLowerCase();
-
-    // 直接匹配
-    queryTerms.forEach((term) => {
-      if (docText.includes(term)) {
-        score += 10;
-      }
-
-      // 标题匹配
-      if (doc.title.toLowerCase().includes(term)) {
-        score += 15;
-      }
-
-      // 标签匹配
-      if ((doc.tags || []).some((tag) => tag.toLowerCase().includes(term))) {
-        score += 8;
-      }
-
-      // 同义词匹配
-      Object.keys(this.semanticMappings).forEach((key) => {
-        if (key.includes(term) || term.includes(key)) {
-          score += 3;
-          this.semanticMappings[key].forEach((synonym) => {
-            if (docText.includes(synonym.toLowerCase())) {
-              score += 5;
-            }
-          });
-        }
-      });
-    });
-
-    // 限制最高分为100
-    return Math.min(100, score);
-  }
-
-  // 文档排序
-  sortDocuments(docs, sortOrder) {
-    const sortedDocs = [...docs];
-
-    switch (sortOrder) {
-      case "date_desc":
-        sortedDocs.sort((a, b) => new Date(b.date) - new Date(a.date));
-        break;
-      case "date_asc":
-        sortedDocs.sort((a, b) => new Date(a.date) - new Date(b.date));
-        break;
-      case "title_asc":
-        sortedDocs.sort((a, b) => a.title.localeCompare(b.title));
-        break;
-      case "title_desc":
-        sortedDocs.sort((a, b) => b.title.localeCompare(a.title));
-        break;
-      case "importance":
-        sortedDocs.sort((a, b) => b.views - a.views);
-        break;
-      default:
-        break;
-    }
-
-    return sortedDocs;
-  }
-
-  // 切换智能搜索
-  toggleSemanticSearch() {
-    this.isSemanticSearchEnabled = !this.isSemanticSearchEnabled;
-
-    // 如果有搜索内容，重新执行搜索
-    if (this.searchText) {
-      this.onSearch();
-    }
-
-    // 提示用户
-    this.$message[this.isSemanticSearchEnabled ? "success" : "info"](
-      this.isSemanticSearchEnabled
-        ? "智能搜索已开启，将使用AI语义匹配"
-        : "智能搜索已关闭"
-    );
   }
 
   // 切换收藏夹模式
-  toggleFavorites() {
+  async toggleFavorites() {
     this.isFavoritesMode = !this.isFavoritesMode;
-    this.onSearch();
-
+    this.currentPage = 1; // 重置到第一页
+    
+    // 重新加载数据，loadDocuments方法会根据isFavoritesMode状态决定是否传empId参数
+    await this.loadDocuments();
+    
     this.$message.info(
       this.isFavoritesMode ? "已切换至收藏夹" : "已退出收藏夹模式"
     );
@@ -632,57 +395,101 @@ export default class KnowledgePage extends Vue {
     this.isAdvancedSearchVisible = !this.isAdvancedSearchVisible;
   }
 
+  // 获取文档操作按钮
+  getDocActions(doc: KnowledgeDataItem) {
+    const isFavorite = this.isDocumentFavorite(doc.id);
+    return [
+      {
+        icon: "eye",
+        text: "查看",
+        handler: () => this.viewDocument(doc),
+      },
+      {
+        icon: "download",
+        text: "下载",
+        handler: () => this.downloadDocument(doc),
+      },
+      {
+        type: isFavorite ? "primary" : "default",
+        icon: isFavorite ? "check" : "star",
+        text: isFavorite ? "已收藏" : "收藏",
+        handler: () => this.collectDocument(doc),
+      },
+      {
+        icon: "upload",
+        text: "上传更新",
+        handler: () => this.uploadDocument(doc.id, doc.ruleName),
+      },
+      {
+        icon: "delete",
+        text: "移除",
+        handler: () => this.removeDocument(doc),
+      },
+    ];
+  }
+
   // 查看文档
-  viewDocument(docId: string) {
-    const doc = this.documents.find((d) => d.id === docId);
-    if (doc) {
-      this.$message.info(`正在打开: ${doc.title}`);
-      setTimeout(() => {
-        this.$router.push(`/document/${docId}`);
-      }, 500);
-    }
+  viewDocument(doc: KnowledgeDataItem) {
+    this.$message.info(`正在打开: ${doc.ruleName}`);
+    setTimeout(() => {
+      this.$router.push(`/document/${doc.id}`);
+    }, 500);
   }
 
   // 下载文档
-  downloadDocument(docId: string) {
-    const doc = this.documents.find((d) => d.id === docId);
-    if (doc) {
-      this.$message.info(`正在准备下载: ${doc.title}`);
+  downloadDocument(doc: KnowledgeDataItem) {
+    this.$message.info(`正在准备下载: ${doc.ruleName}`);
 
-      // 模拟下载进度
-      setTimeout(() => {
-        this.$message.success(`下载已开始: ${doc.title}`);
-      }, 1500);
-    }
+    // 模拟下载进度
+    setTimeout(() => {
+      this.$message.success(`下载已开始: ${doc.ruleName}`);
+    }, 1500);
   }
 
   // 收藏/取消收藏文档
-  collectDocument(docId: string) {
-    const index = this.favoriteDocuments.indexOf(docId);
-    const doc = this.documents.find((d) => d.id === docId);
+  async collectDocument(doc: KnowledgeDataItem) {
+    const isCurrentlyFavorite = this.isDocumentFavorite(doc.id);
+    const newCollectStatus = !isCurrentlyFavorite;
 
-    if (!doc) return;
+    try {
+      // 调用后端接口
+      const params = {
+        searchId: doc.id,
+        empId: "DJ101015", // 使用硬编码ID
+        id: doc.id,
+        isCollect: newCollectStatus,
+      };
 
-    if (index === -1) {
-      // 添加到收藏
-      this.favoriteDocuments.push(docId);
-      this.$message.success(`已收藏: ${doc.title}`);
-    } else {
-      // 从收藏中移除
-      this.favoriteDocuments.splice(index, 1);
-      this.$message.info(`已取消收藏: ${doc.title}`);
+      console.log("收藏参数:", params);
 
-      // 如果在收藏模式下移除了文档，需要刷新列表
-      if (this.isFavoritesMode) {
-        this.onSearch();
+      const success = await this.$service.lawyer.saveOrCancelCollect(params);
+
+      if (success) {
+        if (newCollectStatus) {
+          // 添加到收藏
+          this.favoriteDocuments.push(doc.id);
+          this.$message.success(`已收藏: ${doc.ruleName}`);
+        } else {
+          // 从收藏中移除
+          const index = this.favoriteDocuments.indexOf(doc.id);
+          if (index !== -1) {
+            this.favoriteDocuments.splice(index, 1);
+          }
+          this.$message.info(`已取消收藏: ${doc.ruleName}`);
+
+          // 如果在收藏模式下移除了文档，需要刷新列表
+          if (this.isFavoritesMode) {
+            // 重新加载收藏列表
+            this.loadDocuments();
+          }
+        }
+      } else {
+        this.$message.error("操作失败，请重试");
       }
+    } catch (error) {
+      console.error("收藏操作失败:", error);
+      this.$message.error("操作失败，请重试");
     }
-
-    // 保存到本地存储
-    localStorage.setItem(
-      "favoriteDocuments",
-      JSON.stringify(this.favoriteDocuments)
-    );
   }
 
   // 上传更新文档
@@ -714,28 +521,29 @@ export default class KnowledgePage extends Vue {
   }
 
   // 移除文档
-  removeDocument(docId: string) {
-    const doc = this.documents.find((d) => d.id === docId);
-    if (!doc) return;
-
+  removeDocument(doc: KnowledgeDataItem) {
     this.$confirm({
       title: "确定要移除文档吗？",
-      content: `文档"${doc.title}"将被移除，此操作不可撤销。`,
+      content: `文档"${doc.ruleName}"将被移除，此操作不可撤销。`,
       okText: "确认",
       cancelText: "取消",
-      onOk: () => {
-        // 移除文档
-        this.documents = this.documents.filter((d) => d.id !== docId);
-        this.$message.success(`文档"${doc.title}"已移除`);
+      onOk: async () => {
+        try {
+          // 调用后端删除接口
+          const success = await this.$service.lawyer.deleteRuleSource({
+            id: doc.id,
+          });
 
-        // 如果文档在收藏夹中，也应该从收藏夹移除
-        const index = this.favoriteDocuments.indexOf(docId);
-        if (index !== -1) {
-          this.favoriteDocuments.splice(index, 1);
-          localStorage.setItem(
-            "favoriteDocuments",
-            JSON.stringify(this.favoriteDocuments)
-          );
+          if (success) {
+            this.$message.success(`文档"${doc.ruleName}"已移除`);
+            // 重新从后端获取数据
+            await this.loadDocuments();
+          } else {
+            this.$message.error("删除失败，请重试");
+          }
+        } catch (error) {
+          console.error("删除文档失败:", error);
+          this.$message.error("删除失败，请重试");
         }
       },
     });
@@ -755,64 +563,18 @@ export default class KnowledgePage extends Vue {
   }
 
   // 获取标签颜色
-  getTagColor(type: string): string {
-    if (!type) return "blue";
-    const colorMap: Record<string, string> = {
-      law: "red",
-      policy: "orange",
-      case: "green",
-      guide: "purple",
-      internal: "green",
-      interpretation: "cyan",
-    };
-    return colorMap[type] || "blue";
+  getTagColor(category: string, type: string = 'main'): string {
+    if (!category) return 'blue';
+    
+    // 简化颜色逻辑，只使用两种颜色
+    // 一级分类使用金黄色，二级分类使用蓝色
+    return type === 'main' ? 'gold' : 'blue';
   }
 
   // 获取类型文本
-  getTypeText(type: string): string {
-    if (!type) return "其他";
-    const textMap: Record<string, string> = {
-      law: "法律法规",
-      policy: "监管政策",
-      case: "典型案例",
-      guide: "合规指南",
-      internal: "内部规章",
-      interpretation: "司法解读",
-    };
-    return textMap[type] || "其他";
-  }
-
-  // 获取文档操作按钮
-  getDocActions(doc: DocumentItem) {
-    const isFavorite = this.isDocumentFavorite(doc.id);
-    return [
-      {
-        icon: "eye",
-        text: "查看",
-        handler: () => this.viewDocument(doc.id),
-      },
-      {
-        icon: "download",
-        text: "下载",
-        handler: () => this.downloadDocument(doc.id),
-      },
-      {
-        type: isFavorite ? "primary" : "default",
-        icon: isFavorite ? "check" : "star",
-        text: isFavorite ? "已收藏" : "收藏",
-        handler: () => this.collectDocument(doc.id),
-      },
-      {
-        icon: "upload",
-        text: "上传更新",
-        handler: () => this.uploadDocument(doc.id, doc.title),
-      },
-      {
-        icon: "delete",
-        text: "移除",
-        handler: () => this.removeDocument(doc.id),
-      },
-    ];
+  getTypeText(category: string): string {
+    if (!category) return "其他";
+    return category || "其他";
   }
 
   // 加载文档数据
@@ -820,83 +582,48 @@ export default class KnowledgePage extends Vue {
     this.listLoading = true;
 
     try {
-      // 模拟异步请求
-      const mockData = [
-        {
-          id: "1",
-          title: "保险资金股权投资管理暂行办法",
-          summary:
-            "规范保险资金股权投资行为，防范投资风险，保护被保险人利益。明确股权投资的基本原则、投资范围、投资比例等核心要求...",
-          date: "2024-01-15",
-          source: "金融监管总局",
-          sourceType: "regulator",
-          views: 2156,
-          tags: ["法律法规", "资金运用"],
-          category: "law",
-          type: "law",
-        },
-        {
-          id: "2",
-          title: "偿付能力监管规则第1号：保险公司偿付能力充足率",
-          summary:
-            "建立健全偿付能力监管制度，规范保险公司偿付能力计算标准，确保保险公司具备与其风险相适应的资本水平...",
-          date: "2024-01-10",
-          source: "金融监管总局",
-          sourceType: "regulator",
-          views: 1845,
-          tags: ["监管规则", "偿付能力"],
-          category: "law",
-          type: "law",
-        },
-        {
-          id: "3",
-          title: "关联交易管理办法（2022年修订）",
-          summary:
-            "加强保险公司关联交易监管，规范关联交易行为，防控关联交易风险，保护保险消费者合法权益和保险公司稳健经营...",
-          date: "2023-12-28",
-          source: "金融监管总局",
-          sourceType: "regulator",
-          views: 3267,
-          tags: ["管理办法", "关联交易"],
-          category: "policy",
-          type: "policy",
-        },
-        {
-          id: "4",
-          title: "保险公司信息披露管理办法",
-          summary:
-            "规范保险公司信息披露行为，保护投保人、被保险人和受益人的合法权益，促进保险市场健康发展...",
-          date: "2023-12-15",
-          source: "金融监管总局",
-          sourceType: "regulator",
-          views: 1523,
-          tags: ["管理办法", "信息披露"],
-          category: "policy",
-          type: "policy",
-        },
-        {
-          id: "5",
-          title: "保险资产管理公司管理规定",
-          summary:
-            "规范保险资产管理公司经营行为，加强监督管理，促进保险资产管理行业健康发展，更好服务保险业和实体经济发展...",
-          date: "2023-11-30",
-          source: "金融监管总局",
-          sourceType: "regulator",
-          views: 987,
-          tags: ["管理规定", "资产管理"],
-          category: "policy",
-          type: "policy",
-        },
-      ];
+      // 构建查询参数
+      const params = {
+        condition: this.searchText || "",
+        category: this.filterCategory !== "all" ? this.filterCategory : "",
+        source: this.filterSource !== "all" ? this.filterSource : "",
+        sortOrder: this.sortOrder,
+      };
 
-      await new Promise((r) => setTimeout(r, 1200));
-      this.documents = mockData;
+      // 如果是收藏模式，添加empId参数
+      if (this.isFavoritesMode) {
+        // 直接使用硬编码的ID，避免依赖store
+        params.empId = "DJ101015";
+      }
+
+      console.log("查询参数:", params);
+
+      // 调用真实API获取数据
+      const result = await this.$service.lawyer.getRuleSourceList(params);
+      console.log("获取到的数据:", result);
+
+      if (result && Array.isArray(result)) {
+        this.documents = result;
+        this.totalDocuments = result.length;
+      } else {
+        this.documents = [];
+        this.totalDocuments = 0;
+      }
     } catch (error) {
       console.error("加载文档数据失败", error);
       this.$message.error("加载数据失败，请刷新页面重试");
+      this.documents = [];
+      this.totalDocuments = 0;
     } finally {
       this.listLoading = false;
     }
+  }
+
+
+  head() {
+    return {
+      title: "法规与文件大家智库 - 法律合规智能系统",
+    };
   }
 }
 </script>
@@ -940,18 +667,6 @@ export default class KnowledgePage extends Vue {
         border-color: var(--lawyer-primary);
       }
     }
-  }
-
-  // 智能搜索信息
-  .lawyer-search-mode-info {
-    background-color: rgba(var(--lawyer-primary-rgb), 0.1);
-    color: var(--lawyer-primary-dark);
-    padding: 12px 16px;
-    border-radius: 4px;
-    margin-bottom: 24px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
   }
 
   // 筛选选项
@@ -1121,11 +836,6 @@ export default class KnowledgePage extends Vue {
         font-size: 12px;
       }
     }
-  }
-
-  .lawyer-semantic-score {
-    color: var(--lawyer-success);
-    font-weight: 600;
   }
 
   // 分页

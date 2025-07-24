@@ -15,7 +15,6 @@ export interface DocumentItem {
   type?: string;
   views?: number;
   tags?: string[];
-  semanticScore?: number;
 }
 
 // 更新项目接口

@@ -29,6 +29,8 @@ import {
   Spin,
   Cascader,
   Upload,
+  Progress,
+  Switch,
   message,
   ConfigProvider,
 } from "ant-design-vue";
@@ -64,6 +66,8 @@ Vue.use(Empty);
 Vue.use(Spin);
 Vue.use(Cascader);
 Vue.use(Upload);
+Vue.use(Progress);
+Vue.use(Switch);
 Vue.use(ConfigProvider);
 
 // 设置中文本地化
@@ -71,3 +75,6 @@ Vue.prototype.$antLocale = zhCN;
 
 // 全局挂载message组件
 Vue.prototype.$message = message;
+
+// 全局挂载Modal.confirm方法
+Vue.prototype.$confirm = Modal.confirm;

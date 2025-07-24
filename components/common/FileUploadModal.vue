@@ -374,17 +374,50 @@ export default class FileUploadModal extends Vue {
     }
   }
 
-  // 模拟上传进度
+  // 真实上传到后端
   async simulateUpload(): Promise<void> {
-    return new Promise((resolve) => {
-      this.uploadTimer = setInterval(() => {
-        this.uploadProgress += 10;
-        if (this.uploadProgress >= 100) {
-          clearInterval(this.uploadTimer);
-          setTimeout(resolve, 500);
+    if (!this.selectedFile || !this.documentId) {
+      throw new Error("缺少必要的上传参数");
+    }
+
+    try {
+      // 创建FormData
+      const formData = new FormData();
+      formData.append("id", this.documentId);
+      formData.append("file", this.selectedFile);
+
+      console.log("上传参数:", {
+        id: this.documentId,
+        fileName: this.selectedFile.name,
+        fileSize: this.selectedFile.size,
+      });
+
+      // 模拟上传进度
+      const progressInterval = setInterval(() => {
+        if (this.uploadProgress < 90) {
+          this.uploadProgress += 10;
         }
       }, 200);
-    });
+
+      // 调用真实的后端接口
+      const success = await this.$service.lawyer.uploadRuleSource({
+        id: this.documentId,
+        file: this.selectedFile,
+      });
+
+      clearInterval(progressInterval);
+      this.uploadProgress = 100;
+
+      if (!success) {
+        throw new Error("上传失败");
+      }
+
+      // 等待一下让用户看到100%进度
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    } catch (error) {
+      console.error("上传失败:", error);
+      throw error;
+    }
   }
 
   cancelUpload() {

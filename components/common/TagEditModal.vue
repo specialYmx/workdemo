@@ -22,33 +22,31 @@
         />
       </div>
 
-      <!-- 施行日期选择 -->
-      <div class="lawyer-tag-select-row">
+      <!-- 施行日期选择（仅在文档对比页面显示） -->
+      <div v-if="showEffectDate" class="lawyer-tag-select-row">
         <label>施行日期</label>
-        <a-date-picker 
-          v-model="effectDate" 
-          format="YYYY-MM-DD" 
+        <a-date-picker
+          v-model="effectDate"
+          format="YYYY-MM-DD"
           placeholder="请选择施行日期"
           style="width: 300px"
         />
       </div>
 
-      <!-- 文档状态选择（仅在文档详情页显示） -->
+      <!-- 文档废止状态（仅在文档详情页显示） -->
       <div v-if="showDocumentStatus" class="lawyer-tag-select-row">
         <label>文档状态</label>
-        <a-select
-          v-model="selectedStatus"
-          placeholder="请选择文档状态"
-          style="width: 300px"
-        >
-          <a-select-option
-            v-for="status in documentStatusOptions"
-            :key="status.value"
-            :value="status.value"
-          >
-            {{ status.label }}
-          </a-select-option>
-        </a-select>
+        <div class="lawyer-status-switch-container">
+          <a-switch
+            v-model="isRevoke"
+            :checked-children="'已废止'"
+            :un-checked-children="'未废止'"
+            size="default"
+          />
+          <span class="lawyer-status-text">
+            {{ isRevoke ? "已废止" : "未废止" }}
+          </span>
+        </div>
       </div>
     </div>
   </a-modal>
@@ -65,38 +63,24 @@ interface TagOption {
   children?: TagOption[];
 }
 
-interface StatusOption {
-  value: string;
-  label: string;
-}
-
 @Component
 export default class TagEditModal extends Vue {
   @Prop({ type: Boolean, default: false }) visible!: boolean;
   @Prop({ type: String, default: "选择分类" }) title!: string;
   @Prop({ type: Array, default: () => [] }) currentTags!: string[];
-  @Prop({ type: String, default: "" }) currentStatus!: string;
+  @Prop({ type: Boolean, default: false }) currentIsRevoke!: boolean;
   @Prop({ type: Boolean, default: false }) showDocumentStatus!: boolean;
+  @Prop({ type: Boolean, default: false }) showEffectDate!: boolean;
   @Prop({ type: Boolean, default: true }) allowParentSelect!: boolean;
   @Prop({ type: String, default: null }) currentEffectDate!: string | null;
 
   // 内部状态
   selectedTagPath: string[] = [];
-  selectedStatus = "";
+  isRevoke = false;
   effectDate: string | null = null;
 
   // 标签选项数据（从常量文件导入）
   tagOptions: TagOption[] = cascaderOptions;
-
-  // 文档状态选项
-  documentStatusOptions: StatusOption[] = [
-    { value: "effective", label: "已生效" },
-    { value: "pending", label: "待生效" },
-    { value: "draft", label: "草案" },
-    { value: "deprecated", label: "已废止" },
-    { value: "under_review", label: "审查中" },
-    { value: "consultation", label: "征求意见中" },
-  ];
 
   @Watch("visible")
   onVisibleChange(newVal: boolean) {
@@ -112,9 +96,9 @@ export default class TagEditModal extends Vue {
     // 设置当前标签路径
     this.selectedTagPath = this.findTagPath(this.currentTags);
 
-    // 设置当前状态
-    this.selectedStatus = this.currentStatus;
-    
+    // 设置当前废止状态
+    this.isRevoke = this.currentIsRevoke;
+
     // 设置施行日期
     this.effectDate = this.currentEffectDate;
   }
@@ -122,7 +106,7 @@ export default class TagEditModal extends Vue {
   // 重置值
   resetValues() {
     this.selectedTagPath = [];
-    this.selectedStatus = "";
+    this.isRevoke = false;
     this.effectDate = null;
   }
 
@@ -179,11 +163,16 @@ export default class TagEditModal extends Vue {
     const result: any = {
       tags: this.selectedTagPath,
       tagDisplay: tagDisplay,
-      effectDate: this.effectDate
     };
 
+    // 只在显示施行日期时才包含effectDate
+    if (this.showEffectDate) {
+      result.effectDate = this.effectDate;
+    }
+
+    // 只在显示文档状态时才包含isRevoke
     if (this.showDocumentStatus) {
-      result.status = this.selectedStatus;
+      result.isRevoke = this.isRevoke;
     }
 
     this.emitConfirm(result);
@@ -196,11 +185,11 @@ export default class TagEditModal extends Vue {
 
   // Emit 装饰器方法
   @Emit("confirm")
-  emitConfirm(data: { 
-    tags: string[]; 
-    tagDisplay: string; 
-    effectDate: string | null;
-    status?: string; 
+  emitConfirm(data: {
+    tags: string[];
+    tagDisplay: string;
+    effectDate?: string | null;
+    isRevoke?: boolean;
   }) {
     return data;
   }
@@ -224,6 +213,18 @@ export default class TagEditModal extends Vue {
       font-weight: 500;
       color: #333;
       min-width: 80px;
+    }
+
+    .lawyer-status-switch-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .lawyer-status-text {
+        font-size: 14px;
+        color: #666;
+        font-weight: 500;
+      }
     }
   }
 }

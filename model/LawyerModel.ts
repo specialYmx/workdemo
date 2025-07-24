@@ -48,7 +48,53 @@ export interface TrendAnalysis {
 // ==================== 大家智库相关数据模型 ====================
 
 /**
- * 法规文档信息
+ * 法规文档信息（基于真实API数据结构）
+ */
+export interface KnowledgeDataItem {
+  revokeDateTimestamp: number | null;
+  modifyDateTimestamp: number | null;
+  effectDateStr: string | null;
+  _matchesPosition: Record<string, any>;
+  compilationType: string | null;
+  categorySub: string;
+  readCount: number;
+  filePathTxt: string;
+  checkStatus: string | null;
+  effectDateTimestamp: number | null;
+  ruleName: string;
+  createdTime: string | null;
+  publishDateTimestamp: number;
+  filePathOther: string;
+  id: string;
+  initDataFlag: number;
+  fileVersion: number;
+  updateTimeStr: string | null;
+  revokeDateStr: string | null;
+  summary: string;
+  publishTime: string | null;
+  effectDate: string | null;
+  createdTimeStr: string;
+  createdTimestamp: number;
+  topicCategory: string | null;
+  updateTime: string | null;
+  publishDateStr: string;
+  docNo: string | null;
+  url: string | null;
+  updateTimestamp: number | null;
+  thinktankType: string | null;
+  websiteName: string;
+  effectivenessLevel: string;
+  diffResultId: string | null;
+  categoryMain: string;
+  deleted: number;
+  checkTime: string | null;
+  timeLiness: string;
+  fileContent: string;
+  modifyDateStr: string | null;
+}
+
+/**
+ * 法规文档信息（保留原有接口以兼容其他代码）
  */
 export interface RuleSourceItem {
   id: string;
@@ -251,7 +297,7 @@ export interface LawyerService {
   downloadRuleFile: (params: any) => Promise<{ data: Blob; headers: any }>;
   getRuleSourceCollect: (params: any) => Promise<any>;
   getRuleSourceDetail: (params: any) => Promise<RuleSourceItem>;
-  getRuleSourceList: (params: any) => Promise<PageResult<RuleSourceItem>>;
+  getRuleSourceList: (params: any) => Promise<KnowledgeDataItem[]>;
   getRuleUpdateList: (params: any) => Promise<PageResult<any>>;
   initData: (params?: any) => Promise<any>;
   saveOrCancelCollect: (params: any) => Promise<boolean>;
