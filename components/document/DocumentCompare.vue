@@ -33,7 +33,7 @@
           </div>
         </div>
         <div class="lawyer-header-actions">
-          <template v-if="document.status === 'pending'">
+          <template v-if="document.status === 'pending' && canReview">
             <a-button
               v-for="(action, index) in reviewActions"
               :key="index"
@@ -45,6 +45,9 @@
               {{ action.text }}
             </a-button>
           </template>
+          <div v-else-if="document.status === 'pending' && !canReview" class="lawyer-version-warning">
+            当前版本(V{{ document.newFileVersion || 0 }})高于系统最高版本(V{{ document.currentMaxFileVersion || 0 }})，请先更新系统版本
+          </div>
         </div>
       </header>
 
@@ -57,21 +60,31 @@
         >
           <div class="lawyer-column-header">
             {{ col.title }}
-            <span class="lawyer-version-info" v-if="col.date">{{
-              col.date
-            }}</span>
+            （<span v-if="col.version">
+              {{ col.version }}-
+            </span>
+            <span  v-if="col.date">
+              {{ col.date }}
+            </span>）
           </div>
           <div class="lawyer-column-content">
-            <div v-html="col.content"></div>
+            <div v-html="formatContentDisplay(col.content)"></div>
           </div>
         </div>
 
         <!-- 修改记录 -->
         <div class="lawyer-changelog-column">
-          <div class="lawyer-column-header">审阅内容</div>
+          <div class="lawyer-column-header">
+            审阅内容 
+            <span class="lawyer-version-compare">（V{{ document.oldFileVersion || '暂无' }} vs V{{ document.newFileVersion || '暂无' }}）</span>
+          </div>
           <div class="lawyer-column-content">
             <div class="lawyer-change-summary">
-              共有 <strong>{{ document.changes.length }}</strong> 处修改
+              共有 <strong>{{ document.changes.length }}</strong> 处变动
+            </div>
+
+            <div v-if="document.changes.length === 0" class="lawyer-no-changes">
+              暂无修改记录或正在加载中...
             </div>
 
             <div
@@ -80,28 +93,22 @@
               class="lawyer-changelog-item"
             >
               <div class="lawyer-change-location">
-                第 {{ change.section }} 章 第 {{ change.position }} 条
+                {{ change.section ? `第${change.section}章` : '' }} {{ change.position }}
               </div>
               <div class="lawyer-change-content">
                 <div v-if="change.type === 'add'" class="lawyer-content-text">
-                  <span class="lawyer-content-label">添加内容：</span>
-                  {{ change.newText }}
+                  <div>添加内容：<span class="lawyer-content-highlight">{{ change.newText }}</span></div>
                 </div>
                 <div
                   v-else-if="change.type === 'delete'"
                   class="lawyer-content-text"
                 >
-                  <span class="lawyer-content-label">删除内容：</span>
-                  {{ change.oldText }}
+                  <div>删除内容：{{ change.oldText }}</div>
                 </div>
                 <template v-else>
                   <div class="lawyer-content-text">
-                    <span class="lawyer-content-label">原内容：</span>
-                    {{ change.oldText }}
-                  </div>
-                  <div class="lawyer-content-text">
-                    <span class="lawyer-content-label">修改内容：</span>
-                    {{ change.newText }}
+                    <div>原内容："{{ change.oldText }}"</div>
+                    <div>修改为："<span class="lawyer-content-highlight">{{ change.newText }}</span>"</div>
                   </div>
                 </template>
               </div>
@@ -138,6 +145,7 @@
         title="编辑文档分类"
         :current-tags="document.tags || []"
         :current-status="document.status"
+        :current-effect-date="document.effectDate"
         :show-document-status="false"
         :allow-parent-select="true"
         @confirm="handleTagEditConfirm"
@@ -211,93 +219,69 @@ export default class DocumentCompare extends Vue {
       },
     ];
   }
+  
+  // 是否允许审核操作
+  get canReview(): boolean {
+    // 检查文档版本是否允许审核
+    const newFileVersion = this.document.newFileVersion || 0;
+    const currentMaxFileVersion = this.document.currentMaxFileVersion || 0;
+    return newFileVersion <= currentMaxFileVersion;
+  }
 
   // 文档列数据
   get documentColumns(): DocumentColumn[] {
     return [
       {
         title: "修改前文档",
-        content:
-          this.document.originalContent || this.generateLongContent("原始版本"),
+        version: this.document.oldFileVersion ? `V${this.document.oldFileVersion}` : undefined,
+        date: this.document.oldPublishTime || "",
+        content: this.document.originalContent || "加载中...",
         contentClass: "lawyer-original-content",
       },
       {
         title: "修改后文档",
-        date: this.document.modifiedDate || "2024-01-15",
-        content:
-          this.document.newContent || this.generateLongContent("修订版本"),
+        version: this.document.newFileVersion ? `V${this.document.newFileVersion}` : undefined,
+        date: this.document.modifiedDate || this.document.newPublishTime || "",
+        content: this.document.newContent || "加载中...",
         contentClass: "lawyer-new-content",
       },
     ];
   }
 
-  // 生成长内容用于测试滚动
-  generateLongContent(version: string): string {
-    let content = `<h1 class="doc-title">关于保险资金股权投资有关事项的通知</h1>
-    <p class="doc-meta">金融监管总局发布 · 2024年1月15日</p>
+  // 格式化内容显示，将文本转换为HTML
+  formatContentDisplay(content: string): string {
+    if (!content) return '<p class="lawyer-empty-content">无内容</p>';
+    if (content === 'error') return '<p class="lawyer-error-content">加载失败，请刷新页面重试</p>';
+    if (content.trim() === '') return '<p class="lawyer-empty-content">无内容</p>';
     
-    <div class="doc-toc">
-      <h2>目录</h2>
-      <ol>
-        <li>总则</li>
-        <li>投资范围与比例</li>
-        <li>投资管理与决策</li>
-        <li>风险管理</li>
-        <li>信息披露</li>
-        <li>监督管理</li>
-        <li>法律责任</li>
-        <li>附则</li>
-      </ol>
-    </div>
+    // 如果内容已经包含HTML标签，则直接返回
+    if (content.includes('<')) return content;
     
-    <h2>第一章 总则</h2>`;
-
-    // 添加多个章节和条款，以确保内容足够长
-    for (let i = 1; i <= 8; i++) {
-      content += `<h2>第${i}章 ${this.getChapterTitle(i)}</h2>`;
-
-      for (let j = 1; j <= 5; j++) {
-        content += `<p class="doc-article"><strong>第${j}条</strong> ${this.getArticleContent(
-          i,
-          j,
-          version
-        )}</p>`;
-      }
-    }
-
+    // 简单处理：保留原始文本，让CSS处理换行
     return content;
-  }
-
-  // 获取章节标题
-  getChapterTitle(chapter: number): string {
-    const titles = [
-      "总则",
-      "投资范围与比例",
-      "投资管理与决策",
-      "风险管理",
-      "信息披露",
-      "监督管理",
-      "法律责任",
-      "附则",
-    ];
-    return titles[chapter - 1] || `章节${chapter}`;
-  }
-
-  // 获取条款内容
-  getArticleContent(chapter: number, article: number, version: string): string {
-    const baseContent = `本条是关于${this.getChapterTitle(
-      chapter
-    )}的第${article}条规定，详细说明了保险资金股权投资的相关要求和规范。保险机构应当建立健全股权投资管理制度，明确决策程序和授权机制，加强投资风险管理，确保资金安全稳健运作。`;
-
-    // 为修订版本添加一些差异
-    if (version === "修订版本") {
-      return (
-        baseContent +
-        `（修订后增加内容：保险机构开展股权投资，应当遵循合法合规、价值投资、风险可控和专业化运作的原则，审慎评估投资风险，合理确定投资规模。）`
-      );
-    }
-
-    return baseContent;
+    
+    // 不再使用复杂的HTML转换，因为会破坏原始格式
+    // return content
+    //   .split('\n')
+    //   .map(line => {
+    //     // 处理标题
+    //     if (line.trim().startsWith('第') && line.trim().includes('章')) {
+    //       return `<h2>${line.trim()}</h2>`;
+    //     }
+    //     // 处理条款
+    //     else if (line.trim().startsWith('第') && (line.trim().includes('条') || line.trim().includes('款'))) {
+    //       return `<p><strong>${line.substring(0, line.indexOf(' '))}</strong>${line.substring(line.indexOf(' '))}</p>`;
+    //     }
+    //     // 普通段落
+    //     else if (line.trim()) {
+    //       return `<p>${line.trim()}</p>`;
+    //     }
+    //     // 空行也保留，转为<br>标签
+    //     else {
+    //       return '<br>';
+    //     }
+    //   })
+    //   .join('');
   }
 
   // 返回上一页
@@ -321,6 +305,12 @@ export default class DocumentCompare extends Vue {
 
   // 提交审核
   submitReview(): void {
+    // 检查版本是否允许审核
+    if (!this.canReview) {
+      this.$message.error("当前版本高于系统最高版本，不允许审核");
+      return;
+    }
+    
     if (this.reviewAction === "reject" && !this.reviewComment) {
       this.$message.error("驳回时必须填写意见");
       return;
@@ -328,7 +318,7 @@ export default class DocumentCompare extends Vue {
 
     this.emitSubmitReview({
       action: this.reviewAction,
-      comment: this.reviewComment,
+      comment: this.reviewComment
     });
 
     this.reviewModalVisible = false;
@@ -340,10 +330,15 @@ export default class DocumentCompare extends Vue {
   }
 
   // 处理标签编辑确认
-  handleTagEditConfirm(data: { tags: string[]; tagDisplay: string }): void {
+  handleTagEditConfirm(data: { 
+    tags: string[]; 
+    tagDisplay: string;
+    effectDate: string | null;
+  }): void {
     // 更新标签
     if (data.tags.length > 0) {
       this.document.tags = [...data.tags];
+      this.document.effectDate = data.effectDate;
       this.$message.success(`已设置标签为: ${data.tagDisplay}`);
     }
 
@@ -362,7 +357,10 @@ export default class DocumentCompare extends Vue {
   }
 
   @Emit("submit-review")
-  emitSubmitReview(data: { action: string; comment: string }) {
+  emitSubmitReview(data: { 
+    action: string; 
+    comment: string;
+  }) {
     return data;
   }
 }
@@ -511,6 +509,20 @@ export default class DocumentCompare extends Vue {
 
   .lawyer-document-column {
     flex: 1;
+    position: relative;
+    
+    &.is-loading::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
   }
 
   .lawyer-changelog-column {
@@ -527,16 +539,15 @@ export default class DocumentCompare extends Vue {
     border-bottom: 1px solid var(--lawyer-border-light);
   }
 
-  .lawyer-version-info {
-    color: var(--lawyer-text-light);
-    font-weight: 400;
-  }
 
   .lawyer-column-content {
     padding: 20px;
     overflow-y: auto;
     flex: 1; // 使用flex占据剩余空间
     min-height: 0; // 允许收缩
+    white-space: pre-wrap; // 保留换行符
+    word-break: break-word; // 长单词换行
+    
     h2,
     h3 {
       color: var(--lawyer-primary);
@@ -562,6 +573,7 @@ export default class DocumentCompare extends Vue {
     font-weight: 500;
     border-bottom: 1px solid var(--lawyer-border-light);
     color: var(--lawyer-text);
+    font-size: 14px;
 
     strong {
       color: var(--lawyer-primary);
@@ -570,36 +582,83 @@ export default class DocumentCompare extends Vue {
     }
   }
 
+  .lawyer-no-changes {
+    padding: 30px 20px;
+    text-align: center;
+    color: #999;
+    font-style: italic;
+  }
+
   .lawyer-changelog-item {
-    padding: 15px 20px;
     border-bottom: 1px solid var(--lawyer-border-light);
   }
 
   .lawyer-change-location {
-    color: var(--lawyer-primary);
-    font-weight: 600;
+    color: #333;
+    font-weight: 700;
     font-size: 15px;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
   }
 
   .lawyer-change-content {
-    padding-left: 10px;
+    padding-left: 0;
   }
-
+  
   .lawyer-content-text {
     line-height: 1.6;
-    margin-bottom: 8px;
-
+    margin-bottom: 16px;
+    color: #333;
+    
     &:last-child {
       margin-bottom: 0;
     }
+    
+    div {
+      margin-bottom: 4px;
+    }
+  }
+  
+  .lawyer-content-highlight {
+    background-color: #fffbe6;
+    border-radius: 2px;
+    padding: 0 2px;
+  }
+  
+  .lawyer-version-compare {
+    font-size: 14px;
+    font-weight: normal;
+    color: var(--lawyer-text-light);
+    margin-left: 8px;
   }
 
-  .lawyer-content-label {
+  .lawyer-empty-content {
+    color: #999;
+    font-style: italic;
+    padding: 20px;
+    text-align: center;
+  }
+
+  .lawyer-error-content {
+    color: var(--lawyer-danger);
     font-weight: 600;
-    color: #333;
-    display: inline-block;
-    margin-right: 8px;
+    padding: 20px;
+    text-align: center;
+    border: 1px dashed var(--lawyer-danger);
+    margin: 20px;
+    border-radius: 4px;
+  }
+  
+  .lawyer-loading-spinner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+  }
+
+  .lawyer-version-warning {
+    color: var(--lawyer-danger);
+    font-size: 12px;
+    margin-top: 8px;
   }
 }
 </style>

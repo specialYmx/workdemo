@@ -22,6 +22,17 @@
         />
       </div>
 
+      <!-- 施行日期选择 -->
+      <div class="lawyer-tag-select-row">
+        <label>施行日期</label>
+        <a-date-picker 
+          v-model="effectDate" 
+          format="YYYY-MM-DD" 
+          placeholder="请选择施行日期"
+          style="width: 300px"
+        />
+      </div>
+
       <!-- 文档状态选择（仅在文档详情页显示） -->
       <div v-if="showDocumentStatus" class="lawyer-tag-select-row">
         <label>文档状态</label>
@@ -46,6 +57,7 @@
 <script lang="ts">
 // @ts-nocheck
 import { Component, Vue, Prop, Watch, Emit } from "nuxt-property-decorator";
+import { cascaderOptions } from "~/enum/Category";
 
 interface TagOption {
   value: string;
@@ -66,53 +78,15 @@ export default class TagEditModal extends Vue {
   @Prop({ type: String, default: "" }) currentStatus!: string;
   @Prop({ type: Boolean, default: false }) showDocumentStatus!: boolean;
   @Prop({ type: Boolean, default: true }) allowParentSelect!: boolean;
+  @Prop({ type: String, default: null }) currentEffectDate!: string | null;
 
   // 内部状态
   selectedTagPath: string[] = [];
   selectedStatus = "";
+  effectDate: string | null = null;
 
-  // 标签选项数据
-  tagOptions: TagOption[] = [
-    {
-      value: "公司治理",
-      label: "公司治理",
-      children: [
-        { value: "董事会管理", label: "董事会管理" },
-        { value: "股东大会", label: "股东大会" },
-        { value: "监事会", label: "监事会" },
-        { value: "高管薪酬", label: "高管薪酬" },
-      ],
-    },
-    {
-      value: "风险管理",
-      label: "风险管理",
-      children: [
-        { value: "内控制度", label: "内控制度" },
-        { value: "合规管理", label: "合规管理" },
-        { value: "审计监督", label: "审计监督" },
-        { value: "风险评估", label: "风险评估" },
-      ],
-    },
-    {
-      value: "信息披露",
-      label: "信息披露",
-      children: [
-        { value: "定期报告", label: "定期报告" },
-        { value: "临时公告", label: "临时公告" },
-        { value: "重大事项", label: "重大事项" },
-        { value: "关联交易", label: "关联交易" },
-      ],
-    },
-    {
-      value: "投资者关系",
-      label: "投资者关系",
-      children: [
-        { value: "股东权益", label: "股东权益" },
-        { value: "分红政策", label: "分红政策" },
-        { value: "投资者保护", label: "投资者保护" },
-      ],
-    },
-  ];
+  // 标签选项数据（从常量文件导入）
+  tagOptions: TagOption[] = cascaderOptions;
 
   // 文档状态选项
   documentStatusOptions: StatusOption[] = [
@@ -140,12 +114,16 @@ export default class TagEditModal extends Vue {
 
     // 设置当前状态
     this.selectedStatus = this.currentStatus;
+    
+    // 设置施行日期
+    this.effectDate = this.currentEffectDate;
   }
 
   // 重置值
   resetValues() {
     this.selectedTagPath = [];
     this.selectedStatus = "";
+    this.effectDate = null;
   }
 
   // 查找标签在级联选项中的路径
@@ -201,6 +179,7 @@ export default class TagEditModal extends Vue {
     const result: any = {
       tags: this.selectedTagPath,
       tagDisplay: tagDisplay,
+      effectDate: this.effectDate
     };
 
     if (this.showDocumentStatus) {
@@ -217,7 +196,12 @@ export default class TagEditModal extends Vue {
 
   // Emit 装饰器方法
   @Emit("confirm")
-  emitConfirm(data: { tags: string[]; tagDisplay: string; status?: string }) {
+  emitConfirm(data: { 
+    tags: string[]; 
+    tagDisplay: string; 
+    effectDate: string | null;
+    status?: string; 
+  }) {
     return data;
   }
 

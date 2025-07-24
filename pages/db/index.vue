@@ -31,10 +31,12 @@
 
           <a-select
             v-model="filterType"
-            placeholder="全部分类"
+            placeholder="请选择分类"
             class="lawyer-filter-select"
             @change="onFilterChange"
+            allowClear
           >
+          <a-select-option value="">全部分类</a-select-option>
             <a-select-option
               v-for="option in typeOptions"
               :key="option.value"
@@ -58,6 +60,12 @@
           总计: <strong>{{ totalDocuments }}</strong> 条 / 待审核:
           <strong>{{ pendingCount }}</strong> 条 / 已选中:
           <strong>{{ selectedRowKeys.length }}</strong> 条
+          <a-tooltip placement="right">
+            <template slot="title">
+              <span>版本规则：文件版本高于系统最高版本时，不允许审核操作</span>
+            </template>
+            <a-icon type="info-circle" style="margin-left: 8px; color: #1890ff;" />
+          </a-tooltip>
         </div>
 
         <!-- 文档列表表格 -->
@@ -111,20 +119,23 @@
                 </a>
                 <template
                   v-if="
-                    record.checkStatus === '待审核' ||
-                    record.checkStatus === null
+                    (record.checkStatus === '待审核' ||
+                    record.checkStatus === null) &&
+                    canReviewItem(record)
                   "
                 >
                   <a
                     @click="approveDocument(record)"
                     class="lawyer-link-approve"
                   >
-                    批准
+                    通过
                   </a>
                   <a @click="rejectDocument(record)" class="lawyer-link-reject">
                     驳回
                   </a>
                 </template>
+                <span v-else-if="record.checkStatus === '待审核' || record.checkStatus === null" 
+                      class="lawyer-version-notice">版本受限</span>
               </div>
             </span>
 
@@ -208,6 +219,7 @@
 import { Component, Vue } from "nuxt-property-decorator";
 import moment from "moment";
 import { ToDoRuleItem } from "~/model/LawyerModel";
+import { categoryOptions } from "~/enum/Category";
 
 interface Document {
   id: string;
@@ -229,7 +241,7 @@ export default class DbPage extends Vue {
   // 搜索和筛选
   searchText = "";
   filterStatus = "all";
-  filterType = "all";
+  filterType = "";
   dateRange = [];
   // 表格加载状态
   tableLoading = false;
@@ -259,15 +271,8 @@ export default class DbPage extends Vue {
     { label: "已驳回", value: "rejected" },
   ];
 
-  // 文档类型选项（根据mock数据的categoryMain字段）
-  typeOptions = [
-    { label: "全部分类", value: "all" },
-    { label: "法律", value: "法律" },
-    { label: "行政法规", value: "行政法规" },
-    { label: "部门规章", value: "部门规章" },
-    { label: "规范性文件", value: "规范性文件" },
-    { label: "司法解释", value: "司法解释" },
-  ];
+  // 文档类型选项（从常量文件导入）
+  typeOptions = categoryOptions;
 
   // 表格行选择配置
   get rowSelection() {
@@ -407,8 +412,10 @@ export default class DbPage extends Vue {
       const params = {
         condition: this.searchText || "",
         checkStatus: this.getApiCheckStatus(this.filterStatus),
-        category: this.filterType === "all" ? "" : this.filterType,
+        category: this.filterType || "",
       };
+
+      console.log("查询参数:", params);
 
       // 调用真实API获取数据
       const result = await this.$service.lawyer.getCheckRuleList(params);
@@ -470,9 +477,9 @@ export default class DbPage extends Vue {
   getApiCheckStatus(status: string): string {
     const statusMap: Record<string, string> = {
       all: "",
-      pending: "0",
-      approved: "1",
-      rejected: "2",
+      pending: "待审核",
+      approved: "已通过",
+      rejected: "已驳回",
     };
     return statusMap[status] || "";
   }
@@ -568,7 +575,7 @@ export default class DbPage extends Vue {
       "1": "已通过",
       "2": "已驳回",
     };
-    return textMap[status || "0"] || "待审核";
+    return textMap[status] || "未知状态";
   }
 
   // 格式化时间显示
@@ -581,11 +588,33 @@ export default class DbPage extends Vue {
   viewDocument(document: ToDoRuleItem): void {
     this.$message.info(`查看文档: ${document.ruleName}`);
     // 实际项目中可能会跳转到文档比较页面
-    this.$router.push(`/document-compare/${document.id}`);
+    this.$router.push({
+      path: `/document-compare/${document.id}`,
+      query: { pageTitle: document.ruleName }
+    });
+  }
+
+  // 检查是否允许审核该项目
+  canReviewItem(record: ToDoRuleItem): boolean {
+    // 如果版本字段不存在，默认允许审核
+    if (record.newFileVersion === undefined || record.currentMaxFileVersion === undefined) {
+      return true;
+    }
+    
+    const newVersion = record.newFileVersion || 0;
+    const maxVersion = record.currentMaxFileVersion || 0;
+    
+    return newVersion <= maxVersion;
   }
 
   // 审核通过
   approveDocument(document: ToDoRuleItem): void {
+    // 检查版本
+    if (!this.canReviewItem(document)) {
+      this.$message.warning("当前版本高于系统最高版本，不允许审核");
+      return;
+    }
+    
     this.currentDocument = document;
     this.reviewAction = "approve";
     this.reviewComment = "";
@@ -594,6 +623,12 @@ export default class DbPage extends Vue {
 
   // 审核驳回
   rejectDocument(document: ToDoRuleItem): void {
+    // 检查版本
+    if (!this.canReviewItem(document)) {
+      this.$message.warning("当前版本高于系统最高版本，不允许审核");
+      return;
+    }
+    
     this.currentDocument = document;
     this.reviewAction = "reject";
     this.reviewComment = "";
@@ -859,6 +894,12 @@ export default class DbPage extends Vue {
       color: white;
       font-weight: 500;
     }
+  }
+
+  .lawyer-version-notice {
+    color: #999;
+    font-size: 12px;
+    font-style: italic;
   }
 }
 </style>

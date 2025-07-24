@@ -136,6 +136,8 @@ export interface ToDoRuleItem {
   checkStatus: string | null;
   deleted: number;
   createdTime: string;
+  newFileVersion?: number | null; // 新增字段：新文件版本
+  currentMaxFileVersion?: number | null; // 新增字段：当前最大文件版本
 }
 
 /**
@@ -219,6 +221,21 @@ export interface PageResult<T> {
   totalPages: number;
 }
 
+export interface FileCompareDetail {
+  newFileVersion: number;
+  effect_date: string;
+  newFileContent: string;
+  categoryMain: string;
+  categorySub?: string; // 添加二级分类
+  newPublishTime: string;
+  oldFileContent: string;
+  oldFileVersion?: number; // 修改前文档版本
+  oldPublishTime?: string; // 修改前文档发布时间
+  checkResult: string;
+  currentMaxFileVersion: number;
+  id?: string; // 添加ID
+  checkStatus?: string; // 添加审核状态
+}
 /**
  * 法律合规智能系统服务接口定义
  */
@@ -245,6 +262,7 @@ export interface LawyerService {
   approveToDoRule: (params: {
     id: string;
     approvalComment: string;
+    effectDate?: string | null;
   }) => Promise<boolean>;
   deleteToDoRule: (params: any) => Promise<boolean>;
   exportExcel: (params: {
@@ -252,7 +270,7 @@ export interface LawyerService {
     id?: string;
   }) => Promise<{ data: Blob; headers: any }>;
   getDiffResultSchedule: (params: any) => Promise<any>;
-  getToDoRuleDetail: (params: any) => Promise<ToDoRuleItem>;
+  getToDoRuleDetail: (params: { id: string }) => Promise<FileCompareDetail>;
   getCheckRuleList: (
     params: Record<string, string>
   ) => Promise<PageResult<ToDoRuleItem>>;
