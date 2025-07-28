@@ -1,5 +1,31 @@
 <template>
   <div class="document-page-wrapper">
+    <!-- 调试信息 -->
+    <div
+      v-if="$route.query.debug"
+      style="
+        background: #f0f0f0;
+        padding: 10px;
+        margin: 10px;
+        border-radius: 4px;
+      "
+    >
+      <h3>调试信息</h3>
+      <p><strong>Document Title:</strong> {{ document.title }}</p>
+      <p>
+        <strong>Content Length:</strong>
+        {{ document.content ? document.content.length : 0 }}
+      </p>
+      <p>
+        <strong>Content Preview:</strong>
+        {{
+          document.content
+            ? document.content.substring(0, 100) + "..."
+            : "No content"
+        }}
+      </p>
+    </div>
+
     <document-viewer
       :document="document"
       :relatedDocuments="relatedDocuments"
@@ -12,6 +38,7 @@
 <script lang="ts">
 // @ts-nocheck
 import { Component, Vue } from "nuxt-property-decorator";
+import { KnowledgeDataItem } from "~/model/LawyerModel";
 
 @Component({})
 export default class DocumentPage extends Vue {
@@ -20,8 +47,29 @@ export default class DocumentPage extends Vue {
       title: "法律合规智能系统",
     };
   }
-  // 文档数据（模拟数据）
-  document = {
+
+  // 文档数据
+  document: any = {
+    id: "",
+    title: "正在加载...",
+    category: "",
+    date: "",
+    effectiveDate: "",
+    publisher: "",
+    fileNumber: "",
+    status: "",
+    views: 0,
+    tags: [],
+    content: "正在加载文档内容...",
+  };
+
+  loading = false;
+
+  // 废止状态控制（从文档详情弹窗的已废止控件获取）
+  isRevoke = false;
+
+  // 临时保留的模拟数据（用于fallback）
+  fallbackDocument = {
     id: "1",
     title: "《中华人民共和国个人信息保护法》",
     category: "国家法律",
@@ -116,18 +164,117 @@ export default class DocumentPage extends Vue {
     this.$router.push(`/document/${doc.id}`);
   }
 
+  // 获取文档详情数据
+  async fetchDocument(docId: string): Promise<void> {
+    if (!docId) return;
+
+    this.loading = true;
+    try {
+      const result = await this.$service.lawyer.getRuleSourceDetail({
+        searchId: docId,
+        isRevoke: this.isRevoke,
+      });
+      console.log("获取到的文档详情:", result);
+
+      if (result) {
+        // 转换KnowledgeDataItem数据为DocumentViewer需要的格式
+        const formattedContent = this.formatContent(result.fileContent);
+        console.log("格式化后的内容:", formattedContent);
+
+        this.document = {
+          id: result.id,
+          title: result.ruleName,
+          category: result.categoryMain,
+          date: result.publishDateStr || result.createdTimeStr,
+          effectiveDate: result.effectDateStr || "暂无",
+          publisher: result.websiteName,
+          fileNumber: result.docNo || "暂无",
+          status: result.timeLiness || "未知",
+          views: result.readCount,
+          tags: [result.categoryMain, result.categorySub].filter(Boolean),
+          content: formattedContent,
+          isRevoke: !!(result.revokeDateTimestamp || result.revokeDateStr),
+        };
+
+        console.log("设置后的document:", this.document);
+      } else {
+        // 如果没有获取到数据，使用fallback数据
+        this.document = this.fallbackDocument;
+        this.$message.warning("未找到文档数据，显示示例内容");
+      }
+    } catch (error) {
+      console.error("获取文档详情失败:", error);
+      this.document = this.fallbackDocument;
+      this.$message.error("获取文档详情失败，显示示例内容");
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  // 格式化文档内容
+  formatContent(content: string): string {
+    console.log("原始内容:", content);
+    if (!content) {
+      console.log("内容为空，返回暂无内容");
+      return "暂无内容";
+    }
+
+    // 将纯文本内容转换为HTML格式
+    const formatted = content
+      .split("\n")
+      .map((line) => {
+        line = line.trim();
+        if (!line) return "";
+
+        // 处理标题（如：保险公司资金运用统计制度）
+        if (
+          line.match(/^[一二三四五六七八九十]+、/) ||
+          line.match(/^第[一二三四五六七八九十]+章/)
+        ) {
+          return `<h2 class="doc-title">${line}</h2>`;
+        }
+
+        // 处理条款
+        if (
+          line.match(/^第[一二三四五六七八九十\d]+条/) ||
+          line.match(/^[一二三四五六七八九十]+、/)
+        ) {
+          return `<p class="doc-article"><strong>${line}</strong></p>`;
+        }
+
+        // 处理文号等特殊格式
+        if (line.match(/^[〔\[].+[〕\]]/) || line.match(/号$/)) {
+          return `<p class="doc-meta">${line}</p>`;
+        }
+
+        // 处理普通段落
+        return `<p class="doc-article">${line}</p>`;
+      })
+      .filter(Boolean)
+      .join("\n");
+
+    console.log("格式化结果:", formatted);
+    return formatted;
+  }
+
   // 生命周期钩子
-  mounted(): void {
-    // 实际项目中，这里应该根据 this.$route.params.id 获取文档数据
+  async mounted(): Promise<void> {
     const docId = this.$route.params.id;
     console.log("文档ID:", docId);
 
-    // 这里应该通过API调用获取文档数据
-    // this.fetchDocument(docId)
+    // 从路由查询参数中获取isRevoke状态
+    const isRevokeParam = this.$route.query.isRevoke;
+    if (isRevokeParam !== undefined) {
+      this.isRevoke = isRevokeParam === "true" || isRevokeParam === true;
+    }
+    console.log("废止状态:", this.isRevoke);
+
+    if (docId) {
+      await this.fetchDocument(docId);
+    } else {
+      this.document = this.fallbackDocument;
+    }
   }
 }
 </script>
 
-<style lang="less" scoped>
-/* 所有样式已移至组件中 */
-</style>

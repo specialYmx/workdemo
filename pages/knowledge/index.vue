@@ -93,10 +93,7 @@
         </div>
 
         <!-- 无结果提示 -->
-        <div
-          class="lawyer-no-results"
-          v-if="!listLoading && documents.length === 0"
-        >
+        <div class="lawyer-no-results" v-if="!listLoading && !documents.length">
           <h3>未能找到相关结果</h3>
           <p>请尝试调整您的搜索关键词或筛选条件。</p>
         </div>
@@ -104,7 +101,7 @@
         <!-- 文档列表 -->
         <div
           class="lawyer-document-list"
-          v-if="!listLoading && documents.length > 0"
+          v-if="!listLoading && documents.length"
         >
           <div
             class="lawyer-document-item"
@@ -139,9 +136,11 @@
                     <a-tag :color="getTagColor(doc.categoryMain, 'main')">{{
                       doc.categoryMain
                     }}</a-tag>
-                    <a-tag v-if="doc.categorySub" :color="getTagColor(doc.categorySub, 'sub')">{{
-                      doc.categorySub
-                    }}</a-tag>
+                    <a-tag
+                      v-if="doc.categorySub"
+                      :color="getTagColor(doc.categorySub, 'sub')"
+                      >{{ doc.categorySub }}</a-tag
+                    >
                     <a-tag v-if="doc.effectivenessLevel" color="green">{{
                       doc.effectivenessLevel
                     }}</a-tag>
@@ -153,7 +152,7 @@
                       :type="action.type || 'default'"
                       @click="action.handler"
                     >
-                      <a-icon :type="action.icon" /> {{ action.text }}
+                      {{ action.text }}
                     </a-button>
                   </div>
                 </div>
@@ -162,7 +161,7 @@
           </div>
 
           <!-- 分页 -->
-          <div class="lawyer-pagination">
+          <div class="lawyer-pagination" v-if="documents.length">
             <a-pagination
               :current="currentPage"
               :total="totalDocuments"
@@ -198,12 +197,12 @@ import { DocumentItem } from "@/model/base";
 import { KnowledgeDataItem } from "@/model/LawyerModel";
 import { cascaderOptions } from "@/enum/Category";
 import FileUploadModal from "@/components/common/FileUploadModal.vue";
+import { downloadFile } from "~/utils/downloadHelper";
 
 @Component({
   components: {
     FileUploadModal,
   },
- 
 })
 export default class KnowledgePage extends Vue {
   // 搜索相关
@@ -214,7 +213,7 @@ export default class KnowledgePage extends Vue {
   filterCategory = "all";
   filterDate = "all";
   filterSource = "all";
-  sortOrder = "date_desc";
+  sortOrder = "";
 
   // 新增的筛选项
   topicCategory = [];
@@ -355,7 +354,9 @@ export default class KnowledgePage extends Vue {
   get favoriteCount() {
     // 如果不在收藏模式下，返回已知的收藏数量
     // 如果在收藏模式下，返回当前文档列表的数量
-    return this.isFavoritesMode ? this.documents.length : this.favoriteDocuments.length;
+    return this.isFavoritesMode
+      ? this.documents.length
+      : this.favoriteDocuments.length;
   }
 
   // 判断文档是否已被收藏
@@ -381,10 +382,10 @@ export default class KnowledgePage extends Vue {
   async toggleFavorites() {
     this.isFavoritesMode = !this.isFavoritesMode;
     this.currentPage = 1; // 重置到第一页
-    
+
     // 重新加载数据，loadDocuments方法会根据isFavoritesMode状态决定是否传empId参数
     await this.loadDocuments();
-    
+
     this.$message.info(
       this.isFavoritesMode ? "已切换至收藏夹" : "已退出收藏夹模式"
     );
@@ -400,29 +401,26 @@ export default class KnowledgePage extends Vue {
     const isFavorite = this.isDocumentFavorite(doc.id);
     return [
       {
-        icon: "eye",
         text: "查看",
+        type: "primary",
         handler: () => this.viewDocument(doc),
       },
       {
-        icon: "download",
         text: "下载",
         handler: () => this.downloadDocument(doc),
       },
       {
         type: isFavorite ? "primary" : "default",
-        icon: isFavorite ? "check" : "star",
         text: isFavorite ? "已收藏" : "收藏",
         handler: () => this.collectDocument(doc),
       },
       {
-        icon: "upload",
         text: "上传更新",
         handler: () => this.uploadDocument(doc.id, doc.ruleName),
       },
       {
-        icon: "delete",
         text: "移除",
+        type: "danger",
         handler: () => this.removeDocument(doc),
       },
     ];
@@ -432,18 +430,25 @@ export default class KnowledgePage extends Vue {
   viewDocument(doc: KnowledgeDataItem) {
     this.$message.info(`正在打开: ${doc.ruleName}`);
     setTimeout(() => {
-      this.$router.push(`/document/${doc.id}`);
+      // 根据文档的废止状态传递isRevoke参数
+      const isRevoke = !!(doc.revokeDateTimestamp || doc.revokeDateStr);
+      const query = isRevoke ? { isRevoke: "true" } : {};
+
+      this.$router.push({
+        path: `/document/${doc.id}`,
+        query,
+      });
     }, 500);
   }
 
   // 下载文档
-  downloadDocument(doc: KnowledgeDataItem) {
-    this.$message.info(`正在准备下载: ${doc.ruleName}`);
-
-    // 模拟下载进度
-    setTimeout(() => {
-      this.$message.success(`下载已开始: ${doc.ruleName}`);
-    }, 1500);
+  async downloadDocument(doc: KnowledgeDataItem): Promise<void> {
+    await downloadFile(
+      (params) => this.$service.lawyer.downloadRuleFile(params),
+      { searchId: doc.id },
+      doc.ruleName,
+      this.$message
+    );
   }
 
   // 收藏/取消收藏文档
@@ -536,8 +541,10 @@ export default class KnowledgePage extends Vue {
 
           if (success) {
             this.$message.success(`文档"${doc.ruleName}"已移除`);
-            // 重新从后端获取数据
-            await this.loadDocuments();
+            // 添加延迟确保后端数据已更新，然后重新获取数据
+            setTimeout(async () => {
+              await this.loadDocuments();
+            }, 500);
           } else {
             this.$message.error("删除失败，请重试");
           }
@@ -563,12 +570,12 @@ export default class KnowledgePage extends Vue {
   }
 
   // 获取标签颜色
-  getTagColor(category: string, type: string = 'main'): string {
-    if (!category) return 'blue';
-    
+  getTagColor(category: string, type: string = "main"): string {
+    if (!category) return "blue";
+
     // 简化颜色逻辑，只使用两种颜色
     // 一级分类使用金黄色，二级分类使用蓝色
-    return type === 'main' ? 'gold' : 'blue';
+    return type === "main" ? "gold" : "blue";
   }
 
   // 获取类型文本
@@ -618,7 +625,6 @@ export default class KnowledgePage extends Vue {
       this.listLoading = false;
     }
   }
-
 
   head() {
     return {

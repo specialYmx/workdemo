@@ -1,5 +1,97 @@
 // 法律合规智能系统数据模型
 
+// ==================== 通用类型定义 ====================
+
+/**
+ * 搜索匹配位置信息
+ */
+export interface MatchPosition {
+  start: number; // 匹配开始位置
+  length: number; // 匹配长度
+}
+
+/**
+ * 搜索匹配位置集合
+ */
+export type MatchesPosition = Record<string, MatchPosition[]>;
+
+/**
+ * 通用查询参数接口
+ */
+export interface QueryParams {
+  page?: number;
+  pageSize?: number;
+  keyword?: string;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+  [key: string]: string | number | boolean | undefined;
+}
+
+/**
+ * 文件删除参数
+ */
+export interface DeleteRuleParams {
+  id: string;
+  [key: string]: string | number | boolean;
+}
+
+/**
+ * 文件下载参数
+ */
+export interface DownloadFileParams {
+  id: string;
+  fileType?: string;
+  [key: string]: string | number | boolean | undefined;
+}
+
+/**
+ * 收藏操作参数
+ */
+export interface CollectParams {
+  id: string;
+  action: "save" | "cancel";
+  [key: string]: string | number | boolean;
+}
+
+/**
+ * 文件上传参数
+ */
+export interface UploadParams {
+  file: File;
+  category?: string;
+  description?: string;
+  [key: string]: File | string | number | boolean | undefined;
+}
+
+/**
+ * 审核操作参数
+ */
+export interface ApprovalParams {
+  id: string;
+  approvalComment: string;
+  effectDate?: string | null;
+  [key: string]: string | number | boolean | null | undefined;
+}
+
+/**
+ * 导出参数
+ */
+export interface ExportParams {
+  ids?: string[];
+  id?: string;
+  format?: "excel" | "pdf";
+}
+
+/**
+ * HTTP响应头接口
+ */
+export interface ResponseHeaders {
+  [key: string]: string | string[] | undefined;
+  "content-disposition"?: string;
+  "content-type"?: string;
+  "content-length"?: string;
+}
+
 // ==================== 首页统计相关数据模型 ====================
 
 /**
@@ -54,7 +146,7 @@ export interface KnowledgeDataItem {
   revokeDateTimestamp: number | null;
   modifyDateTimestamp: number | null;
   effectDateStr: string | null;
-  _matchesPosition: Record<string, any>;
+  _matchesPosition: MatchesPosition;
   compilationType: string | null;
   categorySub: string;
   readCount: number;
@@ -91,6 +183,51 @@ export interface KnowledgeDataItem {
   timeLiness: string;
   fileContent: string;
   modifyDateStr: string | null;
+}
+
+/**
+ * 法规更新列表项接口（基于真实API数据结构）
+ */
+export interface RuleUpdateItem {
+  id: string;
+  ruleName: string;
+  websiteName: string;
+  createdTimeStr: string;
+  createdTimestamp: number;
+  categoryMain: string | null;
+  categorySub: string | null;
+  timeLiness: string;
+  fileContent: string;
+  publishDateStr: string | null;
+  publishDateTimestamp: number | null;
+  effectDateStr: string | null;
+  effectDateTimestamp: number | null;
+  modifyDateStr: string | null;
+  modifyDateTimestamp: number | null;
+  revokeDateStr: string | null;
+  revokeDateTimestamp: number | null;
+  filePathTxt: string | null;
+  filePathOther: string | null;
+  fileVersion: number | null;
+  currentMaxFileVersion: number | null;
+  updateTimeStr: string | null;
+  updateTime: string | null;
+  updateTimestamp: number | null;
+  summary: string;
+  readCount: number;
+  documentNo: string | null;
+  docNo: string | null;
+  url: string | null;
+  checkStatus: string | null;
+  checkTime: string | null;
+  thinktankType: string | null;
+  compilationType: string | null;
+  effectivenessLevel: string | null;
+  topicCategory: string | null;
+  diffResultId: string | null;
+  initDataFlag: string | null;
+  deleted: number;
+  _matchesPosition: MatchesPosition;
 }
 
 /**
@@ -285,39 +422,37 @@ export interface FileCompareDetail {
 /**
  * 法律合规智能系统服务接口定义
  */
-export interface LawyerService {
+export interface RoadLawyerService {
   // ==================== 首页统计相关方法 ====================
-  getCheckComplateList: (params?: any) => Promise<any>;
-  getUpdateCount: (params?: any) => Promise<any>;
-  getUpdateTimeLinessCount: (params?: any) => Promise<any>;
-  getWebSiteRatio: (params?: any) => Promise<any>;
+  getCheckComplateList: (params?: QueryParams) => Promise<any>;
+  getUpdateCount: (params?: QueryParams) => Promise<any>;
+  getUpdateTimeLinessCount: (params?: QueryParams) => Promise<any>;
+  getWebSiteRatio: (params?: QueryParams) => Promise<any>;
 
   // ==================== 大家智库相关方法 ====================
-  deleteRuleSource: (params: any) => Promise<boolean>;
-  downloadRuleFile: (params: any) => Promise<{ data: Blob; headers: any }>;
-  getRuleSourceCollect: (params: any) => Promise<any>;
-  getRuleSourceDetail: (params: any) => Promise<RuleSourceItem>;
-  getRuleSourceList: (params: any) => Promise<KnowledgeDataItem[]>;
-  getRuleUpdateList: (params: any) => Promise<PageResult<any>>;
-  initData: (params?: any) => Promise<any>;
-  saveOrCancelCollect: (params: any) => Promise<boolean>;
-  updateTimeLinessSchedule: (params: any) => Promise<boolean>;
-  uploadRuleSource: (params: any) => Promise<boolean>;
+  deleteRuleSource: (params: DeleteRuleParams) => Promise<boolean>;
+  downloadRuleFile: (
+    params: DownloadFileParams
+  ) => Promise<{ data: Blob; headers: ResponseHeaders }>;
+  getRuleSourceCollect: (params: QueryParams) => Promise<any>;
+  getRuleSourceDetail: (params: {
+    searchId: string;
+    isRevoke?: boolean;
+  }) => Promise<KnowledgeDataItem | null>;
+  getRuleSourceList: (params: QueryParams) => Promise<KnowledgeDataItem[]>;
+  getRuleUpdateList: (params: QueryParams) => Promise<RuleUpdateItem[]>;
+  initData: (params?: QueryParams) => Promise<any>;
+  saveOrCancelCollect: (params: CollectParams) => Promise<boolean>;
+  updateTimeLinessSchedule: (params: QueryParams) => Promise<boolean>;
+  uploadRuleSource: (params: UploadParams) => Promise<boolean>;
 
   // ==================== 人工审核相关方法 ====================
-  approveToDoRule: (params: {
-    id: string;
-    approvalComment: string;
-    effectDate?: string | null;
-  }) => Promise<boolean>;
-  deleteToDoRule: (params: any) => Promise<boolean>;
-  exportExcel: (params: {
-    ids?: string[];
-    id?: string;
-  }) => Promise<{ data: Blob; headers: any }>;
-  getDiffResultSchedule: (params: any) => Promise<any>;
+  approveToDoRule: (params: ApprovalParams) => Promise<boolean>;
+  deleteToDoRule: (params: DeleteRuleParams) => Promise<boolean>;
+  exportExcel: (
+    params: ExportParams
+  ) => Promise<{ data: Blob; headers: ResponseHeaders }>;
+  getDiffResultSchedule: (params: QueryParams) => Promise<any>;
   getToDoRuleDetail: (params: { id: string }) => Promise<FileCompareDetail>;
-  getCheckRuleList: (
-    params: Record<string, string>
-  ) => Promise<PageResult<ToDoRuleItem>>;
+  getCheckRuleList: (params: QueryParams) => Promise<PageResult<ToDoRuleItem>>;
 }

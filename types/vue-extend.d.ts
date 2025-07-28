@@ -1,6 +1,6 @@
 import Vue from "vue";
 import { Route } from "vue-router";
-import { LawyerService } from "~/model/LawyerModel";
+import { RoadLawyerService } from "~/model/LawyerModel";
 
 // 扩展 Vue 实例类型
 declare module "vue/types/vue" {
@@ -23,7 +23,7 @@ declare module "vue/types/vue" {
     $warning: any;
     $modal: any;
     $service: {
-      lawyer: LawyerService;
+      lawyer: RoadLawyerService;
     };
   }
 }

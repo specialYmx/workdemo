@@ -61,7 +61,3 @@ export default class DefaultLayout extends Vue {
   locale = zhCN;
 }
 </script>
-
-<style lang="less" scoped>
-/* 所有样式已移至assets/styles/lawyer.less，此处保留空白 */
-</style>

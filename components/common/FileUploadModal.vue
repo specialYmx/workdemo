@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div ref="fileUploadModalContainer">
     <a-modal
       :visible="visible"
       :title="title"
@@ -8,6 +8,7 @@
       :maskClosable="false"
       @cancel="handleCancel"
       :closable="!uploading"
+      :getContainer="() => $refs.fileUploadModalContainer"
     >
       <div class="lawyer-upload-container">
         <!-- 文件选择 -->

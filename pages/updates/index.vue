@@ -14,7 +14,7 @@
                 'lawyer-filter-btn',
                 { 'lawyer-filter-btn-active': activeFilter === filter.value },
               ]"
-              @click="setActiveFilter(filter.value)"
+              @click="() => setActiveFilter(filter.value)"
             >
               {{ filter.label }}
             </button>
@@ -73,12 +73,14 @@
                   </span>
                 </div>
                 <div class="lawyer-flex lawyer-gap-sm">
-                  <a @click="viewUpdate(item.id)" class="lawyer-action-btn"
+                  <a
+                    @click="viewUpdate(item.id)"
+                    class="lawyer-action-btn lawyer-btn-primary"
                     >查看详情</a
                   >
                   <a
-                    @click="downloadUpdate(item.id)"
-                    class="lawyer-action-btn lawyer-btn-primary"
+                    @click="downloadUpdate(item.id, item.title)"
+                    class="lawyer-action-btn"
                     >下载文件</a
                   >
                 </div>
@@ -87,16 +89,16 @@
           </div>
 
           <!-- 无内容展示 -->
-          <div v-if="filteredUpdates.length === 0" class="lawyer-no-updates">
-            <a-empty description="没有匹配的法规更新" />
+          <div v-if="!filteredUpdates.length" class="lawyer-no-updates">
+            <a-empty description="没有匹配的数据" />
           </div>
         </div>
 
         <!-- 分页器 -->
-        <div class="lawyer-pagination">
+        <div class="lawyer-pagination" v-if="filteredUpdates.length">
           <a-pagination
             v-model="currentPage"
-            :total="filteredUpdates.length"
+            :total="totalCount"
             :page-size="pageSize"
             show-size-changer
             show-quick-jumper
@@ -112,6 +114,8 @@
 <script lang="ts">
 // @ts-nocheck
 import { Component, Vue } from "nuxt-property-decorator";
+import { RuleUpdateItem } from "~/model/LawyerModel";
+import { downloadFile } from "~/utils/downloadHelper";
 
 interface AiSummaryPoint {
   title: string;
@@ -134,14 +138,16 @@ interface UpdateItem {
   head: () => ({ title: "法规更新与通知 - 法律合规智能系统" }),
 })
 export default class UpdatesPage extends Vue {
-  activeFilter = "all";
+  activeFilter = ""; // 默认为空，表示全部更新
   currentPage = 1;
   pageSize = 10;
   loading = false;
   updates: UpdateItem[] = [];
+  rawUpdates: RuleUpdateItem[] = [];
+  allUpdates: UpdateItem[] = []; // 存储所有数据用于前端分页
 
   filterOptions = [
-    { label: "全部更新", value: "all" },
+    { label: "全部更新", value: "" }, // 空字符串表示不传filed参数
     { label: "法律汇编", value: "law" },
     { label: "新规解读", value: "interpretation" },
     { label: "处罚汇编", value: "penalty" },
@@ -156,131 +162,135 @@ export default class UpdatesPage extends Vue {
   async loadUpdates() {
     this.loading = true;
     try {
-      const mockData = [
-        {
-          id: "1",
-          title: "关于进一步规范保险资金股权投资有关事项的通知",
-          description:
-            "为进一步规范保险资金股权投资行为，防范投资风险，保护被保险人利益，现就有关事项通知如下：一是明确投资决策程序，二是加强风险管控措施，三是强化信息披露要求...",
-          date: "2024-01-15 14:30",
-          source: "金融监管总局",
-          category: "法律法规",
-          type: "law",
-          tags: ["重要法规", "资金运用"],
-          aiSummary: [
-            {
-              title: "投资决策程序优化",
-              content:
-                "强调董事会在重大股权投资中的核心决策地位，细化了事前评估、专业评审及投后管理的要求。",
-            },
-            {
-              title: "风险管控体系强化",
-              content:
-                "新增对股权投资集中度风险的量化指标，要求建立动态调整机制，并明确风险处置预案。",
-            },
-            {
-              title: "信息披露标准提升",
-              content:
-                "扩大了信息披露范围，要求披露资金来源、投资架构及潜在利益冲突，增强透明度。",
-            },
-            {
-              title: "关联交易限制更严",
-              content:
-                "进一步明确禁止与主要股东及其关联方进行非公允条件的股权交易。",
-            },
-          ],
-        },
-        {
-          id: "2",
-          title: "偿付能力监管规则修订征求意见稿发布",
-          description:
-            "为完善偿付能力监管制度，提高监管有效性，金融监管总局发布偿付能力监管规则修订征求意见稿，主要修订内容包括：风险因子调整、资本要求优化、监管指标完善等...",
-          date: "2024-01-12 10:15",
-          source: "金融监管总局",
-          category: "监管政策",
-          type: "policy",
-          tags: ["征求意见", "偿付能力"],
-          aiSummary: [
-            {
-              title: "核心偿付能力充足率要求调整",
-              content: "拟从50%提升至60%，强化资本质量要求。",
-            },
-            {
-              title: "风险综合评级（IRR）引入新维度",
-              content: "增加对操作风险、战略风险的评估权重。",
-            },
-            {
-              title: "资产穿透要求细化",
-              content: "对非标资产底层资产穿透计量风险加权资产。",
-            },
-          ],
-        },
-        {
-          id: "3",
-          title: "关于加强保险资金另类投资风险管理的通知",
-          description:
-            "近期发现部分保险机构在另类投资领域存在风险隐患，为规范保险资金另类投资行为，防范风险扩散，保护消费者权益...",
-          date: "2024-01-08 16:45",
-          source: "金融监管总局",
-          category: "监管政策",
-          type: "policy",
-          tags: ["风险提示", "另类投资"],
-          aiSummary: [
-            {
-              title: "投后管理机制完善",
-              content: "新增季度定期检视制度，要求设立风险预警体系。",
-            },
-            {
-              title: "专业能力建设强化",
-              content: "明确投资团队资质要求，引入独立第三方评估。",
-            },
-          ],
-        },
-      ];
+      // 构建查询参数，使用filed参数进行筛选
+      const params: any = {};
 
-      await new Promise((r) => setTimeout(r, 1000));
-      this.updates = mockData;
+      // 如果有选择筛选条件，添加filed参数
+      if (this.activeFilter) {
+        params.filed = this.activeFilter;
+      }
+
+      console.log("查询参数:", params);
+
+      // 调用真实API获取数据
+      const result = await this.$service.lawyer.getRuleUpdateList(params);
+      console.log("获取到的数据:", result);
+
+      if (result && Array.isArray(result)) {
+        this.rawUpdates = result;
+
+        // 将真实数据转换为页面显示格式
+        this.allUpdates = this.transformRawDataToDisplayFormat(result);
+
+        // 重置到第一页
+        this.currentPage = 1;
+      } else {
+        this.rawUpdates = [];
+        this.allUpdates = [];
+      }
     } catch (error) {
       console.error("加载更新数据失败", error);
       this.$message.error("加载数据失败，请刷新页面重试");
+      this.rawUpdates = [];
+      this.allUpdates = [];
     } finally {
       this.loading = false;
     }
   }
 
+  // 将真实API数据转换为页面显示格式
+  transformRawDataToDisplayFormat(rawData: RuleUpdateItem[]): UpdateItem[] {
+    return rawData.map((item) => {
+      // 根据分类确定类型
+      const categoryMain = item.categoryMain || "";
+      let type = "law";
+      if (categoryMain.includes("政策") || categoryMain.includes("监管")) {
+        type = "policy";
+      } else if (
+        categoryMain.includes("内部") ||
+        categoryMain.includes("机构")
+      ) {
+        type = "internal";
+      }
+
+      // 生成标签 - 只使用分类标签，过滤空值
+      const tags = [item.categoryMain, item.categorySub].filter(Boolean);
+
+      // 生成描述 - 简化逻辑
+      const description =
+        item.summary ||
+        (item.fileContent ? item.fileContent.substring(0, 200) + "..." : "") ||
+        "暂无详细描述";
+
+      return {
+        id: item.id,
+        title: item.ruleName || "未知标题",
+        description,
+        date: item.createdTimeStr || item.publishDateStr || "未知时间",
+        source: item.websiteName || "未知来源",
+        category: item.categoryMain || "其他",
+        type,
+        tags,
+        aiSummary: [], // 暂时不生成AI摘要，可以后续根据需要添加
+      };
+    });
+  }
+
   get filteredUpdates() {
-    return this.activeFilter === "all"
-      ? this.updates
-      : this.updates.filter((item) => item.type === this.activeFilter);
+    // API已经根据filed参数进行了筛选，直接返回所有数据
+    return this.allUpdates;
   }
 
   get paginatedUpdates() {
+    // 前端分页：计算当前页应该显示的数据
     const start = (this.currentPage - 1) * this.pageSize;
-    return this.filteredUpdates.slice(start, start + this.pageSize);
+    const end = start + this.pageSize;
+    return this.filteredUpdates.slice(start, end);
   }
 
-  setActiveFilter(filter: string): void {
+  get totalCount() {
+    // 返回筛选后的总数
+    return this.filteredUpdates.length;
+  }
+
+  async setActiveFilter(filter: string): Promise<void> {
     this.activeFilter = filter;
-    this.currentPage = 1;
+    // 重新加载数据（API会根据filed参数筛选）
+    await this.loadUpdates();
   }
 
   viewUpdate(id: string): void {
-    this.$router.push(`/document/${id}`);
+    // 查找对应的更新项以获取废止状态
+    const updateItem = this.rawUpdates.find((item) => item.id === id);
+    const isRevoke = !!(
+      updateItem?.revokeDateTimestamp || updateItem?.revokeDateStr
+    );
+    const query = isRevoke ? { isRevoke: "true" } : {};
+
+    this.$router.push({
+      path: `/document/${id}`,
+      query,
+    });
   }
 
-  downloadUpdate(id: string): void {
-    const update = this.updates.find((u) => u.id === id);
-    if (update) {
-      this.$message.info(`正在准备下载: ${update.title}`);
-    }
+  async downloadUpdate(id: string, title: string): Promise<void> {
+    await downloadFile(
+      (params) => this.$service.lawyer.downloadRuleFile(params),
+      { searchId: id },
+      title,
+      this.$message
+    );
   }
 
   onPageChange(page: number): void {
     this.currentPage = page;
+    // 前端分页，不需要重新请求API
   }
 
-  onPageSizeChange(): void {
+  onPageSizeChange(current: number, size: number): void {
     this.currentPage = 1;
+    this.pageSize = size;
+    // 前端分页，不需要重新请求API
   }
 
   getTagClass(tag: string): string {
@@ -323,12 +333,12 @@ export default class UpdatesPage extends Vue {
   }
 
   .lawyer-filter-btn {
-    padding: 8px 20px;
+    padding: 4px 20px;
     background: transparent;
     border: 1px solid var(--lawyer-border);
     cursor: pointer;
     transition: all 0.2s ease;
-    min-width: 100px;
+    min-width: 13%;
     text-align: center;
 
     &:first-child {

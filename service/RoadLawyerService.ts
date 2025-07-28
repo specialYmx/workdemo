@@ -1,13 +1,21 @@
 import { AxiosInstance } from "axios";
 import {
-  LawyerService,
+  RoadLawyerService,
   FileCompareDetail,
   KnowledgeDataItem,
+  ResponseHeaders,
+  QueryParams,
+  DeleteRuleParams,
+  DownloadFileParams,
+  CollectParams,
+  UploadParams,
+  ApprovalParams,
+  ExportParams,
 } from "~/model/LawyerModel";
 import api from "~/api";
 
 // 将对象转换为FormData的辅助函数
-const toFormData = (obj: any): FormData => {
+const toFormData = (obj: Record<string, unknown>): FormData => {
   const formData = new FormData();
   if (obj && typeof obj === "object") {
     Object.keys(obj).forEach((key) => {
@@ -16,10 +24,27 @@ const toFormData = (obj: any): FormData => {
         if (Array.isArray(value)) {
           // 处理数组参数
           value.forEach((item, index) => {
-            formData.append(`${key}[${index}]`, item);
+            if (
+              typeof item === "string" ||
+              typeof item === "number" ||
+              typeof item === "boolean"
+            ) {
+              formData.append(`${key}[${index}]`, String(item));
+            } else if (item instanceof Blob) {
+              formData.append(`${key}[${index}]`, item);
+            }
           });
         } else {
-          formData.append(key, value);
+          // 确保值是可以添加到FormData的类型
+          if (
+            typeof value === "string" ||
+            typeof value === "number" ||
+            typeof value === "boolean"
+          ) {
+            formData.append(key, String(value));
+          } else if (value instanceof Blob) {
+            formData.append(key, value);
+          }
         }
       }
     });
@@ -27,9 +52,9 @@ const toFormData = (obj: any): FormData => {
   return formData;
 };
 
-export default ($axios: AxiosInstance): LawyerService => ({
+export default ($axios: AxiosInstance): RoadLawyerService => ({
   // ==================== 首页统计相关方法 ====================
-  async getCheckComplateList(params = {}) {
+  async getCheckComplateList(params: QueryParams = {}) {
     try {
       const res = await $axios.post(
         `${api.lawyer.getCheckComplateList}`,
@@ -45,7 +70,7 @@ export default ($axios: AxiosInstance): LawyerService => ({
     }
   },
 
-  async getUpdateCount(params = {}) {
+  async getUpdateCount(params: QueryParams = {}) {
     try {
       const res = await $axios.post(
         `${api.lawyer.getUpdateCount}`,
@@ -61,7 +86,7 @@ export default ($axios: AxiosInstance): LawyerService => ({
     }
   },
 
-  async getUpdateTimeLinessCount(params = {}) {
+  async getUpdateTimeLinessCount(params: QueryParams = {}) {
     try {
       const res = await $axios.post(
         `${api.lawyer.getUpdateTimeLinessCount}`,
@@ -77,7 +102,7 @@ export default ($axios: AxiosInstance): LawyerService => ({
     }
   },
 
-  async getWebSiteRatio(params = {}) {
+  async getWebSiteRatio(params: QueryParams = {}) {
     try {
       const res = await $axios.post(
         `${api.lawyer.getWebSiteRatio}`,
@@ -94,7 +119,7 @@ export default ($axios: AxiosInstance): LawyerService => ({
   },
 
   // ==================== 大家智库相关方法 ====================
-  async deleteRuleSource(params) {
+  async deleteRuleSource(params: DeleteRuleParams) {
     try {
       const res = await $axios.post(
         `${api.lawyer.deleteRuleSource}`,
@@ -107,13 +132,16 @@ export default ($axios: AxiosInstance): LawyerService => ({
     }
   },
 
-  async downloadRuleFile(params) {
+  async downloadRuleFile(params: DownloadFileParams) {
     try {
-      // GET请求保持不变，使用params参数
-      const res = await $axios.get(`${api.lawyer.downloadRuleFile}`, {
-        params,
-        responseType: "blob",
-      });
+      // 使用POST请求和FormData参数，与其他接口保持一致
+      const res = await $axios.post(
+        `${api.lawyer.downloadRuleFile}`,
+        toFormData(params),
+        {
+          responseType: "blob",
+        }
+      );
       if (res.data) return { data: res.data, headers: res.headers };
       return null;
     } catch (error) {
@@ -122,7 +150,7 @@ export default ($axios: AxiosInstance): LawyerService => ({
     }
   },
 
-  async getRuleSourceCollect(params) {
+  async getRuleSourceCollect(params: QueryParams) {
     try {
       const res = await $axios.post(
         `${api.lawyer.getRuleSourceCollect}`,
@@ -138,23 +166,45 @@ export default ($axios: AxiosInstance): LawyerService => ({
     }
   },
 
-  async getRuleSourceDetail(params) {
+  async getRuleSourceDetail(params: {
+    searchId: string;
+    isRevoke?: boolean;
+  }): Promise<KnowledgeDataItem | null> {
     try {
+      // 使用knowledgeDetail mock数据进行测试
+      const { knowledgeDetail } = await import("~/mock/knowledge.js");
+
+      // 查找匹配的文档
+      const document = knowledgeDetail.data.find(
+        (item: KnowledgeDataItem) => item.id === params.searchId
+      );
+
+      if (document) {
+        return document;
+      }
+
+      // 如果mock数据中没有找到，尝试调用真实API
       const res = await $axios.post(
         `${api.lawyer.getRuleSourceDetail}`,
         toFormData(params)
       );
       if (res.data?.data !== undefined && res.data?.data !== null) {
-        return res.data.data;
+        // 检查返回的数据是否为数组，如果是数组则取第一个元素
+        const data = res.data.data;
+        if (Array.isArray(data) && data.length > 0) {
+          return data[0];
+        } else if (!Array.isArray(data)) {
+          return data;
+        }
       }
-      return {};
+      return null;
     } catch (error) {
       console.error("Error fetching rule source detail:", error);
-      return {};
+      return null;
     }
   },
 
-  async getRuleSourceList(params): Promise<KnowledgeDataItem[]> {
+  async getRuleSourceList(params: QueryParams): Promise<KnowledgeDataItem[]> {
     try {
       const res = await $axios.post(
         `${api.lawyer.getRuleSourceList}`,
@@ -170,23 +220,23 @@ export default ($axios: AxiosInstance): LawyerService => ({
     }
   },
 
-  async getRuleUpdateList(params) {
+  async getRuleUpdateList(params: QueryParams) {
     try {
       const res = await $axios.post(
         `${api.lawyer.getRuleUpdateList}`,
         toFormData(params)
       );
       if (res.data?.data !== undefined && res.data?.data !== null) {
-        return res.data.data;
+        return res.data.data; // 直接返回数组
       }
-      return { list: [], total: 0, page: 1, pageSize: 10, totalPages: 0 };
+      return [];
     } catch (error) {
       console.error("Error fetching rule update list:", error);
-      return { list: [], total: 0, page: 1, pageSize: 10, totalPages: 0 };
+      return [];
     }
   },
 
-  async initData(params = {}) {
+  async initData(params: QueryParams = {}) {
     try {
       const res = await $axios.post(
         `${api.lawyer.initData}`,
@@ -202,7 +252,7 @@ export default ($axios: AxiosInstance): LawyerService => ({
     }
   },
 
-  async saveOrCancelCollect(params) {
+  async saveOrCancelCollect(params: CollectParams) {
     try {
       const res = await $axios.post(
         `${api.lawyer.saveOrCancelCollect}`,
@@ -215,7 +265,7 @@ export default ($axios: AxiosInstance): LawyerService => ({
     }
   },
 
-  async updateTimeLinessSchedule(params) {
+  async updateTimeLinessSchedule(params: QueryParams) {
     try {
       const res = await $axios.post(
         `${api.lawyer.updateTimeLinessSchedule}`,
@@ -228,7 +278,7 @@ export default ($axios: AxiosInstance): LawyerService => ({
     }
   },
 
-  async uploadRuleSource(params) {
+  async uploadRuleSource(params: UploadParams) {
     try {
       const res = await $axios.post(
         `${api.lawyer.uploadRuleSource}`,
@@ -242,7 +292,7 @@ export default ($axios: AxiosInstance): LawyerService => ({
   },
 
   // ==================== 人工审核相关方法 ====================
-  async approveToDoRule(params) {
+  async approveToDoRule(params: ApprovalParams) {
     try {
       const res = await $axios.post(
         `${api.lawyer.approveToDoRule}`,
@@ -255,7 +305,7 @@ export default ($axios: AxiosInstance): LawyerService => ({
     }
   },
 
-  async deleteToDoRule(params) {
+  async deleteToDoRule(params: DeleteRuleParams) {
     try {
       const res = await $axios.post(
         `${api.lawyer.deleteToDoRule}`,
@@ -268,7 +318,7 @@ export default ($axios: AxiosInstance): LawyerService => ({
     }
   },
 
-  async exportExcel(params) {
+  async exportExcel(params: ExportParams) {
     try {
       // 支持ids数组参数
       let requestUrl = `${api.lawyer.exportExcel}`;
@@ -295,7 +345,7 @@ export default ($axios: AxiosInstance): LawyerService => ({
     }
   },
 
-  async getDiffResultSchedule(params) {
+  async getDiffResultSchedule(params: QueryParams) {
     try {
       const res = await $axios.post(
         `${api.lawyer.getDiffResultSchedule}`,
@@ -311,38 +361,28 @@ export default ($axios: AxiosInstance): LawyerService => ({
     }
   },
 
-  async getToDoRuleDetail(params) {
+  async getToDoRuleDetail(params: { id: string }) {
     try {
       // 使用固定的mock数据，因为真实API只有id=1的数据
       const data = {
         newFileVersion: 2, // 修改为数字值
         effect_date: "2023-03-03",
         newFileContent:
-          "中华人民共和国保险法\n2015年第三次修正\n\n（1995年6月30日第八届全国人民代表大会常务委员会第十四次会议通过　根据2002年10月28日第九届全国人民代表大会常务委员会第三十次会议《关于修改〈中华人民共和国保险法〉的决定》第一次修正　2009年2月28日第十一届全国人民代表大会常务委员会第七次会议修订 根据2014年8月31日第十二届全国人民代表大会常务委员会第十次会议《关于修改<中华人民共和国保险法>等五部法律的决定》第二次修正 根据2015年4月24日第十二届全国人民代表大会常务委员会第十四次会议《关于修改<中国人民共和国计量法>等五部法律的决定》第三次修正）\n第一章　总则22\n第一条  为了规范保险活动，保护保险活动当事人的合法权益，加强对保险业的监督管理，维护社会经济秩序和社会公共利益，促进保险事业的健康发展，制定本法。\n第二条  本法aa所称保险，是指投保人根据合同约定，向保险人支付保险费，保险人对于合同约定的可能发生的事故因其发生所造成的财产损失承担赔偿保险金责任，或者当被保险人死亡、伤残、疾病或者达到合同约定的年龄、期限等条件时承担给付保险金责任的商业保险行为。\n第三条  在中华人民共和国境内从事保险活动，适用本法。\n第四条  从事保险活动必须遵守法律、行政法规，尊重社会公德，不得损害社会公共利益。\n第五条  保险活动当事人行使权利、履行义务应当遵循诚实信用原则。\n第六条  保险业务bb由依照本法设立的保险公司以及法律、行政法规规定的其他保险组织经营，其他单位和个人不得经营保险业务。\n第七条  在中华人民共和国境内的法人和其他组织需要办理境内保险的，应当向中华人民共和国境内的保险公司投保。\n第九条  国务院保险监督管理机构依法对保险业实施监督管理。\n国务院保险监督管理机构根据履行职责的需要设立派出机构。派出机构按照国务院保险监督管理机构的授权履行监督管理职责。\n第十条  cccc",
-        categoryMain: "公司治理",
-        newPublishTime: "2023-03-03",
+          "新版本内容：根据最新法规要求，企业应当建立健全内部控制制度，确保财务报告的真实性和完整性。同时，应当加强对关联交易的管理，防范利益输送风险。",
+        categoryMain: "财务管理",
+        categorySub: "内部控制",
+        newPublishTime: "2023-03-01",
         oldFileContent:
-          "中华人民共和国保险法\n2015年第三次修正\n\n（1995年6月30日第八届全国人民代表大会常务委员会第十四次会议通过　根据2002年10月28日第九届全国人民代表大会常务委员会第三十次会议《关于修改〈中华人民共和国保险法〉的决定》第一次修正　2009年2月28日第十一届全国人民代表大会常务委员会第七次会议修订 根据2014年8月31日第十二届全国人民代表大会常务委员会第十次会议《关于修改<中华人民共和国保险法>等五部法律的决定》第二次修正 根据2015年4月24日第十二届全国人民代表大会常务委员会第十四次会议《关于修改<中国人民共和国计量法>等五部法律的决定》第三次修正）\n第一章　总则\n第一条  为了规范保险活动，保护保险活动当事人的合法权益，加强对保险业的监督管理，维护社会经济秩序和社会公共利益，促进保险事业的健康发展，制定本法。\n第二条  本法所称保险，是指投保人根据合同约定，向保险人支付保险费，保险人对于合同约定的可能发生的事故因其发生所造成的财产损失承担赔偿保险金责任，或者当被保险人死亡、伤残、疾病或者达到合同约定的年龄、期限等条件时承担给付保险金责任的商业保险行为。\n第三条  在中华人民共和国境内从事保险活动，适用本法。\n第四条  从事保险活动必须遵守法律、行政法规，尊重社会公德，不得损害社会公共利益。\n第五条  保险活动当事人行使权利、履行义务应当遵循诚实信用原则。\n第六条  保险业务由依照本法设立的保险公司以及法律、行政法规规定的其他保险组织经营，其他单位和个人不得经营保险业务。\n第七条  在中华人民共和国境内的法人和其他组织需要办理境内保险的，应当向中华人民共和国境内的保险公司投保。\n第八条  保险业和银行业、证券业、信托业实行分业经营、分业管理，保险公司与银行、证券、信托业务机构分别设立。国家另有规定的除外。\n第九条  国务院保险监督管理机构依法对保险业实施监督管理。\n国务院保险监督管理机构根据履行职责的需要设立派出机构。派出机构按照国务院保险监督管理机构的授权履行监督管理职责。\n",
-        oldFileVersion: 1, // 添加修改前文档版本
-        oldPublishTime: "2022-08-15", // 添加修改前文档发布时间
-        categorySub: "银行保险机构公司治理监管评估办法",
-        checkResult:
-          '[{第壹章-标题变更=由"总则"修改为"总则22"}, {第一章 总则-第二条=1. 修改内容：由"本法"修改为："本法aa"；2. 新增条款：22}, {第一章 总则-第六条=1. 修改内容：由"保险业务"修改为："保险业务bb"}, {第一章　总则 第八条=删除条款： 保险业和银行业、证券业、信托业实行分业经营、分业管理，保险公司与银行、证券、信托业务机构分别设立。国家另有规定的除外。}, {第一章=新增条款：第一章　总则22 第十条  cccc}]',
+          "旧版本内容：企业应当建立内部控制制度，确保财务报告的准确性。对于关联交易，应当按照公允价格进行。",
+        oldFileVersion: 1,
+        oldPublishTime: "2023-01-01",
+        checkResult: "文档内容已更新，新增了关于利益输送风险防范的要求。",
         currentMaxFileVersion: 2,
-        id: params.id,
-        checkStatus: "0", // 待审核状态
+        id: params.id || "1",
+        checkStatus: "pending",
       };
-      return data;
 
-      // 注释掉真实API调用
-      // const res = await $axios.post(
-      //   `${api.lawyer.getToDoRuleDetail}`,
-      //   toFormData(params)
-      // );
-      // if (res.data?.data !== undefined && res.data?.data !== null) {
-      //   return res.data.data;
-      // }
-      // return {};
+      return data;
     } catch (error) {
       console.error("Error fetching todo rule detail:", error);
       // 返回一个符合 FileCompareDetail 类型的空对象
@@ -359,7 +399,7 @@ export default ($axios: AxiosInstance): LawyerService => ({
     }
   },
 
-  async getCheckRuleList(params) {
+  async getCheckRuleList(params: QueryParams) {
     try {
       const res = await $axios.post(
         `${api.lawyer.getCheckRuleList}`,

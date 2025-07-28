@@ -1,5 +1,5 @@
 <template>
-  <div class="document-viewer-wrapper">
+  <div class="document-viewer-wrapper" ref="documentViewerContainer">
     <div class="lawyer-document-page">
       <!-- 页面头部 -->
       <header
@@ -9,27 +9,16 @@
           class="lawyer-header-left lawyer-flex lawyer-items-center lawyer-gap-md"
         >
           <div class="lawyer-document-info">
-            <h1>{{ document.title }}</h1>
-
-            <!-- 文档标签区域 -->
-            <div class="lawyer-document-tags">
+            <!-- 标题和状态标签在同一行，标签紧挨着标题 -->
+            <div class="lawyer-title-with-status">
+              <h1>{{ document.title }}</h1>
               <a-tag
-                v-if="displayTag"
-                color="orange"
-                @click="showTagEditModal"
-                class="lawyer-editable-tag"
+                :color="document.isRevoke ? 'red' : 'green'"
+                @click="showRevokeStatusModal"
+                class="lawyer-editable-status lawyer-inline-status"
               >
-                {{ displayTag }}
-                <a-icon type="edit" class="lawyer-tag-edit-icon" />
-              </a-tag>
-              <a-tag
-                v-else
-                color="orange"
-                @click="showTagEditModal"
-                class="lawyer-editable-tag lawyer-empty-tag"
-              >
-                点击设置分类
-                <a-icon type="plus" class="lawyer-tag-edit-icon" />
+                {{ document.isRevoke ? "已废止" : "未废止" }}
+                <a-icon type="edit" class="lawyer-status-edit-icon" />
               </a-tag>
             </div>
 
@@ -131,17 +120,53 @@
         </a-card>
       </div>
 
-      <!-- 标签编辑模态框 -->
-      <TagEditModal
-        :visible="tagEditVisible"
-        title="编辑文档分类"
-        :current-tags="document.tags"
-        :current-status="document.status"
-        :show-document-status="true"
-        :allow-parent-select="true"
-        @confirm="handleTagEditConfirm"
-        @cancel="handleTagEditCancel"
-      />
+      <!-- 废止状态编辑模态框 -->
+      <a-modal
+        title="编辑文档状态"
+        :visible="revokeStatusVisible"
+        @ok="handleRevokeStatusConfirm"
+        @cancel="handleRevokeStatusCancel"
+        :width="400"
+        okText="确认"
+        cancelText="取消"
+        :getContainer="() => $refs.documentViewerContainer"
+      >
+        <div class="lawyer-revoke-status-content">
+          111
+          <div class="lawyer-status-row">
+            <label>文档状态</label>
+            <div class="lawyer-status-switch-container">
+              <a-switch
+                v-model="tempIsRevoke"
+                :checked-children="'已废止'"
+                :un-checked-children="'未废止'"
+                size="default"
+              />
+              <span class="lawyer-status-text">
+                {{ tempIsRevoke ? "已废止" : "未废止" }}
+              </span>
+            </div>
+          </div>
+
+          <!-- 废止说明 -->
+          <div class="lawyer-status-description">
+            <p v-if="tempIsRevoke" class="lawyer-revoke-tip">
+              <a-icon
+                type="exclamation-circle"
+                style="color: #ff4d4f; margin-right: 8px"
+              />
+              设置为已废止后，该文档将标记为无效状态
+            </p>
+            <p v-else class="lawyer-active-tip">
+              <a-icon
+                type="check-circle"
+                style="color: #52c41a; margin-right: 8px"
+              />
+              文档当前为有效状态
+            </p>
+          </div>
+        </div>
+      </a-modal>
     </div>
   </div>
 </template>
@@ -150,7 +175,6 @@
 // @ts-nocheck
 import { Component, Vue, Prop, Watch, Emit } from "nuxt-property-decorator";
 import DivTextSearch from "@/components/common/DivTextSearch.vue";
-import TagEditModal from "@/components/common/TagEditModal.vue";
 
 interface TocItem {
   text: string;
@@ -176,7 +200,6 @@ interface MetaItem {
 @Component({
   components: {
     DivTextSearch,
-    TagEditModal,
   },
 })
 export default class DocumentViewer extends Vue {
@@ -188,8 +211,9 @@ export default class DocumentViewer extends Vue {
   aiLoading = false;
   aiMessages: AiMessage[] = [];
 
-  // 标签编辑相关
-  tagEditVisible = false;
+  // 废止状态编辑相关
+  revokeStatusVisible = false;
+  tempIsRevoke = false;
 
   // 常见问题
   commonQuestions = [
@@ -199,19 +223,6 @@ export default class DocumentViewer extends Vue {
     "该法规与其他法律的关系",
     "法规的生效时间",
   ];
-
-  // 文档标签
-  get documentTags(): string[] {
-    return this.document.tags || [];
-  }
-
-  // 显示标签（合并为单个标签）
-  get displayTag(): string {
-    const tags = this.documentTags;
-    if (tags.length === 0) return "";
-    if (tags.length === 1) return tags[0];
-    return `${tags[0]}/${tags[1]}`;
-  }
 
   // 文档元数据项
   get documentMetaItems(): MetaItem[] {
@@ -256,35 +267,25 @@ export default class DocumentViewer extends Vue {
     return tagColorMap[tag] || "lawyer-tag-default";
   }
 
-  // 显示标签编辑模态框
-  showTagEditModal(): void {
-    this.tagEditVisible = true;
+  // 显示废止状态编辑模态框
+  showRevokeStatusModal(): void {
+    this.tempIsRevoke = this.document.isRevoke || false;
+    this.revokeStatusVisible = true;
   }
 
-  // 处理标签编辑确认
-  handleTagEditConfirm(data: {
-    tags: string[];
-    tagDisplay: string;
-    status?: string;
-  }): void {
-    // 更新标签
-    if (data.tags.length > 0) {
-      this.document.tags = [...data.tags];
-      this.$message.success(`已设置标签为: ${data.tagDisplay}`);
-    }
+  // 处理废止状态编辑确认
+  handleRevokeStatusConfirm(): void {
+    // 更新废止状态
+    this.document.isRevoke = this.tempIsRevoke;
 
-    // 更新状态（如果有）
-    if (data.status) {
-      this.document.status = data.status;
-      this.$message.success(`已更新文档状态`);
-    }
+    this.$message.success("文档状态更新成功");
 
-    this.tagEditVisible = false;
+    this.revokeStatusVisible = false;
   }
 
-  // 处理标签编辑取消
-  handleTagEditCancel(): void {
-    this.tagEditVisible = false;
+  // 处理废止状态编辑取消
+  handleRevokeStatusCancel(): void {
+    this.revokeStatusVisible = false;
   }
 
   // 使选中内容在视图中可见
@@ -454,7 +455,7 @@ export default class DocumentViewer extends Vue {
   // 头部样式
   .lawyer-document-header {
     background: var(--lawyer-surface);
-    padding: 15px 20px;
+    padding: 10px 20px; // 减少上下padding从15px到10px
     border-bottom: 1px solid var(--lawyer-border);
     display: flex;
     justify-content: space-between;
@@ -478,19 +479,45 @@ export default class DocumentViewer extends Vue {
     h1 {
       font-size: 18px;
       color: var(--lawyer-text);
-      margin: 0 0 8px 0;
+      margin: 0;
+    }
+  }
+
+  // 标题和状态标签同行布局
+  .lawyer-title-with-status {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 4px; // 减少底部间距
+
+    h1 {
+      margin: 0;
+      line-height: 1.2; // 减少行高
+    }
+
+    .lawyer-inline-status {
+      flex-shrink: 0;
+      font-size: 11px; // 稍微小一点的字体
+      padding: 2px 6px; // 减少内边距
+      margin-left: 4px; // 紧挨着标题
+    }
+
+    // 响应式：小屏幕时保持同行
+    @media (max-width: 768px) {
+      flex-wrap: wrap;
+      gap: 8px;
     }
   }
 
   // 文档标签样式
-  .lawyer-document-tags {
+  .lawyer-document-status {
     display: flex;
     align-items: center;
     gap: 8px;
     margin-bottom: 8px;
     flex-wrap: wrap;
 
-    .lawyer-editable-tag {
+    .lawyer-editable-status {
       cursor: pointer;
       transition: all 0.3s;
       font-size: 12px;
@@ -505,14 +532,9 @@ export default class DocumentViewer extends Vue {
         transform: translateY(-1px);
       }
 
-      .lawyer-tag-edit-icon {
+      .lawyer-status-edit-icon {
         font-size: 10px;
         opacity: 0.7;
-      }
-
-      &.lawyer-empty-tag {
-        border-style: dashed;
-        opacity: 0.8;
       }
     }
   }
@@ -640,6 +662,7 @@ export default class DocumentViewer extends Vue {
     color: var(--lawyer-text-light);
     display: flex;
     gap: 20px;
+    margin-top: 6px; // 减少上边距
 
     .anticon {
       margin-right: 5px;
@@ -672,7 +695,7 @@ export default class DocumentViewer extends Vue {
 
   .lawyer-document-content {
     flex: 1;
-    padding: 40px;
+    padding: 20px 24px; // 减少padding：上下20px，左右24px
     overflow-y: auto;
     height: 100%;
   }
@@ -865,6 +888,58 @@ export default class DocumentViewer extends Vue {
       font-weight: 500;
       color: var(--lawyer-text);
       min-width: 80px;
+    }
+  }
+
+  // 废止状态编辑弹窗样式
+  .lawyer-revoke-status-content {
+    color: red;
+    .lawyer-status-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+
+      label {
+        font-weight: 500;
+        color: #333;
+        min-width: 80px;
+      }
+
+      .lawyer-status-switch-container {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        .lawyer-status-text {
+          font-size: 14px;
+          color: #666;
+          font-weight: 500;
+        }
+      }
+    }
+
+    .lawyer-status-description {
+      padding: 12px;
+      background-color: #fafafa;
+      border-radius: 6px;
+      border: 1px solid #f0f0f0;
+
+      .lawyer-revoke-tip,
+      .lawyer-active-tip {
+        margin: 0;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+      }
+
+      .lawyer-revoke-tip {
+        color: #ff4d4f;
+      }
+
+      .lawyer-active-tip {
+        color: #52c41a;
+      }
     }
   }
 }

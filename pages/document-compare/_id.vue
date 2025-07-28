@@ -1,5 +1,5 @@
 <template>
-  <div class="document-compare-page-wrapper">
+  <div class="document-compare-page-wrapper" ref="documentComparePageContainer">
     <document-compare
       :document="documentData"
       @go-back="goBack"
@@ -55,105 +55,151 @@ export default class DocumentComparePage extends Vue {
 
     // 处理审核逻辑
     // 调用API
-    this.$service.lawyer.approveToDoRule({
-      id: this.documentData.id,
-      approvalComment: action === "approve" ? "已通过" : "已驳回",
-      effectDate: this.documentData.effectDate, // 使用当前文档的施行日期
-    }).then(() => {
-      this.documentData.status = action === "approve" ? "approved" : "rejected";
+    this.$service.lawyer
+      .approveToDoRule({
+        id: this.documentData.id,
+        approvalComment: action === "approve" ? "已通过" : "已驳回",
+        effectDate: this.documentData.effectDate, // 使用当前文档的施行日期
+      })
+      .then(() => {
+        this.documentData.status =
+          action === "approve" ? "approved" : "rejected";
 
-      this.$message.success(
-        `${action === "approve" ? "通过" : "驳回"}操作成功！`
-      );
+        this.$message.success(
+          `${action === "approve" ? "通过" : "驳回"}操作成功！`
+        );
 
-      // 审核后返回列表页
-      setTimeout(() => {
-        this.$router.push("/db");
-      }, 1500);
-    }).catch(error => {
-      console.error("审核操作失败:", error);
-      this.$message.error("审核操作失败，请重试");
-    });
+        // 审核后返回列表页
+        setTimeout(() => {
+          this.$router.push("/db");
+        }, 1500);
+      })
+      .catch((error) => {
+        console.error("审核操作失败:", error);
+        this.$message.error("审核操作失败，请重试");
+      });
+  }
+
+  // 解析章节信息，提取章节号
+  parseSection(sectionRaw) {
+    if (!sectionRaw) return { number: "", title: "" };
+
+    // 处理各种格式的章节信息
+    // 格式1: "第壹章" -> 提取"壹"
+    // 格式2: "第一章 总则" -> 提取"一"
+    // 格式3: "第一章　总则" -> 提取"一" (全角空格)
+
+    // 先去掉"第"字
+    let processed = sectionRaw.replace(/^第/, "");
+
+    // 查找"章"字的位置
+    const chapterIndex = processed.indexOf("章");
+    if (chapterIndex !== -1) {
+      // 提取章节号（"章"字之前的部分）
+      const chapterNumber = processed.substring(0, chapterIndex);
+      // 提取章节标题（"章"字之后的部分，去掉空格）
+      const chapterTitle = processed
+        .substring(chapterIndex + 1)
+        .replace(/[\s　]+/g, "")
+        .trim();
+
+      return {
+        number: chapterNumber,
+        title: chapterTitle,
+      };
+    }
+
+    // 如果没有"章"字，返回原始内容作为number
+    return {
+      number: processed,
+      title: "",
+    };
   }
 
   // 格式化文档变更数据
   formatChanges(checkResult) {
     if (!checkResult) return [];
-    
+
     try {
       // 解析对比结果字符串为对象
       let changes = [];
-      
+
       // 处理特殊格式的字符串
-      if (typeof checkResult === 'string') {
+      if (typeof checkResult === "string") {
         // 原始格式示例: "[{第壹章-标题变更=由\"总则\"修改为\"总则22\"}, {第一章 总则-第二条=1. 修改内容：由\"本法\"修改为：\"本法aa\"；2. 新增条款：22}]"
-        
+
         // 提取各个变更项
         const items = checkResult.match(/\{[^{}]+\}/g) || [];
-        
-        items.forEach(item => {
+
+        items.forEach((item) => {
           // 从每个项中提取键和值
           const match = item.match(/\{([^=]+)=(.+)\}/);
           if (match) {
             const key = match[1];
             const value = match[2];
-            
+
             // 提取章节和位置信息
-            const keyParts = key.split('-');
-            const section = keyParts[0].trim();
-            const position = keyParts.length > 1 ? keyParts[1].trim() : '';
-            
+            const keyParts = key.split("-");
+            const sectionRaw = keyParts[0].trim();
+            const position = keyParts.length > 1 ? keyParts[1].trim() : "";
+
+            // 解析章节信息，提取章节号和章节标题
+            const parsedSection = this.parseSection(sectionRaw);
+
             // 根据内容确定变更类型
-            if (value.includes('删除条款')) {
+            if (value.includes("删除条款")) {
               changes.push({
-                type: 'delete',
-                section: section.includes('章') ? section.replace('第', '').replace('章', '') : '',
-                position: position || '删除内容',
-                oldText: value.replace('删除条款：', '').trim(),
-                reason: '删除原有条款',
+                type: "delete",
+                section: parsedSection.number,
+                position: position || "删除内容",
+                oldText: value.replace("删除条款：", "").trim(),
+                reason: "删除原有条款",
               });
-            } else if (value.includes('新增条款')) {
+            } else if (value.includes("新增条款")) {
               changes.push({
-                type: 'add',
-                section: section.includes('章') ? section.replace('第', '').replace('章', '') : '',
-                position: position || '新增内容',
-                newText: value.replace('新增条款：', '').trim(),
-                reason: '新增法规条款',
+                type: "add",
+                section: parsedSection.number,
+                position: position || "新增内容",
+                newText: value.replace("新增条款：", "").trim(),
+                reason: "新增法规条款",
               });
-            } else if (value.includes('修改内容')) {
+            } else if (value.includes("修改内容")) {
               // 处理修改类型，可能有多个修改点
               const modifyPoints = value.split(/；\s*\d+\.\s*/);
-              
-              modifyPoints.forEach(point => {
-                if (point.includes('修改内容：') && point.includes('修改为：')) {
+
+              modifyPoints.forEach((point) => {
+                if (
+                  point.includes("修改内容：") &&
+                  point.includes("修改为：")
+                ) {
                   const oldTextMatch = point.match(/由"([^"]+)"/);
                   const newTextMatch = point.match(/修改为："([^"]+)"/);
-                  
+
                   if (oldTextMatch && newTextMatch) {
                     changes.push({
-                      type: 'modify',
-                      section: section.includes('章') ? section.replace('第', '').replace('章', '') : '',
-                      position: position || '内容更新',
+                      type: "modify",
+                      section: parsedSection.number,
+                      position: position || "内容更新",
                       oldText: oldTextMatch[1].trim(),
                       newText: newTextMatch[1].trim(),
-                      reason: '修改原有条款内容',
+                      reason: "修改原有条款内容",
                     });
                   }
                 }
               });
-            } else if (value.includes('标题变更')) {
+            } else if (value.includes("标题变更")) {
               // 处理标题变更，格式如：由"总则"修改为"总则22"
               const oldTextMatch = value.match(/由"([^"]+)"/);
               const newTextMatch = value.match(/修改为"([^"]+)"/);
-              
+
               if (oldTextMatch && newTextMatch) {
                 changes.push({
-                  type: 'modify',
-                  section: section.includes('章') ? section.replace('第', '').replace('章', '') : '',
-                  position: '标题变更',
+                  type: "modify",
+                  section: parsedSection.number,
+                  position: "标题变更",
                   oldText: oldTextMatch[1].trim(),
                   newText: newTextMatch[1].trim(),
-                  reason: '修改章节标题',
+                  reason: "修改章节标题",
                 });
               }
             }
@@ -161,43 +207,46 @@ export default class DocumentComparePage extends Vue {
         });
       } else if (Array.isArray(checkResult)) {
         // 如果已经是数组对象，直接处理
-        checkResult.forEach(item => {
+        checkResult.forEach((item) => {
           for (const key in item) {
             const value = item[key];
             // 获取键值对
-            const keyParts = key.split('-');
-            const section = keyParts[0].trim();
-            const position = keyParts.length > 1 ? keyParts[1].trim() : '';
-            
-            if (typeof value === 'string') {
-              if (value.includes('删除条款')) {
+            const keyParts = key.split("-");
+            const sectionRaw = keyParts[0].trim();
+            const position = keyParts.length > 1 ? keyParts[1].trim() : "";
+
+            // 解析章节信息
+            const parsedSection = this.parseSection(sectionRaw);
+
+            if (typeof value === "string") {
+              if (value.includes("删除条款")) {
                 changes.push({
-                  type: 'delete',
-                  section: section.includes('章') ? section.replace('第', '').replace('章', '') : '',
-                  position: position || '删除内容',
-                  oldText: value.replace('删除条款：', '').trim(),
-                  reason: '删除原有条款',
+                  type: "delete",
+                  section: parsedSection.number,
+                  position: position || "删除内容",
+                  oldText: value.replace("删除条款：", "").trim(),
+                  reason: "删除原有条款",
                 });
-              } else if (value.includes('新增条款')) {
+              } else if (value.includes("新增条款")) {
                 changes.push({
-                  type: 'add',
-                  section: section.includes('章') ? section.replace('第', '').replace('章', '') : '',
-                  position: position || '新增内容',
-                  newText: value.replace('新增条款：', '').trim(),
-                  reason: '新增法规条款',
+                  type: "add",
+                  section: parsedSection.number,
+                  position: position || "新增内容",
+                  newText: value.replace("新增条款：", "").trim(),
+                  reason: "新增法规条款",
                 });
-              } else if (value.includes('标题变更')) {
+              } else if (value.includes("标题变更")) {
                 const oldTextMatch = value.match(/由"([^"]+)"/);
                 const newTextMatch = value.match(/修改为"([^"]+)"/);
-                
+
                 if (oldTextMatch && newTextMatch) {
                   changes.push({
-                    type: 'modify',
-                    section: section.includes('章') ? section.replace('第', '').replace('章', '') : '',
-                    position: '标题',
+                    type: "modify",
+                    section: parsedSection.number,
+                    position: "标题",
                     oldText: oldTextMatch[1].trim(),
                     newText: newTextMatch[1].trim(),
-                    reason: '修改章节标题',
+                    reason: "修改章节标题",
                   });
                 }
               }
@@ -205,29 +254,31 @@ export default class DocumentComparePage extends Vue {
           }
         });
       }
-      
-      // 确保章节显示为中文数字
-      changes = changes.map(change => {
-        if (change.section && !isNaN(change.section)) {
-          const num = parseInt(change.section);
-          // 转换为中文数字（简单版）
-          const chineseNums = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十'];
-          if (num > 0 && num <= 10) {
-            change.section = chineseNums[num - 1];
-          }
+
+      // 清理数据中的换行符和多余空格
+      changes = changes.map((change) => {
+        // 清理 section 字段中的换行符和多余空格
+        if (change.section) {
+          change.section = change.section
+            .replace(/[\r\n\t]/g, "")
+            .replace(/\s+/g, " ")
+            .trim();
         }
-        
-        // 处理位置信息，删除多余空格和换行符
+
+        // 清理 position 字段中的换行符和多余空格
         if (change.position) {
-          change.position = change.position.replace(/\s+/g, ' ').trim();
+          change.position = change.position
+            .replace(/[\r\n\t]/g, "")
+            .replace(/\s+/g, " ")
+            .trim();
         }
-        
+
         return change;
       });
-      
+
       return changes;
     } catch (error) {
-      console.error('解析变更数据失败:', error);
+      console.error("解析变更数据失败:", error);
       return [];
     }
   }
@@ -236,11 +287,11 @@ export default class DocumentComparePage extends Vue {
   async fetchDocumentData() {
     const docId = this.$route.params.id;
     if (!docId) return;
-    
+
     this.loading = true;
     // 从路由获取文档标题
     const pageTitle = this.$route.query.pageTitle as string;
-    
+
     this.documentData = {
       id: docId,
       title: pageTitle || "正在加载文档...",
@@ -256,30 +307,41 @@ export default class DocumentComparePage extends Vue {
       newFileVersion: null,
       newPublishTime: null,
       effectDate: null,
-      currentMaxFileVersion: 0
+      currentMaxFileVersion: 0,
     };
-    
+
     try {
       // 调用接口获取文档详情
-      const result = await this.$service.lawyer.getToDoRuleDetail({ id: docId });
-      console.log('文档详情数据:', result);
-      
+      const result = await this.$service.lawyer.getToDoRuleDetail({
+        id: docId,
+      });
+      console.log("文档详情数据:", result);
+
       if (result && (result.oldFileContent || result.newFileContent)) {
         // 构建标签数组，包含一级和二级分类
         const tags = [];
         if (result.categoryMain) tags.push(result.categoryMain);
         if (result.categorySub) tags.push(result.categorySub);
-        
+
         // 处理文档数据 - 使用从URL参数获取的标题
         this.documentData = {
           id: docId,
-          title: pageTitle || `${result.categoryMain || ''}${result.categorySub ? '/' + result.categorySub : ''}`,
-          status: result.checkStatus === '1' ? 'approved' : (result.checkStatus === '2' ? 'rejected' : 'pending'),
+          title:
+            pageTitle ||
+            `${result.categoryMain || ""}${
+              result.categorySub ? "/" + result.categorySub : ""
+            }`,
+          status:
+            result.checkStatus === "1"
+              ? "approved"
+              : result.checkStatus === "2"
+              ? "rejected"
+              : "pending",
           tags: tags, // 使用包含一级和二级分类的标签数组
-          originalVersion: '原始版本',
-          newVersion: result.newFileVersion || '修订版本',
-          originalContent: result.oldFileContent || '',
-          newContent: result.newFileContent || '',
+          originalVersion: "原始版本",
+          newVersion: result.newFileVersion || "修订版本",
+          originalContent: result.oldFileContent || "",
+          newContent: result.newFileContent || "",
           changes: this.formatChanges(result.checkResult),
           modifiedDate: result.newPublishTime || result.effect_date,
           effectDate: result.effect_date,
@@ -287,7 +349,7 @@ export default class DocumentComparePage extends Vue {
           oldPublishTime: result.oldPublishTime,
           newFileVersion: result.newFileVersion,
           newPublishTime: result.newPublishTime,
-          currentMaxFileVersion: result.currentMaxFileVersion || 0
+          currentMaxFileVersion: result.currentMaxFileVersion || 0,
         };
       } else {
         // 数据为空
@@ -302,12 +364,12 @@ export default class DocumentComparePage extends Vue {
           newContent: "error",
           changes: [],
         };
-        this.$message.error('获取的文档数据为空，请检查文档ID是否正确');
+        this.$message.error("获取的文档数据为空，请检查文档ID是否正确");
       }
     } catch (error) {
-      console.error('获取文档对比数据失败:', error);
-      this.$message.error('获取文档对比数据失败，请重试');
-      
+      console.error("获取文档对比数据失败:", error);
+      this.$message.error("获取文档对比数据失败，请重试");
+
       // 显示错误状态
       this.documentData = {
         id: docId,
@@ -324,7 +386,7 @@ export default class DocumentComparePage extends Vue {
         newFileVersion: null,
         newPublishTime: null,
         effectDate: null,
-        currentMaxFileVersion: 0
+        currentMaxFileVersion: 0,
       };
     } finally {
       this.loading = false;

@@ -1,5 +1,5 @@
 <template>
-  <div class="document-compare-wrapper">
+  <div class="document-compare-wrapper" ref="documentCompareContainer">
     <div class="lawyer-compare-page">
       <header class="lawyer-compare-header">
         <a-button class="lawyer-back-btn" @click="goBack">
@@ -45,8 +45,13 @@
               {{ action.text }}
             </a-button>
           </template>
-          <div v-else-if="document.status === 'pending' && !canReview" class="lawyer-version-warning">
-            当前版本(V{{ document.newFileVersion || 0 }})高于系统最高版本(V{{ document.currentMaxFileVersion || 0 }})，请先更新系统版本
+          <div
+            v-else-if="document.status === 'pending' && !canReview"
+            class="lawyer-version-warning"
+          >
+            当前版本(V{{ document.newFileVersion || 0 }})高于系统最高版本(V{{
+              document.currentMaxFileVersion || 0
+            }})，请先更新系统版本
           </div>
         </div>
       </header>
@@ -60,12 +65,8 @@
         >
           <div class="lawyer-column-header">
             {{ col.title }}
-            （<span v-if="col.version">
-              {{ col.version }}-
-            </span>
-            <span  v-if="col.date">
-              {{ col.date }}
-            </span>）
+            （<span v-if="col.version"> {{ col.version }}- </span>
+            <span v-if="col.date"> {{ col.date }} </span>）
           </div>
           <div class="lawyer-column-content">
             <div v-html="formatContentDisplay(col.content)"></div>
@@ -75,8 +76,12 @@
         <!-- 修改记录 -->
         <div class="lawyer-changelog-column">
           <div class="lawyer-column-header">
-            审阅内容 
-            <span class="lawyer-version-compare">（V{{ document.oldFileVersion || '暂无' }} vs V{{ document.newFileVersion || '暂无' }}）</span>
+            审阅内容
+            <span class="lawyer-version-compare"
+              >（V{{ document.oldFileVersion || "暂无" }} vs V{{
+                document.newFileVersion || "暂无"
+              }}）</span
+            >
           </div>
           <div class="lawyer-column-content">
             <div class="lawyer-change-summary">
@@ -93,11 +98,19 @@
               class="lawyer-changelog-item"
             >
               <div class="lawyer-change-location">
-                {{ change.section ? `第${change.section}章` : '' }} {{ change.position }}
+                {{
+                  (change.section ? `第${change.section}章` : "") +
+                  " " +
+                  (change.position || "")
+                }}
               </div>
               <div class="lawyer-change-content">
                 <div v-if="change.type === 'add'" class="lawyer-content-text">
-                  <div>添加内容：<span class="lawyer-content-highlight">{{ change.newText }}</span></div>
+                  <div>
+                    添加内容：<span class="lawyer-content-highlight">{{
+                      change.newText
+                    }}</span>
+                  </div>
                 </div>
                 <div
                   v-else-if="change.type === 'delete'"
@@ -108,7 +121,12 @@
                 <template v-else>
                   <div class="lawyer-content-text">
                     <div>原内容："{{ change.oldText }}"</div>
-                    <div>修改为："<span class="lawyer-content-highlight">{{ change.newText }}</span>"</div>
+                    <div>
+                      修改为："<span class="lawyer-content-highlight">{{
+                        change.newText
+                      }}</span
+                      >"
+                    </div>
                   </div>
                 </template>
               </div>
@@ -125,6 +143,7 @@
         okType="primary"
         cancelText="取消"
         @ok="submitReview"
+        :getContainer="() => $refs.documentCompareContainer"
       >
         <a-form-item label="审核意见">
           <a-textarea
@@ -140,17 +159,42 @@
       </a-modal>
 
       <!-- 标签编辑模态框 -->
-      <TagEditModal
+      <a-modal
+        title="编辑文档分类和施行日期"
         :visible="tagEditVisible"
-        title="编辑文档分类"
-        :current-tags="document.tags || []"
-        :current-status="document.status"
-        :current-effect-date="document.effectDate"
-        :show-document-status="false"
-        :allow-parent-select="true"
-        @confirm="handleTagEditConfirm"
+        @ok="handleTagEditConfirm"
         @cancel="handleTagEditCancel"
-      />
+        :width="600"
+        okText="确认"
+        cancelText="取消"
+        :getContainer="() => $refs.documentCompareContainer"
+      >
+        <div class="lawyer-tag-edit-content">
+          <!-- 标签分类选择 -->
+          <div class="lawyer-tag-select-row">
+            <label>选择分类</label>
+            <a-cascader
+              v-model="tempSelectedTagPath"
+              :options="tagOptions"
+              placeholder="全部分类"
+              :show-search="true"
+              :change-on-select="true"
+              style="width: 300px"
+            />
+          </div>
+
+          <!-- 施行日期选择 -->
+          <div class="lawyer-tag-select-row">
+            <label>施行日期</label>
+            <a-date-picker
+              v-model="tempEffectDate"
+              format="YYYY-MM-DD"
+              placeholder="请选择施行日期"
+              style="width: 300px"
+            />
+          </div>
+        </div>
+      </a-modal>
     </div>
   </div>
 </template>
@@ -158,7 +202,7 @@
 <script lang="ts">
 // @ts-nocheck
 import { Component, Vue, Prop, Emit } from "nuxt-property-decorator";
-import TagEditModal from "@/components/common/TagEditModal.vue";
+import { cascaderOptions } from "~/enum/Category";
 
 interface ReviewAction {
   text: string;
@@ -176,11 +220,7 @@ interface DocumentColumn {
   contentClass: string;
 }
 
-@Component({
-  components: {
-    TagEditModal,
-  },
-})
+@Component({})
 export default class DocumentCompare extends Vue {
   @Prop({ required: true }) document: any;
 
@@ -191,6 +231,11 @@ export default class DocumentCompare extends Vue {
 
   // 标签编辑相关
   tagEditVisible = false;
+  tempSelectedTagPath: string[] = [];
+  tempEffectDate: string | null = null;
+
+  // 标签选项数据
+  tagOptions = cascaderOptions;
 
   // 显示标签（合并为单个标签）
   get displayTag(): string {
@@ -219,7 +264,7 @@ export default class DocumentCompare extends Vue {
       },
     ];
   }
-  
+
   // 是否允许审核操作
   get canReview(): boolean {
     // 检查文档版本是否允许审核
@@ -233,14 +278,18 @@ export default class DocumentCompare extends Vue {
     return [
       {
         title: "修改前文档",
-        version: this.document.oldFileVersion ? `V${this.document.oldFileVersion}` : undefined,
+        version: this.document.oldFileVersion
+          ? `V${this.document.oldFileVersion}`
+          : undefined,
         date: this.document.oldPublishTime || "",
         content: this.document.originalContent || "加载中...",
         contentClass: "lawyer-original-content",
       },
       {
         title: "修改后文档",
-        version: this.document.newFileVersion ? `V${this.document.newFileVersion}` : undefined,
+        version: this.document.newFileVersion
+          ? `V${this.document.newFileVersion}`
+          : undefined,
         date: this.document.modifiedDate || this.document.newPublishTime || "",
         content: this.document.newContent || "加载中...",
         contentClass: "lawyer-new-content",
@@ -251,15 +300,17 @@ export default class DocumentCompare extends Vue {
   // 格式化内容显示，将文本转换为HTML
   formatContentDisplay(content: string): string {
     if (!content) return '<p class="lawyer-empty-content">无内容</p>';
-    if (content === 'error') return '<p class="lawyer-error-content">加载失败，请刷新页面重试</p>';
-    if (content.trim() === '') return '<p class="lawyer-empty-content">无内容</p>';
-    
+    if (content === "error")
+      return '<p class="lawyer-error-content">加载失败，请刷新页面重试</p>';
+    if (content.trim() === "")
+      return '<p class="lawyer-empty-content">无内容</p>';
+
     // 如果内容已经包含HTML标签，则直接返回
-    if (content.includes('<')) return content;
-    
+    if (content.includes("<")) return content;
+
     // 简单处理：保留原始文本，让CSS处理换行
     return content;
-    
+
     // 不再使用复杂的HTML转换，因为会破坏原始格式
     // return content
     //   .split('\n')
@@ -310,7 +361,7 @@ export default class DocumentCompare extends Vue {
       this.$message.error("当前版本高于系统最高版本，不允许审核");
       return;
     }
-    
+
     if (this.reviewAction === "reject" && !this.reviewComment) {
       this.$message.error("驳回时必须填写意见");
       return;
@@ -318,28 +369,75 @@ export default class DocumentCompare extends Vue {
 
     this.emitSubmitReview({
       action: this.reviewAction,
-      comment: this.reviewComment
+      comment: this.reviewComment,
     });
 
     this.reviewModalVisible = false;
   }
 
+  // 查找标签在级联选项中的路径
+  findTagPath(tags: string[]): string[] {
+    if (!tags || tags.length === 0) return [];
+
+    // 如果有两个标签，尝试匹配父子关系
+    if (tags.length >= 2) {
+      const [firstTag, secondTag] = tags;
+      for (const option of this.tagOptions) {
+        if (option.value === firstTag && option.children) {
+          for (const child of option.children) {
+            if (child.value === secondTag) {
+              return [firstTag, secondTag];
+            }
+          }
+        }
+      }
+    }
+
+    // 如果只有一个标签或者没有找到匹配的父子关系
+    const currentTag = tags[0];
+
+    // 先检查是否为一级标签
+    for (const option of this.tagOptions) {
+      if (option.value === currentTag) {
+        return [currentTag];
+      }
+
+      // 检查是否为二级标签
+      if (option.children) {
+        for (const child of option.children) {
+          if (child.value === currentTag) {
+            return [option.value, currentTag];
+          }
+        }
+      }
+    }
+
+    return [];
+  }
+
   // 显示标签编辑模态框
   showTagEditModal(): void {
+    this.tempSelectedTagPath = this.findTagPath(this.document.tags || []);
+    this.tempEffectDate = this.document.effectDate || null;
     this.tagEditVisible = true;
   }
 
   // 处理标签编辑确认
-  handleTagEditConfirm(data: { 
-    tags: string[]; 
-    tagDisplay: string;
-    effectDate: string | null;
-  }): void {
-    // 更新标签
-    if (data.tags.length > 0) {
-      this.document.tags = [...data.tags];
-      this.document.effectDate = data.effectDate;
-      this.$message.success(`已设置标签为: ${data.tagDisplay}`);
+  handleTagEditConfirm(): void {
+    // 生成显示标签
+    let tagDisplay = "";
+    if (this.tempSelectedTagPath.length === 1) {
+      tagDisplay = this.tempSelectedTagPath[0];
+    } else if (this.tempSelectedTagPath.length >= 2) {
+      tagDisplay = `${this.tempSelectedTagPath[0]}/${this.tempSelectedTagPath[1]}`;
+    }
+
+    // 更新标签和施行日期
+    this.document.tags = [...this.tempSelectedTagPath];
+    this.document.effectDate = this.tempEffectDate;
+
+    if (tagDisplay) {
+      this.$message.success(`已设置标签为: ${tagDisplay}`);
     }
 
     this.tagEditVisible = false;
@@ -357,10 +455,7 @@ export default class DocumentCompare extends Vue {
   }
 
   @Emit("submit-review")
-  emitSubmitReview(data: { 
-    action: string; 
-    comment: string;
-  }) {
+  emitSubmitReview(data: { action: string; comment: string }) {
     return data;
   }
 }
@@ -510,7 +605,7 @@ export default class DocumentCompare extends Vue {
   .lawyer-document-column {
     flex: 1;
     position: relative;
-    
+
     &.is-loading::after {
       content: "";
       position: absolute;
@@ -539,7 +634,6 @@ export default class DocumentCompare extends Vue {
     border-bottom: 1px solid var(--lawyer-border-light);
   }
 
-
   .lawyer-column-content {
     padding: 20px;
     overflow-y: auto;
@@ -547,7 +641,7 @@ export default class DocumentCompare extends Vue {
     min-height: 0; // 允许收缩
     white-space: pre-wrap; // 保留换行符
     word-break: break-word; // 长单词换行
-    
+
     h2,
     h3 {
       color: var(--lawyer-primary);
@@ -568,7 +662,7 @@ export default class DocumentCompare extends Vue {
   }
 
   .lawyer-change-summary {
-    padding: 14px 20px;
+    white-space: initial;
     background-color: #f9f9f9;
     font-weight: 500;
     border-bottom: 1px solid var(--lawyer-border-light);
@@ -594,36 +688,30 @@ export default class DocumentCompare extends Vue {
   }
 
   .lawyer-change-location {
-    color: #333;
+    white-space: initial;
     font-weight: 700;
-    font-size: 15px;
-    margin-bottom: 12px;
   }
 
   .lawyer-change-content {
     padding-left: 0;
   }
-  
+
   .lawyer-content-text {
     line-height: 1.6;
-    margin-bottom: 16px;
+    white-space: initial;
     color: #333;
-    
-    &:last-child {
-      margin-bottom: 0;
-    }
-    
+
     div {
       margin-bottom: 4px;
     }
   }
-  
+
   .lawyer-content-highlight {
     background-color: #fffbe6;
     border-radius: 2px;
     padding: 0 2px;
   }
-  
+
   .lawyer-version-compare {
     font-size: 14px;
     font-weight: normal;
@@ -647,7 +735,7 @@ export default class DocumentCompare extends Vue {
     margin: 20px;
     border-radius: 4px;
   }
-  
+
   .lawyer-loading-spinner {
     display: flex;
     align-items: center;
@@ -659,6 +747,22 @@ export default class DocumentCompare extends Vue {
     color: var(--lawyer-danger);
     font-size: 12px;
     margin-top: 8px;
+  }
+
+  // 标签编辑弹窗样式
+  .lawyer-tag-edit-content {
+    .lawyer-tag-select-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+
+      label {
+        font-weight: 500;
+        color: #333;
+        min-width: 80px;
+      }
+    }
   }
 }
 </style>
