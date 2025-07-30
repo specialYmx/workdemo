@@ -46,12 +46,7 @@ export default class DocumentComparePage extends Vue {
 
   // 处理审核提交
   handleReviewSubmit(reviewData): void {
-    const { action, comment } = reviewData;
-
-    if (action === "reject" && !comment) {
-      this.$message.error("请输入审核意见");
-      return;
-    }
+    const { action } = reviewData;
 
     // 处理审核逻辑
     // 调用API

@@ -61,31 +61,35 @@
           </div>
         </div>
 
-        <!-- 修改记录 -->
-        <div class="lawyer-changelog-column">
+        <!-- 审阅内容 -->
+        <div class="review-content-column">
           <div class="lawyer-column-header">
             审阅内容
-            <span class="lawyer-version-compare"
-              >（V{{ document.oldFileVersion || "暂无" }} vs V{{
-                document.newFileVersion || "暂无"
-              }}）</span
-            >
+            <span class="version-info">
+              (V{{ document.oldFileVersion || "1.0" }} vs V{{
+                document.newFileVersion || "1.1"
+              }})
+            </span>
           </div>
-          <div class="lawyer-column-content">
-            <div class="lawyer-change-summary">
-              共有 <strong>{{ document.changes.length }}</strong> 处变动
-            </div>
 
-            <div v-if="document.changes.length === 0" class="lawyer-no-changes">
+          <div class="review-summary">
+            <a-icon type="exclamation-circle" class="summary-icon" />
+            共有
+            <span class="change-count">{{ document.changes.length }}</span>
+            大类变动
+          </div>
+
+          <div class="review-content">
+            <div v-if="document.changes.length === 0" class="no-changes">
               暂无修改记录或正在加载中...
             </div>
 
             <div
               v-for="(change, index) in document.changes"
               :key="index"
-              class="lawyer-changelog-item"
+              class="change-item"
             >
-              <div class="lawyer-change-location">
+              <div class="change-title">
                 {{
                   [
                     change.section ? `第${change.section}章` : "",
@@ -95,31 +99,23 @@
                     .join(" ")
                 }}
               </div>
-              <div class="lawyer-change-content">
-                <div v-if="change.type === 'add'" class="lawyer-content-text">
-                  <div>
-                    添加内容：<span class="lawyer-content-highlight">{{
-                      change.newText
-                    }}</span>
-                  </div>
+
+              <div class="change-detail">
+                <div v-if="change.type === 'add'" class="change-text">
+                  修改内容：<span class="highlight-text">{{
+                    change.newText
+                  }}</span>
                 </div>
-                <div
-                  v-else-if="change.type === 'delete'"
-                  class="lawyer-content-text"
-                >
-                  <div>删除内容：{{ change.oldText }}</div>
+                <div v-else-if="change.type === 'delete'" class="change-text">
+                  删除了"<span class="deleted-text">{{ change.oldText }}</span
+                  >"
                 </div>
-                <template v-else>
-                  <div class="lawyer-content-text">
-                    <div>原内容："{{ change.oldText }}"</div>
-                    <div>
-                      修改为："<span class="lawyer-content-highlight">{{
-                        change.newText
-                      }}</span
-                      >"
-                    </div>
-                  </div>
-                </template>
+                <div v-else-if="change.type === 'modify'" class="change-text">
+                  修改内容：<span class="highlight-text">{{
+                    change.newText
+                  }}</span
+                  >，原内容："{{ change.oldText }}"
+                </div>
               </div>
             </div>
           </div>
@@ -138,29 +134,6 @@
           {{ action.text }}
         </a-button>
       </div>
-
-      <!-- 审核意见弹窗 -->
-      <a-modal
-        v-model="reviewModalVisible"
-        :title="reviewAction === 'approve' ? '通过审核' : '驳回文档'"
-        :okText="reviewAction === 'approve' ? '确认通过' : '确认驳回'"
-        okType="primary"
-        cancelText="取消"
-        @ok="submitReview"
-        :getContainer="() => $refs.documentCompareContainer"
-      >
-        <a-form-item label="审核意见">
-          <a-textarea
-            v-model="reviewComment"
-            :rows="4"
-            :placeholder="
-              reviewAction === 'approve'
-                ? '请输入通过意见（选填）'
-                : '请输入驳回原因（必填）'
-            "
-          />
-        </a-form-item>
-      </a-modal>
 
       <!-- 标签编辑模态框 -->
       <a-modal
@@ -227,11 +200,6 @@ interface DocumentColumn {
 export default class DocumentCompare extends Vue {
   @Prop({ required: true }) document: any;
 
-  // 审核相关
-  reviewModalVisible = false;
-  reviewAction = "";
-  reviewComment = "";
-
   // 标签编辑相关
   tagEditVisible = false;
   tempSelectedTagPath: string[] = [];
@@ -254,12 +222,12 @@ export default class DocumentCompare extends Vue {
       {
         text: "通过",
         type: "primary",
-        handler: this.showApproveModal,
+        handler: this.handleApprove,
       },
       {
         text: "驳回",
         type: "danger",
-        handler: this.showRejectModal,
+        handler: this.handleReject,
       },
     ];
   }
@@ -339,39 +307,49 @@ export default class DocumentCompare extends Vue {
     this.emitGoBack();
   }
 
-  // 显示通过审核弹窗
-  showApproveModal(): void {
-    this.reviewAction = "approve";
-    this.reviewComment = "";
-    this.reviewModalVisible = true;
-  }
-
-  // 显示驳回审核弹窗
-  showRejectModal(): void {
-    this.reviewAction = "reject";
-    this.reviewComment = "";
-    this.reviewModalVisible = true;
-  }
-
-  // 提交审核
-  submitReview(): void {
+  // 处理通过审核
+  handleApprove(): void {
     // 检查版本是否允许审核
     if (!this.canReview) {
       this.$message.error("当前版本高于系统最高版本，不允许审核");
       return;
     }
 
-    if (this.reviewAction === "reject" && !this.reviewComment) {
-      this.$message.error("驳回时必须填写意见");
+    this.$confirm({
+      title: "确认通过",
+      content: "确定要通过此文档的审核吗？",
+      okText: "确认通过",
+      cancelText: "取消",
+      onOk: () => {
+        this.emitSubmitReview({
+          action: "approve",
+          comment: "",
+        });
+      },
+    });
+  }
+
+  // 处理驳回审核
+  handleReject(): void {
+    // 检查版本是否允许审核
+    if (!this.canReview) {
+      this.$message.error("当前版本高于系统最高版本，不允许审核");
       return;
     }
 
-    this.emitSubmitReview({
-      action: this.reviewAction,
-      comment: this.reviewComment,
+    this.$confirm({
+      title: "确认驳回",
+      content: "确定要驳回此文档吗？",
+      okText: "确认驳回",
+      okType: "danger",
+      cancelText: "取消",
+      onOk: () => {
+        this.emitSubmitReview({
+          action: "reject",
+          comment: "",
+        });
+      },
     });
-
-    this.reviewModalVisible = false;
   }
 
   // 查找标签在级联选项中的路径
@@ -477,7 +455,7 @@ export default class DocumentCompare extends Vue {
 
   .lawyer-compare-header {
     background: var(--lawyer-surface);
-    padding: 8px 10px;
+    padding: 4px 10px;
     display: flex;
     align-items: center;
     flex-shrink: 0;
@@ -550,7 +528,7 @@ export default class DocumentCompare extends Vue {
   }
 
   .lawyer-document-column,
-  .lawyer-changelog-column {
+  .review-content-column {
     background: var(--lawyer-surface);
     border: 1px solid var(--lawyer-border);
     border-radius: 8px;
@@ -579,17 +557,16 @@ export default class DocumentCompare extends Vue {
     }
   }
 
-  .lawyer-changelog-column {
+  .review-content-column {
     flex-basis: 300px;
     border-left: 1px solid var(--lawyer-border);
   }
 
   .lawyer-column-header {
-    padding: 12px 20px;
+    padding: 8px 20px;
     font-size: 16px;
     font-weight: 600;
-    color: #333;
-    border-bottom: 1px solid var(--lawyer-border-light);
+    border-bottom: 1px solid #d9d9d9;
   }
 
   .lawyer-column-content {
@@ -619,62 +596,84 @@ export default class DocumentCompare extends Vue {
     }
   }
 
-  .lawyer-change-summary {
-    white-space: initial;
-    background-color: #f9f9f9;
-    font-weight: 500;
-    border-bottom: 1px solid var(--lawyer-border-light);
-    color: var(--lawyer-text);
+  // 通用版本信息样式
+  .version-info {
     font-size: 14px;
-
-    strong {
-      color: var(--lawyer-primary);
-      font-weight: 600;
-      margin: 0 4px;
-    }
+    color: #666;
+    font-weight: normal;
+    margin-left: 8px;
   }
 
-  .lawyer-no-changes {
-    padding: 30px 20px;
+  .review-summary {
+    padding: 12px 20px;
+    background-color: #fff7e6;
+    border-bottom: 1px solid #d9d9d9;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #333;
+  }
+
+  .summary-icon {
+    color: #fa8c16;
+    font-size: 16px;
+  }
+
+  .change-count {
+    color: #fa8c16;
+    font-weight: 600;
+  }
+
+  .review-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 20px;
+  }
+
+  .no-changes {
     text-align: center;
     color: #999;
     font-style: italic;
+    padding: 40px 20px;
   }
 
-  .lawyer-changelog-item {
-    border-bottom: 1px solid var(--lawyer-border-light);
-  }
+  .change-item {
+    margin-bottom: 24px;
 
-  .lawyer-change-location {
-    white-space: initial;
-    font-weight: 700;
-  }
-
-  .lawyer-change-content {
-    padding-left: 0;
-  }
-
-  .lawyer-content-text {
-    line-height: 1.6;
-    white-space: initial;
-    color: #333;
-
-    div {
-      margin-bottom: 4px;
+    &:last-child {
+      margin-bottom: 0;
     }
   }
 
-  .lawyer-content-highlight {
-    background-color: #fffbe6;
-    border-radius: 2px;
-    padding: 0 2px;
+  .change-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+    line-height: 1.4;
   }
 
-  .lawyer-version-compare {
+  .change-detail {
     font-size: 14px;
-    font-weight: normal;
-    color: var(--lawyer-text-light);
-    margin-left: 8px;
+    line-height: 1.6;
+  }
+
+  .change-text {
+    color: #666;
+  }
+
+  .highlight-text {
+    background-color: #fff2cc;
+    padding: 2px 4px;
+    border-radius: 2px;
+    color: #333;
+    font-weight: 500;
+  }
+
+  .deleted-text {
+    color: #ff4d4f;
+    text-decoration: line-through;
   }
 
   .lawyer-empty-content {

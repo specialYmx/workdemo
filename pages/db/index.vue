@@ -200,25 +200,6 @@
           </a-table>
         </div>
       </div>
-
-      <!-- 审核意见弹窗 -->
-      <a-modal
-        v-model="reviewModalVisible"
-        :title="reviewAction === 'approve' ? '通过审核' : '驳回文档'"
-        @ok="submitReview"
-      >
-        <a-form-item label="审核意见">
-          <a-textarea
-            v-model="reviewComment"
-            :rows="4"
-            :placeholder="
-              reviewAction === 'approve'
-                ? '请输入通过意见（选填）'
-                : '请输入驳回原因（必填）'
-            "
-          />
-        </a-form-item>
-      </a-modal>
     </div>
   </div>
 </template>
@@ -267,10 +248,6 @@ export default class DbPage extends Vue {
     total: 0,
   };
 
-  // 审核弹窗
-  reviewModalVisible = false;
-  reviewAction = "approve";
-  reviewComment = "";
   currentDocument: ToDoRuleItem | null = null;
 
   // 状态选项
@@ -632,9 +609,16 @@ export default class DbPage extends Vue {
     }
 
     this.currentDocument = document;
-    this.reviewAction = "approve";
-    this.reviewComment = "";
-    this.reviewModalVisible = true;
+
+    this.$confirm({
+      title: "确认通过",
+      content: `确定要通过文档"${document.title}"的审核吗？`,
+      okText: "确认通过",
+      cancelText: "取消",
+      onOk: () => {
+        this.submitReview("approve");
+      },
+    });
   }
 
   // 审核驳回
@@ -646,30 +630,30 @@ export default class DbPage extends Vue {
     }
 
     this.currentDocument = document;
-    this.reviewAction = "reject";
-    this.reviewComment = "";
-    this.reviewModalVisible = true;
+
+    this.$confirm({
+      title: "确认驳回",
+      content: `确定要驳回文档"${document.title}"吗？`,
+      okText: "确认驳回",
+      okType: "danger",
+      cancelText: "取消",
+      onOk: () => {
+        this.submitReview("reject");
+      },
+    });
   }
 
   // 提交审核
-  async submitReview(): Promise<void> {
-    if (this.reviewAction === "reject" && !this.reviewComment) {
-      this.$message.error("驳回文档必须填写驳回原因");
-      return;
-    }
-
+  async submitReview(action: string): Promise<void> {
     try {
       // 调用统一的审核接口，通过approvalComment传递状态
       await this.$service.lawyer.approveToDoRule({
         id: this.currentDocument?.id,
-        approvalComment: this.reviewAction === "approve" ? "已通过" : "已驳回",
+        approvalComment: action === "approve" ? "已通过" : "已驳回",
       });
 
-      // 关闭弹窗并显示成功消息
-      this.reviewModalVisible = false;
-      this.$message.success(
-        this.reviewAction === "approve" ? "审核已通过" : "文档已驳回"
-      );
+      // 显示成功消息
+      this.$message.success(action === "approve" ? "审核已通过" : "文档已驳回");
 
       // 重新加载表格数据，确保数据一致性
       await this.loadDocuments();
