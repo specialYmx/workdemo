@@ -405,7 +405,7 @@ export interface PageResult<T> {
 }
 
 export interface FileCompareDetail {
-  newFileVersion: number;
+  newFileVersion: number | null;
   effect_date: string;
   newFileContent: string;
   categoryMain: string;

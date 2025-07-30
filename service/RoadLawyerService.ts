@@ -20,7 +20,7 @@ const toFormData = (obj: Record<string, unknown>): FormData => {
   if (obj && typeof obj === "object") {
     Object.keys(obj).forEach((key) => {
       const value = obj[key];
-      if (value !== undefined && value !== null) {
+      if (value) {
         if (Array.isArray(value)) {
           // 处理数组参数
           value.forEach((item, index) => {
@@ -60,7 +60,7 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
         `${api.lawyer.getCheckComplateList}`,
         toFormData(params)
       );
-      if (res.data?.data !== undefined && res.data?.data !== null) {
+      if (res.data?.data) {
         return res.data.data;
       }
       return [];
@@ -76,7 +76,7 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
         `${api.lawyer.getUpdateCount}`,
         toFormData(params)
       );
-      if (res.data?.data !== undefined && res.data?.data !== null) {
+      if (res.data?.data) {
         return res.data.data;
       }
       return 0;
@@ -92,7 +92,7 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
         `${api.lawyer.getUpdateTimeLinessCount}`,
         toFormData(params)
       );
-      if (res.data?.data !== undefined && res.data?.data !== null) {
+      if (res.data?.data) {
         return res.data.data;
       }
       return {};
@@ -108,7 +108,7 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
         `${api.lawyer.getWebSiteRatio}`,
         toFormData(params)
       );
-      if (res.data?.data !== undefined && res.data?.data !== null) {
+      if (res.data?.data) {
         return res.data.data;
       }
       return {};
@@ -156,7 +156,7 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
         `${api.lawyer.getRuleSourceCollect}`,
         toFormData(params)
       );
-      if (res.data?.data !== undefined && res.data?.data !== null) {
+      if (res.data?.data) {
         return res.data.data;
       }
       return [];
@@ -188,7 +188,7 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
         `${api.lawyer.getRuleSourceDetail}`,
         toFormData(params)
       );
-      if (res.data?.data !== undefined && res.data?.data !== null) {
+      if (res.data?.data) {
         // 检查返回的数据是否为数组，如果是数组则取第一个元素
         const data = res.data.data;
         if (Array.isArray(data) && data.length > 0) {
@@ -210,7 +210,7 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
         `${api.lawyer.getRuleSourceList}`,
         toFormData(params)
       );
-      if (res.data?.data !== undefined && res.data?.data !== null) {
+      if (res.data?.data) {
         return res.data.data;
       }
       return [];
@@ -226,7 +226,7 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
         `${api.lawyer.getRuleUpdateList}`,
         toFormData(params)
       );
-      if (res.data?.data !== undefined && res.data?.data !== null) {
+      if (res.data?.data) {
         return res.data.data; // 直接返回数组
       }
       return [];
@@ -242,7 +242,7 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
         `${api.lawyer.initData}`,
         toFormData(params)
       );
-      if (res.data?.data !== undefined && res.data?.data !== null) {
+      if (res.data?.data) {
         return res.data.data;
       }
       return {};
@@ -351,7 +351,7 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
         `${api.lawyer.getDiffResultSchedule}`,
         toFormData(params)
       );
-      if (res.data?.data !== undefined && res.data?.data !== null) {
+      if (res.data?.data) {
         return res.data.data;
       }
       return {};
@@ -363,31 +363,31 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
 
   async getToDoRuleDetail(params: { id: string }) {
     try {
-      // 使用固定的mock数据，因为真实API只有id=1的数据
-      const data = {
-        newFileVersion: 2, // 修改为数字值
-        effect_date: "2023-03-03",
-        newFileContent:
-          "新版本内容：根据最新法规要求，企业应当建立健全内部控制制度，确保财务报告的真实性和完整性。同时，应当加强对关联交易的管理，防范利益输送风险。",
-        categoryMain: "财务管理",
-        categorySub: "内部控制",
-        newPublishTime: "2023-03-01",
-        oldFileContent:
-          "旧版本内容：企业应当建立内部控制制度，确保财务报告的准确性。对于关联交易，应当按照公允价格进行。",
-        oldFileVersion: 1,
-        oldPublishTime: "2023-01-01",
-        checkResult: "文档内容已更新，新增了关于利益输送风险防范的要求。",
-        currentMaxFileVersion: 2,
-        id: params.id || "1",
-        checkStatus: "pending",
-      };
+      const res = await $axios.post(
+        `${api.lawyer.getToDoRuleDetail}`,
+        toFormData(params)
+      );
 
-      return data;
+      if (res.data?.data) {
+        return res.data.data;
+      }
+
+      // 如果接口返回空数据，返回默认结构
+      return {
+        newFileVersion: null,
+        effect_date: "",
+        newFileContent: "",
+        categoryMain: "",
+        newPublishTime: "",
+        oldFileContent: "",
+        checkResult: "",
+        currentMaxFileVersion: 0,
+      };
     } catch (error) {
       console.error("Error fetching todo rule detail:", error);
       // 返回一个符合 FileCompareDetail 类型的空对象
       return {
-        newFileVersion: 0,
+        newFileVersion: null,
         effect_date: "",
         newFileContent: "",
         categoryMain: "",

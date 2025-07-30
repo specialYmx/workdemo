@@ -355,16 +355,13 @@ export default class UpdatesPage extends Vue {
     cursor: pointer;
     transition: all 0.2s ease;
     min-width: 13%;
-    text-align: center;
 
     &:first-child {
-      border-top-left-radius: 4px;
-      border-bottom-left-radius: 4px;
+      border-radius: 4px 0 0 4px;
     }
 
     &:last-child {
-      border-top-right-radius: 4px;
-      border-bottom-right-radius: 4px;
+      border-radius: 0 4px 4px 0;
     }
 
     &:not(:first-child) {
@@ -385,7 +382,6 @@ export default class UpdatesPage extends Vue {
   }
 
   .lawyer-update-item {
-    background: var(--lawyer-surface);
     border: 1px solid var(--lawyer-border);
     border-radius: 8px;
     padding: 20px;

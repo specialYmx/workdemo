@@ -87,9 +87,12 @@
             >
               <div class="lawyer-change-location">
                 {{
-                  (change.section ? `第${change.section}章` : "") +
-                  " " +
-                  (change.position || "")
+                  [
+                    change.section ? `第${change.section}章` : "",
+                    change.position || "",
+                  ]
+                    .filter(Boolean)
+                    .join(" ")
                 }}
               </div>
               <div class="lawyer-change-content">

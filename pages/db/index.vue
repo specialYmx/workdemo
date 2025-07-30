@@ -817,7 +817,6 @@ export default class DbPage extends Vue {
 
   .lawyer-link-view {
     color: #666;
-    text-decoration: none;
     cursor: pointer;
     transition: color 0.2s ease;
     padding: 2px 6px;
@@ -831,7 +830,6 @@ export default class DbPage extends Vue {
 
   .lawyer-link-approve {
     color: #52c41a;
-    text-decoration: none;
     cursor: pointer;
     transition: all 0.2s ease;
     padding: 2px 6px;
@@ -845,7 +843,6 @@ export default class DbPage extends Vue {
 
   .lawyer-link-reject {
     color: #ff4d4f;
-    text-decoration: none;
     cursor: pointer;
     transition: all 0.2s ease;
     padding: 2px 6px;
@@ -887,10 +884,7 @@ export default class DbPage extends Vue {
     padding: 6px 16px;
     border: 1px solid #d9d9d9;
     border-radius: 3px;
-    background-color: #fff;
     color: var(--lawyer-text-light);
-    font-size: 14px;
-    font-weight: 400;
     cursor: pointer;
     transition: all 0.2s ease;
     white-space: nowrap;

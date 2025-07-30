@@ -709,7 +709,6 @@ export default class KnowledgePage extends Vue {
     color: var(--lawyer-text-light);
     margin-bottom: 24px;
     padding: 12px 16px;
-    background: var(--lawyer-surface);
     border-radius: 4px;
     border: 1px solid var(--lawyer-border-light);
     font-weight: 500;
@@ -721,10 +720,8 @@ export default class KnowledgePage extends Vue {
     text-align: center;
     padding: 32px;
     color: var(--lawyer-text-light);
-    background: var(--lawyer-surface);
     border-radius: 8px;
     border: 1px solid var(--lawyer-border);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     margin-top: 32px;
 
     h3 {
@@ -745,11 +742,9 @@ export default class KnowledgePage extends Vue {
 
   // 文档项 - 每个文档的独立卡片样式
   .lawyer-document-item {
-    background: var(--lawyer-surface);
     padding: 24px;
     border-radius: 8px;
     border: 1px solid var(--lawyer-border);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     transition: background-color 0.2s ease, box-shadow 0.2s ease;
 
     &:hover {

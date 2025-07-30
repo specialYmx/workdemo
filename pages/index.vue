@@ -1031,8 +1031,6 @@ export default class IndexPage extends Vue {
     border-bottom: 1px solid var(--lawyer-border);
 
     .lawyer-chart-title {
-      margin: 0;
-      font-size: 16px;
       font-weight: 500;
     }
   }
@@ -1076,19 +1074,8 @@ export default class IndexPage extends Vue {
           margin-right: 12px;
           border-radius: 2px;
         }
-
-        .legend-name {
-          font-size: 14px;
-          color: var(--lawyer-text);
-        }
       }
     }
-  }
-
-  .lawyer-chart-card {
-    background: var(--lawyer-surface);
-    border-radius: 4px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.09);
   }
 
   .lawyer-page-container {
@@ -1102,23 +1089,6 @@ export default class IndexPage extends Vue {
         justify-content: space-between;
         align-items: center;
         padding: 0 24px 16px;
-
-        .lawyer-time-range {
-          display: flex;
-
-          .lawyer-time-btn {
-            width: 180px;
-            height: 32px;
-            border: 1px solid var(--lawyer-border);
-            background: var(--lawyer-surface);
-            transition: all 0.3s;
-
-            &.active {
-              color: var(--lawyer-primary);
-              border-color: var(--lawyer-primary);
-            }
-          }
-        }
       }
 
       .lawyer-dashboard-top-row {
@@ -1135,9 +1105,6 @@ export default class IndexPage extends Vue {
 
         .lawyer-trend-chart {
           flex: 1;
-          background: var(--lawyer-surface);
-          border-radius: 4px;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.09);
           padding-bottom: 16px;
         }
 
@@ -1151,13 +1118,9 @@ export default class IndexPage extends Vue {
             justify-content: space-between;
             align-items: center;
             padding: 20px;
-            background: var(--lawyer-surface);
-            border-radius: 4px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.09);
 
             .lawyer-stat-info {
               .lawyer-stat-label {
-                font-size: 14px;
                 color: var(--lawyer-text-light);
                 margin-bottom: 8px;
               }
@@ -1167,10 +1130,10 @@ export default class IndexPage extends Vue {
                 font-weight: 600;
 
                 &.blue {
-                  color: #1890ff; // 蓝色应该用蓝色，不是主题色
+                  color: #1890ff;
                 }
                 &.orange {
-                  color: #fa8c16; // 橙色应该用橙色
+                  color: #fa8c16;
                 }
               }
             }
@@ -1185,23 +1148,20 @@ export default class IndexPage extends Vue {
 
               i {
                 font-size: 24px;
-                color: var(--lawyer-surface);
+                color: white;
               }
 
               &.bg-blue {
-                background-color: #1890ff; // 蓝色背景应该用蓝色
+                background-color: #1890ff;
               }
               &.bg-orange {
-                background-color: #fa8c16; // 橙色背景应该用橙色
+                background-color: #fa8c16;
               }
             }
           }
         }
 
         .lawyer-chart-section {
-          background: var(--lawyer-surface);
-          border-radius: 4px;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.09);
           padding-bottom: 16px;
         }
       }
@@ -1271,7 +1231,6 @@ export default class IndexPage extends Vue {
         flex: 1;
 
         .lawyer-review-title {
-          font-size: 14px;
           font-weight: 500;
           margin-bottom: 4px;
         }
@@ -1321,7 +1280,6 @@ export default class IndexPage extends Vue {
             margin-bottom: 12px;
 
             .lawyer-update-title {
-              margin: 0;
               font-size: 18px;
               font-weight: 600;
 
@@ -1336,7 +1294,6 @@ export default class IndexPage extends Vue {
             }
 
             .lawyer-update-time {
-              font-size: 14px;
               color: var(--lawyer-text-light);
               margin-left: 16px;
             }
@@ -1346,7 +1303,6 @@ export default class IndexPage extends Vue {
             margin-bottom: 16px;
             color: var(--lawyer-text-light);
             line-height: 1.6;
-            font-size: 14px;
           }
 
           .lawyer-update-ai-analysis {
@@ -1356,21 +1312,17 @@ export default class IndexPage extends Vue {
             border-radius: 6px;
 
             .lawyer-ai-title {
-              font-size: 14px;
               font-weight: 600;
               color: var(--lawyer-text);
-              margin: 0 0 12px 0;
+              margin-bottom: 12px;
             }
 
             .lawyer-ai-points {
-              margin: 0;
-              padding: 0;
               list-style: none;
 
               li {
                 margin-bottom: 8px;
                 color: var(--lawyer-text-light);
-                font-size: 14px;
                 line-height: 1.5;
                 display: flex;
 
