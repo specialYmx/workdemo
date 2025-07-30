@@ -29,7 +29,7 @@
           <div class="lawyer-dashboard-left-panel">
             <!-- 统计卡片 -->
             <div class="lawyer-top-stat-cards-container">
-              <div class="lawyer-stat-card">
+              <div class="lawyer-stat-card lawyer-card">
                 <div class="lawyer-stat-info">
                   <div class="lawyer-stat-label">本月法规更新</div>
                   <div class="lawyer-stat-value blue">1352</div>
@@ -38,7 +38,7 @@
                   <a-icon type="file-text" />
                 </div>
               </div>
-              <div class="lawyer-stat-card">
+              <div class="lawyer-stat-card lawyer-card">
                 <div class="lawyer-stat-info">
                   <div class="lawyer-stat-label">待人工审核</div>
                   <div class="lawyer-stat-value orange">231</div>
@@ -1089,15 +1089,55 @@ export default class IndexPage extends Vue {
         justify-content: space-between;
         align-items: center;
         padding: 0 24px 16px;
+        .lawyer-time-range {
+          display: flex;
+          gap: 0;
+          width: 50%;
+
+          .lawyer-time-btn {
+            padding: 4px 20px;
+            background: transparent;
+            border: 1px solid var(--lawyer-border);
+            transition: all 0.2s ease;
+            color: var(--lawyer-text-light);
+            text-align: center;
+            flex: 1;
+            &:first-child {
+              border-radius: 4px 0 0 4px;
+            }
+
+            &:last-child {
+              border-radius: 0 4px 4px 0;
+            }
+
+            &:not(:first-child) {
+              margin-left: -1px;
+            }
+
+            &:hover {
+              color: var(--lawyer-primary);
+              border-color: var(--lawyer-primary);
+              z-index: 1;
+            }
+
+            &.active {
+              color: var(--lawyer-primary);
+              border-color: var(--lawyer-primary);
+              background: rgba(var(--lawyer-primary-rgb), 0.1);
+              z-index: 1;
+            }
+          }
+        }
       }
 
       .lawyer-dashboard-top-row {
         display: flex;
         gap: 24px;
         padding: 0 24px 24px;
+        align-items: stretch;
 
         .lawyer-dashboard-left-panel {
-          width: 40%;
+          width: 50%;
           display: flex;
           flex-direction: column;
           gap: 24px;
@@ -1105,7 +1145,11 @@ export default class IndexPage extends Vue {
 
         .lawyer-trend-chart {
           flex: 1;
-          padding-bottom: 16px;
+          background: var(--lawyer-surface);
+          border: 1px solid var(--lawyer-border);
+          border-radius: 8px;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+          overflow: hidden;
         }
 
         .lawyer-top-stat-cards-container {
@@ -1117,7 +1161,7 @@ export default class IndexPage extends Vue {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 20px;
+            // 继承全局 .lawyer-card 样式，只定义特定的布局样式
 
             .lawyer-stat-info {
               .lawyer-stat-label {
@@ -1162,7 +1206,11 @@ export default class IndexPage extends Vue {
         }
 
         .lawyer-chart-section {
-          padding-bottom: 16px;
+          background: var(--lawyer-surface);
+          border: 1px solid var(--lawyer-border);
+          border-radius: 8px;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+          overflow: hidden;
         }
       }
     }

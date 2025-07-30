@@ -1,9 +1,11 @@
 export default {
   // ==================== 首页统计相关接口 (rule-statistic-controller) ====================
   getCheckComplateList: "/rule/getCheckComplateList", // 获取检查完成列表
-  getUpdateCount: "/rule/getUpdateCount", // 获取更新数量
-  getUpdateTimeLinessCount: "/rule/getUpdateTimeLinessCount", // 获取更新及时性统计
+  getUpdateCount: "/rule/getUpdateCount", // 获取更新数量 参数：condition : month|quarter|year
+  getUpdateTimeLinessCount: "/rule/getUpdateTimeLinessCount", // 获取更新及时性统计 参数：condition : month|quarter|year
   getWebSiteRatio: "/rule/getWebSiteRatio", // 获取网站比例统计
+  getTodoRuleList: "/rule/getTodoRuleList", // 获取待办列表
+  exportStatisticExcel: "/rule/exportStatisticExcel", // 导出Excel报告 参数：condition : month|quarter|year
 
   // ==================== 大家智库相关接口 (rule-source-controller) ====================
   deleteRuleSource: "/rule/deleteRuleSource", // 删除法规资源
