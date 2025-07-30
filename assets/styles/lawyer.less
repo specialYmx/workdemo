@@ -1,14 +1,3 @@
-/* 
-  应用全局样式和CSS变量
-  这些样式和变量可以在任何组件中使用
-*/
-
-/* 全局设置 */
-#__nuxt,
-#__layout {
-  height: 100%;
-}
-
 /* 全局变量 */
 :root {
   /* 颜色 */
@@ -91,50 +80,7 @@
   }
 }
 
-/* 常用辅助类 */
-.lawyer-text-center {
-  text-align: center;
-}
-
-.lawyer-mb-1 {
-  margin-bottom: 0.25rem;
-}
-
-.lawyer-mb-2 {
-  margin-bottom: 0.5rem;
-}
-
-.lawyer-mb-3 {
-  margin-bottom: 1rem;
-}
-
-.lawyer-mb-4 {
-  margin-bottom: 1.5rem;
-}
-
-.lawyer-mb-5 {
-  margin-bottom: 2rem;
-}
-
-.lawyer-mt-1 {
-  margin-top: 0.25rem;
-}
-
-.lawyer-mt-2 {
-  margin-top: 0.5rem;
-}
-
-.lawyer-mt-3 {
-  margin-top: 1rem;
-}
-
-.lawyer-mt-4 {
-  margin-top: 1.5rem;
-}
-
-.lawyer-mt-5 {
-  margin-top: 2rem;
-}
+/* 常用辅助类 - 只保留实际使用的样式 */
 
 /* 页面容器 */
 .lawyer-page-container {
@@ -148,16 +94,7 @@
   }
 }
 
-/* 页面过渡动画 */
-.lawyer-page-enter-active,
-.lawyer-page-leave-active {
-  transition: opacity 0.3s;
-}
-
-.lawyer-page-enter,
-.lawyer-page-leave-active {
-  opacity: 0;
-}
+/* 页面过渡动画样式已删除 - 项目中未使用 */
 
 .lawyer-page-header-actions {
   display: flex;
