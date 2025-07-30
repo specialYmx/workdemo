@@ -612,7 +612,7 @@ export default class DbPage extends Vue {
 
     this.$confirm({
       title: "确认通过",
-      content: `确定要通过文档"${document.title}"的审核吗？`,
+      content: `确定要通过文档"${document.ruleName}"的审核吗？`,
       okText: "确认通过",
       cancelText: "取消",
       onOk: () => {
@@ -633,7 +633,7 @@ export default class DbPage extends Vue {
 
     this.$confirm({
       title: "确认驳回",
-      content: `确定要驳回文档"${document.title}"吗？`,
+      content: `确定要驳回文档"${document.ruleName}"吗？`,
       okText: "确认驳回",
       okType: "danger",
       cancelText: "取消",
