@@ -285,7 +285,8 @@ export default class DocumentComparePage extends Vue {
 
   // 获取文档对比数据
   async fetchDocumentData() {
-    const docId = this.$route.params.id;
+    const docId = this.$route.query.id;
+    console.log("🚀 ~ DocumentComparePage ~ fetchDocumentData ~ docId:", docId);
     if (!docId) return;
 
     this.loading = true;

@@ -2,10 +2,6 @@
   <div class="document-compare-wrapper" ref="documentCompareContainer">
     <div class="lawyer-compare-page">
       <header class="lawyer-compare-header">
-        <a-button class="lawyer-back-btn" @click="goBack">
-          <a-icon type="arrow-left" />
-          返回
-        </a-button>
         <div class="lawyer-header-content">
           <div class="lawyer-title-row">
             <h3>{{ document.title }}</h3>
@@ -33,26 +29,18 @@
           </div>
         </div>
         <div class="lawyer-header-actions">
-          <template v-if="document.status === 'pending' && canReview">
-            <a-button
-              v-for="(action, index) in reviewActions"
-              :key="index"
-              :type="action.type"
-              :class="action.class"
-              @click="action.handler"
-            >
-              <a-icon :type="action.icon" />
-              {{ action.text }}
-            </a-button>
-          </template>
           <div
-            v-else-if="document.status === 'pending' && !canReview"
+            v-if="document.status === 'pending' && !canReview"
             class="lawyer-version-warning"
           >
             当前版本(V{{ document.newFileVersion || 0 }})高于系统最高版本(V{{
               document.currentMaxFileVersion || 0
             }})，请先更新系统版本
           </div>
+          <a-button class="lawyer-back-btn" @click="goBack">
+            <a-icon type="arrow-left" />
+            返回
+          </a-button>
         </div>
       </header>
 
@@ -135,6 +123,19 @@
         </div>
       </div>
 
+      <!-- 审核按钮固定在右下角 -->
+      <div v-if="document.status === 'pending' && canReview" class="tx-r">
+        <a-button
+          class="ml-8"
+          v-for="(action, index) in reviewActions"
+          :key="index"
+          :type="action.type"
+          @click="action.handler"
+        >
+          {{ action.text }}
+        </a-button>
+      </div>
+
       <!-- 审核意见弹窗 -->
       <a-modal
         v-model="reviewModalVisible"
@@ -208,7 +209,6 @@ interface ReviewAction {
   text: string;
   icon: string;
   type: string;
-  class: string;
   handler: () => void;
 }
 
@@ -250,16 +250,12 @@ export default class DocumentCompare extends Vue {
     return [
       {
         text: "通过",
-        icon: "check",
         type: "primary",
-        class: "lawyer-approve-btn",
         handler: this.showApproveModal,
       },
       {
         text: "驳回",
-        icon: "close",
         type: "danger",
-        class: "lawyer-reject-btn",
         handler: this.showRejectModal,
       },
     ];
@@ -463,28 +459,28 @@ export default class DocumentCompare extends Vue {
 
 <style lang="less">
 .document-compare-wrapper {
-  height: 100vh;
   overflow: hidden;
-
+  background: var(--lawyer-background);
+  padding: 20px;
   .lawyer-compare-page {
-    height: 100vh;
+    height: calc(100vh - 110px);
     display: flex;
     flex-direction: column;
-    background: var(--lawyer-background);
+    background: var(--lawyer-surface);
+    padding: 10px;
     overflow: hidden;
+    border-radius: 5px;
   }
 
   .lawyer-compare-header {
     background: var(--lawyer-surface);
     padding: 8px 10px;
-    border-bottom: 1px solid var(--lawyer-border);
     display: flex;
     align-items: center;
     flex-shrink: 0;
     z-index: 1000;
 
     .lawyer-header-content {
-      margin-left: 24px;
       margin-right: auto;
 
       .lawyer-title-row {
@@ -535,50 +531,10 @@ export default class DocumentCompare extends Vue {
     }
   }
 
-  .lawyer-back-btn {
-    padding: 8px 16px;
-    border-radius: 6px;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-weight: 500;
-    transition: all 0.2s ease;
-
-    &:hover {
-      background: var(--lawyer-border-light);
-      color: var(--lawyer-primary-dark);
-      border-color: var(--lawyer-primary-light);
-    }
-  }
-
   .lawyer-header-actions {
     display: flex;
+    align-items: center;
     gap: 12px;
-  }
-
-  .lawyer-approve-btn,
-  .lawyer-reject-btn {
-    color: white;
-  }
-
-  .lawyer-approve-btn {
-    background-color: var(--lawyer-success);
-    border-color: var(--lawyer-success);
-
-    &:hover {
-      background-color: #0f9b6c;
-      border-color: #0f9b6c;
-    }
-  }
-
-  .lawyer-reject-btn {
-    background-color: var(--lawyer-danger);
-    border-color: var(--lawyer-danger);
-
-    &:hover {
-      background-color: #d73737;
-      border-color: #d73737;
-    }
   }
 
   .lawyer-compare-main-container {
@@ -630,7 +586,6 @@ export default class DocumentCompare extends Vue {
     font-size: 16px;
     font-weight: 600;
     color: #333;
-    background-color: #f5f5f5;
     border-bottom: 1px solid var(--lawyer-border-light);
   }
 

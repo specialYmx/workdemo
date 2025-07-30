@@ -197,7 +197,7 @@ import { DocumentItem } from "@/model/base";
 import { KnowledgeDataItem } from "@/model/LawyerModel";
 import { cascaderOptions } from "@/enum/Category";
 import FileUploadModal from "@/components/common/FileUploadModal.vue";
-import { downloadFile } from "~/utils/downloadHelper";
+import { downloadFileWithMessage } from "~/utils/downloadHelper";
 
 @Component({
   components: {
@@ -432,10 +432,13 @@ export default class KnowledgePage extends Vue {
     setTimeout(() => {
       // 根据文档的废止状态传递isRevoke参数
       const isRevoke = !!(doc.revokeDateTimestamp || doc.revokeDateStr);
-      const query = isRevoke ? { isRevoke: "true" } : {};
+      const query = {
+        id: doc.id,
+        ...(isRevoke ? { isRevoke: "true" } : {}),
+      };
 
       this.$router.push({
-        path: `/document/${doc.id}`,
+        path: "/document",
         query,
       });
     }, 500);
@@ -443,12 +446,25 @@ export default class KnowledgePage extends Vue {
 
   // 下载文档
   async downloadDocument(doc: KnowledgeDataItem): Promise<void> {
-    await downloadFile(
-      (params) => this.$service.lawyer.downloadRuleFile(params),
-      { searchId: doc.id },
-      doc.ruleName,
-      this.$message
-    );
+    try {
+      this.$message.loading(`正在准备下载: ${doc.ruleName}`, 0);
+
+      const result = await this.$service.lawyer.downloadRuleFile({
+        searchId: doc.id,
+      });
+
+      this.$message.destroy();
+
+      downloadFileWithMessage(result, {
+        fileName: `${doc.ruleName}.pdf`,
+        showMessage: true,
+        messageService: this.$message,
+      });
+    } catch (error) {
+      this.$message.destroy();
+      console.error("下载失败:", error);
+      this.$message.error("下载失败，请检查网络连接后重试");
+    }
   }
 
   // 收藏/取消收藏文档

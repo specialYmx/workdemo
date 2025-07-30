@@ -14,7 +14,7 @@
   /* 颜色 */
 
   /* 法律合规系统主题变量 */
-  --lawyer-primary: #d89f34; // 金黄色主题色
+  --lawyer-primary: #cf9b39; // 金黄色主题色
   --lawyer-primary-light: #fbbf24;
   --lawyer-primary-dark: #d97706;
   --lawyer-primary-rgb: 245, 158, 11;
@@ -22,7 +22,7 @@
   --lawyer-warning: #f59e0b;
   --lawyer-danger: #ef4444;
   --lawyer-danger-rgb: 239, 68, 68;
-  --lawyer-background: #f8fafc; // 背景色
+  --lawyer-background: #f3f3f3; // 背景色
   --lawyer-surface: #fff; // 表面色（卡片、面板）
   --lawyer-text: #1e293b; // 主要文本色
   --lawyer-text-light: #64748b; // 次要文本色
@@ -36,31 +36,9 @@
   --lawyer-diff-del-border: #fdb8c0;
 }
 
-/* 基础样式重置 */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
-    "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-  background: var(--lawyer-background);
-  color: var(--lawyer-text);
-  line-height: 1.6;
-  overflow-x: hidden;
-}
-
 .ant-table-tbody > tr > td {
   padding: 12px 16px;
   vertical-align: middle;
-}
-
-/* 法律合规系统通用样式 */
-.lawyer-body {
-  background: var(--lawyer-background);
-  color: var(--lawyer-text);
 }
 
 /* 链接样式 */
@@ -163,6 +141,11 @@ body {
   max-width: 1600px;
   margin: 0 auto;
   padding: 1.5rem;
+  .ant-select,
+  .ant-calendar-picker,
+  .ant-input-number {
+    width: inherit !important;
+  }
 }
 
 /* 页面过渡动画 */
@@ -330,6 +313,7 @@ body {
 }
 
 .lawyer-main-content {
+  background: var(--lawyer-background);
   flex: 1;
 }
 

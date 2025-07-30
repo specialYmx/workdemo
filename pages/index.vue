@@ -54,12 +54,7 @@
               <div class="lawyer-chart-header">
                 <h3 class="lawyer-chart-title">近期完成审核</h3>
                 <div class="lawyer-chart-actions">
-                  <a-button
-                    size="small"
-                    icon="arrow-right"
-                    type="link"
-                    @click="goToReviewPage"
-                  >
+                  <a-button type="primary" @click="goToReviewPage">
                     查看历史记录
                   </a-button>
                 </div>
@@ -99,16 +94,17 @@
           <div class="lawyer-trend-chart">
             <div class="lawyer-chart-header">
               <h3 class="lawyer-chart-title">法规更新趋势</h3>
-
-              <a-select
-                v-model="trendChartPeriod"
-                size="small"
-                @change="onTrendChartPeriodChange"
-              >
-                <a-select-option value="month">月度</a-select-option>
-                <a-select-option value="quarter">季度</a-select-option>
-                <a-select-option value="year">全年</a-select-option>
-              </a-select>
+              <div style="width: 100px">
+                <a-select
+                  v-model="trendChartPeriod"
+                  size="small"
+                  @change="onTrendChartPeriodChange"
+                >
+                  <a-select-option value="month">月度</a-select-option>
+                  <a-select-option value="quarter">季度</a-select-option>
+                  <a-select-option value="year">全年</a-select-option>
+                </a-select>
+              </div>
             </div>
             <div class="lawyer-chart-legend">
               <div class="legend-item">
@@ -143,14 +139,7 @@
         title="Top 5 需要人工审核"
       >
         <template slot="extra">
-          <a-button
-            size="small"
-            icon="arrow-right"
-            type="link"
-            @click="goToReviewPage"
-          >
-            查看全部
-          </a-button>
+          <a-button type="primary" @click="goToReviewPage"> 查看全部 </a-button>
         </template>
 
         <a-spin :spinning="listLoading.topReviews">
@@ -246,12 +235,7 @@
         title="最新法规更新"
       >
         <template slot="extra">
-          <a-button
-            size="small"
-            icon="arrow-right"
-            type="link"
-            @click="goToUpdatesPage"
-          >
+          <a-button type="primary" @click="goToUpdatesPage">
             查看全部
           </a-button>
         </template>
@@ -294,20 +278,6 @@
                     >
                       {{ tag }}
                     </span>
-                  </div>
-                  <div class="lawyer-update-actions">
-                    <a-button
-                      class="lawyer-action-btn lawyer-btn-view"
-                      @click="viewUpdateDetail(item)"
-                    >
-                      查看详情
-                    </a-button>
-                    <a-button
-                      class="lawyer-action-btn lawyer-btn-download"
-                      @click="downloadUpdate(item)"
-                    >
-                      下载文件
-                    </a-button>
                   </div>
                 </div>
               </div>
@@ -937,17 +907,6 @@ export default class IndexPage extends Vue {
     return iconMap[type] || "file-text";
   }
 
-  // 获取更新图标类名
-  getUpdateIconClass(status) {
-    const classMap = {
-      new: "status-new",
-      updated: "status-updated",
-      effective: "status-effective",
-      deprecated: "status-deprecated",
-    };
-    return classMap[status] || "";
-  }
-
   // 获取审核状态文本
   getReviewStatusText(status) {
     const textMap = {
@@ -956,29 +915,6 @@ export default class IndexPage extends Vue {
       pending: "待审核",
     };
     return textMap[status] || status;
-  }
-
-  // 获取分类颜色
-  getCategoryColor(category) {
-    const colorMap = {
-      法律法规: "blue",
-      监管政策: "cyan",
-      内部指南: "purple",
-      综合类: "green",
-      机构监管: "cyan",
-      公司治理: "blue",
-      风控合规: "orange",
-      运营与信息统计: "purple",
-      关联交易: "red",
-      偿付能力: "geekblue",
-      征求意见: "volcano",
-    };
-    return colorMap[category] || "blue";
-  }
-
-  // 获取变化值的类名
-  getChangeClass(value) {
-    return value >= 0 ? "increase" : "decrease";
   }
 
   // 页面跳转方法
@@ -1009,7 +945,10 @@ export default class IndexPage extends Vue {
 
   // 查看法规更新详情
   viewUpdateDetail(item) {
-    this.$router.push(`/document/${item.id}`);
+    this.$router.push({
+      path: "/document",
+      query: { id: item.id },
+    });
   }
 
   // 获取更新emoji
@@ -1046,11 +985,6 @@ export default class IndexPage extends Vue {
     return tagColorMap[tag] || "lawyer-tag-default";
   }
 
-  // 下载更新文件
-  downloadUpdate(item) {
-    this.$message.success(`正在下载: ${item.title}`);
-  }
-
   // 获取记录的操作按钮
   getRecordActions(record) {
     const actions = [];
@@ -1078,17 +1012,14 @@ export default class IndexPage extends Vue {
 
 <style lang="less">
 .index-page-wrapper {
-  // 状态样式
-  /deep/ .status-approved {
-    color: #52c41a;
+  .status-approved {
+    color: var(--lawyer-success);
   }
-
-  /deep/ .status-rejected {
-    color: #f5222d;
+  .status-rejected {
+    color: var(--lawyer-danger);
   }
-
-  /deep/ .status-pending {
-    color: #fa8c16;
+  .status-pending {
+    color: var(--lawyer-warning);
   }
 
   // 图表通用样式
@@ -1097,17 +1028,12 @@ export default class IndexPage extends Vue {
     justify-content: space-between;
     align-items: center;
     padding: 16px 24px;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--lawyer-border);
 
     .lawyer-chart-title {
       margin: 0;
       font-size: 16px;
       font-weight: 500;
-    }
-
-    .lawyer-chart-actions {
-      display: flex;
-      align-items: center;
     }
   }
 
@@ -1116,7 +1042,7 @@ export default class IndexPage extends Vue {
     padding: 16px;
   }
 
-  // 饼图专用布局样式
+  // 饼图布局
   .lawyer-pie-chart-layout {
     display: flex;
     align-items: center;
@@ -1134,40 +1060,33 @@ export default class IndexPage extends Vue {
     .lawyer-pie-legend-container {
       width: 240px;
       padding-left: 32px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
 
       .lawyer-pie-legend-item {
         display: flex;
         align-items: center;
         margin-bottom: 16px;
-        padding: 8px 0;
 
         &:last-child {
           margin-bottom: 0;
         }
 
         .legend-color {
-          display: inline-block;
           width: 14px;
           height: 14px;
           margin-right: 12px;
           border-radius: 2px;
-          flex-shrink: 0;
         }
 
         .legend-name {
           font-size: 14px;
-          color: #333;
-          line-height: 1.4;
+          color: var(--lawyer-text);
         }
       }
     }
   }
 
   .lawyer-chart-card {
-    background: #fff;
+    background: var(--lawyer-surface);
     border-radius: 4px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.09);
   }
@@ -1177,27 +1096,26 @@ export default class IndexPage extends Vue {
 
     .lawyer-dashboard-card {
       margin-bottom: 24px;
+
       .lawyer-page-header-actions {
         display: flex;
-        align-items: center;
         justify-content: space-between;
+        align-items: center;
         padding: 0 24px 16px;
 
         .lawyer-time-range {
           display: flex;
+
           .lawyer-time-btn {
             width: 180px;
-            padding: 0 16px;
             height: 32px;
-            line-height: 30px;
-            background-color: #fff;
-            border: 1px solid #e8e8e8;
-            cursor: pointer;
+            border: 1px solid var(--lawyer-border);
+            background: var(--lawyer-surface);
             transition: all 0.3s;
+
             &.active {
               color: var(--lawyer-primary);
               border-color: var(--lawyer-primary);
-              z-index: 1;
             }
           }
         }
@@ -1217,6 +1135,10 @@ export default class IndexPage extends Vue {
 
         .lawyer-trend-chart {
           flex: 1;
+          background: var(--lawyer-surface);
+          border-radius: 4px;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.09);
+          padding-bottom: 16px;
         }
 
         .lawyer-top-stat-cards-container {
@@ -1229,14 +1151,14 @@ export default class IndexPage extends Vue {
             justify-content: space-between;
             align-items: center;
             padding: 20px;
-            background-color: #fff;
+            background: var(--lawyer-surface);
             border-radius: 4px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.09);
 
             .lawyer-stat-info {
               .lawyer-stat-label {
                 font-size: 14px;
-                color: #666;
+                color: var(--lawyer-text-light);
                 margin-bottom: 8px;
               }
 
@@ -1245,11 +1167,10 @@ export default class IndexPage extends Vue {
                 font-weight: 600;
 
                 &.blue {
-                  color: #1890ff;
+                  color: #1890ff; // 蓝色应该用蓝色，不是主题色
                 }
-
                 &.orange {
-                  color: #fa8c16;
+                  color: #fa8c16; // 橙色应该用橙色
                 }
               }
             }
@@ -1264,29 +1185,21 @@ export default class IndexPage extends Vue {
 
               i {
                 font-size: 24px;
-                color: #fff;
+                color: var(--lawyer-surface);
               }
 
               &.bg-blue {
-                background-color: #1890ff;
+                background-color: #1890ff; // 蓝色背景应该用蓝色
               }
-
               &.bg-orange {
-                background-color: #fa8c16;
+                background-color: #fa8c16; // 橙色背景应该用橙色
               }
             }
           }
         }
 
         .lawyer-chart-section {
-          background: #fff;
-          border-radius: 4px;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.09);
-          padding-bottom: 16px;
-        }
-
-        .lawyer-trend-chart {
-          background: #fff;
+          background: var(--lawyer-surface);
           border-radius: 4px;
           box-shadow: 0 2px 8px rgba(0, 0, 0, 0.09);
           padding-bottom: 16px;
@@ -1306,7 +1219,6 @@ export default class IndexPage extends Vue {
         align-items: center;
 
         .legend-color {
-          display: inline-block;
           width: 14px;
           height: 14px;
           margin-right: 8px;
@@ -1315,11 +1227,9 @@ export default class IndexPage extends Vue {
           &.new {
             background-color: #ffb74d;
           }
-
           &.updated {
             background-color: #4caf50;
           }
-
           &.deprecated {
             background-color: #f44336;
           }
@@ -1340,25 +1250,20 @@ export default class IndexPage extends Vue {
       display: flex;
       align-items: center;
       padding: 12px 24px;
-      border-bottom: 1px solid #f0f0f0;
+      border-bottom: 1px solid var(--lawyer-border);
 
       .lawyer-review-icon {
         margin-right: 16px;
         font-size: 24px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
 
         &.status-approved {
-          color: #52c41a;
+          color: var(--lawyer-success);
         }
-
         &.status-rejected {
-          color: #f5222d;
+          color: var(--lawyer-danger);
         }
-
         &.status-pending {
-          color: #fa8c16;
+          color: var(--lawyer-warning);
         }
       }
 
@@ -1373,7 +1278,7 @@ export default class IndexPage extends Vue {
 
         .lawyer-review-subtitle {
           font-size: 12px;
-          color: #666;
+          color: var(--lawyer-text-light);
         }
       }
 
@@ -1385,19 +1290,11 @@ export default class IndexPage extends Vue {
     .lawyer-table-actions {
       display: flex;
       justify-content: space-around;
-
-      .ant-btn {
-        margin: 0 4px;
-      }
+      gap: 8px;
     }
 
     .lawyer-updates-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-
       .lawyer-update-item {
-        &:extend(.lawyer-card);
         display: flex;
         gap: 16px;
         margin-bottom: 10px;
@@ -1411,7 +1308,6 @@ export default class IndexPage extends Vue {
 
         .lawyer-update-icon {
           font-size: 24px;
-          line-height: 1;
           flex-shrink: 0;
         }
 
@@ -1428,12 +1324,10 @@ export default class IndexPage extends Vue {
               margin: 0;
               font-size: 18px;
               font-weight: 600;
-              line-height: 1.4;
 
               a {
                 color: var(--lawyer-text);
                 text-decoration: none;
-                cursor: pointer;
 
                 &:hover {
                   color: var(--lawyer-primary);
@@ -1444,7 +1338,6 @@ export default class IndexPage extends Vue {
             .lawyer-update-time {
               font-size: 14px;
               color: var(--lawyer-text-light);
-              white-space: nowrap;
               margin-left: 16px;
             }
           }
@@ -1461,6 +1354,7 @@ export default class IndexPage extends Vue {
             padding: 16px;
             margin-bottom: 16px;
             border-radius: 6px;
+
             .lawyer-ai-title {
               font-size: 14px;
               font-weight: 600;
@@ -1479,13 +1373,11 @@ export default class IndexPage extends Vue {
                 font-size: 14px;
                 line-height: 1.5;
                 display: flex;
-                align-items: flex-start;
 
                 .lawyer-ai-bullet {
                   color: var(--lawyer-primary);
                   margin-right: 8px;
                   font-weight: bold;
-                  flex-shrink: 0;
                 }
 
                 &:last-child {
@@ -1496,9 +1388,6 @@ export default class IndexPage extends Vue {
           }
 
           .lawyer-update-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
             margin-top: 16px;
 
             .lawyer-update-tags {
@@ -1506,193 +1395,77 @@ export default class IndexPage extends Vue {
               flex-wrap: wrap;
               gap: 8px;
             }
-
-            .lawyer-update-actions {
-              display: flex;
-              gap: 12px;
-            }
           }
         }
       }
     }
   }
 
-  // 标签样式
+  // 简化的标签样式系统
   .lawyer-tag {
     display: inline-block;
     padding: 4px 12px;
-    border: 1px solid #ddd;
     border-radius: 3px;
-    background-color: #fff;
-    color: var(--lawyer-text-light);
     font-size: 12px;
     font-weight: 400;
-    line-height: 1.2;
     white-space: nowrap;
-    transition: all 0.2s ease;
+    transition: opacity 0.2s ease;
 
-    // 重要法规 - 红色
-    &.lawyer-tag-important {
-      border-color: #ff4d4f;
-      color: #ff4d4f;
-      background-color: rgba(255, 77, 79, 0.1);
-    }
-
-    // 资金运用 - 橙色
-    &.lawyer-tag-fund {
-      border-color: #fa8c16;
-      color: #fa8c16;
-      background-color: rgba(250, 140, 22, 0.1);
-    }
-
-    // 征求意见 - 蓝色
-    &.lawyer-tag-opinion {
-      border-color: #1890ff;
-      color: #1890ff;
-      background-color: rgba(24, 144, 255, 0.1);
-    }
-
-    // 偿付能力 - 紫色
-    &.lawyer-tag-solvency {
-      border-color: #722ed1;
-      color: #722ed1;
-      background-color: rgba(114, 46, 209, 0.1);
-    }
-
-    // 风险提示 - 红色
+    // 基础样式变体 - 使用lawyer.less中的全局变量
+    &.lawyer-tag-important,
     &.lawyer-tag-risk {
-      border-color: #ff4d4f;
-      color: #ff4d4f;
-      background-color: rgba(255, 77, 79, 0.1);
+      border: 1px solid var(--lawyer-danger);
+      color: var(--lawyer-danger);
+      background-color: rgba(var(--lawyer-danger-rgb), 0.1);
     }
 
-    // 另类投资 - 青色
-    &.lawyer-tag-alternative {
-      border-color: #13c2c2;
-      color: #13c2c2;
-      background-color: rgba(19, 194, 194, 0.1);
-    }
-
-    // 机构监管 - 绿色
-    &.lawyer-tag-supervision {
-      border-color: #52c41a;
-      color: #52c41a;
-      background-color: rgba(82, 196, 26, 0.1);
-    }
-
-    // 公司治理 - 橙色
+    &.lawyer-tag-fund,
     &.lawyer-tag-governance {
-      border-color: #fa8c16;
-      color: #fa8c16;
-      background-color: rgba(250, 140, 22, 0.1);
+      border: 1px solid var(--lawyer-warning);
+      color: var(--lawyer-warning);
+      background-color: rgba(245, 158, 11, 0.1);
     }
 
-    // 行业协会 - 蓝色
-    &.lawyer-tag-association {
-      border-color: #1890ff;
-      color: #1890ff;
-      background-color: rgba(24, 144, 255, 0.1);
+    &.lawyer-tag-opinion,
+    &.lawyer-tag-association,
+    &.lawyer-tag-law {
+      border: 1px solid var(--lawyer-primary);
+      color: var(--lawyer-primary);
+      background-color: rgba(var(--lawyer-primary-rgb), 0.1);
     }
 
-    // 风控合规 - 紫色
-    &.lawyer-tag-compliance {
-      border-color: #722ed1;
+    &.lawyer-tag-solvency,
+    &.lawyer-tag-compliance,
+    &.lawyer-tag-guide {
+      border: 1px solid #722ed1;
       color: #722ed1;
       background-color: rgba(114, 46, 209, 0.1);
     }
 
-    // 关联交易 - 青色
-    &.lawyer-tag-related {
-      border-color: #13c2c2;
+    &.lawyer-tag-supervision,
+    &.lawyer-tag-policy {
+      border: 1px solid var(--lawyer-success);
+      color: var(--lawyer-success);
+      background-color: rgba(16, 185, 129, 0.1);
+    }
+
+    &.lawyer-tag-alternative,
+    &.lawyer-tag-related,
+    &.lawyer-tag-general {
+      border: 1px solid #13c2c2;
       color: #13c2c2;
       background-color: rgba(19, 194, 194, 0.1);
     }
 
-    // 其他机构 - 灰色
-    &.lawyer-tag-other {
-      border-color: #8c8c8c;
+    &.lawyer-tag-other,
+    &.lawyer-tag-default {
+      border: 1px solid #8c8c8c;
       color: #8c8c8c;
       background-color: rgba(140, 140, 140, 0.1);
     }
 
-    // 法律法规 - 蓝色
-    &.lawyer-tag-law {
-      border-color: #1890ff;
-      color: #1890ff;
-      background-color: rgba(24, 144, 255, 0.1);
-    }
-
-    // 监管政策 - 绿色
-    &.lawyer-tag-policy {
-      border-color: #52c41a;
-      color: #52c41a;
-      background-color: rgba(82, 196, 26, 0.1);
-    }
-
-    // 内部指南 - 紫色
-    &.lawyer-tag-guide {
-      border-color: #722ed1;
-      color: #722ed1;
-      background-color: rgba(114, 46, 209, 0.1);
-    }
-
-    // 综合类 - 青色
-    &.lawyer-tag-general {
-      border-color: #13c2c2;
-      color: #13c2c2;
-      background-color: rgba(19, 194, 194, 0.1);
-    }
-
-    // 默认样式
-    &.lawyer-tag-default {
-      border-color: #d9d9d9;
-      color: #595959;
-      background-color: rgba(217, 217, 217, 0.1);
-    }
-
     &:hover {
       opacity: 0.8;
-    }
-  }
-
-  // 操作按钮样式
-  .lawyer-action-btn {
-    display: inline-block;
-    padding: 6px 16px;
-    border: 1px solid #ddd;
-    border-radius: 3px;
-    background-color: #fff;
-    color: var(--lawyer-text-light);
-    font-size: 14px;
-    font-weight: 400;
-    text-decoration: none;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    white-space: nowrap;
-
-    &:hover {
-      text-decoration: none;
-      border-color: var(--lawyer-primary);
-      color: var(--lawyer-primary);
-    }
-
-    &.lawyer-btn-view {
-      color: var(--lawyer-text-light);
-
-      &:hover {
-        color: var(--lawyer-text);
-        border-color: var(--lawyer-text);
-      }
-    }
-
-    &.lawyer-btn-download {
-      color: var(--lawyer-primary);
-      border-color: var(--lawyer-primary);
-
-      &:hover {
-        background-color: var(--lawyer-primary);
-        color: white;
-      }
     }
   }
 
@@ -1701,23 +1474,12 @@ export default class IndexPage extends Vue {
     .lawyer-table-title {
       font-weight: 500;
       font-size: 14px;
-      line-height: 22px;
       margin-bottom: 4px;
     }
 
     .lawyer-table-subtitle {
       font-size: 12px;
       color: var(--lawyer-text-light);
-    }
-
-    .ant-table-thead > tr > th {
-      background-color: #fafafa;
-      font-weight: 500;
-      color: #333;
-    }
-
-    .ant-table-tbody > tr:hover > td {
-      background-color: #f5f5f5;
     }
   }
 
@@ -1727,24 +1489,21 @@ export default class IndexPage extends Vue {
     gap: 8px;
 
     .btn-approve {
-      color: #52c41a;
-
+      color: var(--lawyer-success);
       &:hover {
         color: #73d13d;
       }
     }
 
     .btn-reject {
-      color: #f5222d;
-
+      color: var(--lawyer-danger);
       &:hover {
         color: #ff4d4f;
       }
     }
 
     .btn-remove {
-      color: #666;
-
+      color: var(--lawyer-text-light);
       &:hover {
         color: #999;
       }

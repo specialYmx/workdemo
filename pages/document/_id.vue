@@ -52,15 +52,15 @@ export default class DocumentPage extends Vue {
   document: any = {
     id: "",
     title: "正在加载...",
-    category: "",
     date: "",
     effectiveDate: "",
     publisher: "",
     fileNumber: "",
     status: "",
     views: 0,
-    tags: [],
     content: "正在加载文档内容...",
+    isRevoke: false,
+    timeLiness: "",
   };
 
   loading = false;
@@ -72,14 +72,14 @@ export default class DocumentPage extends Vue {
   fallbackDocument = {
     id: "1",
     title: "《中华人民共和国个人信息保护法》",
-    category: "国家法律",
     date: "2021-08-20",
     effectiveDate: "2021-11-01",
     publisher: "全国人民代表大会常务委员会",
     fileNumber: "中华人民共和国主席令第九十一号",
     status: "已生效",
     views: 3254,
-    tags: ["公司治理", "董事会管理"],
+    isRevoke: false,
+    timeLiness: "已生效",
     content: `
       <h1 class="doc-title">中华人民共和国个人信息保护法</h1>
       <p class="doc-meta">（2021年8月20日第十三届全国人民代表大会常务委员会第三十次会议通过）</p>
@@ -161,7 +161,10 @@ export default class DocumentPage extends Vue {
 
   // 打开相关文档
   openRelatedDocument(doc: any): void {
-    this.$router.push(`/document/${doc.id}`);
+    this.$router.push({
+      path: "/document",
+      query: { id: doc.id },
+    });
   }
 
   // 获取文档详情数据
@@ -184,16 +187,15 @@ export default class DocumentPage extends Vue {
         this.document = {
           id: result.id,
           title: result.ruleName,
-          category: result.categoryMain,
           date: result.publishDateStr || result.createdTimeStr,
           effectiveDate: result.effectDateStr || "暂无",
           publisher: result.websiteName,
           fileNumber: result.docNo || "暂无",
           status: result.timeLiness || "未知",
           views: result.readCount,
-          tags: [result.categoryMain, result.categorySub].filter(Boolean),
           content: formattedContent,
-          isRevoke: !!(result.revokeDateTimestamp || result.revokeDateStr),
+          isRevoke: result.timeLiness === "已废止",
+          timeLiness: result.timeLiness || "未知",
         };
 
         console.log("设置后的document:", this.document);
@@ -259,7 +261,7 @@ export default class DocumentPage extends Vue {
 
   // 生命周期钩子
   async mounted(): Promise<void> {
-    const docId = this.$route.params.id;
+    const docId = this.$route.query.id;
     console.log("文档ID:", docId);
 
     // 从路由查询参数中获取isRevoke状态
@@ -277,4 +279,3 @@ export default class DocumentPage extends Vue {
   }
 }
 </script>
-

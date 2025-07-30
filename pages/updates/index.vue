@@ -115,7 +115,7 @@
 // @ts-nocheck
 import { Component, Vue } from "nuxt-property-decorator";
 import { RuleUpdateItem } from "~/model/LawyerModel";
-import { downloadFile } from "~/utils/downloadHelper";
+import { downloadFileWithMessage } from "~/utils/downloadHelper";
 
 interface AiSummaryPoint {
   title: string;
@@ -265,21 +265,37 @@ export default class UpdatesPage extends Vue {
     const isRevoke = !!(
       updateItem?.revokeDateTimestamp || updateItem?.revokeDateStr
     );
-    const query = isRevoke ? { isRevoke: "true" } : {};
+    const query = {
+      id: id,
+      ...(isRevoke ? { isRevoke: "true" } : {}),
+    };
 
     this.$router.push({
-      path: `/document/${id}`,
+      path: "/document",
       query,
     });
   }
 
   async downloadUpdate(id: string, title: string): Promise<void> {
-    await downloadFile(
-      (params) => this.$service.lawyer.downloadRuleFile(params),
-      { searchId: id },
-      title,
-      this.$message
-    );
+    try {
+      this.$message.loading(`正在准备下载: ${title}`, 0);
+
+      const result = await this.$service.lawyer.downloadRuleFile({
+        searchId: id,
+      });
+
+      this.$message.destroy();
+
+      downloadFileWithMessage(result, {
+        fileName: `${title}.pdf`,
+        showMessage: true,
+        messageService: this.$message,
+      });
+    } catch (error) {
+      this.$message.destroy();
+      console.error("下载失败:", error);
+      this.$message.error("下载失败，请检查网络连接后重试");
+    }
   }
 
   onPageChange(page: number): void {

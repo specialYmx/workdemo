@@ -36,7 +36,7 @@
             @change="onFilterChange"
             allowClear
           >
-          <a-select-option value="">全部分类</a-select-option>
+            <a-select-option value="">全部分类</a-select-option>
             <a-select-option
               v-for="option in typeOptions"
               :key="option.value"
@@ -64,7 +64,10 @@
             <template slot="title">
               <span>版本规则：文件版本高于系统最高版本时，不允许审核操作</span>
             </template>
-            <a-icon type="info-circle" style="margin-left: 8px; color: #1890ff;" />
+            <a-icon
+              type="info-circle"
+              style="margin-left: 8px; color: #1890ff"
+            />
           </a-tooltip>
         </div>
 
@@ -120,7 +123,7 @@
                 <template
                   v-if="
                     (record.checkStatus === '待审核' ||
-                    record.checkStatus === null) &&
+                      record.checkStatus === null) &&
                     canReviewItem(record)
                   "
                 >
@@ -134,8 +137,14 @@
                     驳回
                   </a>
                 </template>
-                <span v-else-if="record.checkStatus === '待审核' || record.checkStatus === null" 
-                      class="lawyer-version-notice">版本受限</span>
+                <span
+                  v-else-if="
+                    record.checkStatus === '待审核' ||
+                    record.checkStatus === null
+                  "
+                  class="lawyer-version-notice"
+                  >版本受限</span
+                >
               </div>
             </span>
 
@@ -220,6 +229,7 @@ import { Component, Vue } from "nuxt-property-decorator";
 import moment from "moment";
 import { ToDoRuleItem } from "~/model/LawyerModel";
 import { categoryOptions } from "~/enum/Category";
+import { downloadFileWithMessage } from "~/utils/downloadHelper";
 
 interface Document {
   id: string;
@@ -589,21 +599,27 @@ export default class DbPage extends Vue {
     this.$message.info(`查看文档: ${document.ruleName}`);
     // 实际项目中可能会跳转到文档比较页面
     this.$router.push({
-      path: `/document-compare/${document.id}`,
-      query: { pageTitle: document.ruleName }
+      path: "/document-compare",
+      query: {
+        id: document.id,
+        pageTitle: document.ruleName,
+      },
     });
   }
 
   // 检查是否允许审核该项目
   canReviewItem(record: ToDoRuleItem): boolean {
     // 如果版本字段不存在，默认允许审核
-    if (record.newFileVersion === undefined || record.currentMaxFileVersion === undefined) {
+    if (
+      record.newFileVersion === undefined ||
+      record.currentMaxFileVersion === undefined
+    ) {
       return true;
     }
-    
+
     const newVersion = record.newFileVersion || 0;
     const maxVersion = record.currentMaxFileVersion || 0;
-    
+
     return newVersion <= maxVersion;
   }
 
@@ -614,7 +630,7 @@ export default class DbPage extends Vue {
       this.$message.warning("当前版本高于系统最高版本，不允许审核");
       return;
     }
-    
+
     this.currentDocument = document;
     this.reviewAction = "approve";
     this.reviewComment = "";
@@ -628,7 +644,7 @@ export default class DbPage extends Vue {
       this.$message.warning("当前版本高于系统最高版本，不允许审核");
       return;
     }
-    
+
     this.currentDocument = document;
     this.reviewAction = "reject";
     this.reviewComment = "";
@@ -706,17 +722,14 @@ export default class DbPage extends Vue {
         ids: this.selectedRowKeys,
       });
 
-      if (result) {
-        // 创建下载链接
-        const url = window.URL.createObjectURL(result.data);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = `人工审核数据_${this.selectedRowKeys.length}条.xlsx`;
-        link.click();
-        window.URL.revokeObjectURL(url);
-        this.$message.success(
-          `已成功导出 ${this.selectedRowKeys.length} 条数据`
-        );
+      if (
+        downloadFileWithMessage(result, {
+          fileName: `人工审核数据_${this.selectedRowKeys.length}条.xlsx`,
+          showMessage: true,
+          messageService: this.$message,
+        })
+      ) {
+        // 下载成功，消息已在 downloadFileWithMessage 中处理
       } else {
         this.$message.error("导出失败，请重试");
       }

@@ -1,123 +1,146 @@
 <template>
   <div class="document-viewer-wrapper" ref="documentViewerContainer">
     <div class="lawyer-document-page">
-      <!-- 页面头部 -->
-      <header
-        class="lawyer-document-header lawyer-flex lawyer-justify-between lawyer-items-center"
-      >
-        <div
-          class="lawyer-header-left lawyer-flex lawyer-items-center lawyer-gap-md"
-        >
-          <div class="lawyer-document-info">
-            <!-- 标题和状态标签在同一行，标签紧挨着标题 -->
-            <div class="lawyer-title-with-status">
-              <h1>{{ document.title }}</h1>
-              <a-tag
-                :color="document.isRevoke ? 'red' : 'green'"
-                @click="showRevokeStatusModal"
-                class="lawyer-editable-status lawyer-inline-status"
-              >
-                {{ document.isRevoke ? "已废止" : "未废止" }}
-                <a-icon type="edit" class="lawyer-status-edit-icon" />
-              </a-tag>
-            </div>
-
-            <div class="lawyer-document-meta lawyer-flex lawyer-gap-lg">
-              <span v-for="(item, index) in documentMetaItems" :key="index">
-                <a-icon :type="item.icon" /> {{ item.content }}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div class="lawyer-header-actions lawyer-flex lawyer-gap-sm">
-          <a-button class="lawyer-back-btn" @click="goBack">
-            <a-icon type="arrow-left" />
-            返回
-          </a-button>
-
-          <a-button icon="download" @click="downloadDocument"> 下载 </a-button>
-        </div>
-      </header>
-
       <!-- 主要内容区 -->
-      <div class="lawyer-main-layout lawyer-flex">
-        <!-- 文档查看器 -->
-        <a-card
-          class="lawyer-document-viewer lawyer-chart-card"
-          :bordered="false"
-        >
-          <DivTextSearch>
-            <div
-              class="lawyer-document-content lawyer-markdown-content lawyer-scrollable"
-              ref="documentContent"
-              tabindex="0"
-            >
-              <div v-html="document.content"></div>
-            </div>
-          </DivTextSearch>
-        </a-card>
-
-        <!-- 侧边栏 - AI助手 -->
-        <a-card
-          class="lawyer-document-sidebar lawyer-chart-card"
-          :bordered="false"
-        >
-          <div class="lawyer-sidebar-section">
-            <h3 class="lawyer-section-title">AI助手</h3>
-
-            <!-- 常见问题区域 -->
-            <div class="lawyer-ai-chat">
-              <div class="lawyer-ai-messages" ref="aiMessages">
-                <div class="lawyer-ai-message lawyer-ai-message-system">
-                  <div class="lawyer-ai-message-content">
-                    <p>
-                      您好，我是您的法律AI助手。有关于《{{
-                        document.title
-                      }}》的任何问题，请随时提问。
-                    </p>
-                  </div>
-                </div>
-                <div
-                  v-for="(msg, index) in aiMessages"
-                  :key="index"
-                  :class="[
-                    'lawyer-ai-message',
-                    msg.isUser
-                      ? 'lawyer-ai-message-user'
-                      : 'lawyer-ai-message-ai',
-                  ]"
-                >
-                  <div class="lawyer-ai-message-content">
-                    <p>{{ msg.content }}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div class="lawyer-ai-input">
-                <div class="lawyer-common-questions">
-                  <div class="lawyer-question-chips">
+      <div class="lawyer-main-layout">
+        <!-- 左侧：文档查看器 -->
+        <div class="lawyer-document-left">
+          <a-card
+            class="lawyer-document-viewer lawyer-chart-card"
+            :bordered="false"
+          >
+            <!-- 文档头部信息 -->
+            <div class="lawyer-document-header">
+              <div class="lawyer-header-row">
+                <div class="lawyer-document-info">
+                  <!-- 标题和状态标签 -->
+                  <div class="lawyer-title-with-status">
+                    <h1>{{ document.title }}</h1>
                     <a-tag
-                      v-for="(question, index) in commonQuestions"
-                      :key="index"
-                      class="lawyer-question-chip"
-                      @click="askCommonQuestion(question)"
+                      :color="document.isRevoke ? 'red' : 'green'"
+                      @click="handleStatusTagClick"
+                      :class="[
+                        'lawyer-editable-status',
+                        'lawyer-inline-status',
+                        { 'lawyer-status-disabled': document.isRevoke },
+                      ]"
                     >
-                      {{ question }}
+                      {{ document.timeLiness || "未知" }}
+                      <a-icon
+                        v-if="!document.isRevoke"
+                        type="edit"
+                        class="lawyer-status-edit-icon"
+                      />
                     </a-tag>
                   </div>
+
+                  <!-- 文档元数据 -->
+                  <div class="lawyer-document-meta">
+                    <span
+                      v-for="(item, index) in documentMetaItems"
+                      :key="index"
+                    >
+                      <a-icon :type="item.icon" /> {{ item.content }}
+                    </span>
+                  </div>
                 </div>
-                <a-input-search
-                  placeholder="向AI提问关于此文档的问题..."
-                  v-model="aiQuestion"
-                  @search="askAi"
-                  enterButton="发送"
-                  :loading="aiLoading"
-                />
+
+                <div class="lawyer-header-actions">
+                  <a-button class="lawyer-back-btn" @click="goBack">
+                    <a-icon type="arrow-left" />
+                    返回
+                  </a-button>
+                  <a-button type="primary" @click="downloadDocument">
+                    下载
+                  </a-button>
+                </div>
               </div>
             </div>
-          </div>
-        </a-card>
+
+            <!-- 文档内容 -->
+            <DivTextSearch>
+              <div
+                class="lawyer-document-content lawyer-markdown-content lawyer-scrollable"
+                ref="documentContent"
+                tabindex="0"
+              >
+                <div v-html="document.content"></div>
+              </div>
+            </DivTextSearch>
+          </a-card>
+        </div>
+
+        <!-- 右侧：文档智能问答 -->
+        <div class="lawyer-document-right">
+          <a-card class="lawyer-ai-card lawyer-chart-card" :bordered="false">
+            <div slot="title" class="lawyer-ai-card-title">
+              <span>文档智能问答</span>
+              <span class="lawyer-ai-subtitle">针对当前文档内容智能问答</span>
+            </div>
+
+            <div class="lawyer-ai-content">
+              <!-- 注册类本要求 -->
+              <div class="lawyer-ai-notice">
+                <p class="lawyer-notice-text">
+                  您好！我是法律AI助手，可以帮助您解读《{{
+                    document.title
+                  }}》的内容。您可以：
+                </p>
+                <ul class="lawyer-notice-list">
+                  <li>直接条款的文义</li>
+                  <li>合规要求解读</li>
+                  <li>实操指导建议</li>
+                </ul>
+              </div>
+
+              <!-- 常见问题标签 -->
+              <div class="lawyer-common-tags">
+                <h4 class="lawyer-tags-title">常见问题</h4>
+                <div class="lawyer-question-chips">
+                  <a-tag
+                    v-for="(question, index) in commonQuestions"
+                    :key="index"
+                    class="lawyer-question-chip"
+                    @click="askCommonQuestion(question)"
+                  >
+                    {{ question }}
+                  </a-tag>
+                </div>
+              </div>
+
+              <!-- AI对话区域 -->
+              <div class="lawyer-ai-chat">
+                <div class="lawyer-ai-messages" ref="aiMessages">
+                  <div
+                    v-for="(msg, index) in aiMessages"
+                    :key="index"
+                    :class="[
+                      'lawyer-ai-message',
+                      msg.isUser
+                        ? 'lawyer-ai-message-user'
+                        : 'lawyer-ai-message-ai',
+                    ]"
+                  >
+                    <div class="lawyer-ai-message-content">
+                      <p>{{ msg.content }}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 输入框 -->
+                <div class="lawyer-ai-input">
+                  <a-input-search
+                    placeholder="请输入您的问题，按回车进行提问"
+                    v-model="aiQuestion"
+                    @search="askAi"
+                    enterButton="发送"
+                    :loading="aiLoading"
+                  />
+                </div>
+              </div>
+            </div>
+          </a-card>
+        </div>
       </div>
 
       <!-- 废止状态编辑模态框 -->
@@ -132,7 +155,6 @@
         :getContainer="() => $refs.documentViewerContainer"
       >
         <div class="lawyer-revoke-status-content">
-          111
           <div class="lawyer-status-row">
             <label>文档状态</label>
             <div class="lawyer-status-switch-container">
@@ -175,6 +197,8 @@
 // @ts-nocheck
 import { Component, Vue, Prop, Watch, Emit } from "nuxt-property-decorator";
 import DivTextSearch from "@/components/common/DivTextSearch.vue";
+import { downloadFileWithMessage } from "~/utils/downloadHelper";
+import { log } from "console";
 
 interface TocItem {
   text: string;
@@ -227,12 +251,17 @@ export default class DocumentViewer extends Vue {
   // 文档元数据项
   get documentMetaItems(): MetaItem[] {
     return [
-      { icon: "file-text", content: this.document.category },
-      { icon: "calendar", content: this.document.date },
-      { icon: "number", content: `文号：${this.document.docNumber || "暂无"}` },
+      {
+        icon: "number",
+        content: `文号：${this.document.fileNumber || "暂无"}`,
+      },
       {
         icon: "bank",
         content: `发布机构：${this.document.publisher || "暂无"}`,
+      },
+      {
+        icon: "calendar",
+        content: `发布日期：${this.document.date || "暂无"}`,
       },
       {
         icon: "clock-circle",
@@ -267,20 +296,51 @@ export default class DocumentViewer extends Vue {
     return tagColorMap[tag] || "lawyer-tag-default";
   }
 
+  // 处理状态标签点击
+  handleStatusTagClick(): void {
+    // 只有非已废止状态的文档才能点击
+    if (!this.document.isRevoke) {
+      this.showRevokeStatusModal();
+    }
+  }
+
   // 显示废止状态编辑模态框
   showRevokeStatusModal(): void {
-    this.tempIsRevoke = this.document.isRevoke || false;
+    // 初始状态为false，让用户选择是否要将状态改为已废止
+    this.tempIsRevoke = false;
     this.revokeStatusVisible = true;
   }
 
   // 处理废止状态编辑确认
-  handleRevokeStatusConfirm(): void {
-    // 更新废止状态
-    this.document.isRevoke = this.tempIsRevoke;
+  async handleRevokeStatusConfirm(): Promise<void> {
+    try {
+      // 如果用户打开了已废止开关，才调用接口
+      if (this.tempIsRevoke) {
+        this.$message.loading("正在更新文档状态...", 0);
 
-    this.$message.success("文档状态更新成功");
+        await this.$service.lawyer.getRuleSourceDetail({
+          searchId: this.document.id,
+          isRevoke: "已废止",
+        });
 
-    this.revokeStatusVisible = false;
+        this.$message.destroy();
+
+        // 更新为已废止状态
+        this.document.isRevoke = true;
+        this.document.timeLiness = "已废止";
+
+        this.$message.success(`文档状态已更新为：已废止`);
+      } else {
+        // 用户关闭了开关，不调用接口，保持原状态
+        this.$message.success("已取消状态修改");
+      }
+
+      this.revokeStatusVisible = false;
+    } catch (error) {
+      this.$message.destroy();
+      console.error("更新文档状态失败:", error);
+      this.$message.error("更新文档状态失败，请重试");
+    }
   }
 
   // 处理废止状态编辑取消
@@ -331,9 +391,26 @@ export default class DocumentViewer extends Vue {
   }
 
   // 下载文档
-  downloadDocument(): void {
-    this.$message.info(`正在下载: ${this.document.title}`);
-    // 实际项目中，这里应该实现下载功能
+  async downloadDocument(): Promise<void> {
+    try {
+      this.$message.loading(`正在准备下载: ${this.document.title}`, 0);
+
+      const result = await this.$service.lawyer.downloadRuleFile({
+        searchId: this.document.id,
+      });
+
+      this.$message.destroy();
+
+      downloadFileWithMessage(result, {
+        fileName: `${this.document.title}.pdf`,
+        showMessage: true,
+        messageService: this.$message,
+      });
+    } catch (error) {
+      this.$message.destroy();
+      console.error("下载失败:", error);
+      this.$message.error("下载失败，请检查网络连接后重试");
+    }
   }
 
   // 点击常见问题
@@ -450,37 +527,7 @@ export default class DocumentViewer extends Vue {
     display: flex;
     flex-direction: column;
     background-color: var(--lawyer-background);
-  }
-
-  // 头部样式
-  .lawyer-document-header {
-    background: var(--lawyer-surface);
-    padding: 10px 20px; // 减少上下padding从15px到10px
-    border-bottom: 1px solid var(--lawyer-border);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    z-index: 100;
-  }
-
-  .lawyer-header-left {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-  }
-
-  .lawyer-back-btn {
-    display: flex;
-    align-items: center;
-  }
-
-  // 文档信息样式
-  .lawyer-document-info {
-    h1 {
-      font-size: 18px;
-      color: var(--lawyer-text);
-      margin: 0;
-    }
+    padding: 16px;
   }
 
   // 标题和状态标签同行布局
@@ -488,18 +535,20 @@ export default class DocumentViewer extends Vue {
     display: flex;
     align-items: baseline;
     gap: 12px;
-    margin-bottom: 4px; // 减少底部间距
+    margin-bottom: 8px;
 
     h1 {
       margin: 0;
-      line-height: 1.2; // 减少行高
+      line-height: 1.2;
+      font-size: 18px;
+      color: var(--lawyer-text);
     }
 
     .lawyer-inline-status {
       flex-shrink: 0;
-      font-size: 11px; // 稍微小一点的字体
-      padding: 2px 6px; // 减少内边距
-      margin-left: 4px; // 紧挨着标题
+      font-size: 11px;
+      padding: 2px 6px;
+      margin-left: 4px;
     }
 
     // 响应式：小屏幕时保持同行
@@ -509,32 +558,35 @@ export default class DocumentViewer extends Vue {
     }
   }
 
-  // 文档标签样式
-  .lawyer-document-status {
-    display: flex;
+  // 可编辑状态标签样式
+  .lawyer-editable-status {
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    display: inline-flex;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 8px;
-    flex-wrap: wrap;
+    gap: 4px;
 
-    .lawyer-editable-status {
-      cursor: pointer;
-      transition: all 0.3s;
-      font-size: 12px;
-      padding: 4px 8px;
-      border-radius: 4px;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
+    &:hover {
+      opacity: 0.8;
+      transform: translateY(-1px);
+    }
+
+    .lawyer-status-edit-icon {
+      font-size: 10px;
+      opacity: 0.7;
+    }
+
+    // 禁用状态样式
+    &.lawyer-status-disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
 
       &:hover {
-        opacity: 0.8;
-        transform: translateY(-1px);
-      }
-
-      .lawyer-status-edit-icon {
-        font-size: 10px;
-        opacity: 0.7;
+        opacity: 0.6;
+        transform: none;
       }
     }
   }
@@ -644,34 +696,22 @@ export default class DocumentViewer extends Vue {
     }
   }
 
-  .lawyer-edit-tag-btn {
-    font-size: 12px;
-    height: 24px;
-    padding: 0 8px;
-    border-color: #d9d9d9;
-    color: var(--lawyer-text-light);
-
-    &:hover {
-      border-color: var(--lawyer-primary);
-      color: var(--lawyer-primary);
-    }
-  }
-
   .lawyer-document-meta {
     font-size: 13px;
     color: var(--lawyer-text-light);
     display: flex;
+    flex-wrap: wrap;
     gap: 20px;
-    margin-top: 6px; // 减少上边距
+    margin-top: 6px;
 
     .anticon {
       margin-right: 5px;
     }
-  }
 
-  .lawyer-header-actions {
-    display: flex;
-    gap: 8px;
+    @media (max-width: 768px) {
+      gap: 12px;
+      font-size: 12px;
+    }
   }
 
   // 主布局
@@ -679,8 +719,38 @@ export default class DocumentViewer extends Vue {
     display: flex;
     flex: 1;
     overflow: hidden;
-    padding: 16px;
     gap: 16px;
+
+    // 响应式布局
+    @media (max-width: 1200px) {
+      flex-direction: column;
+      gap: 12px;
+    }
+  }
+
+  // 左侧文档区域
+  .lawyer-document-left {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0; // 防止flex子项溢出
+
+    @media (max-width: 1200px) {
+      height: 60vh; // 小屏幕时限制高度
+    }
+  }
+
+  // 右侧AI问答区域
+  .lawyer-document-right {
+    width: 400px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+
+    @media (max-width: 1200px) {
+      width: 100%;
+      height: 40vh; // 小屏幕时限制高度
+    }
   }
 
   // 文档查看器
@@ -691,11 +761,65 @@ export default class DocumentViewer extends Vue {
     flex-direction: column;
     height: 100%;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+    .ant-card-body {
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+  }
+
+  // 文档头部（在卡片内）
+  .lawyer-document-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--lawyer-border);
+    background: var(--lawyer-surface);
+
+    .lawyer-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+
+      .lawyer-header-actions {
+        display: flex;
+        gap: 8px;
+        flex-shrink: 0;
+        align-self: flex-start;
+
+        .lawyer-back-btn {
+          display: flex;
+          align-items: center;
+        }
+      }
+    }
+
+    // 响应式布局
+    @media (max-width: 768px) {
+      .lawyer-header-row {
+        flex-direction: column;
+        gap: 12px;
+
+        .lawyer-header-actions {
+          align-self: flex-end;
+        }
+      }
+    }
+  }
+
+  // 文档信息样式
+  .lawyer-document-info {
+    h1 {
+      font-size: 18px;
+      color: var(--lawyer-text);
+      margin: 0;
+    }
   }
 
   .lawyer-document-content {
     flex: 1;
-    padding: 20px 24px; // 减少padding：上下20px，左右24px
+    padding: 20px 24px;
     overflow-y: auto;
     height: 100%;
   }
@@ -764,41 +888,113 @@ export default class DocumentViewer extends Vue {
     }
   }
 
-  // 侧边栏样式
-  .lawyer-document-sidebar {
-    width: 400px;
+  // AI卡片样式
+  .lawyer-ai-card {
     background: var(--lawyer-surface);
-    padding: 20px;
     height: 100%;
     display: flex;
     flex-direction: column;
-    flex-shrink: 0;
-    overflow-y: auto;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+    .ant-card-head {
+      border-bottom: 1px solid var(--lawyer-border);
+      padding: 16px 20px;
+    }
+
+    .ant-card-body {
+      flex: 1;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
   }
 
-  .lawyer-sidebar-section {
-    margin-bottom: 20px;
+  .lawyer-ai-card-title {
     display: flex;
     flex-direction: column;
-    flex-grow: 1;
+    gap: 4px;
+
+    span:first-child {
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--lawyer-text);
+    }
+
+    .lawyer-ai-subtitle {
+      font-size: 12px;
+      color: var(--lawyer-text-light);
+      font-weight: normal;
+    }
   }
 
-  .lawyer-section-title {
-    font-size: 16px;
-    font-weight: 500;
-    color: var(--lawyer-text);
-    margin-bottom: 15px;
-    position: relative;
+  .lawyer-ai-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    overflow: hidden;
+  }
 
-    &::after {
-      content: "";
-      position: absolute;
-      bottom: -5px;
-      left: 0;
-      width: 40px;
-      height: 2px;
-      background-color: var(--lawyer-primary);
+  // AI通知区域
+  .lawyer-ai-notice {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 20px;
+
+    .lawyer-notice-text {
+      margin: 0 0 12px 0;
+      color: var(--lawyer-text);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .lawyer-notice-list {
+      margin: 0;
+      padding-left: 20px;
+      color: var(--lawyer-text-light);
+      font-size: 13px;
+
+      li {
+        margin-bottom: 4px;
+        line-height: 1.4;
+      }
+    }
+  }
+
+  // 常见问题区域
+  .lawyer-common-tags {
+    margin-bottom: 20px;
+
+    .lawyer-tags-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--lawyer-text);
+      margin: 0 0 12px 0;
+    }
+
+    .lawyer-question-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+
+      .lawyer-question-chip {
+        cursor: pointer;
+        transition: all 0.2s;
+        border: 1px solid #d9d9d9;
+        background: #fff;
+        color: var(--lawyer-text-light);
+        font-size: 12px;
+        padding: 4px 8px;
+
+        &:hover {
+          border-color: var(--lawyer-primary);
+          color: var(--lawyer-primary);
+          transform: translateY(-1px);
+        }
+      }
     }
   }
 
@@ -810,68 +1006,79 @@ export default class DocumentViewer extends Vue {
     background: var(--lawyer-surface);
     border: 1px solid var(--lawyer-border);
     border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
-    height: calc(100% - 40px);
-  }
-
-  .lawyer-common-questions {
-    margin-bottom: 15px;
-  }
-
-  .lawyer-question-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 15px;
+    overflow: hidden;
   }
 
   .lawyer-ai-messages {
     flex: 1;
-    padding: 15px;
+    padding: 16px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 15px;
-    background-color: #fcfcfc;
+    gap: 12px;
+    background-color: #fafafa;
+    min-height: 200px;
+    max-height: 300px;
+
+    &:empty::before {
+      content: "暂无对话记录，请开始提问...";
+      color: var(--lawyer-text-light);
+      font-size: 13px;
+      text-align: center;
+      padding: 40px 20px;
+      display: block;
+    }
   }
 
   .lawyer-ai-message {
     max-width: 85%;
-    padding: 12px 15px;
-    border-radius: 10px;
+    padding: 10px 14px;
+    border-radius: 8px;
     position: relative;
-    line-height: 1.6;
+    line-height: 1.5;
+    font-size: 13px;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-
-    &-system {
-      background-color: rgba(var(--lawyer-primary-rgb), 0.05);
-      border: 1px solid rgba(var(--lawyer-primary-rgb), 0.1);
-      align-self: center;
-      max-width: 95%;
-      margin-bottom: 8px;
-    }
 
     &-user {
       background-color: rgba(var(--lawyer-primary-rgb), 0.1);
       color: var(--lawyer-text);
       align-self: flex-end;
-      border-bottom-right-radius: 4px;
+      border-bottom-right-radius: 3px;
     }
 
     &-ai {
-      background-color: #f0f2f5;
+      background-color: #fff;
       color: var(--lawyer-text);
       align-self: flex-start;
       white-space: pre-line;
-      border-bottom-left-radius: 4px;
+      border-bottom-left-radius: 3px;
+      border: 1px solid #e8e8e8;
+    }
+
+    .lawyer-ai-message-content {
+      p {
+        margin: 0;
+        line-height: 1.5;
+      }
     }
   }
 
   .lawyer-ai-input {
-    padding: 15px;
+    padding: 16px;
     border-top: 1px solid var(--lawyer-border);
     background-color: #fff;
+
+    .ant-input-search {
+      .ant-input {
+        border-radius: 6px;
+        font-size: 13px;
+      }
+
+      .ant-btn {
+        border-radius: 0 6px 6px 0;
+        font-size: 13px;
+      }
+    }
   }
 
   // 标签编辑模态框样式
@@ -893,7 +1100,6 @@ export default class DocumentViewer extends Vue {
 
   // 废止状态编辑弹窗样式
   .lawyer-revoke-status-content {
-    color: red;
     .lawyer-status-row {
       display: flex;
       align-items: center;
