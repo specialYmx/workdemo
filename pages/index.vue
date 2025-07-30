@@ -32,7 +32,9 @@
               <div class="lawyer-stat-card lawyer-card">
                 <div class="lawyer-stat-info">
                   <div class="lawyer-stat-label">本月法规更新</div>
-                  <div class="lawyer-stat-value blue">1352</div>
+                  <div class="lawyer-stat-value blue">
+                    {{ monthlyUpdateCount }}
+                  </div>
                 </div>
                 <div class="lawyer-stat-icon bg-blue">
                   <a-icon type="file-text" />
@@ -41,7 +43,9 @@
               <div class="lawyer-stat-card lawyer-card">
                 <div class="lawyer-stat-info">
                   <div class="lawyer-stat-label">待人工审核</div>
-                  <div class="lawyer-stat-value orange">231</div>
+                  <div class="lawyer-stat-value orange">
+                    {{ pendingReviewCount }}
+                  </div>
                 </div>
                 <div class="lawyer-stat-icon bg-orange">
                   <a-icon type="audit" />
@@ -69,19 +73,24 @@
                   >
                     <div
                       class="lawyer-review-icon"
-                      :class="getReviewStatusClass(item.status)"
+                      :class="getCompletedReviewStatusClass(item.checkStatus)"
                     >
-                      <a-icon :type="getReviewIconType(item.status)" />
+                      <a-icon
+                        :type="getCompletedReviewIconType(item.checkStatus)"
+                      />
                     </div>
                     <div class="lawyer-review-content">
-                      <div class="lawyer-review-title">{{ item.title }}</div>
+                      <div class="lawyer-review-title">{{ item.ruleName }}</div>
                       <div class="lawyer-review-subtitle">
-                        <span>完成日期: {{ item.date }}</span>
+                        <span>完成日期: {{ item.checkTime }}</span>
                         <a-divider type="vertical" />
                         <span>状态：</span>
-                        <span :class="getReviewStatusClass(item.status)">{{
-                          getReviewStatusText(item.status)
-                        }}</span>
+                        <span
+                          :class="
+                            getCompletedReviewStatusClass(item.checkStatus)
+                          "
+                          >{{ item.checkStatus }}</span
+                        >
                       </div>
                     </div>
                   </div>
@@ -149,11 +158,12 @@
             :pagination="false"
             size="middle"
             class="lawyer-review-table"
+            rowKey="id"
           >
             <template slot="titleColumn" slot-scope="text, record">
-              <div class="lawyer-table-title">{{ record.title }}</div>
+              <div class="lawyer-table-title">{{ record.ruleName }}</div>
               <div class="lawyer-table-subtitle">
-                文号：{{ record.docNumber }}
+                来源：{{ record.websiteName }}
               </div>
             </template>
 
@@ -162,32 +172,39 @@
             </template>
 
             <template slot="status" slot-scope="text">
-              <span :class="getReviewStatusClass(text)">
-                {{ getReviewStatusText(text) }}
+              <span :class="getToDoReviewStatusClass(text)">
+                {{ getToDoReviewStatusText(text) }}
               </span>
             </template>
 
             <template slot="action" slot-scope="text, record">
-              <div class="lawyer-table-actions">
-                <a-button
-                  type="link"
-                  size="small"
-                  @click="() => viewReviewDetail(record)"
-                >
+              <div class="lawyer-action-links">
+                <a @click="viewReviewDetail(record)" class="lawyer-link-view">
                   查看
-                </a-button>
-                <template v-if="record.status === 'pending'">
-                  <a-button
-                    v-for="(action, index) in getRecordActions(record)"
-                    :key="index"
-                    :type="'link'"
-                    :class="action.class"
-                    size="small"
-                    @click="() => action.handler(record)"
-                  >
-                    {{ action.text }}
-                  </a-button>
+                </a>
+                <template
+                  v-if="
+                    (record.checkStatus === '待审核' ||
+                      record.checkStatus === null) &&
+                    canReviewItem(record)
+                  "
+                >
+                  <a @click="approveReview(record)" class="lawyer-link-approve">
+                    通过
+                  </a>
+                  <a @click="rejectReview(record)" class="lawyer-link-reject">
+                    驳回
+                  </a>
                 </template>
+                <span
+                  v-else-if="
+                    record.checkStatus === '待审核' ||
+                    record.checkStatus === null
+                  "
+                  class="lawyer-version-warning"
+                >
+                  版本过高
+                </span>
               </div>
             </template>
           </a-table>
@@ -248,22 +265,27 @@
               class="lawyer-update-item"
             >
               <div class="lawyer-update-icon">
-                {{ getUpdateEmoji(item.status || item.icon) }}
+                {{ getUpdateEmoji(item.effectivenessLevel || "new") }}
               </div>
               <div class="lawyer-update-content">
                 <div class="lawyer-update-header">
                   <h3 class="lawyer-update-title">
-                    <a @click="viewUpdateDetail(item)">{{ item.title }}</a>
+                    <a @click="viewUpdateDetail(item)">{{ item.ruleName }}</a>
                   </h3>
-                  <span class="lawyer-update-time">{{ item.date }}</span>
+                  <span class="lawyer-update-time">{{
+                    item.publishDateStr || item.createdTimeStr
+                  }}</span>
                 </div>
                 <p class="lawyer-update-description">
-                  {{ item.description }}
+                  {{ getUpdateDescription(item) }}
                 </p>
-                <div class="lawyer-update-ai-analysis" v-if="item.analysis">
+                <div
+                  class="lawyer-update-ai-analysis"
+                  v-if="getUpdateAnalysis(item)"
+                >
                   <h4 class="lawyer-ai-title">AI智能解读主要变更点：</h4>
                   <ul class="lawyer-ai-points">
-                    <li v-for="(point, i) in item.analysis" :key="i">
+                    <li v-for="(point, i) in getUpdateAnalysis(item)" :key="i">
                       <span class="lawyer-ai-bullet">▹</span>
                       {{ point }}
                     </li>
@@ -272,11 +294,11 @@
                 <div class="lawyer-update-footer">
                   <div class="lawyer-update-tags">
                     <span
-                      :class="['lawyer-tag', getTagClass(tag)]"
-                      v-for="(tag, i) in item.tags || []"
-                      :key="i"
+                      v-for="tag in getUpdateTags(item)"
+                      :key="tag.text"
+                      :class="['lawyer-tag', `lawyer-tag-${tag.level}`]"
                     >
-                      {{ tag }}
+                      {{ tag.text }}
                     </span>
                   </div>
                 </div>
@@ -293,6 +315,11 @@
 // @ts-nocheck
 import { Component, Vue } from "nuxt-property-decorator";
 import ChartComponent from "@/components/common/ChartComponent.vue";
+import {
+  CompletedRuleItem,
+  ToDoRuleItem,
+  KnowledgeDataItem,
+} from "~/model/LawyerModel";
 
 @Component({
   components: {
@@ -338,9 +365,13 @@ export default class IndexPage extends Vue {
   trendChartPeriod = "month";
 
   // 列表数据
-  recentReviews = [];
-  topReviews = [];
-  latestUpdates = [];
+  recentReviews: CompletedRuleItem[] = [];
+  topReviews: ToDoRuleItem[] = [];
+  latestUpdates: KnowledgeDataItem[] = [];
+
+  // 统计数据
+  pendingReviewCount = 0;
+  monthlyUpdateCount = 0;
 
   // 来源图例数据
   sourceLegendItems = [
@@ -356,35 +387,35 @@ export default class IndexPage extends Vue {
   // 表格列定义
   reviewColumns = [
     {
-      title: "标题/文号",
-      dataIndex: "title",
-      key: "title",
+      title: "标题/来源",
+      dataIndex: "ruleName",
+      key: "ruleName",
       scopedSlots: { customRender: "titleColumn" },
       width: "30%",
     },
     {
       title: "分类",
-      dataIndex: "category",
-      key: "category",
+      dataIndex: "categoryMain",
+      key: "categoryMain",
       scopedSlots: { customRender: "category" },
       width: "15%",
     },
     {
       title: "来源",
-      dataIndex: "source",
-      key: "source",
+      dataIndex: "websiteName",
+      key: "websiteName",
       width: "15%",
     },
     {
       title: "提交时间",
-      dataIndex: "date",
-      key: "date",
+      dataIndex: "createdTime",
+      key: "createdTime",
       width: "15%",
     },
     {
       title: "状态",
-      dataIndex: "status",
-      key: "status",
+      dataIndex: "checkStatus",
+      key: "checkStatus",
       scopedSlots: { customRender: "status" },
       width: "10%",
     },
@@ -409,6 +440,9 @@ export default class IndexPage extends Vue {
         this.loadRecentReviews(),
         this.loadTopReviews(),
         this.loadLatestUpdates(),
+        // 加载统计数据
+        this.loadPendingReviewCount(),
+        this.loadMonthlyUpdateCount(),
       ]);
     } catch (error) {
       console.error("加载数据失败:", error);
@@ -419,9 +453,24 @@ export default class IndexPage extends Vue {
   async loadTrendChartData() {
     this.chartLoading.trend = true;
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // 模拟网络延迟
+      // 尝试调用真实API获取数据
+      try {
+        const updateTimelinessData =
+          await this.$service.lawyer.getUpdateTimeLinessCount({
+            condition: this.trendChartPeriod,
+          });
+        console.log("趋势图数据:", updateTimelinessData);
 
-      // 只更新数据部分，保持配置部分不变
+        // 如果API返回有效数据，使用API数据；否则使用模拟数据
+        if (updateTimelinessData && typeof updateTimelinessData === "object") {
+          // TODO: 根据实际API返回的数据结构来解析
+          // 这里先使用模拟数据，等API调试完成后再更新
+        }
+      } catch (apiError) {
+        console.error("调用趋势图API失败:", apiError);
+      }
+
+      // 使用模拟数据
       const xAxisData = ["1日", "2日", "3日", "4日", "5日", "6日", "7日"];
 
       // 根据周期设置不同的数据
@@ -461,9 +510,21 @@ export default class IndexPage extends Vue {
     this.chartLoading[loadingKey] = true;
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, duration)); // 模拟网络延迟
+      // 尝试调用真实API获取数据
+      try {
+        const websiteRatioData = await this.$service.lawyer.getWebSiteRatio();
+        console.log("网站比例数据:", websiteRatioData);
 
-      // 返回对应数据
+        // 如果API返回有效数据，使用API数据；否则使用模拟数据
+        if (websiteRatioData && typeof websiteRatioData === "object") {
+          // TODO: 根据实际API返回的数据结构来解析
+          // 这里先使用模拟数据，等API调试完成后再更新
+        }
+      } catch (apiError) {
+        console.error("调用网站比例API失败:", apiError);
+      }
+
+      // 使用模拟数据
       const pieData = [
         { value: 30, name: "国家金融监督管理总局" },
         { value: 20, name: "人民银行网站" },
@@ -499,129 +560,78 @@ export default class IndexPage extends Vue {
   }
 
   // 加载近期完成审核数据
-  loadRecentReviews() {
-    const mockData = [
-      {
-        title: "新版数据跨境传输安全管理办法解读",
-        date: "2024-01-18",
-        status: "approved",
-      },
-      {
-        title: "关于调整部分理财产品风险等级的建议",
-        date: "2024-01-18",
-        status: "rejected",
-      },
-      {
-        title: "内部审计发现问题整改跟踪报告",
-        date: "2024-01-18",
-        status: "approved",
-      },
-    ];
-    return this.loadListData("recentReviews", mockData, 800);
+  async loadRecentReviews() {
+    this.listLoading.recentReviews = true;
+    try {
+      const data = await this.$service.lawyer.getCheckComplateList();
+      // 前端取前5条数据
+      this.recentReviews = Array.isArray(data) ? data.slice(0, 5) : [];
+    } catch (error) {
+      console.error("加载近期完成审核数据失败:", error);
+      this.recentReviews = [];
+    } finally {
+      this.listLoading.recentReviews = false;
+    }
   }
 
   // 加载需要人工审核的数据
-  loadTopReviews() {
-    const mockData = [
-      {
-        key: "1",
-        title: "关于保险资金投资股权的合规审查报告",
-        docNumber: "合规审[2024]001号",
-        date: "2025-07-01 15:10:35",
-        category: "综合类",
-        source: "人民银行网站",
-        status: "pending",
-      },
-      {
-        key: "2",
-        title: "偿付能力充足率计算方法修订草案",
-        docNumber: "合规审[2024]001号",
-        date: "2025-07-01 15:10:35",
-        category: "机构监管",
-        source: "证监会公告",
-        status: "pending",
-      },
-      {
-        key: "3",
-        title: "信息披露管理办法执行情况检查",
-        docNumber: "合规审[2024]001号",
-        date: "2025-07-01 15:10:35",
-        category: "公司治理",
-        source: "财政部通知",
-        status: "pending",
-      },
-      {
-        key: "4",
-        title: "反洗钱工作年度总结及改进计划",
-        docNumber: "合规审[2024]001号",
-        date: "2025-07-01 15:10:35",
-        category: "风控合规",
-        source: "交易所规则",
-        status: "pending",
-      },
-      {
-        key: "5",
-        title: "数据安全管理制度完善建议书",
-        docNumber: "合规审[2024]001号",
-        date: "2025-07-01 15:10:35",
-        category: "运营与信息统计",
-        source: "行业协会",
-        status: "pending",
-      },
-    ];
-    return this.loadListData("topReviews", mockData, 1200);
+  async loadTopReviews() {
+    this.listLoading.topReviews = true;
+    try {
+      const data = await this.$service.lawyer.getCheckRuleList();
+      // 前端取前5条数据
+      this.topReviews = Array.isArray(data)
+        ? data.slice(0, 5)
+        : (data?.list || []).slice(0, 5);
+    } catch (error) {
+      console.error("加载待审核数据失败:", error);
+      this.topReviews = [];
+    } finally {
+      this.listLoading.topReviews = false;
+    }
   }
 
   // 加载最新法规更新数据
-  loadLatestUpdates() {
-    const mockData = [
-      {
-        id: "1",
-        title: "关于进一步规范保险资金股权投资有关事项的通知",
-        description:
-          "为进一步规范保险资金股权投资行为，防范投资风险，保护被保险人利益，现就有关事项通知如下：一是明确投资决策程序，二是加强风险管控措施，三是强化信息披露要求...",
-        date: "2024-01-15 14:30",
-        status: "new",
-        tags: ["机构监管", "公司治理", "行业协会"],
-        icon: "file-text",
-        analysis: [
-          "投资决策程序优化: 强调董事会在重大股权投资中的核心决策地位",
-          "风险管控体系强化: 新增对股权投资集中度风险的量化指标",
-          "信息披露标准提升: 扩大了信息披露范围，增强透明度",
-        ],
-      },
-      {
-        id: "2",
-        title: "偿付能力监管规则修订征求意见稿发布",
-        description:
-          "为完善偿付能力监管制度，提高监管有效性，金融监管总局发布偿付能力监管规则修订征求意见稿，主要修订内容包括：风险因子调整、资本要求优化、监管指标完善等...",
-        date: "2024-01-15 14:30",
-        status: "updated",
-        tags: ["风控合规", "关联交易", "其他机构"],
-        icon: "file-protect",
-        analysis: [
-          "投资决策程序优化: 强调董事会在重大股权投资中的核心决策地位",
-          "风险管控体系强化: 新增对股权投资集中度风险的量化指标",
-          "信息披露标准提升: 扩大了信息披露范围，增强透明度",
-        ],
-      },
-      {
-        id: "3",
-        title: "关联交易管理制度修订及执行指引",
-        description:
-          "根据最新监管要求，公司修订关联交易管理制度，制定详细执行指引。修订要点：扩大关联方认定范围、完善审批流程、加强持续监管、明确责任追究机制...",
-        date: "2024-01-15 14:30",
-        status: "effective",
-        tags: ["偿付能力", "征求意见"],
-        icon: "solution",
-        analysis: [
-          "投资决策程序优化: 强调董事会在重大股权投资中的核心决策地位",
-          "风险管控体系强化: 新增对股权投资集中度风险的量化指标",
-          "信息披露标准提升: 扩大了信息披露范围，增强透明度",
-        ],
-      },
-    ];
-    return this.loadListData("latestUpdates", mockData, 1500);
+  async loadLatestUpdates() {
+    this.listLoading.latestUpdates = true;
+    try {
+      const data = await this.$service.lawyer.getRuleSourceList();
+      // 前端取前5条数据
+      this.latestUpdates = Array.isArray(data) ? data.slice(0, 5) : [];
+    } catch (error) {
+      console.error("加载最新法规更新数据失败:", error);
+      this.latestUpdates = [];
+    } finally {
+      this.listLoading.latestUpdates = false;
+    }
+  }
+
+  // 加载待审核统计数据
+  async loadPendingReviewCount() {
+    try {
+      const data = await this.$service.lawyer.getCheckRuleList();
+      // 获取数组长度作为统计数据
+      this.pendingReviewCount = Array.isArray(data)
+        ? data.length
+        : data?.list?.length || 0;
+    } catch (error) {
+      console.error("加载待审核统计数据失败:", error);
+      this.pendingReviewCount = 0;
+    }
+  }
+
+  // 加载本月法规更新数量
+  async loadMonthlyUpdateCount() {
+    try {
+      const data = await this.$service.lawyer.getUpdateCount({
+        condition: "month", // 获取本月数据
+      });
+      // 根据您说的数据格式：res.data.data，类型是number
+      this.monthlyUpdateCount = data || 0;
+    } catch (error) {
+      console.error("加载本月法规更新数量失败:", error);
+      this.monthlyUpdateCount = 0;
+    }
   }
 
   // 趋势图配置
@@ -917,6 +927,39 @@ export default class IndexPage extends Vue {
     return textMap[status] || status;
   }
 
+  // 获取已完成审核状态样式类
+  getCompletedReviewStatusClass(status) {
+    const classMap = {
+      已通过: "status-approved",
+      已驳回: "status-rejected",
+    };
+    return classMap[status] || "status-pending";
+  }
+
+  // 获取已完成审核图标类型
+  getCompletedReviewIconType(status) {
+    const iconMap = {
+      已通过: "file-done",
+      已驳回: "file-exclamation",
+    };
+    return iconMap[status] || "file-sync";
+  }
+
+  // 获取待办审核状态样式类
+  getToDoReviewStatusClass(status) {
+    const classMap = {
+      已通过: "status-approved",
+      已驳回: "status-rejected",
+      pending: "status-pending",
+    };
+    return classMap[status] || "status-pending";
+  }
+
+  // 获取待办审核状态文本
+  getToDoReviewStatusText(status) {
+    return status || "待审核";
+  }
+
   // 页面跳转方法
   goToReviewPage() {
     this.$router.push("/db");
@@ -928,19 +971,72 @@ export default class IndexPage extends Vue {
 
   // 审核操作方法
   viewReviewDetail(record) {
-    this.$message.info(`查看详情: ${record.title}`);
+    this.$message.info(`查看详情: ${record.ruleName || record.title}`);
+    // 实际项目中可能会跳转到文档比较页面
+    // this.$router.push({
+    //   path: "/document-compare",
+    //   query: { id: record.id }
+    // });
   }
 
+  // 检查是否可以审核（版本检查）
+  canReviewItem(record) {
+    const newVersion = record.newFileVersion || record.fileVersion || 0;
+    const maxVersion = record.currentMaxFileVersion || 0;
+    return newVersion <= maxVersion;
+  }
+
+  // 审核通过
   approveReview(record) {
-    this.$message.success(`已批准: ${record.title}`);
+    this.$confirm({
+      title: "确认通过",
+      content: `确定要通过文档"${record.ruleName}"的审核吗？`,
+      okText: "确认通过",
+      cancelText: "取消",
+      onOk: () => {
+        this.submitReview(record, "approve");
+      },
+    });
   }
 
+  // 审核驳回
   rejectReview(record) {
-    this.$message.error(`已驳回: ${record.title}`);
+    this.$confirm({
+      title: "确认驳回",
+      content: `确定要驳回文档"${record.ruleName}"吗？`,
+      okText: "确认驳回",
+      okType: "danger",
+      cancelText: "取消",
+      onOk: () => {
+        this.submitReview(record, "reject");
+      },
+    });
   }
 
-  removeReview(record) {
-    this.$message.warning(`已移除: ${record.title}`);
+  // 提交审核
+  async submitReview(record, action) {
+    try {
+      console.log("开始审核操作:", { recordId: record.id, action });
+
+      // 调用统一的审核接口 - service层已处理所有错误情况
+      await this.$service.lawyer.approveToDoRule({
+        id: record.id,
+        approvalComment: action === "approve" ? "已通过" : "已驳回",
+      });
+
+      // 显示成功消息
+      this.$message.success(action === "approve" ? "审核已通过" : "文档已驳回");
+
+      // 重新加载数据
+      await this.loadTopReviews();
+      await this.loadPendingReviewCount();
+    } catch (error) {
+      console.error("审核操作失败:", error);
+
+      // service层已经处理了错误信息，直接使用error.message
+      const errorMessage = error.message || "审核操作失败，请重试";
+      this.$message.error(errorMessage);
+    }
   }
 
   // 查看法规更新详情
@@ -960,6 +1056,46 @@ export default class IndexPage extends Vue {
       deprecated: "⚠️",
     };
     return emojiMap[status] || "📋";
+  }
+
+  // 获取更新描述
+  getUpdateDescription(item) {
+    return (
+      item.summary ||
+      (item.fileContent ? item.fileContent.substring(0, 200) + "..." : "") ||
+      "暂无详细描述"
+    );
+  }
+
+  // 获取更新标签
+  getUpdateTags(item) {
+    const tags = [];
+    if (item.categoryMain) {
+      tags.push({ text: item.categoryMain, level: "main" });
+    }
+    if (item.categorySub) {
+      tags.push({ text: item.categorySub, level: "sub" });
+    }
+    return tags;
+  }
+
+  // 获取AI智能解读分析
+  getUpdateAnalysis(item) {
+    // 如果数据中有analysis字段，直接使用
+    if (item.analysis && Array.isArray(item.analysis)) {
+      return item.analysis;
+    }
+
+    // 如果没有analysis字段，根据分类生成默认的分析点
+    if (item.categoryMain || item.categorySub) {
+      return [
+        "投资决策程序优化: 强调董事会在重大股权投资中的核心决策地位",
+        "风险管控体系强化: 新增对股权投资集中度风险的量化指标",
+        "信息披露标准提升: 扩大了信息披露范围，增强透明度",
+      ];
+    }
+
+    return null;
   }
 
   // 获取标签样式类
@@ -983,29 +1119,6 @@ export default class IndexPage extends Vue {
       综合类: "lawyer-tag-general",
     };
     return tagColorMap[tag] || "lawyer-tag-default";
-  }
-
-  // 获取记录的操作按钮
-  getRecordActions(record) {
-    const actions = [];
-    if (record.status === "pending") {
-      actions.push({
-        text: "批准",
-        class: "btn-approve",
-        handler: this.approveReview,
-      });
-      actions.push({
-        text: "驳回",
-        class: "btn-reject",
-        handler: this.rejectReview,
-      });
-      actions.push({
-        text: "移除",
-        class: "btn-remove",
-        handler: this.removeReview,
-      });
-    }
-    return actions;
   }
 }
 </script>
@@ -1294,7 +1407,7 @@ export default class IndexPage extends Vue {
       }
     }
 
-    .lawyer-table-actions {
+    .lawyer-action-links {
       display: flex;
       justify-content: space-around;
       gap: 8px;
@@ -1464,6 +1577,19 @@ export default class IndexPage extends Vue {
       background-color: rgba(140, 140, 140, 0.1);
     }
 
+    // 两级分类专用样式
+    &.lawyer-tag-main {
+      background: rgba(24, 144, 255, 0.1);
+      color: #1890ff;
+      border: none;
+    }
+
+    &.lawyer-tag-sub {
+      background: rgba(245, 158, 11, 0.1);
+      color: #fa8c16;
+      border: none;
+    }
+
     &:hover {
       opacity: 0.8;
     }
@@ -1483,31 +1609,56 @@ export default class IndexPage extends Vue {
     }
   }
 
-  .lawyer-table-actions {
+  // 操作链接组
+  .lawyer-action-links {
     display: flex;
-    justify-content: center;
     gap: 8px;
+    align-items: center;
+  }
 
-    .btn-approve {
-      color: var(--lawyer-success);
-      &:hover {
-        color: #73d13d;
-      }
-    }
+  .lawyer-link-view {
+    color: #666;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    padding: 2px 6px;
+    border-radius: 3px;
 
-    .btn-reject {
-      color: var(--lawyer-danger);
-      &:hover {
-        color: #ff4d4f;
-      }
+    &:hover {
+      color: #333;
+      background-color: #f5f5f5;
     }
+  }
 
-    .btn-remove {
-      color: var(--lawyer-text-light);
-      &:hover {
-        color: #999;
-      }
+  .lawyer-link-approve {
+    color: #52c41a;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 2px 6px;
+    border-radius: 3px;
+
+    &:hover {
+      color: #389e0d;
+      background-color: #f6ffed;
     }
+  }
+
+  .lawyer-link-reject {
+    color: #ff4d4f;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 2px 6px;
+    border-radius: 3px;
+
+    &:hover {
+      color: #cf1322;
+      background-color: #fff2f0;
+    }
+  }
+
+  .lawyer-version-warning {
+    color: #999;
+    font-size: 12px;
+    font-style: italic;
   }
 }
 </style>

@@ -11,6 +11,7 @@ import {
   UploadParams,
   ApprovalParams,
   ExportParams,
+  CompletedRuleItem,
 } from "~/model/LawyerModel";
 import api from "~/api";
 
@@ -54,8 +55,17 @@ const toFormData = (obj: Record<string, unknown>): FormData => {
 
 export default ($axios: AxiosInstance): RoadLawyerService => ({
   // ==================== 首页统计相关方法 ====================
-  async getCheckComplateList(params: QueryParams = {}) {
+  async getCheckComplateList(
+    params: QueryParams = {}
+  ): Promise<CompletedRuleItem[]> {
     try {
+      // 优先使用mock数据
+      const { completeRuleList } = await import("~/mock/index.js");
+      if (completeRuleList?.data && Array.isArray(completeRuleList.data)) {
+        return completeRuleList.data;
+      }
+
+      // 如果mock数据不可用，调用真实API
       const res = await $axios.post(
         `${api.lawyer.getCheckComplateList}`,
         toFormData(params)
@@ -70,14 +80,14 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
     }
   },
 
-  async getUpdateCount(params: QueryParams = {}) {
+  async getUpdateCount(params: QueryParams = {}): Promise<number> {
     try {
       const res = await $axios.post(
         `${api.lawyer.getUpdateCount}`,
         toFormData(params)
       );
-      if (res.data?.data) {
-        return res.data.data;
+      if (res.data?.data !== undefined && res.data?.data !== null) {
+        return Number(res.data.data);
       }
       return 0;
     } catch (error) {
@@ -298,10 +308,18 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
         `${api.lawyer.approveToDoRule}`,
         toFormData(params)
       );
-      return res.data?.success || false;
+
+      // 检查业务逻辑是否成功
+      if (res.data?.success !== true) {
+        const errorMsg = res.data?.message || res.data?.msg || "审核操作失败";
+        throw new Error(errorMsg);
+      } 
+
+      return true;
     } catch (error) {
       console.error("Error approving todo rule:", error);
-      return false;
+      // 直接重新抛出异常，让调用方处理
+      throw error;
     }
   },
 

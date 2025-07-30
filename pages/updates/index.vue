@@ -426,7 +426,7 @@ export default class UpdatesPage extends Vue {
   }
 
   .lawyer-update-title {
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 500;
     margin-bottom: 8px;
     line-height: 1.4;

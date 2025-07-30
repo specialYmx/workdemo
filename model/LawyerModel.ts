@@ -324,6 +324,39 @@ export interface ToDoRuleItem {
 }
 
 /**
+ * 已完成审核列表项接口（基于completeRuleList数据结构）
+ */
+export interface CompletedRuleItem {
+  id: string;
+  diffResultId: string | null;
+  ruleName: string;
+  documentNo: string | null;
+  websiteName: string;
+  url: string;
+  publishTime: string | null;
+  effectDate: string | null;
+  categoryMain: string | null;
+  categorySub: string | null;
+  thinktankType: string | null;
+  compilationType: string | null;
+  effectivenessLevel: string | null;
+  topicCategory: string | null;
+  filePathTxt: string | null;
+  filePathOther: string | null;
+  fileVersion: string | null;
+  updateTime: string | null;
+  checkTime: string;
+  checkStatus: string; // "已通过" | "已驳回"
+  noticeContent: string | null;
+  invokeContent: string | null;
+  deleted: number;
+  createdTime: string;
+  ruleType: string;
+  currentMaxFileVersion: number | null;
+  pid: string | null;
+}
+
+/**
  * 审核历史记录接口
  */
 export interface ReviewHistory {
@@ -424,8 +457,8 @@ export interface FileCompareDetail {
  */
 export interface RoadLawyerService {
   // ==================== 首页统计相关方法 ====================
-  getCheckComplateList: (params?: QueryParams) => Promise<any>;
-  getUpdateCount: (params?: QueryParams) => Promise<any>;
+  getCheckComplateList: (params?: QueryParams) => Promise<CompletedRuleItem[]>;
+  getUpdateCount: (params?: QueryParams) => Promise<number>;
   getUpdateTimeLinessCount: (params?: QueryParams) => Promise<any>;
   getWebSiteRatio: (params?: QueryParams) => Promise<any>;
 
