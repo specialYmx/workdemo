@@ -18,6 +18,7 @@ export default {
   saveOrCancelCollect: "/rule/saveOrCancelCollect", // 保存或取消收藏
   updateTimeLinessSchedule: "/rule/updateTimeLinessSchedule", // 更新及时性调度
   uploadRuleSource: "/rule/uploadRuleSource", // 大家智库-上传更新
+  //getAIRobotAnswer: "/rule/getAIRobotAnswer", // 大家智库-AI问答  searchId文件id  userId用户的empid默认从store的id取 question输入问题  enableNetworkQuery是否联网搜索(可选参数)
 
   // ==================== 人工审核相关接口 (rule-to-do-controller) ====================
   approveToDoRule: "/rule/approveToDoRule", // 审核接口（通过approvalComment传递状态）

@@ -221,7 +221,6 @@ export default class KnowledgePage extends Vue {
 
   // 收藏相关
   isFavoritesMode = false;
-  favoriteDocuments: string[] = [];
 
   // 高级筛选展示状态
   isAdvancedSearchVisible = false;
@@ -346,22 +345,26 @@ export default class KnowledgePage extends Vue {
 
   // 生命周期钩子
   async mounted() {
-    // 加载文档数据
+    // 加载文档数据（收藏状态由后端返回）
     this.loadDocuments();
   }
 
   // 收藏夹文档数量
   get favoriteCount() {
-    // 如果不在收藏模式下，返回已知的收藏数量
     // 如果在收藏模式下，返回当前文档列表的数量
-    return this.isFavoritesMode
-      ? this.documents.length
-      : this.favoriteDocuments.length;
+    // 如果不在收藏模式下，统计已收藏的文档数量
+    if (this.isFavoritesMode) {
+      return this.documents.length;
+    } else {
+      // 统计当前列表中已收藏的文档数量
+      return this.documents.filter((doc) => doc.isCollected).length;
+    }
   }
 
-  // 判断文档是否已被收藏
-  isDocumentFavorite(docId: string): boolean {
-    return this.favoriteDocuments.includes(docId);
+  // 判断文档是否已被收藏（基于后端返回的数据）
+  isDocumentFavorite(doc: KnowledgeDataItem): boolean {
+    // 如果后端返回了收藏状态字段，直接使用
+    return doc.isCollected || false;
   }
 
   // 搜索方法
@@ -398,7 +401,7 @@ export default class KnowledgePage extends Vue {
 
   // 获取文档操作按钮
   getDocActions(doc: KnowledgeDataItem) {
-    const isFavorite = this.isDocumentFavorite(doc.id);
+    const isFavorite = this.isDocumentFavorite(doc);
     return [
       {
         text: "查看",
@@ -469,15 +472,17 @@ export default class KnowledgePage extends Vue {
 
   // 收藏/取消收藏文档
   async collectDocument(doc: KnowledgeDataItem) {
-    const isCurrentlyFavorite = this.isDocumentFavorite(doc.id);
+    const isCurrentlyFavorite = this.isDocumentFavorite(doc);
     const newCollectStatus = !isCurrentlyFavorite;
+
+    // 先在前端立即更新状态，提升用户体验
+    doc.isCollected = newCollectStatus;
 
     try {
       // 调用后端接口
       const params = {
         searchId: doc.id,
-        empId: "DJ101015", // 使用硬编码ID
-        id: doc.id,
+        empId: this.$store.state.auth.id, // 从store获取用户ID
         isCollect: newCollectStatus,
       };
 
@@ -486,28 +491,31 @@ export default class KnowledgePage extends Vue {
       const success = await this.$service.lawyer.saveOrCancelCollect(params);
 
       if (success) {
+        // 显示操作结果消息
         if (newCollectStatus) {
-          // 添加到收藏
-          this.favoriteDocuments.push(doc.id);
           this.$message.success(`已收藏: ${doc.ruleName}`);
         } else {
-          // 从收藏中移除
-          const index = this.favoriteDocuments.indexOf(doc.id);
-          if (index !== -1) {
-            this.favoriteDocuments.splice(index, 1);
-          }
           this.$message.info(`已取消收藏: ${doc.ruleName}`);
 
-          // 如果在收藏模式下移除了文档，需要刷新列表
+          // 如果在收藏模式下取消收藏，需要从列表中移除该文档
           if (this.isFavoritesMode) {
-            // 重新加载收藏列表
-            this.loadDocuments();
+            const index = this.documents.findIndex(
+              (item) => item.id === doc.id
+            );
+            if (index !== -1) {
+              this.documents.splice(index, 1);
+              this.totalDocuments = this.documents.length;
+            }
           }
         }
       } else {
+        // 接口失败时，恢复前端状态
+        doc.isCollected = isCurrentlyFavorite;
         this.$message.error("操作失败，请重试");
       }
     } catch (error) {
+      // 接口异常时，恢复前端状态
+      doc.isCollected = isCurrentlyFavorite;
       console.error("收藏操作失败:", error);
       this.$message.error("操作失败，请重试");
     }
@@ -613,10 +621,9 @@ export default class KnowledgePage extends Vue {
         sortOrder: this.sortOrder,
       };
 
-      // 如果是收藏模式，添加empId参数
+      // 只有在收藏模式下才传递empId参数
       if (this.isFavoritesMode) {
-        // 直接使用硬编码的ID，避免依赖store
-        params.empId = "DJ101015";
+        params.empId = this.$store.state.auth.id;
       }
 
       console.log("查询参数:", params);
@@ -626,6 +633,8 @@ export default class KnowledgePage extends Vue {
       console.log("获取到的数据:", result);
 
       if (result && Array.isArray(result)) {
+        // 后端返回的数据中包含真实的收藏状态(isCollected字段)
+        // 这会覆盖前端临时维护的收藏状态，确保数据一致性
         this.documents = result;
         this.totalDocuments = result.length;
       } else {

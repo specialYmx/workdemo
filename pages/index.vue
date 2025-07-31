@@ -21,7 +21,13 @@
               {{ timeOption.label }}
             </a-button>
           </div>
-          <a-button type="primary" icon="file-pdf"> 导出报告 </a-button>
+          <a-button
+            type="primary"
+            icon="file-pdf"
+            @click="exportStatisticReport"
+          >
+            导出报告
+          </a-button>
         </div>
 
         <div class="lawyer-dashboard-top-row">
@@ -320,6 +326,7 @@ import {
   ToDoRuleItem,
   KnowledgeDataItem,
 } from "~/model/LawyerModel";
+import { downloadFileWithMessage } from "~/utils/downloadHelper";
 
 @Component({
   components: {
@@ -1035,6 +1042,53 @@ export default class IndexPage extends Vue {
 
       // service层已经处理了错误信息，直接使用error.message
       const errorMessage = error.message || "审核操作失败，请重试";
+      this.$message.error(errorMessage);
+    }
+  }
+
+  // 导出统计报告
+  async exportStatisticReport() {
+    try {
+      this.$message.loading("正在生成统计报告，请稍候...", 0);
+
+      // 根据当前选择的时间范围导出
+      const condition = this.activeTimeRange;
+      const result = await this.$service.lawyer.exportStatisticExcel({
+        condition,
+      });
+
+      this.$message.destroy();
+
+      if (result) {
+        // 生成文件名
+        const timeRangeMap = {
+          month: "本月",
+          quarter: "本季度",
+          year: "本年度",
+        };
+        const timeLabel = timeRangeMap[condition] || condition;
+        const fileName = `法规统计报告_${timeLabel}_${new Date()
+          .toISOString()
+          .slice(0, 10)}.xlsx`;
+
+        if (
+          downloadFileWithMessage(result, {
+            fileName,
+            showMessage: true,
+            messageService: this.$message,
+          })
+        ) {
+          // 下载成功，消息已在 downloadFileWithMessage 中处理
+        } else {
+          this.$message.error("导出失败，请重试");
+        }
+      } else {
+        this.$message.error("导出失败，请重试");
+      }
+    } catch (error) {
+      this.$message.destroy();
+      console.error("导出统计报告失败:", error);
+      const errorMessage = error.message || "导出失败，请重试";
       this.$message.error(errorMessage);
     }
   }

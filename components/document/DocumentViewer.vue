@@ -72,74 +72,7 @@
 
         <!-- 右侧：文档智能问答 -->
         <div class="lawyer-document-right">
-          <a-card class="lawyer-ai-card lawyer-chart-card" :bordered="false">
-            <div slot="title" class="lawyer-ai-card-title">
-              <span>文档智能问答</span>
-              <span class="lawyer-ai-subtitle">针对当前文档内容智能问答</span>
-            </div>
-
-            <div class="lawyer-ai-content">
-              <!-- 注册类本要求 -->
-              <div class="lawyer-ai-notice">
-                <p class="lawyer-notice-text">
-                  您好！我是法律AI助手，可以帮助您解读《{{
-                    document.title
-                  }}》的内容。您可以：
-                </p>
-                <ul class="lawyer-notice-list">
-                  <li>直接条款的文义</li>
-                  <li>合规要求解读</li>
-                  <li>实操指导建议</li>
-                </ul>
-              </div>
-
-              <!-- 常见问题标签 -->
-              <div class="lawyer-common-tags">
-                <h4 class="lawyer-tags-title">常见问题</h4>
-                <div class="lawyer-question-chips">
-                  <a-tag
-                    v-for="(question, index) in commonQuestions"
-                    :key="index"
-                    class="lawyer-question-chip"
-                    @click="askCommonQuestion(question)"
-                  >
-                    {{ question }}
-                  </a-tag>
-                </div>
-              </div>
-
-              <!-- AI对话区域 -->
-              <div class="lawyer-ai-chat">
-                <div class="lawyer-ai-messages" ref="aiMessages">
-                  <div
-                    v-for="(msg, index) in aiMessages"
-                    :key="index"
-                    :class="[
-                      'lawyer-ai-message',
-                      msg.isUser
-                        ? 'lawyer-ai-message-user'
-                        : 'lawyer-ai-message-ai',
-                    ]"
-                  >
-                    <div class="lawyer-ai-message-content">
-                      <p>{{ msg.content }}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- 输入框 -->
-                <div class="lawyer-ai-input">
-                  <a-input-search
-                    placeholder="请输入您的问题，按回车进行提问"
-                    v-model="aiQuestion"
-                    @search="askAi"
-                    enterButton="发送"
-                    :loading="aiLoading"
-                  />
-                </div>
-              </div>
-            </div>
-          </a-card>
+          <DocumentAIChat :document="document" />
         </div>
       </div>
 
@@ -197,17 +130,12 @@
 // @ts-nocheck
 import { Component, Vue, Prop, Watch, Emit } from "nuxt-property-decorator";
 import DivTextSearch from "@/components/common/DivTextSearch.vue";
+import DocumentAIChat from "@/components/common/DocumentAIChat.vue";
 import { downloadFileWithMessage } from "~/utils/downloadHelper";
-import { log } from "console";
 
 interface TocItem {
   text: string;
   level: number;
-}
-
-interface AiMessage {
-  content: string;
-  isUser: boolean;
 }
 
 interface DocumentAction {
@@ -224,29 +152,16 @@ interface MetaItem {
 @Component({
   components: {
     DivTextSearch,
+    DocumentAIChat,
   },
 })
 export default class DocumentViewer extends Vue {
   @Prop({ required: true }) document: any;
   @Prop({ default: () => [] }) relatedDocuments: any[];
 
-  // AI助手相关
-  aiQuestion = "";
-  aiLoading = false;
-  aiMessages: AiMessage[] = [];
-
   // 废止状态编辑相关
   revokeStatusVisible = false;
   tempIsRevoke = false;
-
-  // 常见问题
-  commonQuestions = [
-    "这个法规的主要内容是什么？",
-    "什么情况下适用该法规？",
-    "法规中的关键定义",
-    "该法规与其他法律的关系",
-    "法规的生效时间",
-  ];
 
   // 文档元数据项
   get documentMetaItems(): MetaItem[] {
@@ -411,68 +326,6 @@ export default class DocumentViewer extends Vue {
       console.error("下载失败:", error);
       this.$message.error("下载失败，请检查网络连接后重试");
     }
-  }
-
-  // 点击常见问题
-  askCommonQuestion(question: string): void {
-    this.aiQuestion = question;
-    this.askAi(question);
-  }
-
-  // 向AI提问
-  askAi(question: string): void {
-    if (!question) return;
-
-    // 添加用户问题到消息列表
-    this.aiMessages.push({
-      content: question,
-      isUser: true,
-    });
-
-    // 清空输入框
-    this.aiQuestion = "";
-
-    // 设置加载状态
-    this.aiLoading = true;
-
-    // 模拟AI回复延迟
-    setTimeout(() => {
-      // 根据问题生成AI回复
-      let aiResponse = "";
-
-      if (question.includes("主要内容")) {
-        aiResponse = `《${this.document.title}》主要包含以下内容：\n1. 总则\n2. 投资范围与比例\n3. 投资管理与决策\n4. 风险管理\n5. 信息披露\n6. 监督管理\n7. 法律责任\n8. 附则`;
-      } else if (question.includes("适用")) {
-        aiResponse = `该法规适用于在中华人民共和国境内依法设立的保险公司及其保险资产管理公司等保险机构进行的保险资金运用活动。`;
-      } else if (question.includes("关键定义")) {
-        aiResponse = `本法规中的关键定义包括：\n- 保险资金：指保险公司依法设立的各项责任准备金、资本金、公积金、未分配利润等资金。\n- 投资管理人：指依法取得资格并受托管理保险资金的机构。\n- 托管人：指依法取得资格并接受委托保管保险资金投资资产的机构。`;
-      } else if (question.includes("关系")) {
-        aiResponse = `《${this.document.title}》与《中华人民共和国保险法》、《中华人民共和国公司法》等法律相互衔接，共同构成保险资金投资管理的法律框架。本法规是对保险资金投资活动的专门规定，在具体适用中应当与上位法保持一致。`;
-      } else if (question.includes("生效时间")) {
-        aiResponse = `《${this.document.title}》自2024年2月1日起施行。`;
-      } else if (question.includes("什么") || question.includes("是什么")) {
-        aiResponse = `《${this.document.title}》是规范保险资金股权投资管理的专门法规，旨在加强保险资金运用管理，防范投资风险，保护被保险人利益。该法规由金融监督管理总局制定，于2024年1月15日发布，2024年2月1日生效。`;
-      } else {
-        aiResponse = `关于您询问的"${question}"，《${this.document.title}》规定了保险资金股权投资应当遵循合法合规、价值投资、风险可控和专业化运作等原则。建议您查阅相关章节了解更详细内容。`;
-      }
-
-      // 添加AI回复到消息列表
-      this.aiMessages.push({
-        content: aiResponse,
-        isUser: false,
-      });
-
-      // 取消加载状态
-      this.aiLoading = false;
-
-      // 滚动到最新消息
-      this.$nextTick(() => {
-        const aiMessagesEl = this.$refs.aiMessages;
-        if (aiMessagesEl) {
-          aiMessagesEl.scrollTop = aiMessagesEl.scrollHeight;
-        }
-      });
-    }, 1000);
   }
 
   // 生命周期钩子
@@ -749,7 +602,8 @@ export default class DocumentViewer extends Vue {
 
     @media (max-width: 1200px) {
       width: 100%;
-      height: 40vh; // 小屏幕时限制高度
+      min-height: 500px; // 确保足够的最小高度
+      height: auto; // 改为自适应高度
     }
   }
 
@@ -885,199 +739,6 @@ export default class DocumentViewer extends Vue {
     ::selection {
       background-color: rgba(var(--lawyer-primary-rgb), 0.3);
       color: var(--lawyer-text-dark);
-    }
-  }
-
-  // AI卡片样式
-  .lawyer-ai-card {
-    background: var(--lawyer-surface);
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-
-    .ant-card-head {
-      border-bottom: 1px solid var(--lawyer-border);
-      padding: 16px 20px;
-    }
-
-    .ant-card-body {
-      flex: 1;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-  }
-
-  .lawyer-ai-card-title {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-
-    span:first-child {
-      font-size: 16px;
-      font-weight: 500;
-      color: var(--lawyer-text);
-    }
-
-    .lawyer-ai-subtitle {
-      font-size: 12px;
-      color: var(--lawyer-text-light);
-      font-weight: normal;
-    }
-  }
-
-  .lawyer-ai-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    padding: 20px;
-    overflow: hidden;
-  }
-
-  // AI通知区域
-  .lawyer-ai-notice {
-    background: #f8f9fa;
-    border: 1px solid #e9ecef;
-    border-radius: 8px;
-    padding: 16px;
-    margin-bottom: 20px;
-
-    .lawyer-notice-text {
-      margin: 0 0 12px 0;
-      color: var(--lawyer-text);
-      font-size: 14px;
-      line-height: 1.5;
-    }
-
-    .lawyer-notice-list {
-      margin: 0;
-      padding-left: 20px;
-      color: var(--lawyer-text-light);
-      font-size: 13px;
-
-      li {
-        margin-bottom: 4px;
-        line-height: 1.4;
-      }
-    }
-  }
-
-  // 常见问题区域
-  .lawyer-common-tags {
-    margin-bottom: 20px;
-
-    .lawyer-tags-title {
-      font-size: 14px;
-      font-weight: 500;
-      color: var(--lawyer-text);
-      margin: 0 0 12px 0;
-    }
-
-    .lawyer-question-chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-
-      .lawyer-question-chip {
-        cursor: pointer;
-        transition: all 0.2s;
-        border: 1px solid #d9d9d9;
-        background: #fff;
-        color: var(--lawyer-text-light);
-        font-size: 12px;
-        padding: 4px 8px;
-
-        &:hover {
-          border-color: var(--lawyer-primary);
-          color: var(--lawyer-primary);
-          transform: translateY(-1px);
-        }
-      }
-    }
-  }
-
-  // AI助手样式
-  .lawyer-ai-chat {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    background: var(--lawyer-surface);
-    border: 1px solid var(--lawyer-border);
-    border-radius: 8px;
-    overflow: hidden;
-  }
-
-  .lawyer-ai-messages {
-    flex: 1;
-    padding: 16px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    background-color: #fafafa;
-    min-height: 200px;
-    max-height: 300px;
-
-    &:empty::before {
-      content: "暂无对话记录，请开始提问...";
-      color: var(--lawyer-text-light);
-      font-size: 13px;
-      text-align: center;
-      padding: 40px 20px;
-      display: block;
-    }
-  }
-
-  .lawyer-ai-message {
-    max-width: 85%;
-    padding: 10px 14px;
-    border-radius: 8px;
-    position: relative;
-    line-height: 1.5;
-    font-size: 13px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-
-    &-user {
-      background-color: rgba(var(--lawyer-primary-rgb), 0.1);
-      color: var(--lawyer-text);
-      align-self: flex-end;
-      border-bottom-right-radius: 3px;
-    }
-
-    &-ai {
-      background-color: #fff;
-      color: var(--lawyer-text);
-      align-self: flex-start;
-      white-space: pre-line;
-      border-bottom-left-radius: 3px;
-      border: 1px solid #e8e8e8;
-    }
-
-    .lawyer-ai-message-content {
-      p {
-        margin: 0;
-        line-height: 1.5;
-      }
-    }
-  }
-
-  .lawyer-ai-input {
-    padding: 16px;
-    border-top: 1px solid var(--lawyer-border);
-    background-color: #fff;
-
-    .ant-input-search {
-      .ant-input {
-        border-radius: 6px;
-        font-size: 13px;
-      }
-
-      .ant-btn {
-        border-radius: 0 6px 6px 0;
-        font-size: 13px;
-      }
     }
   }
 

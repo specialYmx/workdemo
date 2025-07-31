@@ -1,5 +1,6 @@
 export { default as CommonChartComponent } from '../..\\components\\common\\ChartComponent.vue'
 export { default as CommonDivTextSearch } from '../..\\components\\common\\DivTextSearch.vue'
+export { default as CommonDocumentAIChat } from '../..\\components\\common\\DocumentAIChat.vue'
 export { default as CommonFileUploadModal } from '../..\\components\\common\\FileUploadModal.vue'
 export { default as DocumentCompare } from '../..\\components\\document\\DocumentCompare.vue'
 export { default as DocumentViewer } from '../..\\components\\document\\DocumentViewer.vue'

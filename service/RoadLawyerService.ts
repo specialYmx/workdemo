@@ -128,6 +128,23 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
     }
   },
 
+  async exportStatisticExcel(params: { condition: string }) {
+    try {
+      const res = await $axios.post(
+        `${api.lawyer.exportStatisticExcel}`,
+        toFormData(params),
+        {
+          responseType: "blob",
+        }
+      );
+      if (res.data) return { data: res.data, headers: res.headers };
+      return null;
+    } catch (error) {
+      console.error("Error exporting statistic excel:", error);
+      throw error;
+    }
+  },
+
   // ==================== 大家智库相关方法 ====================
   async deleteRuleSource(params: DeleteRuleParams) {
     try {
@@ -313,7 +330,7 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
       if (res.data?.success !== true) {
         const errorMsg = res.data?.message || res.data?.msg || "审核操作失败";
         throw new Error(errorMsg);
-      } 
+      }
 
       return true;
     } catch (error) {

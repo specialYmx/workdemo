@@ -5,6 +5,9 @@
   "CommonDivTextSearch": {
     "description": "Auto imported from components/common/DivTextSearch.vue"
   },
+  "CommonDocumentAIChat": {
+    "description": "Auto imported from components/common/DocumentAIChat.vue"
+  },
   "CommonFileUploadModal": {
     "description": "Auto imported from components/common/FileUploadModal.vue"
   },

@@ -169,6 +169,7 @@ export interface KnowledgeDataItem {
   createdTimestamp: number;
   topicCategory: string | null;
   updateTime: string | null;
+  isCollected?: boolean; // 收藏状态字段
   publishDateStr: string;
   docNo: string | null;
   url: string | null;
@@ -461,6 +462,9 @@ export interface RoadLawyerService {
   getUpdateCount: (params?: QueryParams) => Promise<number>;
   getUpdateTimeLinessCount: (params?: QueryParams) => Promise<any>;
   getWebSiteRatio: (params?: QueryParams) => Promise<any>;
+  exportStatisticExcel: (params: {
+    condition: string;
+  }) => Promise<{ data: Blob; headers: ResponseHeaders } | null>;
 
   // ==================== 大家智库相关方法 ====================
   deleteRuleSource: (params: DeleteRuleParams) => Promise<boolean>;
