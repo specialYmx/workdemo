@@ -26,15 +26,15 @@
 }
 
 /* 全局状态样式 */
-.status-approved {
+.lawyer-status-approved {
   color: var(--lawyer-success);
 }
 
-.status-rejected {
+.lawyer-status-rejected {
   color: var(--lawyer-danger);
 }
 
-.status-pending {
+.lawyer-status-pending {
   color: var(--lawyer-warning);
 }
 
@@ -513,4 +513,108 @@
 
 .lawyer-text-light {
   color: var(--lawyer-text-light);
+}
+
+/* Markdown 内容公共样式 */
+.lawyer-markdown-content {
+  // 覆盖 github-markdown-body 的默认 padding
+  .github-markdown-body {
+    padding: 0;
+    font-size: inherit;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    margin: 16px 0 8px 0;
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--lawyer-primary);
+  }
+
+  h1 {
+    font-size: 1.5em;
+  }
+  h2 {
+    font-size: 1.3em;
+  }
+  h3 {
+    font-size: 1.1em;
+  }
+
+  p {
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  ul,
+  ol {
+    margin: 8px 0;
+    padding-left: 20px;
+  }
+
+  li {
+    margin: 4px 0;
+    line-height: 1.5;
+  }
+
+  code {
+    background: #f5f5f5;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-family: "Courier New", monospace;
+    font-size: 0.9em;
+  }
+
+  pre {
+    background: #f5f5f5;
+    padding: 12px;
+    border-radius: 6px;
+    overflow-x: auto;
+    margin: 12px 0;
+
+    code {
+      background: none;
+      padding: 0;
+    }
+  }
+
+  blockquote {
+    border-left: 4px solid #ddd;
+    margin: 12px 0;
+    padding: 8px 16px;
+    background: #f9f9f9;
+    color: #666;
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 12px 0;
+  }
+
+  th,
+  td {
+    border: 1px solid #ddd;
+    padding: 8px 12px;
+    text-align: left;
+  }
+
+  th {
+    background: #f5f5f5;
+    font-weight: 600;
+  }
+
+  strong {
+    font-weight: 600;
+    color: var(--lawyer-primary);
+  }
+
+  em {
+    font-style: italic;
+    color: #722ed1;
+  }
 }

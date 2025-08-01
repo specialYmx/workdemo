@@ -1,9 +1,5 @@
 <template>
-  <a-card
-    class="lawyer-chart-card"
-    :bordered="false"
-    title="法规更新来源分布"
-  >
+  <a-card class="lawyer-chart-card" :bordered="false" title="法规更新来源分布">
     <div class="lawyer-pie-chart-layout">
       <div class="lawyer-pie-chart-container">
         <chart-component
@@ -17,6 +13,7 @@
           v-for="(item, index) in legendItems"
           :key="index"
           class="lawyer-pie-legend-item"
+          :class="{ 'lawyer-legend-empty': item.value === 0 }"
         >
           <span
             class="legend-color"
@@ -122,7 +119,7 @@ export default class SourceDistribution extends Vue {
 }
 </script>
 
-<style lang="less" scoped>
+<style lang="less">
 .lawyer-pie-chart-layout {
   display: flex;
   align-items: center;
@@ -155,6 +152,22 @@ export default class SourceDistribution extends Vue {
         height: 14px;
         margin-right: 12px;
         border-radius: 2px;
+      }
+
+      .legend-name {
+        font-size: 14px;
+        color: #333;
+      }
+
+      // 0值项目的样式
+      &.lawyer-legend-empty {
+        .legend-name {
+          color: #999;
+        }
+
+        .legend-color {
+          opacity: 0.3;
+        }
       }
     }
   }

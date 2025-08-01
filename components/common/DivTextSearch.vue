@@ -22,7 +22,6 @@
           type="primary"
           icon="search"
           class="lawyer-search-button"
-          size="small"
         />
       </div>
       <div class="lawyer-match-count">

@@ -110,15 +110,7 @@ export default class IndexPage extends Vue {
   monthlyUpdateCount = 0;
 
   // 来源图例数据
-  sourceLegendItems = [
-    { name: "国家金融监督管理总局", value: 30, color: "#1890ff" },
-    { name: "人民银行网站", value: 20, color: "#13c2c2" },
-    { name: "证监会公告", value: 15, color: "#52c41a" },
-    { name: "财政部通知", value: 12, color: "#faad14" },
-    { name: "交易所规则", value: 10, color: "#722ed1" },
-    { name: "行业协会", value: 8, color: "#eb2f96" },
-    { name: "其他机构", value: 5, color: "#fadb14" },
-  ];
+  sourceLegendItems = [];
 
   // 生命周期钩子
   async mounted() {
@@ -144,7 +136,8 @@ export default class IndexPage extends Vue {
   // 事件处理方法
   handleTimeRangeChange(value) {
     this.activeTimeRange = value;
-    // 可以在这里重新加载相关数据
+    // 重新加载基于时间条件的数据
+    this.loadMonthlyUpdateCount();
   }
 
   handleTrendPeriodChange(value) {
@@ -213,34 +206,68 @@ export default class IndexPage extends Vue {
     this.chartLoading[loadingKey] = true;
 
     try {
-      // 尝试调用真实API获取数据
-      try {
-        const websiteRatioData = await this.$service.lawyer.getWebSiteRatio();
-        console.log("网站比例数据:", websiteRatioData);
+      // 调用真实API获取数据
+      const websiteRatioData = await this.$service.lawyer.getWebSiteRatio();
+      console.log("网站比例数据:", websiteRatioData);
 
-        // 如果API返回有效数据，使用API数据；否则使用模拟数据
-        if (websiteRatioData && typeof websiteRatioData === "object") {
-          // TODO: 根据实际API返回的数据结构来解析
-          // 这里先使用模拟数据，等API调试完成后再更新
-        }
-      } catch (apiError) {
-        console.error("调用网站比例API失败:", apiError);
-      }
-
-      // 使用模拟数据
-      const pieData = [
-        { value: 30, name: "国家金融监督管理总局" },
-        { value: 20, name: "人民银行网站" },
-        { value: 15, name: "证监会公告" },
-        { value: 12, name: "财政部通知" },
-        { value: 10, name: "交易所规则" },
-        { value: 8, name: "行业协会" },
-        { value: 5, name: "其他机构" },
-      ];
-
-      this.chartData[loadingKey] = {
-        series: [{ data: pieData }],
+      // 定义颜色映射
+      const colorMap = {
+        国家金融监督管理总局: "#1890ff",
+        人民银行网站: "#13c2c2",
+        证监会公告: "#52c41a",
+        财政部通知: "#faad14",
+        交易所规则: "#722ed1",
+        行业协会: "#eb2f96",
+        其他机构: "#fadb14",
       };
+
+      // 处理API返回的数据结构 - 兼容两种格式
+      const sourceData = websiteRatioData;
+
+      if (sourceData && typeof sourceData === "object") {
+        // 转换数据格式为饼图需要的格式
+        const pieData = [];
+        const legendItems = [];
+
+        Object.keys(sourceData).forEach((key) => {
+          const value = sourceData[key];
+
+          // 饼图只显示有数据的项目（避免0%扇形）
+          if (value > 0) {
+            pieData.push({ value, name: key });
+          }
+
+          // 图例显示所有项目（包括0值，让用户了解完整的数据源）
+          legendItems.push({
+            name: key,
+            value, // 保留value用于判断是否为空状态
+            color: colorMap[key] || "#999999",
+          });
+        });
+
+        this.chartData[loadingKey] = {
+          series: [{ data: pieData }],
+        };
+
+        // 更新图例数据
+        this.sourceLegendItems = legendItems;
+
+        console.log("饼图数据处理完成:", { pieData, legendItems });
+      } else {
+        // 如果API没有返回有效数据，设置空数据
+        this.chartData[loadingKey] = {
+          series: [{ data: [] }],
+        };
+        this.sourceLegendItems = [];
+        console.log("API返回数据无效，设置空数据");
+      }
+    } catch (error) {
+      console.error("调用网站比例API失败:", error);
+      // API调用失败时设置空数据
+      this.chartData[loadingKey] = {
+        series: [{ data: [] }],
+      };
+      this.sourceLegendItems = [];
     } finally {
       this.chartLoading[loadingKey] = false;
     }
@@ -323,16 +350,16 @@ export default class IndexPage extends Vue {
     }
   }
 
-  // 加载本月法规更新数量
+  // 加载法规更新数量（根据当前选中的时间范围）
   async loadMonthlyUpdateCount() {
     try {
       const data = await this.$service.lawyer.getUpdateCount({
-        condition: "month", // 获取本月数据
+        condition: this.activeTimeRange, // 使用当前选中的时间范围
       });
       // 根据您说的数据格式：res.data.data，类型是number
       this.monthlyUpdateCount = data || 0;
     } catch (error) {
-      console.error("加载本月法规更新数量失败:", error);
+      console.error("加载法规更新数量失败:", error);
       this.monthlyUpdateCount = 0;
     }
   }

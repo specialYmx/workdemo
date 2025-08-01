@@ -23,13 +23,13 @@
   --lawyer-diff-del-border: #fdb8c0;
 }
 /* 全局状态样式 */
-.status-approved {
+.lawyer-status-approved {
   color: var(--lawyer-success);
 }
-.status-rejected {
+.lawyer-status-rejected {
   color: var(--lawyer-danger);
 }
-.status-pending {
+.lawyer-status-pending {
   color: var(--lawyer-warning);
 }
 .ant-table-tbody > tr > td {
@@ -430,4 +430,90 @@
 }
 .lawyer-text-light {
   color: var(--lawyer-text-light);
+}
+/* Markdown 内容公共样式 */
+.lawyer-markdown-content .github-markdown-body {
+  padding: 0;
+  font-size: inherit;
+}
+.lawyer-markdown-content h1,
+.lawyer-markdown-content h2,
+.lawyer-markdown-content h3,
+.lawyer-markdown-content h4,
+.lawyer-markdown-content h5,
+.lawyer-markdown-content h6 {
+  margin: 16px 0 8px 0;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--lawyer-primary);
+}
+.lawyer-markdown-content h1 {
+  font-size: 1.5em;
+}
+.lawyer-markdown-content h2 {
+  font-size: 1.3em;
+}
+.lawyer-markdown-content h3 {
+  font-size: 1.1em;
+}
+.lawyer-markdown-content p {
+  margin: 0;
+  line-height: 1.6;
+}
+.lawyer-markdown-content ul,
+.lawyer-markdown-content ol {
+  margin: 8px 0;
+  padding-left: 20px;
+}
+.lawyer-markdown-content li {
+  margin: 4px 0;
+  line-height: 1.5;
+}
+.lawyer-markdown-content code {
+  background: #f5f5f5;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-family: "Courier New", monospace;
+  font-size: 0.9em;
+}
+.lawyer-markdown-content pre {
+  background: #f5f5f5;
+  padding: 12px;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin: 12px 0;
+}
+.lawyer-markdown-content pre code {
+  background: none;
+  padding: 0;
+}
+.lawyer-markdown-content blockquote {
+  border-left: 4px solid #ddd;
+  margin: 12px 0;
+  padding: 8px 16px;
+  background: #f9f9f9;
+  color: #666;
+}
+.lawyer-markdown-content table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 12px 0;
+}
+.lawyer-markdown-content th,
+.lawyer-markdown-content td {
+  border: 1px solid #ddd;
+  padding: 8px 12px;
+  text-align: left;
+}
+.lawyer-markdown-content th {
+  background: #f5f5f5;
+  font-weight: 600;
+}
+.lawyer-markdown-content strong {
+  font-weight: 600;
+  color: var(--lawyer-primary);
+}
+.lawyer-markdown-content em {
+  font-style: italic;
+  color: #722ed1;
 }

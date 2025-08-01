@@ -123,7 +123,7 @@ export default class LatestUpdates extends Vue {
 }
 </script>
 
-<style lang="less" scoped>
+<style lang="less">
 .lawyer-updates-list {
   .lawyer-update-item {
     display: flex;
@@ -225,7 +225,7 @@ export default class LatestUpdates extends Vue {
 }
 
 // 标签样式
-:global(.lawyer-tag) {
+.lawyer-tag {
   display: inline-block;
   padding: 4px 12px;
   border-radius: 3px;

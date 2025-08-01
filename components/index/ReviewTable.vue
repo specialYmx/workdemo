@@ -46,6 +46,7 @@
                   record.checkStatus === null) &&
                 canReviewItem(record)
               "
+              s
             >
               <a @click="$emit('approve', record)" class="lawyer-link-approve">
                 通过
@@ -125,11 +126,11 @@ export default class ReviewTable extends Vue {
   // 获取待办审核状态样式类
   getToDoReviewStatusClass(status) {
     const classMap = {
-      已通过: "status-approved",
-      已驳回: "status-rejected",
-      pending: "status-pending",
+      已通过: "lawyer-status-approved",
+      已驳回: "lawyer-status-rejected",
+      pending: "lawyer-status-pending",
     };
-    return classMap[status] || "status-pending";
+    return classMap[status] || "lawyer-status-pending";
   }
 
   // 获取待办审核状态文本
@@ -146,7 +147,7 @@ export default class ReviewTable extends Vue {
 }
 </script>
 
-<style lang="less" scoped>
+<style lang="less">
 .lawyer-review-table {
   .lawyer-table-title {
     font-weight: 500;

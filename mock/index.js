@@ -957,3 +957,18 @@ export const trendChartData = {
   success: true,
   timestamp: 0,
 };
+export const sourceDistributionData = {
+  status: 200,
+  message: "",
+  data: {
+    证监会公告: 0,
+    人民银行网站: 0,
+    其他机构: 0,
+    行业协会: 0,
+    国家金融监督管理总局: 100,
+    交易所规则: 0,
+    财政部通知: 0,
+  },
+  success: true,
+  timestamp: 0,
+};

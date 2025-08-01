@@ -334,10 +334,10 @@ export default class DashboardOverview extends Vue {
   // 获取已完成审核状态样式类
   getCompletedReviewStatusClass(status) {
     const classMap = {
-      已通过: "status-approved",
-      已驳回: "status-rejected",
+      已通过: "lawyer-status-approved",
+      已驳回: "lawyer-status-rejected",
     };
-    return classMap[status] || "status-pending";
+    return classMap[status] || "lawyer-status-pending";
   }
 
   // 获取已完成审核图标类型
@@ -351,7 +351,7 @@ export default class DashboardOverview extends Vue {
 }
 </script>
 
-<style lang="less" scoped>
+<style lang="less">
 .lawyer-dashboard-card {
   margin-bottom: 24px;
 
@@ -544,13 +544,13 @@ export default class DashboardOverview extends Vue {
     margin-right: 16px;
     font-size: 24px;
 
-    &.status-approved {
+    &.lawyer-status-approved {
       color: var(--lawyer-success);
     }
-    &.status-rejected {
+    &.lawyer-status-rejected {
       color: var(--lawyer-danger);
     }
-    &.status-pending {
+    &.lawyer-status-pending {
       color: var(--lawyer-warning);
     }
   }

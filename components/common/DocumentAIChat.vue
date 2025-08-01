@@ -17,14 +17,14 @@
               msg.isUser ? 'ai-message-user' : 'ai-message-ai',
             ]"
           >
-            <div class="ai-message-content">
-              <div v-if="msg.isUser" class="message-text">
+            <div>
+              <div v-if="msg.isUser">
                 {{ msg.content }}
               </div>
-              <div v-else-if="msg.isWelcome" class="message-text ai-response">
+              <div v-else-if="msg.isWelcome" class="ai-response">
                 <p>{{ msg.content }}</p>
               </div>
-              <div v-else class="message-text ai-response markdown-content">
+              <div v-else class="ai-response lawyer-markdown-content">
                 <v-md-preview :text="msg.content" />
               </div>
             </div>
@@ -32,11 +32,7 @@
 
           <!-- 加载指示器 -->
           <div v-if="aiLoading" class="ai-loading-indicator">
-            <div class="loading-dots">
-              <span></span>
-              <span></span>
-              <span></span>
-            </div>
+            <a-spin size="small" />
             <span class="loading-text">AI正在思考中</span>
           </div>
         </div>
@@ -79,17 +75,27 @@
                 </a-tooltip>
               </div>
 
-              <!-- 右侧：发送按钮 -->
+              <!-- 右侧：发送/停止按钮 -->
               <div class="toolbar-right">
                 <a-button
+                  v-if="!aiLoading"
                   type="primary"
                   size="small"
                   @click="handleSend"
-                  :loading="aiLoading"
-                  :disabled="!aiQuestion.trim() || aiLoading"
+                  :disabled="!aiQuestion.trim()"
                   class="send-btn"
                 >
                   发送
+                </a-button>
+                <a-button
+                  v-else
+                  type="danger"
+                  size="small"
+                  @click="handleStop"
+                  class="stop-btn"
+                >
+                  <a-icon type="stop" />
+                  停止
                 </a-button>
               </div>
             </div>
@@ -122,15 +128,22 @@ export default class DocumentAIChat extends Vue {
   aiMessages: AiMessage[] = [];
   enableNetworkQuery = false;
 
+  // 流式请求控制器
+  private abortController: AbortController | null = null;
+
   // 组件挂载时初始化欢迎消息
   mounted() {
     this.initWelcomeMessage();
   }
 
+  // 组件销毁时清理资源
+  beforeDestroy() {
+    this.cancelCurrentRequest();
+  }
+
   // 初始化欢迎消息
   initWelcomeMessage(): void {
-    const welcomeMessage = `您好！我是法律AI助手，可以帮助您解读《${this.document.title}》的内容。您可以向我提问关于这个文档的任何问题，比如：
-请随时向我提问！`;
+    const welcomeMessage = `您好！我是文档AI助手。您可以向我提问关于这个文档的任何问题，请随时向我提问！`;
 
     this.aiMessages.push({
       content: welcomeMessage,
@@ -139,11 +152,26 @@ export default class DocumentAIChat extends Vue {
     });
   }
 
+  // 取消当前请求
+  cancelCurrentRequest(): void {
+    if (this.abortController) {
+      this.abortController.abort();
+      this.abortController = null;
+      this.aiLoading = false;
+    }
+  }
+
   // 向AI提问
   async askAi(question: string): Promise<void> {
     if (!question.trim() || this.aiLoading) return;
 
     try {
+      // 取消之前的请求
+      this.cancelCurrentRequest();
+
+      // 创建新的请求控制器
+      this.abortController = new AbortController();
+
       // 添加用户问题到消息列表
       this.addUserMessage(question);
 
@@ -182,6 +210,7 @@ export default class DocumentAIChat extends Vue {
             "Content-Type": "application/json",
           },
           body: JSON.stringify(params),
+          signal: this.abortController?.signal, // 添加取消信号
         }
       );
 
@@ -218,6 +247,12 @@ export default class DocumentAIChat extends Vue {
       // 处理流式数据
       await this.processStreamResponse(response);
     } catch (error) {
+      // 检查是否是用户主动取消的请求
+      if (error.name === "AbortError") {
+        console.log("AI请求已被用户取消");
+        return; // 用户主动取消，不显示错误信息
+      }
+
       console.error("AI问答请求失败:", error);
       this.$message.error("AI问答服务暂时不可用，请稍后重试");
 
@@ -228,6 +263,7 @@ export default class DocumentAIChat extends Vue {
       });
     } finally {
       this.aiLoading = false;
+      this.abortController = null; // 清理控制器
       this.scrollToBottom();
     }
   }
@@ -246,6 +282,11 @@ export default class DocumentAIChat extends Vue {
 
     try {
       while (true) {
+        // 检查是否已被取消
+        if (this.abortController?.signal.aborted) {
+          throw new DOMException("Request was aborted", "AbortError");
+        }
+
         const { done, value } = await reader.read();
 
         if (done) break;
@@ -314,6 +355,9 @@ export default class DocumentAIChat extends Vue {
 
   // 清空对话
   clearChat(): void {
+    // 取消当前请求
+    this.cancelCurrentRequest();
+
     this.aiMessages = [];
     this.aiQuestion = "";
   }
@@ -353,6 +397,12 @@ export default class DocumentAIChat extends Vue {
     }
   }
 
+  // 处理停止按钮点击
+  handleStop(): void {
+    this.cancelCurrentRequest();
+    this.$message.info("已停止AI回答");
+  }
+
   // 处理回车键
   handleEnterPress(e: KeyboardEvent): void {
     // Ctrl+Enter 或 Shift+Enter 换行，单独 Enter 发送
@@ -370,7 +420,6 @@ export default class DocumentAIChat extends Vue {
   display: flex;
   flex-direction: column;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-
   .ant-card-head {
     border-bottom: 1px solid #f0f0f0;
     padding: 0 16px;
@@ -406,49 +455,39 @@ export default class DocumentAIChat extends Vue {
 
   // 输入框区域
   .ai-input-area {
-    flex-shrink: 0; // 确保输入区域不会被压缩
-    background-color: #fff;
     border-top: 1px solid #f0f0f0;
     padding-top: 10px;
     .custom-input-container {
       border: 1px solid #d9d9d9;
       border-radius: 8px;
-      background: #fff;
       transition: border-color 0.3s, box-shadow 0.3s;
-
       &:hover {
-        border-color: #40a9ff;
-      }
-
-      &:focus-within {
-        border-color: #1890ff;
-        box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+        border-color: var(--lawyer-primary);
       }
     }
 
     .main-input-wrapper {
-      padding: 12px 16px 8px 16px;
-
       .main-textarea {
-        border: none !important;
-        box-shadow: none !important;
+        border-radius: 8px;
+        border: none;
+        box-shadow: none;
         resize: none;
         font-size: 14px;
         line-height: 1.5;
-
+        padding: 12px 16px 8px 16px;
         &:focus {
-          border: none !important;
-          box-shadow: none !important;
+          border: none;
+          box-shadow: none;
         }
 
-        /deep/ .ant-input {
-          border: none !important;
-          box-shadow: none !important;
+        .ant-input {
+          border: none;
+          box-shadow: none;
           padding: 0;
 
           &:focus {
-            border: none !important;
-            box-shadow: none !important;
+            border: none;
+            box-shadow: none;
           }
         }
       }
@@ -459,7 +498,11 @@ export default class DocumentAIChat extends Vue {
       justify-content: space-between;
       align-items: center;
       padding: 8px 16px 12px 16px;
-      border-top: 1px solid #f0f0f0;
+      border-radius: 0 0 8px 8px; // 下方圆角，与外层容器匹配
+      // 统一图标样式
+      .anticon {
+        margin-right: 4px;
+      }
 
       .toolbar-left {
         .network-btn {
@@ -494,26 +537,30 @@ export default class DocumentAIChat extends Vue {
             border-color: #1890ff;
             background: #f0f8ff;
           }
-
-          .anticon {
-            margin-right: 4px;
-          }
         }
       }
 
       .toolbar-right {
-        .send-btn {
+        .send-btn,
+        .stop-btn {
           border-radius: 6px;
           font-size: 12px;
           height: 28px;
           min-width: 60px;
 
-          .anticon {
-            margin-right: 4px;
-          }
-
           &:disabled {
             opacity: 0.5;
+          }
+        }
+
+        .stop-btn {
+          background: #ff4d4f;
+          border-color: #ff4d4f;
+          color: #fff;
+
+          &:hover {
+            background: #ff7875;
+            border-color: #ff7875;
           }
         }
       }
@@ -535,7 +582,6 @@ export default class DocumentAIChat extends Vue {
     display: flex;
     flex-direction: column;
     gap: 10px;
-
     &:empty::before {
       content: "暂无对话记录，请开始提问...";
       color: #bfbfbf;
@@ -550,133 +596,23 @@ export default class DocumentAIChat extends Vue {
     max-width: 85%;
     padding: 10px 14px;
     border-radius: 8px;
-    position: relative;
     line-height: 1.5;
-    font-size: 13px;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    margin: 0;
+    word-wrap: break-word;
 
     &-user {
       background-color: #fff3dd;
-
       align-self: flex-end;
       border-bottom-right-radius: 3px;
     }
 
     &-ai {
       background-color: #eeeeee;
-
       align-self: flex-start;
       border-bottom-left-radius: 3px;
-    }
-
-    .message-text {
-      margin: 0;
-      line-height: 1.5;
-      word-wrap: break-word;
-
-      &.ai-response {
-        strong {
-          font-weight: 600;
-          color: #1890ff;
-        }
-
-        em {
-          font-style: italic;
-          color: #722ed1;
-        }
-      }
-
-      // Markdown 内容样式
-      &.markdown-content {
-        // 覆盖 github-markdown-body 的默认 padding
-        .github-markdown-body {
-          padding: 0;
-          font-size: inherit;
-        }
-        h1,
-        h2,
-        h3,
-        h4,
-        h5,
-        h6 {
-          margin: 16px 0 8px 0;
-          font-weight: 600;
-          line-height: 1.25;
-          color: #1890ff;
-        }
-
-        h1 {
-          font-size: 1.5em;
-        }
-        h2 {
-          font-size: 1.3em;
-        }
-        h3 {
-          font-size: 1.1em;
-        }
-
-        p {
-          margin: 0;
-          line-height: 1.6;
-        }
-
-        ul,
-        ol {
-          margin: 8px 0;
-          padding-left: 20px;
-        }
-
-        li {
-          margin: 4px 0;
-          line-height: 1.5;
-        }
-
-        code {
-          background: #f5f5f5;
-          padding: 2px 4px;
-          border-radius: 3px;
-          font-family: "Courier New", monospace;
-          font-size: 0.9em;
-        }
-
-        pre {
-          background: #f5f5f5;
-          padding: 12px;
-          border-radius: 6px;
-          overflow-x: auto;
-          margin: 12px 0;
-
-          code {
-            background: none;
-            padding: 0;
-          }
-        }
-
-        blockquote {
-          border-left: 4px solid #ddd;
-          margin: 12px 0;
-          padding: 8px 16px;
-          background: #f9f9f9;
-          color: #666;
-        }
-
-        table {
-          border-collapse: collapse;
-          width: 100%;
-          margin: 12px 0;
-        }
-
-        th,
-        td {
-          border: 1px solid #ddd;
-          padding: 8px 12px;
-          text-align: left;
-        }
-
-        th {
-          background: #f5f5f5;
-          font-weight: 600;
-        }
+      p {
+        margin: 0;
       }
     }
   }
@@ -688,48 +624,12 @@ export default class DocumentAIChat extends Vue {
     gap: 8px;
     padding: 10px 14px;
     background-color: #eeeeee;
-    border: 1px solid #d9d9d9;
     border-radius: 8px;
     align-self: flex-start;
     max-width: 85%;
-
-    .loading-dots {
-      display: flex;
-      gap: 4px;
-
-      span {
-        width: 6px;
-        height: 6px;
-        background-color: #1890ff;
-        border-radius: 50%;
-        animation: loading-bounce 1.4s ease-in-out infinite both;
-
-        &:nth-child(1) {
-          animation-delay: -0.32s;
-        }
-        &:nth-child(2) {
-          animation-delay: -0.16s;
-        }
-        &:nth-child(3) {
-          animation-delay: 0s;
-        }
-      }
-    }
-
     .loading-text {
       font-size: 12px;
       color: #8c8c8c;
-    }
-  }
-
-  @keyframes loading-bounce {
-    0%,
-    80%,
-    100% {
-      transform: scale(0);
-    }
-    40% {
-      transform: scale(1);
     }
   }
 }

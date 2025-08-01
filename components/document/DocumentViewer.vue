@@ -60,7 +60,7 @@
             <!-- 文档内容 -->
             <DivTextSearch>
               <div
-                class="lawyer-document-content lawyer-markdown-content lawyer-scrollable"
+                class="lawyer-document-content lawyer-scrollable"
                 ref="documentContent"
                 tabindex="0"
               >
@@ -556,11 +556,6 @@ export default class DocumentViewer extends Vue {
     flex-wrap: wrap;
     gap: 20px;
     margin-top: 6px;
-
-    .anticon {
-      margin-right: 5px;
-    }
-
     @media (max-width: 768px) {
       gap: 12px;
       font-size: 12px;
