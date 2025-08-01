@@ -596,16 +596,8 @@ export default class KnowledgePage extends Vue {
   // 获取标签颜色
   getTagColor(category: string, type: string = "main"): string {
     if (!category) return "blue";
-
-    // 简化颜色逻辑，只使用两种颜色
     // 一级分类使用金黄色，二级分类使用蓝色
     return type === "main" ? "gold" : "blue";
-  }
-
-  // 获取类型文本
-  getTypeText(category: string): string {
-    if (!category) return "其他";
-    return category || "其他";
   }
 
   // 加载文档数据

@@ -19,6 +19,7 @@ import nuxt_plugin_antdesignvue_25c3b791 from 'nuxt_plugin_antdesignvue_25c3b791
 import nuxt_plugin_axios_2228ef02 from 'nuxt_plugin_axios_2228ef02' // Source: ..\\plugins\\axios (mode: 'all')
 import nuxt_plugin_echarts_295016f4 from 'nuxt_plugin_echarts_295016f4' // Source: ..\\plugins\\echarts (mode: 'all')
 import nuxt_plugin_service_5821937e from 'nuxt_plugin_service_5821937e' // Source: ..\\plugins\\service (mode: 'all')
+import nuxt_plugin_markdown_667a7ee3 from 'nuxt_plugin_markdown_667a7ee3' // Source: ..\\plugins\\markdown (mode: 'all')
 
 // Component: <ClientOnly>
 Vue.component(ClientOnly.name, ClientOnly)
@@ -237,6 +238,10 @@ async function createApp(ssrContext, config = {}) {
 
   if (typeof nuxt_plugin_service_5821937e === 'function') {
     await nuxt_plugin_service_5821937e(app.context, inject)
+  }
+
+  if (typeof nuxt_plugin_markdown_667a7ee3 === 'function') {
+    await nuxt_plugin_markdown_667a7ee3(app.context, inject)
   }
 
   // Lock enablePreview in context

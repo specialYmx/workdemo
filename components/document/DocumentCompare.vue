@@ -277,29 +277,6 @@ export default class DocumentCompare extends Vue {
 
     // 简单处理：保留原始文本，让CSS处理换行
     return content;
-
-    // 不再使用复杂的HTML转换，因为会破坏原始格式
-    // return content
-    //   .split('\n')
-    //   .map(line => {
-    //     // 处理标题
-    //     if (line.trim().startsWith('第') && line.trim().includes('章')) {
-    //       return `<h2>${line.trim()}</h2>`;
-    //     }
-    //     // 处理条款
-    //     else if (line.trim().startsWith('第') && (line.trim().includes('条') || line.trim().includes('款'))) {
-    //       return `<p><strong>${line.substring(0, line.indexOf(' '))}</strong>${line.substring(line.indexOf(' '))}</p>`;
-    //     }
-    //     // 普通段落
-    //     else if (line.trim()) {
-    //       return `<p>${line.trim()}</p>`;
-    //     }
-    //     // 空行也保留，转为<br>标签
-    //     else {
-    //       return '<br>';
-    //     }
-    //   })
-    //   .join('');
   }
 
   // 返回上一页
