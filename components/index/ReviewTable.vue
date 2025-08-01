@@ -56,8 +56,7 @@
             </template>
             <span
               v-else-if="
-                record.checkStatus === '待审核' ||
-                record.checkStatus === null
+                record.checkStatus === '待审核' || record.checkStatus === null
               "
               class="lawyer-version-warning"
             >
@@ -210,18 +209,5 @@ export default class ReviewTable extends Vue {
   color: #999;
   font-size: 12px;
   font-style: italic;
-}
-
-// 状态样式
-:global(.status-approved) {
-  color: var(--lawyer-success);
-}
-
-:global(.status-rejected) {
-  color: var(--lawyer-danger);
-}
-
-:global(.status-pending) {
-  color: var(--lawyer-warning);
 }
 </style>

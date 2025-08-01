@@ -480,16 +480,5 @@ export default class IndexPage extends Vue {
       }
     }
   }
-
-  // 全局状态样式
-  .status-approved {
-    color: var(--lawyer-success);
-  }
-  .status-rejected {
-    color: var(--lawyer-danger);
-  }
-  .status-pending {
-    color: var(--lawyer-warning);
-  }
 }
 </style>

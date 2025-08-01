@@ -573,17 +573,4 @@ export default class DashboardOverview extends Vue {
     border-bottom: none;
   }
 }
-
-// 全局状态样式
-:global(.status-approved) {
-  color: var(--lawyer-success);
-}
-
-:global(.status-rejected) {
-  color: var(--lawyer-danger);
-}
-
-:global(.status-pending) {
-  color: var(--lawyer-warning);
-}
 </style>
