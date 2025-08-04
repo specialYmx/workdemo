@@ -176,6 +176,7 @@ export interface KnowledgeDataItem {
   updateTimestamp: number | null;
   thinktankType: string | null;
   websiteName: string;
+  legalSource?: string; // 发布机构或来源信息，替代 websiteName 使用
   effectivenessLevel: string;
   diffResultId: string | null;
   categoryMain: string;
@@ -193,6 +194,7 @@ export interface RuleUpdateItem {
   id: string;
   ruleName: string;
   websiteName: string;
+  legalSource?: string; // 发布机构或来源信息，替代 websiteName 使用
   createdTimeStr: string;
   createdTimestamp: number;
   categoryMain: string | null;
@@ -303,6 +305,7 @@ export interface ToDoRuleItem {
   diffResultId: string | null;
   ruleName: string;
   websiteName: string;
+  legalSource?: string; // 发布机构或来源信息，替代 websiteName 使用
   url: string;
   publishTime: string | null;
   effectDate: string | null;
@@ -333,6 +336,7 @@ export interface CompletedRuleItem {
   ruleName: string;
   documentNo: string | null;
   websiteName: string;
+  legalSource?: string; // 发布机构或来源信息，替代 websiteName 使用
   url: string;
   publishTime: string | null;
   effectDate: string | null;
@@ -458,7 +462,7 @@ export interface FileCompareDetail {
  */
 export interface RoadLawyerService {
   // ==================== 首页统计相关方法 ====================
-  getCheckComplateList: (params?: QueryParams) => Promise<CompletedRuleItem[]>;
+  getCheckCompleteList: (params?: QueryParams) => Promise<CompletedRuleItem[]>;
   getUpdateCount: (params?: QueryParams) => Promise<number>;
   getUpdateTimeLinessCount: (params?: QueryParams) => Promise<any>;
   getWebSiteRatio: (params?: QueryParams) => Promise<any>;

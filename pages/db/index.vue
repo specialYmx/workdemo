@@ -318,16 +318,16 @@ export default class DbPage extends Vue {
     },
     {
       title: "来源",
-      dataIndex: "websiteName",
-      key: "websiteName",
+      dataIndex: "legalSource",
+      key: "legalSource",
       width: 150,
       scopedSlots: {
         filterDropdown: "filterDropdown",
         filterIcon: "filterIcon",
       },
       onFilter: (value, record) =>
-        record.websiteName &&
-        record.websiteName.toLowerCase().includes(value.toLowerCase()),
+        record.legalSource &&
+        record.legalSource.toLowerCase().includes(value.toLowerCase()),
       onFilterDropdownVisibleChange: (visible) => {
         if (visible) {
           setTimeout(() => {
@@ -508,12 +508,12 @@ export default class DbPage extends Vue {
             result = result.filter((item) =>
               filterValues.includes(item.categoryMain)
             );
-          } else if (key === "websiteName") {
+          } else if (key === "legalSource") {
             const searchText = filterValues[0].toLowerCase();
             result = result.filter(
               (item) =>
-                item.websiteName &&
-                item.websiteName.toLowerCase().includes(searchText)
+                item.legalSource &&
+                item.legalSource.toLowerCase().includes(searchText)
             );
           }
         }

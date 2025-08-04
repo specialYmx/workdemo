@@ -21,7 +21,7 @@
         <template slot="titleColumn" slot-scope="text, record">
           <div class="lawyer-table-title">{{ record.ruleName }}</div>
           <div class="lawyer-table-subtitle">
-            来源：{{ record.websiteName }}
+            来源：{{ record.legalSource }}
           </div>
         </template>
 
@@ -97,8 +97,8 @@ export default class ReviewTable extends Vue {
     },
     {
       title: "来源",
-      dataIndex: "websiteName",
-      key: "websiteName",
+      dataIndex: "legalSource",
+      key: "legalSource",
       width: "15%",
     },
     {

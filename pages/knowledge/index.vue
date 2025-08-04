@@ -37,13 +37,30 @@
             <!-- 时效性选择器 -->
             <div class="lawyer-filter-group">
               <a-select
-                v-model="effectivenessFilter"
+                v-model="timeLinessFilter"
                 style="width: 100%"
                 placeholder="时效性"
                 @change="onSearch"
               >
                 <a-select-option
-                  v-for="option in effectivenessOptions"
+                  v-for="option in timeLinessOptions"
+                  :key="option.value"
+                  :value="option.value"
+                >
+                  {{ option.label }}
+                </a-select-option>
+              </a-select>
+            </div>
+            <!-- 效力位阶选择器 -->
+            <div class="lawyer-filter-group">
+              <a-select
+                v-model="effectivenessLevelFilter"
+                style="width: 100%"
+                placeholder="效力位阶"
+                @change="onSearch"
+              >
+                <a-select-option
+                  v-for="option in effectivenessLevelOptions"
                   :key="option.value"
                   :value="option.value"
                 >
@@ -62,24 +79,38 @@
                 :show-search="true"
               />
             </div>
-            <div
-              class="lawyer-filter-group"
-              v-for="(filter, index) in filterOptions"
-              :key="index"
-            >
+            <!-- 来源筛选 -->
+            <div class="lawyer-filter-group">
               <a-select
-                v-model="filter.value"
+                v-model="filterSource"
                 style="width: 100%"
-                :placeholder="filter.placeholder"
+                placeholder="全部来源"
                 @change="onSearch"
               >
+                <a-select-option value="all">全部来源</a-select-option>
                 <a-select-option
-                  v-for="option in filter.options"
+                  v-for="option in websiteOptions"
                   :key="option.value"
                   :value="option.value"
                 >
                   {{ option.label }}
                 </a-select-option>
+              </a-select>
+            </div>
+            <!-- 排序方式 -->
+            <div class="lawyer-filter-group">
+              <a-select
+                v-model="sortOrder"
+                style="width: 100%"
+                placeholder="排序方式"
+                @change="onSearch"
+              >
+                <a-select-option value="desc"
+                  >按发布日期 (新→旧)</a-select-option
+                >
+                <a-select-option value="asc"
+                  >按发布日期 (旧→新)</a-select-option
+                >
               </a-select>
             </div>
           </div>
@@ -121,7 +152,7 @@
                     <span
                       ><a-icon type="calendar" /> {{ doc.publishDateStr }}</span
                     >
-                    <span><a-icon type="bank" /> {{ doc.websiteName }}</span>
+                    <span><a-icon type="bank" /> {{ doc.legalSource }}</span>
                     <span><a-icon type="eye" /> {{ doc.readCount }} 阅读</span>
                     <span class="lawyer-timeliness-tag">
                       <a-icon type="clock-circle" /> {{ doc.timeLiness }}
@@ -129,7 +160,7 @@
                   </div>
                 </div>
                 <p class="lawyer-document-summary">
-                  {{ doc.fileContent || doc.summary || "暂无摘要" }}
+                  {{ doc.summary || "暂无摘要" }}
                 </p>
                 <div class="lawyer-document-footer">
                   <div class="lawyer-document-tags">
@@ -141,15 +172,13 @@
                       :color="getTagColor(doc.categorySub, 'sub')"
                       >{{ doc.categorySub }}</a-tag
                     >
-                    <a-tag v-if="doc.effectivenessLevel" color="green">{{
-                      doc.effectivenessLevel
-                    }}</a-tag>
                   </div>
                   <div class="lawyer-document-actions">
                     <a-button
                       v-for="(action, index) in getDocActions(doc)"
                       :key="index"
                       :type="action.type || 'default'"
+                      :class="action.class"
                       @click="action.handler"
                     >
                       {{ action.text }}
@@ -205,52 +234,35 @@ import { downloadFileWithMessage } from "~/utils/downloadHelper";
   },
 })
 export default class KnowledgePage extends Vue {
-  // 搜索相关
   searchText = "";
   searchLoading = false;
-
-  // 筛选相关
-  filterCategory = "all";
-  filterDate = "all";
   filterSource = "all";
-  sortOrder = "";
-
-  // 新增的筛选项
+  sortOrder = "desc";
   topicCategory = [];
-  effectivenessFilter = "all";
-
-  // 收藏相关
+  timeLinessFilter = "all";
+  effectivenessLevelFilter = "all";
   isFavoritesMode = false;
-
-  // 高级筛选展示状态
   isAdvancedSearchVisible = false;
-
-  // 列表相关
   listLoading = false;
   currentPage = 1;
   pageSize = 10;
   totalDocuments = 36;
   documents: KnowledgeDataItem[] = [];
-
-  // 上传相关
+  websiteOptions: Array<{ value: string; label: string }> = [];
   uploadModalVisible = false;
   currentUploadDocId = "";
   currentUploadDocTitle = "";
-
-  // 上传配置
   get uploadConfig() {
     return {
       multiple: false,
       acceptTypes: ".doc,.docx",
-      maxFileSize: 50 * 1024 * 1024, // 50MB
+      maxFileSize: 50 * 1024 * 1024,
       maxFileCount: 1,
       uploadText: "点击或拖拽文件到此区域上传",
       hintText: "支持 DOC、DOCX 格式，文件大小不超过 50MB",
       autoUpload: false,
     };
   }
-
-  // 搜索按钮数据
   get searchButtons() {
     return [
       {
@@ -277,102 +289,50 @@ export default class KnowledgePage extends Vue {
     ];
   }
 
-  // 专题分类级联选项
   get topicCategoryOptions() {
     return cascaderOptions;
   }
 
-  // 时效性选项
-  get effectivenessOptions() {
+  get timeLinessOptions() {
     return [
       { value: "all", label: "全部" },
-      { value: "effective", label: "现行有效" },
-      { value: "abolished", label: "已废止" },
-      { value: "pending", label: "尚未生效" },
-      { value: "modified", label: "已修订" },
+      { value: "待生效", label: "待生效" },
+      { value: "已生效", label: "已生效" },
+      { value: "已修订", label: "已修订" },
+      { value: "已废止", label: "已废止" },
     ];
   }
 
-  // 筛选选项数据
-  get filterOptions() {
+  get effectivenessLevelOptions() {
     return [
-      {
-        value: this.filterCategory,
-        placeholder: "全部分类",
-        options: [
-          { value: "all", label: "全部分类" },
-          { value: "law", label: "法律法规" },
-          { value: "policy", label: "监管政策" },
-          { value: "interpretation", label: "司法解读" },
-          { value: "case", label: "典型案例" },
-          { value: "internal", label: "内部规章" },
-        ],
-      },
-      {
-        value: this.filterDate,
-        placeholder: "全部时间",
-        options: [
-          { value: "all", label: "全部时间" },
-          { value: "last_month", label: "近一月" },
-          { value: "last_quarter", label: "近一季度" },
-          { value: "last_year", label: "近一年" },
-        ],
-      },
-      {
-        value: this.filterSource,
-        placeholder: "全部来源",
-        options: [
-          { value: "all", label: "全部来源" },
-          { value: "regulator", label: "监管机构" },
-          { value: "court", label: "法院" },
-          { value: "industry_assoc", label: "行业协会" },
-          { value: "internal_legal", label: "内部法务" },
-        ],
-      },
-      {
-        value: this.sortOrder,
-        placeholder: "排序方式",
-        options: [
-          { value: "date_desc", label: "按发布日期 (新→旧)" },
-          { value: "date_asc", label: "按发布日期 (旧→新)" },
-          { value: "title_asc", label: "按标题 (A→Z)" },
-          { value: "title_desc", label: "按标题 (Z→A)" },
-          { value: "importance", label: "按重要性" },
-        ],
-      },
+      { value: "all", label: "全部" },
+      { value: "法律法规", label: "法律法规" },
+      { value: "部门规章规范性文件", label: "部门规章规范性文件" },
+      { value: "自律规则", label: "自律规则" },
+      { value: "其他", label: "其他" },
     ];
   }
 
-  // 生命周期钩子
   async mounted() {
-    // 加载文档数据（收藏状态由后端返回）
+    await this.loadWebsiteOptions();
     this.loadDocuments();
   }
 
-  // 收藏夹文档数量
   get favoriteCount() {
-    // 如果在收藏模式下，返回当前文档列表的数量
-    // 如果不在收藏模式下，统计已收藏的文档数量
     if (this.isFavoritesMode) {
       return this.documents.length;
     } else {
-      // 统计当前列表中已收藏的文档数量
       return this.documents.filter((doc) => doc.isCollected).length;
     }
   }
 
-  // 判断文档是否已被收藏（基于后端返回的数据）
   isDocumentFavorite(doc: KnowledgeDataItem): boolean {
-    // 如果后端返回了收藏状态字段，直接使用
     return doc.isCollected || false;
   }
 
-  // 搜索方法
   async onSearch() {
     this.searchLoading = true;
-
     try {
-      // 调用loadDocuments来获取数据
       await this.loadDocuments();
     } catch (error) {
       console.error("搜索失败:", error);
@@ -381,25 +341,19 @@ export default class KnowledgePage extends Vue {
     }
   }
 
-  // 切换收藏夹模式
   async toggleFavorites() {
     this.isFavoritesMode = !this.isFavoritesMode;
-    this.currentPage = 1; // 重置到第一页
-
-    // 重新加载数据，loadDocuments方法会根据isFavoritesMode状态决定是否传empId参数
+    this.currentPage = 1;
     await this.loadDocuments();
-
     this.$message.info(
       this.isFavoritesMode ? "已切换至收藏夹" : "已退出收藏夹模式"
     );
   }
 
-  // 切换高级筛选
   toggleAdvancedSearch() {
     this.isAdvancedSearchVisible = !this.isAdvancedSearchVisible;
   }
 
-  // 获取文档操作按钮
   getDocActions(doc: KnowledgeDataItem) {
     const isFavorite = this.isDocumentFavorite(doc);
     return [
@@ -419,6 +373,7 @@ export default class KnowledgePage extends Vue {
       },
       {
         text: "上传更新",
+        class: "lawyer-btn-upload",
         handler: () => this.uploadDocument(doc.id, doc.ruleName),
       },
       {
@@ -429,17 +384,14 @@ export default class KnowledgePage extends Vue {
     ];
   }
 
-  // 查看文档
   viewDocument(doc: KnowledgeDataItem) {
     this.$message.info(`正在打开: ${doc.ruleName}`);
     setTimeout(() => {
-      // 根据文档的废止状态传递isRevoke参数
       const isRevoke = !!(doc.revokeDateTimestamp || doc.revokeDateStr);
       const query = {
         id: doc.id,
         ...(isRevoke ? { isRevoke: "true" } : {}),
       };
-
       this.$router.push({
         path: "/document",
         query,
@@ -447,7 +399,6 @@ export default class KnowledgePage extends Vue {
     }, 500);
   }
 
-  // 下载文档
   async downloadDocument(doc: KnowledgeDataItem): Promise<void> {
     try {
       this.$message.loading(`正在准备下载: ${doc.ruleName}`, 0);
@@ -470,34 +421,25 @@ export default class KnowledgePage extends Vue {
     }
   }
 
-  // 收藏/取消收藏文档
   async collectDocument(doc: KnowledgeDataItem) {
     const isCurrentlyFavorite = this.isDocumentFavorite(doc);
     const newCollectStatus = !isCurrentlyFavorite;
-
-    // 先在前端立即更新状态，提升用户体验
     doc.isCollected = newCollectStatus;
 
     try {
-      // 调用后端接口
       const params = {
         searchId: doc.id,
-        empId: this.$store.state.auth.id, // 从store获取用户ID
+        empId: this.$store.state.auth.id,
         isCollect: newCollectStatus,
       };
-
-      console.log("收藏参数:", params);
 
       const success = await this.$service.lawyer.saveOrCancelCollect(params);
 
       if (success) {
-        // 显示操作结果消息
         if (newCollectStatus) {
           this.$message.success(`已收藏: ${doc.ruleName}`);
         } else {
           this.$message.info(`已取消收藏: ${doc.ruleName}`);
-
-          // 如果在收藏模式下取消收藏，需要从列表中移除该文档
           if (this.isFavoritesMode) {
             const index = this.documents.findIndex(
               (item) => item.id === doc.id
@@ -509,47 +451,38 @@ export default class KnowledgePage extends Vue {
           }
         }
       } else {
-        // 接口失败时，恢复前端状态
         doc.isCollected = isCurrentlyFavorite;
         this.$message.error("操作失败，请重试");
       }
     } catch (error) {
-      // 接口异常时，恢复前端状态
       doc.isCollected = isCurrentlyFavorite;
       console.error("收藏操作失败:", error);
       this.$message.error("操作失败，请重试");
     }
   }
 
-  // 上传更新文档
   uploadDocument(docId: string, docTitle: string) {
     this.uploadModalVisible = true;
     this.currentUploadDocId = docId;
     this.currentUploadDocTitle = docTitle;
   }
 
-  // 处理上传取消
   handleUploadCancel() {
     this.uploadModalVisible = false;
     this.currentUploadDocId = "";
     this.currentUploadDocTitle = "";
   }
 
-  // 处理上传完成
   handleUploadComplete() {
     this.uploadModalVisible = false;
     this.currentUploadDocId = "";
     this.currentUploadDocTitle = "";
   }
 
-  // 处理上传成功
   handleUploadSuccess(data: any) {
-    // 不在这里显示消息，因为组件内部已经处理了
-    // 这里可以刷新文档列表或更新特定文档的信息
     this.loadDocuments();
   }
 
-  // 移除文档
   removeDocument(doc: KnowledgeDataItem) {
     this.$confirm({
       title: "确定要移除文档吗？",
@@ -558,14 +491,11 @@ export default class KnowledgePage extends Vue {
       cancelText: "取消",
       onOk: async () => {
         try {
-          // 调用后端删除接口
           const success = await this.$service.lawyer.deleteRuleSource({
             id: doc.id,
           });
-
           if (success) {
             this.$message.success(`文档"${doc.ruleName}"已移除`);
-            // 添加延迟确保后端数据已更新，然后重新获取数据
             setTimeout(async () => {
               await this.loadDocuments();
             }, 500);
@@ -580,53 +510,77 @@ export default class KnowledgePage extends Vue {
     });
   }
 
-  // 分页变化
   onPageChange(page: number) {
     this.currentPage = page;
     this.onSearch();
   }
 
-  // 每页条数变化
   onShowSizeChange(current, pageSize) {
     this.pageSize = pageSize;
     this.currentPage = 1;
     this.onSearch();
   }
 
-  // 获取标签颜色
   getTagColor(category: string, type: string = "main"): string {
     if (!category) return "blue";
-    // 一级分类使用金黄色，二级分类使用蓝色
     return type === "main" ? "gold" : "blue";
   }
 
-  // 加载文档数据
+  async loadWebsiteOptions() {
+    try {
+      const websiteRatioData = await this.$service.lawyer.getWebSiteRatio();
+      if (websiteRatioData && typeof websiteRatioData === "object") {
+        this.websiteOptions = Object.keys(websiteRatioData).map((key) => ({
+          value: key,
+          label: key,
+        }));
+      }
+    } catch (error) {
+      console.error("加载网站来源数据失败:", error);
+      this.websiteOptions = [];
+    }
+  }
+
   async loadDocuments() {
     this.listLoading = true;
-
     try {
-      // 构建查询参数
-      const params = {
-        condition: this.searchText || "",
-        category: this.filterCategory !== "all" ? this.filterCategory : "",
-        source: this.filterSource !== "all" ? this.filterSource : "",
-        sortOrder: this.sortOrder,
-      };
-
-      // 只有在收藏模式下才传递empId参数
-      if (this.isFavoritesMode) {
-        params.empId = this.$store.state.auth.id;
+      const params: any = {};
+      if (this.searchText) {
+        params.query = this.searchText;
+      }
+      if (this.timeLinessFilter && this.timeLinessFilter !== "all") {
+        params.timeLiness = this.timeLinessFilter;
+      }
+      if (
+        this.effectivenessLevelFilter &&
+        this.effectivenessLevelFilter !== "all"
+      ) {
+        params.effectivenessLevel = this.effectivenessLevelFilter;
+      }
+      if (this.topicCategory && this.topicCategory.length > 0) {
+        params.categoryMain = this.topicCategory[0];
+      }
+      if (this.topicCategory && this.topicCategory.length > 1) {
+        params.categorySub = this.topicCategory[1];
+      }
+      if (this.filterSource && this.filterSource !== "all") {
+        params.legalSource = this.filterSource;
+      }
+      if (this.sortOrder) {
+        params.publishDateSort = this.sortOrder;
       }
 
-      console.log("查询参数:", params);
-
-      // 调用真实API获取数据
-      const result = await this.$service.lawyer.getRuleSourceList(params);
-      console.log("获取到的数据:", result);
+      let result;
+      if (this.isFavoritesMode) {
+        const collectParams = {
+          empId: this.$store.state.auth.id,
+        };
+        result = await this.$service.lawyer.getRuleSourceCollect(collectParams);
+      } else {
+        result = await this.$service.lawyer.getRuleSourceList(params);
+      }
 
       if (result && Array.isArray(result)) {
-        // 后端返回的数据中包含真实的收藏状态(isCollected字段)
-        // 这会覆盖前端临时维护的收藏状态，确保数据一致性
         this.documents = result;
         this.totalDocuments = result.length;
       } else {
@@ -653,11 +607,9 @@ export default class KnowledgePage extends Vue {
 
 <style lang="less">
 .knowledge-page-wrapper {
-  // 整个页面的灰色背景
-
   background-color: var(--lawyer-background);
   padding: 20px;
-  // 整体内容容器 - 主要的白色卡片背景
+
   .lawyer-content-wrapper {
     padding: 20px;
     border-radius: 8px;
@@ -667,20 +619,17 @@ export default class KnowledgePage extends Vue {
     background-color: var(--lawyer-surface);
   }
 
-  // 搜索表单
   .lawyer-search-form {
     display: flex;
     gap: 12px;
     align-items: center;
     margin-bottom: 24px;
 
-    // 搜索输入框
     .lawyer-search-input {
       flex: 1;
       min-width: 300px;
     }
 
-    // 按钮样式
     .lawyer-search-form .ant-btn {
       flex-shrink: 0;
 
@@ -692,7 +641,6 @@ export default class KnowledgePage extends Vue {
     }
   }
 
-  // 筛选选项
   .lawyer-filter-options {
     display: flex;
     gap: 16px;
@@ -705,17 +653,6 @@ export default class KnowledgePage extends Vue {
     }
   }
 
-  // 结果信息
-  .lawyer-results-info {
-    color: var(--lawyer-text-light);
-    margin-bottom: 24px;
-    padding: 12px 16px;
-    border-radius: 4px;
-    border: 1px solid var(--lawyer-border-light);
-    font-weight: 500;
-  }
-
-  // 加载中和无结果状态
   .lawyer-loading-overlay,
   .lawyer-no-results {
     text-align: center;
@@ -733,7 +670,6 @@ export default class KnowledgePage extends Vue {
     }
   }
 
-  // 文档列表
   .lawyer-document-list {
     display: flex;
     flex-direction: column;
@@ -741,7 +677,6 @@ export default class KnowledgePage extends Vue {
     margin-bottom: 32px;
   }
 
-  // 文档项 - 每个文档的独立卡片样式
   .lawyer-document-item {
     padding: 24px;
     border-radius: 8px;
@@ -760,7 +695,6 @@ export default class KnowledgePage extends Vue {
     }
   }
 
-  // 文档图标
   .lawyer-document-icon {
     width: 40px;
     height: 40px;
@@ -774,13 +708,11 @@ export default class KnowledgePage extends Vue {
     flex-shrink: 0;
   }
 
-  // 文档主内容
   .lawyer-document-main-content {
     flex: 1;
     min-width: 0;
   }
 
-  // 文档标题和元数据
   .lawyer-document {
     &-header {
       margin-bottom: 12px;
@@ -856,7 +788,6 @@ export default class KnowledgePage extends Vue {
     }
   }
 
-  // 分页
   .lawyer-pagination {
     display: flex;
     justify-content: center;

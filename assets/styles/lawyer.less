@@ -11,6 +11,7 @@
   --lawyer-warning: #f59e0b;
   --lawyer-danger: #ef4444;
   --lawyer-danger-rgb: 239, 68, 68;
+  --lawyer-upload: #4ecdc4; // 青绿色 - 上传更新按钮
   --lawyer-background: #f3f3f3; // 背景色
   --lawyer-surface: #fff; // 表面色（卡片、面板）
   --lawyer-text: #1e293b; // 主要文本色
@@ -89,6 +90,18 @@
   &:hover {
     background: var(--lawyer-primary-dark);
     border-color: var(--lawyer-primary-dark);
+    color: white;
+  }
+}
+
+.lawyer-btn-upload {
+  background: var(--lawyer-upload);
+  color: white;
+  border-color: var(--lawyer-upload);
+
+  &:hover {
+    background: #45b7aa;
+    border-color: #45b7aa;
     color: white;
   }
 }

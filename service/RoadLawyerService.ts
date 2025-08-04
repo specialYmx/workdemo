@@ -55,19 +55,12 @@ const toFormData = (obj: Record<string, unknown>): FormData => {
 
 export default ($axios: AxiosInstance): RoadLawyerService => ({
   // ==================== 首页统计相关方法 ====================
-  async getCheckComplateList(
+  async getCheckCompleteList(
     params: QueryParams = {}
   ): Promise<CompletedRuleItem[]> {
     try {
-      // 优先使用mock数据
-      const { completeRuleList } = await import("~/mock/index.js");
-      if (completeRuleList?.data && Array.isArray(completeRuleList.data)) {
-        return completeRuleList.data;
-      }
-
-      // 如果mock数据不可用，调用真实API
       const res = await $axios.post(
-        `${api.lawyer.getCheckComplateList}`,
+        `${api.lawyer.getCheckCompleteList}`,
         toFormData(params)
       );
       if (res.data?.data) {
@@ -198,19 +191,6 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
     isRevoke?: boolean;
   }): Promise<KnowledgeDataItem | null> {
     try {
-      // 使用knowledgeDetail mock数据进行测试
-      const { knowledgeDetail } = await import("~/mock/knowledge.js");
-
-      // 查找匹配的文档
-      const document = knowledgeDetail.data.find(
-        (item: KnowledgeDataItem) => item.id === params.searchId
-      );
-
-      if (document) {
-        return document;
-      }
-
-      // 如果mock数据中没有找到，尝试调用真实API
       const res = await $axios.post(
         `${api.lawyer.getRuleSourceDetail}`,
         toFormData(params)
@@ -231,6 +211,17 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
     }
   },
 
+  // 获取法规源列表
+  // 接口参数：
+  // query - 搜索关键词
+  // effectivenessLevel - 时效性（现行有效、已废止、尚未生效、已修订）
+  // timeLiness - 时效性
+  // categoryMain - 主要分类
+  // categorySub - 子分类
+  // publishDateStr - 发布日期字符串
+  // websiteName - 网站名称
+  // publishDateSort - 发布日期排序
+  // empId - 员工ID（用于收藏功能，从store获取）
   async getRuleSourceList(params: QueryParams): Promise<KnowledgeDataItem[]> {
     try {
       const res = await $axios.post(

@@ -198,7 +198,7 @@ export default class DocumentAIChat extends Vue {
       const baseURL = this.$axios.defaults.baseURL;
       const token = this.$store.state.auth.token;
       const userId = this.$store.state.auth.id;
-
+        //   'http://10.14.10.64:2023/roadshow/ai/research/discussion'
       // 使用fetch进行流式请求
       const response = await fetch(
         `http://10.14.10.64:2023/roadshow/ai/research/discussion`,

@@ -48,7 +48,7 @@
                 <span
                   v-for="tag in getUpdateTags(item)"
                   :key="tag.text"
-                  :class="['lawyer-tag', `lawyer-tag-${tag.level}`]"
+                  :class="['lawyer-doc-tag', tag.class]"
                 >
                   {{ tag.text }}
                 </span>
@@ -94,10 +94,10 @@ export default class LatestUpdates extends Vue {
   getUpdateTags(item) {
     const tags = [];
     if (item.categoryMain) {
-      tags.push({ text: item.categoryMain, level: "main" });
+      tags.push({ text: item.categoryMain, class: "lawyer-tag-main" });
     }
     if (item.categorySub) {
-      tags.push({ text: item.categorySub, level: "sub" });
+      tags.push({ text: item.categorySub, class: "lawyer-tag-sub" });
     }
     return tags;
   }
@@ -224,31 +224,31 @@ export default class LatestUpdates extends Vue {
   }
 }
 
-// 标签样式
-.lawyer-tag {
+// 标签样式（保持之前的颜色逻辑，但使用有边框设计）
+.lawyer-doc-tag {
   display: inline-block;
   padding: 4px 12px;
+  border: 1px solid #ddd;
   border-radius: 3px;
+  background-color: #fff;
+  color: var(--lawyer-text-light);
   font-size: 12px;
   font-weight: 400;
+  line-height: 1.2;
   white-space: nowrap;
-  transition: opacity 0.2s ease;
 
-  // 两级分类专用样式
+  // 主要分类 - 蓝色（保持之前的颜色）
   &.lawyer-tag-main {
-    background: rgba(24, 144, 255, 0.1);
+    border-color: #1890ff;
     color: #1890ff;
-    border: none;
+    background-color: rgba(24, 144, 255, 0.1);
   }
 
+  // 子分类 - 橙色（保持之前的颜色）
   &.lawyer-tag-sub {
-    background: rgba(245, 158, 11, 0.1);
+    border-color: #fa8c16;
     color: #fa8c16;
-    border: none;
-  }
-
-  &:hover {
-    opacity: 0.8;
+    background-color: rgba(250, 140, 22, 0.1);
   }
 }
 </style>

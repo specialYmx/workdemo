@@ -114,20 +114,20 @@ export default class IndexPage extends Vue {
 
   // 生命周期钩子
   async mounted() {
-    // 加载所有数据
+    // 按顺序加载所有数据
     try {
-      await Promise.all([
-        // 加载图表数据
-        this.loadTrendChartData(),
-        this.loadSourcesChartData(),
-        // 加载列表数据
-        this.loadRecentReviews(),
-        this.loadTopReviews(),
-        this.loadLatestUpdates(),
-        // 加载统计数据
-        this.loadPendingReviewCount(),
-        this.loadMonthlyUpdateCount(),
-      ]);
+      // 加载图表数据
+      await this.loadTrendChartData();
+      await this.loadSourcesChartData();
+
+      // 加载列表数据
+      await this.loadRecentReviews();
+      await this.loadTopReviews();
+      await this.loadLatestUpdates();
+
+      // 加载统计数据
+      await this.loadPendingReviewCount();
+      await this.loadMonthlyUpdateCount();
     } catch (error) {
       console.error("加载数据失败:", error);
     }
@@ -149,51 +149,74 @@ export default class IndexPage extends Vue {
   async loadTrendChartData() {
     this.chartLoading.trend = true;
     try {
-      // 尝试调用真实API获取数据
-      try {
-        const updateTimelinessData =
-          await this.$service.lawyer.getUpdateTimeLinessCount({
-            condition: this.trendChartPeriod,
-          });
-        console.log("趋势图数据:", updateTimelinessData);
+      // 调用真实API获取数据
+      const updateTimelinessData =
+        await this.$service.lawyer.getUpdateTimeLinessCount({
+          condition: this.trendChartPeriod,
+        });
+      console.log("趋势图数据:", updateTimelinessData);
 
-        // 如果API返回有效数据，使用API数据；否则使用模拟数据
-        if (updateTimelinessData && typeof updateTimelinessData === "object") {
-          // TODO: 根据实际API返回的数据结构来解析
-          // 这里先使用模拟数据，等API调试完成后再更新
+      // 根据真实API返回的数据结构来解析
+      if (updateTimelinessData && typeof updateTimelinessData === "object") {
+        // 根据模拟数据结构，API返回格式为：
+        // { modify: [数组], public: [数组], revoke: [数组] }
+        const {
+          modify = [],
+          public: publicData = [],
+          revoke = [],
+        } = updateTimelinessData;
+
+        // 生成X轴数据（根据数组长度动态生成）
+        const dataLength = Math.max(
+          modify.length,
+          publicData.length,
+          revoke.length
+        );
+        const xAxisData = [];
+
+        // 根据周期生成不同的X轴标签
+        if (this.trendChartPeriod === "month") {
+          // 按日显示
+          for (let i = 1; i <= dataLength; i++) {
+            xAxisData.push(`${i}日`);
+          }
+        } else if (this.trendChartPeriod === "quarter") {
+          // 按周显示
+          for (let i = 1; i <= dataLength; i++) {
+            xAxisData.push(`第${i}周`);
+          }
+        } else if (this.trendChartPeriod === "year") {
+          // 按月显示
+          for (let i = 1; i <= dataLength; i++) {
+            xAxisData.push(`${i}月`);
+          }
         }
-      } catch (apiError) {
-        console.error("调用趋势图API失败:", apiError);
-      }
 
-      // 使用模拟数据
-      const xAxisData = ["1日", "2日", "3日", "4日", "5日", "6日", "7日"];
-
-      // 根据周期设置不同的数据
-      let seriesData = [
-        [3, 5, 2, 6, 5, 7, 4], // 新发布
-        [3, 3, 5, 4, 4, 3, 3], // 修订
-        [0, 2, 2, 1, 0, 2, 0], // 废止
-      ];
-
-      // 根据周期调整数据
-      if (this.trendChartPeriod === "quarter") {
-        seriesData = [
-          [5, 7, 3, 8, 6, 9, 5],
-          [4, 5, 6, 5, 6, 4, 5],
-          [1, 2, 3, 1, 1, 2, 1],
+        // 构建图表数据，按照 [新发布, 修订, 废止] 的顺序
+        const seriesData = [
+          publicData, // 新发布
+          modify, // 修订
+          revoke, // 废止
         ];
-      } else if (this.trendChartPeriod === "year") {
-        seriesData = [
-          [8, 10, 6, 12, 9, 15, 7],
-          [7, 8, 9, 8, 9, 7, 8],
-          [2, 3, 4, 2, 2, 3, 1],
-        ];
-      }
 
+        this.chartData.trend = {
+          xAxis: { data: xAxisData },
+          series: seriesData.map((data) => ({ data })),
+        };
+      } else {
+        // API返回数据无效时，设置空数据
+        console.warn("趋势图API返回数据无效，设置空数据");
+        this.chartData.trend = {
+          xAxis: { data: [] },
+          series: [{ data: [] }, { data: [] }, { data: [] }],
+        };
+      }
+    } catch (error) {
+      console.error("调用趋势图API失败:", error);
+      // API调用失败时，设置空数据
       this.chartData.trend = {
-        xAxis: { data: xAxisData },
-        series: seriesData.map((data) => ({ data })),
+        xAxis: { data: [] },
+        series: [{ data: [] }, { data: [] }, { data: [] }],
       };
     } finally {
       this.chartLoading.trend = false;
@@ -293,7 +316,7 @@ export default class IndexPage extends Vue {
   async loadRecentReviews() {
     this.listLoading.recentReviews = true;
     try {
-      const data = await this.$service.lawyer.getCheckComplateList();
+      const data = await this.$service.lawyer.getCheckCompleteList();
       // 前端取前5条数据
       this.recentReviews = Array.isArray(data) ? data.slice(0, 5) : [];
     } catch (error) {
@@ -376,11 +399,14 @@ export default class IndexPage extends Vue {
   // 审核操作方法
   viewReviewDetail(record) {
     this.$message.info(`查看详情: ${record.ruleName || record.title}`);
-    // 实际项目中可能会跳转到文档比较页面
-    // this.$router.push({
-    //   path: "/document-compare",
-    //   query: { id: record.id }
-    // });
+    // 跳转到文档比较页面
+    this.$router.push({
+      path: "/document-compare",
+      query: {
+        id: record.id,
+        pageTitle: record.ruleName || record.title,
+      },
+    });
   }
 
   // 审核通过

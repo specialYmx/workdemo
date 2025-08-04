@@ -227,7 +227,7 @@ export default class UpdatesPage extends Vue {
         title: item.ruleName || "未知标题",
         description,
         date: item.createdTimeStr || item.publishDateStr || "未知时间",
-        source: item.websiteName || "未知来源",
+        source: item.legalSource || "未知来源",
         category: item.categoryMain || "其他",
         type,
         tags,

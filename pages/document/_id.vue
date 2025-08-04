@@ -189,7 +189,7 @@ export default class DocumentPage extends Vue {
           title: result.ruleName,
           date: result.publishDateStr || result.createdTimeStr,
           effectiveDate: result.effectDateStr || "暂无",
-          publisher: result.websiteName,
+          publisher: result.legalSource,
           fileNumber: result.docNo || "暂无",
           status: result.timeLiness || "未知",
           views: result.readCount,

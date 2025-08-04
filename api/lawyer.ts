@@ -1,6 +1,6 @@
 export default {
   // ==================== 首页统计相关接口 (rule-statistic-controller) ====================
-  getCheckComplateList: "/rule/getCheckComplateList", // 获取检查完成列表
+  getCheckCompleteList: "/rule/getCheckCompleteList", // 获取检查完成列表
   getUpdateCount: "/rule/getUpdateCount", // 获取更新数量 参数：condition : month|quarter|year
   getUpdateTimeLinessCount: "/rule/getUpdateTimeLinessCount", // 获取更新及时性统计 参数：condition : month|quarter|year
   getWebSiteRatio: "/rule/getWebSiteRatio", // 获取网站比例统计
