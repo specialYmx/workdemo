@@ -393,7 +393,7 @@ export default class FileUploadModal extends Vue {
         fileSize: this.selectedFile.size,
       });
 
-      // 模拟上传进度
+      // 上传进度处理
       const progressInterval = setInterval(() => {
         if (this.uploadProgress < 90) {
           this.uploadProgress += 10;
@@ -401,7 +401,7 @@ export default class FileUploadModal extends Vue {
       }, 200);
 
       // 调用真实的后端接口
-      const success = await this.$service.lawyer.uploadRuleSource({
+      const success = await this.$roadLawyerService.uploadRuleSource({
         id: this.documentId,
         file: this.selectedFile,
       });

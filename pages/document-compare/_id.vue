@@ -50,7 +50,7 @@ export default class DocumentComparePage extends Vue {
 
     // 处理审核逻辑
     // 调用API
-    this.$service.lawyer
+    this.$roadLawyerService
       .approveToDoRule({
         id: this.documentData.id,
         approvalComment: action === "approve" ? "已通过" : "已驳回",
@@ -352,8 +352,8 @@ export default class DocumentComparePage extends Vue {
 
     try {
       // 调用接口获取文档详情
-      const result = await this.$service.lawyer.getToDoRuleDetail({
-        id: "1",
+      const result = await this.$roadLawyerService.getToDoRuleDetail({
+        id: docId,
       });
       console.log("文档详情数据:", result);
 

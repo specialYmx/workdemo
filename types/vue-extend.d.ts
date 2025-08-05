@@ -22,9 +22,7 @@ declare module "vue/types/vue" {
     $error: any;
     $warning: any;
     $modal: any;
-    $service: {
-      lawyer: RoadLawyerService;
-    };
+    $roadLawyerService: RoadLawyerService;
   }
 }
 
@@ -32,7 +30,7 @@ declare module "vue/types/vue" {
 declare module "@nuxt/types" {
   interface Context {
     $message: Vue["$message"];
-    $service: Vue["$service"];
+    $roadLawyerService: Vue["$roadLawyerService"];
   }
 }
 

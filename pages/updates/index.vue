@@ -168,7 +168,7 @@ export default class UpdatesPage extends Vue {
       console.log("查询参数:", params);
 
       // 调用真实API获取数据
-      const result = await this.$service.lawyer.getRuleUpdateList(params);
+      const result = await this.$roadLawyerService.getRuleUpdateList(params);
       console.log("获取到的数据:", result);
 
       if (result && Array.isArray(result)) {
@@ -275,7 +275,7 @@ export default class UpdatesPage extends Vue {
     try {
       this.$message.loading(`正在准备下载: ${title}`, 0);
 
-      const result = await this.$service.lawyer.downloadRuleFile({
+      const result = await this.$roadLawyerService.downloadRuleFile({
         searchId: id,
       });
 

@@ -151,14 +151,14 @@ export default class IndexPage extends Vue {
     try {
       // 调用真实API获取数据
       const updateTimelinessData =
-        await this.$service.lawyer.getUpdateTimeLinessCount({
+        await this.$roadLawyerService.getUpdateTimeLinessCount({
           condition: this.trendChartPeriod,
         });
       console.log("趋势图数据:", updateTimelinessData);
 
       // 根据真实API返回的数据结构来解析
       if (updateTimelinessData && typeof updateTimelinessData === "object") {
-        // 根据模拟数据结构，API返回格式为：
+        // 根据API返回格式为：
         // { modify: [数组], public: [数组], revoke: [数组] }
         const {
           modify = [],
@@ -231,7 +231,7 @@ export default class IndexPage extends Vue {
 
     try {
       // 调用真实API获取数据
-      const websiteRatioData = await this.$service.lawyer.getWebSiteRatio();
+      const websiteRatioData = await this.$roadLawyerService.getWebSiteRatio();
       console.log("网站比例数据:", websiteRatioData);
 
       // 定义颜色映射
@@ -317,7 +317,7 @@ export default class IndexPage extends Vue {
   async loadRecentReviews() {
     this.listLoading.recentReviews = true;
     try {
-      const data = await this.$service.lawyer.getCheckCompleteList();
+      const data = await this.$roadLawyerService.getCheckCompleteList();
       // 前端取前5条数据
       this.recentReviews = Array.isArray(data) ? data.slice(0, 5) : [];
     } catch (error) {
@@ -332,7 +332,7 @@ export default class IndexPage extends Vue {
   async loadTopReviews() {
     this.listLoading.topReviews = true;
     try {
-      const data = await this.$service.lawyer.getCheckRuleList();
+      const data = await this.$roadLawyerService.getCheckRuleList();
       // 前端取前5条数据
       this.topReviews = Array.isArray(data)
         ? data.slice(0, 5)
@@ -352,7 +352,7 @@ export default class IndexPage extends Vue {
       const params = {
         empId: this.$store.state.auth.id,
       };
-      const data = await this.$service.lawyer.getRuleSourceList(params);
+      const data = await this.$roadLawyerService.getRuleSourceList(params);
       // 前端取前5条数据
       this.latestUpdates = Array.isArray(data) ? data.slice(0, 5) : [];
     } catch (error) {
@@ -366,7 +366,7 @@ export default class IndexPage extends Vue {
   // 加载待审核统计数据
   async loadPendingReviewCount() {
     try {
-      const data = await this.$service.lawyer.getCheckRuleList();
+      const data = await this.$roadLawyerService.getCheckRuleList();
       // 获取数组长度作为统计数据
       this.pendingReviewCount = Array.isArray(data)
         ? data.length
@@ -380,7 +380,7 @@ export default class IndexPage extends Vue {
   // 加载法规更新数量（根据当前选中的时间范围）
   async loadMonthlyUpdateCount() {
     try {
-      const data = await this.$service.lawyer.getUpdateCount({
+      const data = await this.$roadLawyerService.getUpdateCount({
         condition: this.activeTimeRange, // 使用当前选中的时间范围
       });
       // 根据您说的数据格式：res.data.data，类型是number
@@ -446,7 +446,7 @@ export default class IndexPage extends Vue {
       console.log("开始审核操作:", { recordId: record.id, action });
 
       // 调用统一的审核接口 - service层已处理所有错误情况
-      await this.$service.lawyer.approveToDoRule({
+      await this.$roadLawyerService.approveToDoRule({
         id: record.id,
         approvalComment: action === "approve" ? "已通过" : "已驳回",
       });
@@ -473,7 +473,7 @@ export default class IndexPage extends Vue {
 
       // 根据当前选择的时间范围导出
       const condition = this.activeTimeRange;
-      const result = await this.$service.lawyer.exportStatisticExcel({
+      const result = await this.$roadLawyerService.exportStatisticExcel({
         condition,
       });
 

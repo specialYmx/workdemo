@@ -414,7 +414,7 @@ export default class DbPage extends Vue {
       console.log("查询参数:", params);
 
       // 调用真实API获取数据
-      const result = await this.$service.lawyer.getCheckRuleList(params);
+      const result = await this.$roadLawyerService.getCheckRuleList(params);
       if (result && result.length > 0) {
         this.documents = result;
       } else {
@@ -656,7 +656,7 @@ export default class DbPage extends Vue {
   async submitReview(action: string): Promise<void> {
     try {
       // 调用统一的审核接口，通过approvalComment传递状态
-      await this.$service.lawyer.approveToDoRule({
+      await this.$roadLawyerService.approveToDoRule({
         id: this.currentDocument?.id,
         approvalComment: action === "approve" ? "已通过" : "已驳回",
       });
@@ -711,7 +711,7 @@ export default class DbPage extends Vue {
 
     try {
       // 使用真实的API调用，传入选中的ids数组
-      const result = await this.$service.lawyer.exportExcel({
+      const result = await this.$roadLawyerService.exportExcel({
         ids: this.selectedRowKeys,
       });
 

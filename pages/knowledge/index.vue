@@ -403,7 +403,7 @@ export default class KnowledgePage extends Vue {
     try {
       this.$message.loading(`正在准备下载: ${doc.ruleName}`, 0);
 
-      const result = await this.$service.lawyer.downloadRuleFile({
+      const result = await this.$roadLawyerService.downloadRuleFile({
         searchId: doc.id,
       });
 
@@ -434,7 +434,7 @@ export default class KnowledgePage extends Vue {
       };
       console.log("🚀 ~  ~ collectDocument ~ params:", params);
 
-      const success = await this.$service.lawyer.saveOrCancelCollect(params);
+      const success = await this.$roadLawyerService.saveOrCancelCollect(params);
 
       if (success) {
         if (newCollectStatus) {
@@ -492,7 +492,7 @@ export default class KnowledgePage extends Vue {
       cancelText: "取消",
       onOk: async () => {
         try {
-          const success = await this.$service.lawyer.deleteRuleSource({
+          const success = await this.$roadLawyerService.deleteRuleSource({
             id: doc.id,
           });
           if (success) {
@@ -529,7 +529,7 @@ export default class KnowledgePage extends Vue {
 
   async loadWebsiteOptions() {
     try {
-      const websiteRatioData = await this.$service.lawyer.getWebSiteRatio();
+      const websiteRatioData = await this.$roadLawyerService.getWebSiteRatio();
       if (websiteRatioData && typeof websiteRatioData === "object") {
         this.websiteOptions = Object.keys(websiteRatioData).map((key) => ({
           value: key,
@@ -579,9 +579,11 @@ export default class KnowledgePage extends Vue {
         const collectParams = {
           empId: this.$store.state.auth.id,
         };
-        result = await this.$service.lawyer.getRuleSourceCollect(collectParams);
+        result = await this.$roadLawyerService.getRuleSourceCollect(
+          collectParams
+        );
       } else {
-        result = await this.$service.lawyer.getRuleSourceList(params);
+        result = await this.$roadLawyerService.getRuleSourceList(params);
       }
 
       if (result && Array.isArray(result)) {

@@ -1,31 +1,5 @@
 <template>
   <div class="document-page-wrapper">
-    <!-- 调试信息 -->
-    <div
-      v-if="$route.query.debug"
-      style="
-        background: #f0f0f0;
-        padding: 10px;
-        margin: 10px;
-        border-radius: 4px;
-      "
-    >
-      <h3>调试信息</h3>
-      <p><strong>Document Title:</strong> {{ document.title }}</p>
-      <p>
-        <strong>Content Length:</strong>
-        {{ document.content ? document.content.length : 0 }}
-      </p>
-      <p>
-        <strong>Content Preview:</strong>
-        {{
-          document.content
-            ? document.content.substring(0, 100) + "..."
-            : "No content"
-        }}
-      </p>
-    </div>
-
     <document-viewer
       :document="document"
       :relatedDocuments="relatedDocuments"
@@ -111,7 +85,7 @@ export default class DocumentPage extends Vue {
 
     this.loading = true;
     try {
-      const result = await this.$service.lawyer.getRuleSourceDetail({
+      const result = await this.$roadLawyerService.getRuleSourceDetail({
         searchId: docId,
         isRevoke: this.isRevoke,
       });

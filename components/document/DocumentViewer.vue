@@ -233,7 +233,7 @@ export default class DocumentViewer extends Vue {
       if (this.tempIsRevoke) {
         this.$message.loading("正在更新文档状态...", 0);
 
-        await this.$service.lawyer.getRuleSourceDetail({
+        await this.$roadLawyerService.getRuleSourceDetail({
           searchId: this.document.id,
           isRevoke: "已废止",
         });
@@ -310,7 +310,7 @@ export default class DocumentViewer extends Vue {
     try {
       this.$message.loading(`正在准备下载: ${this.document.title}`, 0);
 
-      const result = await this.$service.lawyer.downloadRuleFile({
+      const result = await this.$roadLawyerService.downloadRuleFile({
         searchId: this.document.id,
       });
 
