@@ -34,7 +34,7 @@
           </div>
 
           <!-- 加载指示器 -->
-          <div v-if="aiLoading" class="ai-loading-indicator">
+          <div v-if="showThinking" class="ai-loading-indicator">
             <a-spin size="small" />
             <span class="loading-text">AI正在思考中</span>
           </div>
@@ -130,6 +130,7 @@ export default class DocumentAIChat extends Vue {
   aiLoading = false;
   aiMessages: AiMessage[] = [];
   enableNetworkQuery = false;
+  showThinking = false; // 控制"AI正在思考中"提示的显示
 
   // 流式请求控制器
   private abortController: AbortController | null = null;
@@ -176,6 +177,7 @@ export default class DocumentAIChat extends Vue {
       this.abortController.abort();
       this.abortController = null;
       this.aiLoading = false;
+      this.showThinking = false;
     }
   }
 
@@ -184,6 +186,12 @@ export default class DocumentAIChat extends Vue {
     if (!question.trim() || this.aiLoading) return;
 
     try {
+      // 取消之前的请求
+      this.cancelCurrentRequest();
+
+      // 创建新的请求控制器
+      this.abortController = new AbortController();
+
       // 添加用户问题到消息列表
       this.addUserMessage(question);
 
@@ -192,21 +200,8 @@ export default class DocumentAIChat extends Vue {
 
       // 设置加载状态
       this.aiLoading = true;
-
-      // 准备请求参数
-      //   const params = {
-      //     searchId: this.document.id,
-      //     userId: this.$store.state.auth.id,
-      //     question: question,
-      //     enableNetworkQuery: this.enableNetworkQuery
-      //   };
-      const params = {
-        enableNetworkQuery: false,
-        question: "总结下文章要点",
-        reportId: "6350789",
-        userId: "DJ101015",
-      };
-       // 准备请求参数 - 使用 FormData 格式
+      this.showThinking = true;
+      // 准备请求参数 - 使用 FormData 格式
       const formData = new FormData();
       formData.append("searchId", this.document.id);
       formData.append("userId", this.$store.state.auth.id);
@@ -217,17 +212,17 @@ export default class DocumentAIChat extends Vue {
       const token = this.$store.state.auth.token;
       const userId = this.$store.state.auth.id;
 
-    // 使用fetch进行流式请求
-        const response = await fetch(`${baseURL}${api.lawyer.getAIRobotAnswer}`, {
-          method: "POST",
-          headers: {
-            userId: userId,
-            Authorization: "Bearer " + token,
-            // 注意：使用 FormData 时不要设置 Content-Type，让浏览器自动设置
-          },
-          body: formData,
-          signal: this.abortController?.signal, // 添加取消信号
-        });
+      // 使用fetch进行流式请求
+      const response = await fetch(`${baseURL}${api.lawyer.getAIRobotAnswer}`, {
+        method: "POST",
+        headers: {
+          userId: userId,
+          Authorization: "Bearer " + token,
+          // 注意：使用 FormData 时不要设置 Content-Type，让浏览器自动设置
+        },
+        body: formData,
+        signal: this.abortController?.signal, // 添加取消信号
+      });
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -240,6 +235,12 @@ export default class DocumentAIChat extends Vue {
       // 处理流式数据
       await this.processStreamResponse(response, aiMessage);
     } catch (error) {
+      // 检查是否是用户主动取消的请求
+      if (error.name === "AbortError") {
+        console.log("AI请求已被用户取消");
+        return; // 用户主动取消，不显示错误信息
+      }
+
       console.error("AI问答请求失败:", error);
       this.$message.error("AI问答服务暂时不可用，请稍后重试");
 
@@ -250,6 +251,8 @@ export default class DocumentAIChat extends Vue {
       });
     } finally {
       this.aiLoading = false;
+      this.showThinking = false;
+      this.abortController = null; // 清理控制器
       this.scrollToBottom();
     }
   }
@@ -266,9 +269,15 @@ export default class DocumentAIChat extends Vue {
 
     const decoder = new TextDecoder();
     let buffer = "";
+    let isFirstContent = true; // 标记是否是第一次接收到内容
 
     try {
       while (true) {
+        // 检查是否已被取消
+        if (this.abortController?.signal.aborted) {
+          throw new DOMException("Request was aborted", "AbortError");
+        }
+
         const { done, value } = await reader.read();
 
         if (done) break;
@@ -284,6 +293,13 @@ export default class DocumentAIChat extends Vue {
         for (const line of lines) {
           if (line.trim().startsWith("data:")) {
             const content = line.substring(5); // 移除 "data:" 前缀
+
+            // 第一次接收到内容时，隐藏"AI正在思考中"提示
+            if (isFirstContent && content.trim()) {
+              this.showThinking = false;
+              isFirstContent = false;
+            }
+
             aiMessage.content += content;
 
             // 强制更新视图
@@ -457,7 +473,7 @@ export default class DocumentAIChat extends Vue {
     flex: 1;
     display: flex;
     flex-direction: column;
-    max-height: 99%;
+    max-height: 98%;
   }
 
   // 输入框区域
@@ -589,6 +605,7 @@ export default class DocumentAIChat extends Vue {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    padding-bottom: 10px;
     &:empty::before {
       content: "暂无对话记录，请开始提问...";
       color: #bfbfbf;
