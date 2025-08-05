@@ -181,9 +181,10 @@ export default class IndexPage extends Vue {
             xAxisData.push(`${i}日`);
           }
         } else if (this.trendChartPeriod === "quarter") {
-          // 按周显示
-          for (let i = 1; i <= dataLength; i++) {
-            xAxisData.push(`第${i}周`);
+          // 按季度显示
+          const quarterLabels = ["Q1", "Q2", "Q3", "Q4"];
+          for (let i = 0; i < Math.min(dataLength, 4); i++) {
+            xAxisData.push(quarterLabels[i]);
           }
         } else if (this.trendChartPeriod === "year") {
           // 按月显示
@@ -348,7 +349,10 @@ export default class IndexPage extends Vue {
   async loadLatestUpdates() {
     this.listLoading.latestUpdates = true;
     try {
-      const data = await this.$service.lawyer.getRuleSourceList();
+      const params = {
+        empId: this.$store.state.auth.id,
+      };
+      const data = await this.$service.lawyer.getRuleSourceList(params);
       // 前端取前5条数据
       this.latestUpdates = Array.isArray(data) ? data.slice(0, 5) : [];
     } catch (error) {

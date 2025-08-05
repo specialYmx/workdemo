@@ -10,7 +10,12 @@
     </template>
 
     <a-spin :spinning="loading">
-      <div class="lawyer-updates-list">
+      <!-- 暂无数据状态 -->
+      <div v-if="!loading && updates.length === 0" class="lawyer-empty-state">
+        <a-empty description="暂无最新更新" />
+      </div>
+
+      <div class="lawyer-updates-list" v-else>
         <div
           v-for="(item, index) in updates"
           :key="index"
@@ -250,5 +255,11 @@ export default class LatestUpdates extends Vue {
     color: #fa8c16;
     background-color: rgba(250, 140, 22, 0.1);
   }
+}
+
+/* 空状态样式 */
+.lawyer-empty-state {
+  padding: 40px 20px;
+  text-align: center;
 }
 </style>

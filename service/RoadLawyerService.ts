@@ -21,7 +21,8 @@ const toFormData = (obj: Record<string, unknown>): FormData => {
   if (obj && typeof obj === "object") {
     Object.keys(obj).forEach((key) => {
       const value = obj[key];
-      if (value) {
+      // 修复：正确处理布尔值false，只排除null和undefined
+      if (value !== null && value !== undefined) {
         if (Array.isArray(value)) {
           // 处理数组参数
           value.forEach((item, index) => {

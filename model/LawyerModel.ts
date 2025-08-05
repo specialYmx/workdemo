@@ -48,8 +48,9 @@ export interface DownloadFileParams {
  * 收藏操作参数
  */
 export interface CollectParams {
-  id: string;
-  action: "save" | "cancel";
+  searchId: string;
+  empId: string;
+  isCollect: boolean;
   [key: string]: string | number | boolean;
 }
 
@@ -169,7 +170,7 @@ export interface KnowledgeDataItem {
   createdTimestamp: number;
   topicCategory: string | null;
   updateTime: string | null;
-  isCollected?: boolean; // 收藏状态字段
+  isCollect?: boolean; // 收藏状态字段
   publishDateStr: string;
   docNo: string | null;
   url: string | null;

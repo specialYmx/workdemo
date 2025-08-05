@@ -10,7 +10,7 @@ export default {
   // ==================== 大家智库相关接口 (rule-source-controller) ====================
   deleteRuleSource: "/rule/deleteRuleSource", // 删除法规资源
   downloadRuleFile: "/rule/download", // 下载法规文件
-  getRuleSourceCollect: "/rule/getRuleSourceCollect", // 获取法规收藏
+  getRuleSourceCollect: "/rule/getMyCollectionList", // 获取法规收藏
   getRuleSourceDetail: "/rule/getRuleSourceDetail", // 获取法规详情
   getRuleSourceList: "/rule/getRuleSourceList", // 大家智库-列表页
   getRuleUpdateList: "/rule/getRuleUpdateList", // 智库更新-列表页
@@ -18,7 +18,7 @@ export default {
   saveOrCancelCollect: "/rule/saveOrCancelCollect", // 保存或取消收藏
   updateTimeLinessSchedule: "/rule/updateTimeLinessSchedule", // 更新及时性调度
   uploadRuleSource: "/rule/uploadRuleSource", // 大家智库-上传更新
-  //getAIRobotAnswer: "/rule/getAIRobotAnswer", // 大家智库-AI问答  searchId文件id  userId用户的empid默认从store的id取 question输入问题  enableNetworkQuery是否联网搜索(可选参数)
+  getAIRobotAnswer: "/rule/getAIRobotAnswer", // 大家智库-AI问答  searchId文件id  userId用户的empid默认从store的id取 question输入问题  enableNetworkQuery是否联网搜索(可选参数)
 
   // ==================== 人工审核相关接口 (rule-to-do-controller) ====================
   approveToDoRule: "/rule/approveToDoRule", // 审核接口（通过approvalComment传递状态）

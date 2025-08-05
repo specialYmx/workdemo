@@ -22,10 +22,13 @@
                 {{ msg.content }}
               </div>
               <div v-else-if="msg.isWelcome" class="ai-response">
-                <p>{{ msg.content }}</p>
+                <p>{{ getMessageContent(msg.content) }}</p>
               </div>
               <div v-else class="ai-response lawyer-markdown-content">
-                <v-md-preview :text="msg.content" />
+                <v-md-preview
+                  :text="getMessageContent(msg.content)"
+                  @error="handleMarkdownError"
+                />
               </div>
             </div>
           </div>
@@ -133,12 +136,27 @@ export default class DocumentAIChat extends Vue {
 
   // 组件挂载时初始化欢迎消息
   mounted() {
-    this.initWelcomeMessage();
+    try {
+      this.initWelcomeMessage();
+    } catch (error) {
+      console.error("初始化欢迎消息时出错:", error);
+    }
   }
 
   // 组件销毁时清理资源
   beforeDestroy() {
-    this.cancelCurrentRequest();
+    try {
+      this.cancelCurrentRequest();
+    } catch (error) {
+      console.error("清理资源时出错:", error);
+    }
+  }
+
+  // 错误处理方法
+  errorCaptured(err: Error, vm: Vue, info: string) {
+    console.error("组件捕获到错误:", err, info);
+    // 防止错误向上传播导致整个应用崩溃
+    return false;
   }
 
   // 初始化欢迎消息
@@ -166,12 +184,6 @@ export default class DocumentAIChat extends Vue {
     if (!question.trim() || this.aiLoading) return;
 
     try {
-      // 取消之前的请求
-      this.cancelCurrentRequest();
-
-      // 创建新的请求控制器
-      this.abortController = new AbortController();
-
       // 添加用户问题到消息列表
       this.addUserMessage(question);
 
@@ -194,65 +206,40 @@ export default class DocumentAIChat extends Vue {
         reportId: "6350789",
         userId: "DJ101015",
       };
+       // 准备请求参数 - 使用 FormData 格式
+      const formData = new FormData();
+      formData.append("searchId", this.document.id);
+      formData.append("userId", this.$store.state.auth.id);
+      formData.append("question", question);
+      formData.append("enableNetworkQuery", this.enableNetworkQuery.toString());
       // 获取基础URL和token
       const baseURL = this.$axios.defaults.baseURL;
       const token = this.$store.state.auth.token;
       const userId = this.$store.state.auth.id;
-        //   'http://10.14.10.64:2023/roadshow/ai/research/discussion'
-      // 使用fetch进行流式请求
-      const response = await fetch(
-        `http://10.14.10.64:2023/roadshow/ai/research/discussion`,
-        {
+
+    // 使用fetch进行流式请求
+        const response = await fetch(`${baseURL}${api.lawyer.getAIRobotAnswer}`, {
           method: "POST",
           headers: {
             userId: userId,
             Authorization: "Bearer " + token,
-            "Content-Type": "application/json",
+            // 注意：使用 FormData 时不要设置 Content-Type，让浏览器自动设置
           },
-          body: JSON.stringify(params),
+          body: formData,
           signal: this.abortController?.signal, // 添加取消信号
-        }
-      );
+        });
 
-      console.log("🚀 ~ DocumentAIChat ~ askAi ~ response:", response);
-
-      // 先尝试解析响应体检查业务状态码
-      try {
-        const result = await response.clone().json();
-        console.log("🚀 ~ DocumentAIChat ~ askAi ~ result:", result);
-
-        // 检查业务状态码，如果不是 200 说明业务失败
-        if (result.status && result.status !== 200) {
-          throw new Error(result.message || "业务处理失败");
-        }
-
-        // 如果有数据，直接返回结果
-        if (result.data) {
-          this.aiMessages.push({
-            content: result.data,
-            isUser: false,
-          });
-          return;
-        }
-
-        // 如果解析成功但没有数据，继续流式处理
-        console.log("JSON解析成功但无数据，继续流式处理");
-      } catch (jsonError) {
-        // JSON 解析失败，说明接口返回格式有问题
-        console.error("JSON解析失败:", jsonError);
-        console.log("响应内容可能不是有效的JSON格式，接口可能有问题");
-        throw new Error("服务器响应格式异常，请稍后重试");
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
+
+      // 创建AI消息对象
+      const aiMessage: AiMessage = { content: "", isUser: false };
+      this.aiMessages.push(aiMessage);
 
       // 处理流式数据
-      await this.processStreamResponse(response);
+      await this.processStreamResponse(response, aiMessage);
     } catch (error) {
-      // 检查是否是用户主动取消的请求
-      if (error.name === "AbortError") {
-        console.log("AI请求已被用户取消");
-        return; // 用户主动取消，不显示错误信息
-      }
-
       console.error("AI问答请求失败:", error);
       this.$message.error("AI问答服务暂时不可用，请稍后重试");
 
@@ -263,13 +250,15 @@ export default class DocumentAIChat extends Vue {
       });
     } finally {
       this.aiLoading = false;
-      this.abortController = null; // 清理控制器
       this.scrollToBottom();
     }
   }
 
   // 处理流式响应
-  async processStreamResponse(response: Response): Promise<void> {
+  async processStreamResponse(
+    response: Response,
+    aiMessage: AiMessage
+  ): Promise<void> {
     const reader = response.body?.getReader();
     if (!reader) {
       throw new Error("无法读取响应流");
@@ -277,16 +266,9 @@ export default class DocumentAIChat extends Vue {
 
     const decoder = new TextDecoder();
     let buffer = "";
-    let aiMessage: AiMessage | null = null;
-    let isFirstContent = true; // 标记是否是第一次接收到内容
 
     try {
       while (true) {
-        // 检查是否已被取消
-        if (this.abortController?.signal.aborted) {
-          throw new DOMException("Request was aborted", "AbortError");
-        }
-
         const { done, value } = await reader.read();
 
         if (done) break;
@@ -302,30 +284,15 @@ export default class DocumentAIChat extends Vue {
         for (const line of lines) {
           if (line.trim().startsWith("data:")) {
             const content = line.substring(5); // 移除 "data:" 前缀
+            aiMessage.content += content;
 
-            // 只有在有实际内容时才创建AI消息
-            if (content.trim() && !aiMessage) {
-              aiMessage = { content: "", isUser: false };
-              this.aiMessages.push(aiMessage);
-            }
+            // 强制更新视图
+            this.$forceUpdate();
 
-            if (aiMessage && content.trim()) {
-              // 第一次接收到内容时，隐藏加载提示
-              if (isFirstContent) {
-                this.aiLoading = false;
-                isFirstContent = false;
-              }
-
-              aiMessage.content += content;
-
-              // 使用 Vue.set 确保响应式更新
-              this.$set(this.aiMessages, this.aiMessages.length - 1, aiMessage);
-
-              // 滚动到底部
-              this.$nextTick(() => {
-                this.scrollToBottom();
-              });
-            }
+            // 滚动到底部
+            this.$nextTick(() => {
+              this.scrollToBottom();
+            });
           }
         }
       }
@@ -336,21 +303,29 @@ export default class DocumentAIChat extends Vue {
 
   // 添加用户消息
   addUserMessage(content: string): void {
-    this.aiMessages.push({
-      content,
-      isUser: true,
-    });
-    this.scrollToBottom();
+    try {
+      this.aiMessages.push({
+        content: this.getMessageContent(content),
+        isUser: true,
+      });
+      this.scrollToBottom();
+    } catch (error) {
+      console.error("添加用户消息时出错:", error);
+    }
   }
 
   // 滚动到底部
   scrollToBottom(): void {
-    this.$nextTick(() => {
-      const aiMessagesEl = this.$refs.aiMessages as HTMLElement;
-      if (aiMessagesEl) {
-        aiMessagesEl.scrollTop = aiMessagesEl.scrollHeight;
-      }
-    });
+    try {
+      this.$nextTick(() => {
+        const aiMessagesEl = this.$refs.aiMessages as HTMLElement;
+        if (aiMessagesEl && aiMessagesEl.scrollTo) {
+          aiMessagesEl.scrollTop = aiMessagesEl.scrollHeight;
+        }
+      });
+    } catch (error) {
+      console.error("滚动到底部时出错:", error);
+    }
   }
 
   // 清空对话
@@ -410,6 +385,38 @@ export default class DocumentAIChat extends Vue {
       e.preventDefault();
       this.handleSend();
     }
+  }
+
+  // 安全获取消息内容，确保返回字符串类型
+  getMessageContent(content: any): string {
+    try {
+      // 如果是字符串，直接返回
+      if (typeof content === "string") {
+        return content || "";
+      }
+
+      // 如果是数字或布尔值，转换为字符串
+      if (typeof content === "number" || typeof content === "boolean") {
+        return String(content);
+      }
+
+      // 如果是对象或数组，转换为JSON字符串
+      if (content && typeof content === "object") {
+        return JSON.stringify(content, null, 2);
+      }
+
+      // 其他情况返回空字符串
+      return "";
+    } catch (error) {
+      console.error("处理消息内容时出错:", error);
+      return "消息内容格式异常";
+    }
+  }
+
+  // 处理 Markdown 渲染错误
+  handleMarkdownError(error: any): void {
+    console.error("Markdown 渲染错误:", error);
+    // 可以在这里添加用户友好的错误提示
   }
 }
 </script>

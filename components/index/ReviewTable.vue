@@ -10,7 +10,13 @@
     </template>
 
     <a-spin :spinning="loading">
+      <!-- 暂无数据状态 -->
+      <div v-if="!loading && reviews.length === 0" class="lawyer-empty-state">
+        <a-empty description="暂无待审核数据" />
+      </div>
+
       <a-table
+        v-else
         :columns="reviewColumns"
         :dataSource="reviews"
         :pagination="false"
@@ -210,5 +216,11 @@ export default class ReviewTable extends Vue {
   color: #999;
   font-size: 12px;
   font-style: italic;
+}
+
+/* 空状态样式 */
+.lawyer-empty-state {
+  padding: 40px 20px;
+  text-align: center;
 }
 </style>

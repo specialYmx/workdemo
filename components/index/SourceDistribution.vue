@@ -2,7 +2,13 @@
   <a-card class="lawyer-chart-card" :bordered="false" title="法规更新来源分布">
     <div class="lawyer-pie-chart-layout">
       <div class="lawyer-pie-chart-container">
+        <!-- 暂无数据状态 -->
+        <div v-if="!loading && isAllDataEmpty" class="lawyer-empty-state">
+          <a-empty description="暂无数据" />
+        </div>
+
         <chart-component
+          v-else
           :options="pieChartOptions"
           :loading="loading"
           :auto-resize="true"
@@ -40,6 +46,19 @@ export default class SourceDistribution extends Vue {
   @Prop({ type: Object, default: () => ({}) }) chartData!: any;
   @Prop({ type: Array, default: () => [] }) legendItems!: any[];
   @Prop({ type: Boolean, default: false }) loading!: boolean;
+
+  // 判断是否所有数据都为空
+  get isAllDataEmpty() {
+    if (
+      !this.chartData ||
+      !this.chartData.series ||
+      !this.chartData.series[0]
+    ) {
+      return true;
+    }
+    const data = this.chartData.series[0].data || [];
+    return data.length === 0 || data.every((item) => item.value === 0);
+  }
 
   // 饼图配置
   get pieChartOptions() {
@@ -170,6 +189,16 @@ export default class SourceDistribution extends Vue {
         }
       }
     }
+  }
+
+  /* 空状态样式 */
+  .lawyer-empty-state {
+    padding: 40px 20px;
+    text-align: center;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 }
 </style>

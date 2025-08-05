@@ -160,7 +160,7 @@
                   </div>
                 </div>
                 <p class="lawyer-document-summary">
-                  {{ doc.summary || "暂无摘要" }}
+                  {{ doc.fileContent || "暂无摘要" }}
                 </p>
                 <div class="lawyer-document-footer">
                   <div class="lawyer-document-tags">
@@ -278,7 +278,6 @@ export default class KnowledgePage extends Vue {
         icon: "star",
         isActive: this.isFavoritesMode,
         handler: this.toggleFavorites,
-        count: this.favoriteCount,
       },
       {
         text: this.isAdvancedSearchVisible ? "收起筛选" : "高级筛选",
@@ -318,16 +317,8 @@ export default class KnowledgePage extends Vue {
     this.loadDocuments();
   }
 
-  get favoriteCount() {
-    if (this.isFavoritesMode) {
-      return this.documents.length;
-    } else {
-      return this.documents.filter((doc) => doc.isCollected).length;
-    }
-  }
-
   isDocumentFavorite(doc: KnowledgeDataItem): boolean {
-    return doc.isCollected || false;
+    return doc.isCollect || false;
   }
 
   async onSearch() {
@@ -424,7 +415,7 @@ export default class KnowledgePage extends Vue {
   async collectDocument(doc: KnowledgeDataItem) {
     const isCurrentlyFavorite = this.isDocumentFavorite(doc);
     const newCollectStatus = !isCurrentlyFavorite;
-    doc.isCollected = newCollectStatus;
+    doc.isCollect = newCollectStatus;
 
     try {
       const params = {
@@ -432,6 +423,7 @@ export default class KnowledgePage extends Vue {
         empId: this.$store.state.auth.id,
         isCollect: newCollectStatus,
       };
+      console.log("🚀 ~  ~ collectDocument ~ params:", params);
 
       const success = await this.$service.lawyer.saveOrCancelCollect(params);
 
@@ -451,11 +443,11 @@ export default class KnowledgePage extends Vue {
           }
         }
       } else {
-        doc.isCollected = isCurrentlyFavorite;
+        doc.isCollect = isCurrentlyFavorite;
         this.$message.error("操作失败，请重试");
       }
     } catch (error) {
-      doc.isCollected = isCurrentlyFavorite;
+      doc.isCollect = isCurrentlyFavorite;
       console.error("收藏操作失败:", error);
       this.$message.error("操作失败，请重试");
     }
@@ -569,6 +561,9 @@ export default class KnowledgePage extends Vue {
       if (this.sortOrder) {
         params.publishDateSort = this.sortOrder;
       }
+
+      // 添加empId必传参数
+      params.empId = this.$store.state.auth.id;
 
       let result;
       if (this.isFavoritesMode) {
