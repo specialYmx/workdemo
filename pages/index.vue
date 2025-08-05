@@ -59,7 +59,7 @@ import {
   ToDoRuleItem,
   KnowledgeDataItem,
 } from "~/model/LawyerModel";
-import { downloadFileWithMessage } from "~/utils/downloadHelper";
+import { downloadFileWithMessage } from "~/utils/personal";
 
 @Component({
   components: {

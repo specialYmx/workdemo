@@ -127,7 +127,7 @@ export default class DocumentComparePage extends Vue {
         return [];
       }
 
-      // 按逗号分割各个变更项，但要注意引号内的逗号不应该分割
+      // 按逗号分割各个变更项，但要注意单引号内的逗号不应该分割
       const items = this.splitChangeItems(content);
       const changes = [];
 
@@ -166,20 +166,19 @@ export default class DocumentComparePage extends Vue {
     }
   }
 
-  // 智能分割变更项，考虑引号内的逗号
+  // 智能分割变更项，考虑单引号内的逗号
   splitChangeItems(content) {
     const items = [];
     let current = "";
     let inQuotes = false;
-    let quoteChar = "";
 
-    for (const char of content) {
-      if (['"', '"', '"'].includes(char) && !inQuotes) {
+    for (let i = 0; i < content.length; i++) {
+      const char = content[i];
+
+      if (char === "'" && !inQuotes) {
         inQuotes = true;
-        quoteChar = char;
-      } else if (char === quoteChar && inQuotes) {
+      } else if (char === "'" && inQuotes) {
         inQuotes = false;
-        quoteChar = "";
       } else if (char === "," && !inQuotes) {
         if (current.trim()) {
           items.push(current.trim());
@@ -200,11 +199,9 @@ export default class DocumentComparePage extends Vue {
   // 解析单个变更项
   parseChangeItem(item) {
     try {
-      // 处理标题变更：第一章-标题变更 由总则变更为总则22
+      // 处理标题变更：第一章 标题变更：由'总则'变更为'总则11'
       if (item.includes("标题变更")) {
-        const match = item.match(
-          /^(.+?)-标题变更\s+由(.+?)(?:变更为|修改为)(.+?)$/
-        );
+        const match = item.match(/^(.+?)\s+标题变更：由'(.+?)'变更为'(.+?)'$/);
         if (match) {
           const parsedSection = this.parseSection(match[1].trim());
           return {
@@ -218,99 +215,59 @@ export default class DocumentComparePage extends Vue {
         }
       }
 
-      // 处理删除条款：第一章　总则 第八条 删除条款： 保险业和银行业...
-      if (item.includes("删除条款")) {
-        const match = item.match(/^(.+?)\s+删除条款：\s*(.+)$/);
+      // 处理删除条款：删除条款：第四条  从事证券投资基金活动...
+      if (item.includes("删除条款：")) {
+        const match = item.match(/^删除条款：(.+)$/);
         if (match) {
-          const parsedSection = this.parseSection(match[1].trim());
+          const content = match[1].trim();
+          // 尝试提取条款号
+          const sectionMatch = content.match(/^(第.+?[章条])/);
+          let section = "";
+          if (sectionMatch) {
+            const parsedSection = this.parseSection(sectionMatch[1]);
+            section = parsedSection.number;
+          }
+
           return {
             type: "delete",
-            section: parsedSection.number,
+            section: section,
             position: "删除内容",
-            oldText: match[2].trim(),
+            oldText: content,
             reason: "删除原有条款",
           };
         }
       }
 
-      // 处理新增条款
-      if (item.includes("新增条款")) {
-        // 格式1：新增条款：第十条  cccc
-        if (!item.includes("-")) {
-          const match = item.match(/^新增条款：\s*(.+)$/);
-          if (match) {
-            return {
-              type: "add",
-              section: "",
-              position: "新增内容",
-              newText: match[1].trim(),
-              reason: "新增法规条款",
-            };
-          }
-        } else {
-          // 格式2：第一章 总则-第二条 新增条款：22
-          const match = item.match(/^(.+?)\s+新增条款：\s*(.+)$/);
-          if (match) {
-            const parsedSection = this.parseSection(match[1].trim());
-            return {
-              type: "add",
-              section: parsedSection.number,
-              position: "新增内容",
-              newText: match[2].trim(),
-              reason: "新增法规条款",
-            };
-          }
-        }
-      }
+      // 处理内容变更：第二条：由'在中华人民共和国境内'变更为'在22中华人民共和国境内'
+      if (item.includes("：由'") && item.includes("'变更为'")) {
+        const match = item.match(/^(.+?)：由'(.+?)'变更为'(.+?)'$/);
+        if (match) {
+          const sectionText = match[1].trim();
+          const parsedSection = this.parseSection(sectionText);
 
-      // 处理修改内容
-      if (item.includes("变更为") || item.includes("修改为")) {
-        // 格式1：第一章 总则-第二条 由本法变更为本法aa
-        const match1 = item.match(
-          /^(.+?)-(.+?)\s+由(.+?)(?:变更为|修改为)(.+?)$/
-        );
-        if (match1) {
-          const parsedSection = this.parseSection(match1[1].trim());
           return {
             type: "modify",
             section: parsedSection.number,
-            position: match1[2].trim(),
-            oldText: match1[3].trim().replace(/^[""]|[""]$/g, ""),
-            newText: match1[4].trim().replace(/^[""]|[""]$/g, ""),
+            position: sectionText,
+            oldText: match[2].trim(),
+            newText: match[3].trim(),
             reason: "修改条款内容",
           };
         }
+      }
 
-        // 格式2：第二条-由"本法"变更为"本法aa"
-        const match2 = item.match(
-          /^(.+?)-由"([^"]+)"(?:变更为|修改为)"([^"]+)"$/
-        );
-        if (match2) {
+      // 处理新增条款（如果有的话）
+      if (item.includes("新增条款")) {
+        const match = item.match(/^(.+?)\s*新增条款：(.+)$/);
+        if (match) {
+          const parsedSection = this.parseSection(match[1].trim());
           return {
-            type: "modify",
-            section: "",
-            position: match2[1].trim(),
-            oldText: match2[2].trim(),
-            newText: match2[3].trim(),
-            reason: "修改条款内容",
+            type: "add",
+            section: parsedSection.number,
+            position: "新增内容",
+            newText: match[2].trim(),
+            reason: "新增法规条款",
           };
-        }
-
-        // 格式3：复合修改（取第一个修改）
-        const multipleMatch = item.match(/由"([^"]+)"修改为："([^"]+)"/);
-        if (multipleMatch) {
-          const sectionMatch = item.match(/^(.+?)-(.+?)\s+/);
-          if (sectionMatch) {
-            const parsedSection = this.parseSection(sectionMatch[1].trim());
-            return {
-              type: "modify",
-              section: parsedSection.number,
-              position: sectionMatch[2].trim(),
-              oldText: multipleMatch[1].trim(),
-              newText: multipleMatch[2].trim(),
-              reason: "修改条款内容",
-            };
-          }
         }
       }
 

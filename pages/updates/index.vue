@@ -115,7 +115,7 @@
 // @ts-nocheck
 import { Component, Vue } from "nuxt-property-decorator";
 import { RuleUpdateItem } from "~/model/LawyerModel";
-import { downloadFileWithMessage } from "~/utils/downloadHelper";
+import { downloadFileWithMessage } from "~/utils/personal";
 
 interface AiSummaryPoint {
   title: string;

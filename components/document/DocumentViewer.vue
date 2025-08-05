@@ -131,7 +131,7 @@
 import { Component, Vue, Prop, Watch, Emit } from "nuxt-property-decorator";
 import DivTextSearch from "@/components/common/DivTextSearch.vue";
 import DocumentAIChat from "@/components/common/DocumentAIChat.vue";
-import { downloadFileWithMessage } from "~/utils/downloadHelper";
+import { downloadFileWithMessage } from "~/utils/personal";
 
 interface TocItem {
   text: string;

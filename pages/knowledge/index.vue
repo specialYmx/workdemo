@@ -226,7 +226,7 @@ import { DocumentItem } from "@/model/base";
 import { KnowledgeDataItem } from "@/model/LawyerModel";
 import { cascaderOptions } from "@/enum/Category";
 import FileUploadModal from "@/components/common/FileUploadModal.vue";
-import { downloadFileWithMessage } from "~/utils/downloadHelper";
+import { downloadFileWithMessage } from "~/utils/personal";
 
 @Component({
   components: {

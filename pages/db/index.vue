@@ -219,7 +219,7 @@ import { Component, Vue } from "nuxt-property-decorator";
 import moment from "moment";
 import { ToDoRuleItem } from "~/model/LawyerModel";
 import { categoryOptions } from "~/enum/Category";
-import { downloadFileWithMessage } from "~/utils/downloadHelper";
+import { downloadFileWithMessage } from "~/utils/personal";
 
 interface Document {
   id: string;
