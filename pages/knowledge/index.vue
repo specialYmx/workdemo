@@ -347,7 +347,7 @@ export default class KnowledgePage extends Vue {
 
   getDocActions(doc: KnowledgeDataItem) {
     const isFavorite = this.isDocumentFavorite(doc);
-    return [
+    const actions = [
       {
         text: "查看",
         type: "primary",
@@ -357,11 +357,18 @@ export default class KnowledgePage extends Vue {
         text: "下载",
         handler: () => this.downloadDocument(doc),
       },
-      {
+    ];
+
+    // 只有在非收藏模式下才显示收藏按钮
+    if (!this.isFavoritesMode) {
+      actions.push({
         type: isFavorite ? "primary" : "default",
         text: isFavorite ? "已收藏" : "收藏",
         handler: () => this.collectDocument(doc),
-      },
+      });
+    }
+
+    actions.push(
       {
         text: "上传更新",
         class: "lawyer-btn-upload",
@@ -371,8 +378,10 @@ export default class KnowledgePage extends Vue {
         text: "移除",
         type: "danger",
         handler: () => this.removeDocument(doc),
-      },
-    ];
+      }
+    );
+
+    return actions;
   }
 
   viewDocument(doc: KnowledgeDataItem) {

@@ -147,12 +147,7 @@ export default class UpdatesPage extends Vue {
   allUpdates: UpdateItem[] = []; // 存储所有数据用于前端分页
 
   filterOptions = [
-    { label: "全部更新", value: "" }, // 空字符串表示不传filed参数
-    { label: "法律汇编", value: "law" },
-    { label: "新规解读", value: "interpretation" },
-    { label: "处罚汇编", value: "penalty" },
-    { label: "研究集锦", value: "research" },
-    { label: "法律合规季刊", value: "quarterly" },
+    { label: "法规更新", value: "" }, // 只保留一个tab，改名为"法规更新"
   ];
 
   async mounted() {
