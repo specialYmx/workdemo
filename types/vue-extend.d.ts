@@ -2,11 +2,16 @@ import Vue from "vue";
 import { Route } from "vue-router";
 import { RoadLawyerService } from "~/model/LawyerModel";
 
+// 扩展 Route 接口以支持 Nuxt.js 的 query
+interface NuxtRoute extends Route {
+  query: { [key: string]: string | (string | null)[] | null | undefined };
+}
+
 // 扩展 Vue 实例类型
 declare module "vue/types/vue" {
   interface Vue {
     $router: any;
-    $route: Route;
+    $route: NuxtRoute;
     $message: {
       success(content: string, duration?: number): void;
       error(content: string, duration?: number): void;
@@ -14,6 +19,7 @@ declare module "vue/types/vue" {
       warning(content: string, duration?: number): void;
       warn(content: string, duration?: number): void;
       loading(content: string, duration?: number): void;
+      destroy(): void;
     };
     $notification: any;
     $confirm: any;
@@ -22,6 +28,35 @@ declare module "vue/types/vue" {
     $error: any;
     $warning: any;
     $modal: any;
+    $store: any;
+    $axios: any;
+    $roadLawyerService: RoadLawyerService;
+  }
+}
+
+// 扩展 nuxt-property-decorator 的 Vue 基类
+declare module "nuxt-property-decorator" {
+  interface Vue {
+    $router: any;
+    $route: NuxtRoute;
+    $message: {
+      success(content: string, duration?: number): void;
+      error(content: string, duration?: number): void;
+      info(content: string, duration?: number): void;
+      warning(content: string, duration?: number): void;
+      warn(content: string, duration?: number): void;
+      loading(content: string, duration?: number): void;
+      destroy(): void;
+    };
+    $notification: any;
+    $confirm: any;
+    $info: any;
+    $success: any;
+    $error: any;
+    $warning: any;
+    $modal: any;
+    $store: any;
+    $axios: any;
     $roadLawyerService: RoadLawyerService;
   }
 }

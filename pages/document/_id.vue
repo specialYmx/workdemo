@@ -10,20 +10,41 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import { Component, Vue } from "nuxt-property-decorator";
 import { KnowledgeDataItem } from "~/model/LawyerModel";
 
+// 文档显示数据接口
+interface DocumentDisplayData {
+  id: string;
+  title: string;
+  date: string;
+  effectiveDate: string;
+  publisher: string;
+  fileNumber: string;
+  status: string;
+  views: number;
+  content: string;
+  isRevoke: boolean;
+  timeLiness: string;
+}
+
+// 相关文档接口
+interface RelatedDocument {
+  id: string;
+  title: string;
+  date: string;
+}
+
 @Component({})
 export default class DocumentPage extends Vue {
-  head() {
+ get head(): { title: string } {
     return {
       title: "法律合规智能系统",
     };
   }
 
   // 文档数据
-  document: any = {
+  document: DocumentDisplayData = {
     id: "",
     title: "正在加载...",
     date: "",
@@ -37,13 +58,13 @@ export default class DocumentPage extends Vue {
     timeLiness: "",
   };
 
-  loading = false;
+  loading: boolean = false;
 
   // 废止状态控制（从文档详情弹窗的已废止控件获取）
-  isRevoke = false;
+  isRevoke: boolean = false;
 
   // 相关文档（模拟数据）
-  relatedDocuments = [
+  relatedDocuments: RelatedDocument[] = [
     {
       id: "2",
       title: "《中华人民共和国数据安全法》",
@@ -72,7 +93,7 @@ export default class DocumentPage extends Vue {
   }
 
   // 打开相关文档
-  openRelatedDocument(doc: any): void {
+  openRelatedDocument(doc: RelatedDocument): void {
     this.$router.push({
       path: "/document",
       query: { id: doc.id },
@@ -85,15 +106,16 @@ export default class DocumentPage extends Vue {
 
     this.loading = true;
     try {
-      const result = await this.$roadLawyerService.getRuleSourceDetail({
-        searchId: docId,
-        isRevoke: this.isRevoke,
-      });
+      const result: KnowledgeDataItem | null =
+        await this.$roadLawyerService.getRuleSourceDetail({
+          searchId: docId,
+          isRevoke: this.isRevoke,
+        });
       console.log("获取到的文档详情:", result);
 
       if (result) {
         // 转换KnowledgeDataItem数据为DocumentViewer需要的格式
-        const formattedContent = this.formatContent(result.fileContent);
+        const formattedContent: string = this.formatContent(result.fileContent);
         console.log("格式化后的内容:", formattedContent);
 
         this.document = {
@@ -101,7 +123,7 @@ export default class DocumentPage extends Vue {
           title: result.ruleName,
           date: result.publishDateStr || result.createdTimeStr,
           effectiveDate: result.effectDateStr || "暂无",
-          publisher: result.legalSource,
+          publisher: result.legalSource || result.websiteName,
           fileNumber: result.docNo || "暂无",
           status: result.timeLiness || "未知",
           views: result.readCount,
@@ -134,9 +156,9 @@ export default class DocumentPage extends Vue {
     }
 
     // 将纯文本内容转换为HTML格式
-    const formatted = content
+    const formatted: string = content
       .split("\n")
-      .map((line) => {
+      .map((line: string): string => {
         line = line.trim();
         if (!line) return "";
 
@@ -178,12 +200,12 @@ export default class DocumentPage extends Vue {
 
     // 从路由查询参数中获取isRevoke状态
     const isRevokeParam = this.$route.query.isRevoke;
-    if (isRevokeParam !== undefined) {
-      this.isRevoke = isRevokeParam === "true" || isRevokeParam === true;
+    if (isRevokeParam !== undefined && isRevokeParam !== null) {
+      this.isRevoke = String(isRevokeParam) === "true";
     }
     console.log("废止状态:", this.isRevoke);
 
-    if (docId) {
+    if (docId && typeof docId === "string") {
       await this.fetchDocument(docId);
     } else {
       this.$message.error("缺少文档ID参数");

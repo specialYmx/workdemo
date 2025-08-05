@@ -48,7 +48,6 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import { Component, Vue } from "nuxt-property-decorator";
 import DashboardOverview from "@/components/index/DashboardOverview.vue";
 import ReviewTable from "@/components/index/ReviewTable.vue";
@@ -58,6 +57,14 @@ import {
   CompletedRuleItem,
   ToDoRuleItem,
   KnowledgeDataItem,
+  IndexPageChartLoading,
+  IndexPageChartData,
+  IndexPageListLoading,
+  LegendItem,
+  TimeRangeMap,
+  SourceColorMap,
+  TrendChartData,
+  ChartData,
 } from "~/model/LawyerModel";
 import { downloadFileWithMessage } from "~/utils/personal";
 
@@ -68,7 +75,7 @@ import { downloadFileWithMessage } from "~/utils/personal";
     SourceDistribution,
     LatestUpdates,
   },
-  head() {
+  head(): { title: string } {
     return {
       title: "首页概览 - 法律合规智能系统",
     };
@@ -76,29 +83,29 @@ import { downloadFileWithMessage } from "~/utils/personal";
 })
 export default class IndexPage extends Vue {
   // 数据加载状态
-  chartLoading = {
+  chartLoading: IndexPageChartLoading = {
     trend: true,
     sources: true,
   };
 
   // 图表数据
-  chartData = {
-    trend: {},
-    sources: {},
+  chartData: IndexPageChartData = {
+    trend: {} as TrendChartData,
+    sources: {} as ChartData,
   };
 
   // 列表数据加载状态
-  listLoading = {
+  listLoading: IndexPageListLoading = {
     recentReviews: true,
     topReviews: true,
     latestUpdates: true,
   };
 
   // 当前选中的时间范围
-  activeTimeRange = "month";
+  activeTimeRange: string = "month";
 
   // 图表周期
-  trendChartPeriod = "month";
+  trendChartPeriod: string = "month";
 
   // 列表数据
   recentReviews: CompletedRuleItem[] = [];
@@ -106,14 +113,14 @@ export default class IndexPage extends Vue {
   latestUpdates: KnowledgeDataItem[] = [];
 
   // 统计数据
-  pendingReviewCount = 0;
-  monthlyUpdateCount = 0;
+  pendingReviewCount: number = 0;
+  monthlyUpdateCount: number = 0;
 
   // 来源图例数据
-  sourceLegendItems = [];
+  sourceLegendItems: LegendItem[] = [];
 
   // 生命周期钩子
-  async mounted() {
+  async mounted(): Promise<void> {
     // 按顺序加载所有数据
     try {
       // 加载图表数据
@@ -134,19 +141,19 @@ export default class IndexPage extends Vue {
   }
 
   // 事件处理方法
-  handleTimeRangeChange(value) {
+  handleTimeRangeChange(value: string): void {
     this.activeTimeRange = value;
     // 重新加载基于时间条件的数据
     this.loadMonthlyUpdateCount();
   }
 
-  handleTrendPeriodChange(value) {
+  handleTrendPeriodChange(value: string): void {
     this.trendChartPeriod = value;
     this.loadTrendChartData();
   }
 
   // 加载趋势图数据
-  async loadTrendChartData() {
+  async loadTrendChartData(): Promise<void> {
     this.chartLoading.trend = true;
     try {
       // 调用真实API获取数据
@@ -158,7 +165,6 @@ export default class IndexPage extends Vue {
 
       // 根据真实API返回的数据结构来解析
       if (updateTimelinessData && typeof updateTimelinessData === "object") {
-        // 根据API返回格式为：
         // { modify: [数组], public: [数组], revoke: [数组] }
         const {
           modify = [],
@@ -167,12 +173,12 @@ export default class IndexPage extends Vue {
         } = updateTimelinessData;
 
         // 生成X轴数据（根据数组长度动态生成）
-        const dataLength = Math.max(
+        const dataLength: number = Math.max(
           modify.length,
           publicData.length,
           revoke.length
         );
-        const xAxisData = [];
+        const xAxisData: string[] = [];
 
         // 根据周期生成不同的X轴标签
         if (this.trendChartPeriod === "month") {
@@ -182,7 +188,7 @@ export default class IndexPage extends Vue {
           }
         } else if (this.trendChartPeriod === "quarter") {
           // 按季度显示
-          const quarterLabels = ["Q1", "Q2", "Q3", "Q4"];
+          const quarterLabels: string[] = ["Q1", "Q2", "Q3", "Q4"];
           for (let i = 0; i < Math.min(dataLength, 4); i++) {
             xAxisData.push(quarterLabels[i]);
           }
@@ -194,7 +200,7 @@ export default class IndexPage extends Vue {
         }
 
         // 构建图表数据，按照 [新发布, 修订, 废止] 的顺序
-        const seriesData = [
+        const seriesData: number[][] = [
           publicData, // 新发布
           modify, // 修订
           revoke, // 废止
@@ -202,7 +208,7 @@ export default class IndexPage extends Vue {
 
         this.chartData.trend = {
           xAxis: { data: xAxisData },
-          series: seriesData.map((data) => ({ data })),
+          series: seriesData.map((data: number[]) => ({ data })),
         };
       } else {
         // API返回数据无效时，设置空数据
@@ -225,7 +231,10 @@ export default class IndexPage extends Vue {
   }
 
   // 加载图表数据的通用方法
-  async loadPieChartData(chartType, duration = 1500) {
+  async loadPieChartData(
+    chartType: string,
+    duration: number = 1500
+  ): Promise<void> {
     const loadingKey = "sources";
     this.chartLoading[loadingKey] = true;
 
@@ -235,7 +244,7 @@ export default class IndexPage extends Vue {
       console.log("网站比例数据:", websiteRatioData);
 
       // 定义颜色映射
-      const colorMap = {
+      const colorMap: SourceColorMap = {
         国家金融监督管理总局: "#1890ff",
         人民银行网站: "#13c2c2",
         证监会公告: "#52c41a",
@@ -250,11 +259,11 @@ export default class IndexPage extends Vue {
 
       if (sourceData && typeof sourceData === "object") {
         // 转换数据格式为饼图需要的格式
-        const pieData = [];
-        const legendItems = [];
+        const pieData: Array<{ value: number; name: string }> = [];
+        const legendItems: LegendItem[] = [];
 
-        Object.keys(sourceData).forEach((key) => {
-          const value = sourceData[key];
+        Object.keys(sourceData).forEach((key: string) => {
+          const value: number = (sourceData as any)[key];
 
           // 饼图只显示有数据的项目（避免0%扇形）
           if (value > 0) {
@@ -298,26 +307,15 @@ export default class IndexPage extends Vue {
   }
 
   // 加载来源分布数据
-  loadSourcesChartData() {
+  loadSourcesChartData(): Promise<void> {
     return this.loadPieChartData("sources", 1500);
   }
 
-  // 加载列表数据的通用方法
-  async loadListData(listType, mockData, duration = 1000) {
-    this.listLoading[listType] = true;
-    try {
-      await new Promise((resolve) => setTimeout(resolve, duration));
-      this[listType] = mockData;
-    } finally {
-      this.listLoading[listType] = false;
-    }
-  }
-
   // 加载近期完成审核数据
-  async loadRecentReviews() {
+  async loadRecentReviews(): Promise<void> {
     this.listLoading.recentReviews = true;
     try {
-      const data = await this.$roadLawyerService.getCheckCompleteList();
+      const data = await this.$roadLawyerService.getCheckCompleteList({});
       // 前端取前5条数据
       this.recentReviews = Array.isArray(data) ? data.slice(0, 5) : [];
     } catch (error) {
@@ -329,10 +327,10 @@ export default class IndexPage extends Vue {
   }
 
   // 加载需要人工审核的数据
-  async loadTopReviews() {
+  async loadTopReviews(): Promise<void> {
     this.listLoading.topReviews = true;
     try {
-      const data = await this.$roadLawyerService.getCheckRuleList();
+      const data = await this.$roadLawyerService.getCheckRuleList({});
       // 前端取前5条数据
       this.topReviews = Array.isArray(data)
         ? data.slice(0, 5)
@@ -346,7 +344,7 @@ export default class IndexPage extends Vue {
   }
 
   // 加载最新法规更新数据
-  async loadLatestUpdates() {
+  async loadLatestUpdates(): Promise<void> {
     this.listLoading.latestUpdates = true;
     try {
       const params = {
@@ -364,9 +362,9 @@ export default class IndexPage extends Vue {
   }
 
   // 加载待审核统计数据
-  async loadPendingReviewCount() {
+  async loadPendingReviewCount(): Promise<void> {
     try {
-      const data = await this.$roadLawyerService.getCheckRuleList();
+      const data = await this.$roadLawyerService.getCheckRuleList({});
       // 获取数组长度作为统计数据
       this.pendingReviewCount = Array.isArray(data)
         ? data.length
@@ -378,7 +376,7 @@ export default class IndexPage extends Vue {
   }
 
   // 加载法规更新数量（根据当前选中的时间范围）
-  async loadMonthlyUpdateCount() {
+  async loadMonthlyUpdateCount(): Promise<void> {
     try {
       const data = await this.$roadLawyerService.getUpdateCount({
         condition: this.activeTimeRange, // 使用当前选中的时间范围
@@ -392,29 +390,29 @@ export default class IndexPage extends Vue {
   }
 
   // 页面跳转方法
-  goToReviewPage() {
+  goToReviewPage(): void {
     this.$router.push("/db");
   }
 
-  goToUpdatesPage() {
+  goToUpdatesPage(): void {
     this.$router.push("/updates");
   }
 
   // 审核操作方法
-  viewReviewDetail(record) {
-    this.$message.info(`查看详情: ${record.ruleName || record.title}`);
+  viewReviewDetail(record: ToDoRuleItem): void {
+    this.$message.info(`查看详情: ${record.ruleName}`);
     // 跳转到文档比较页面
     this.$router.push({
       path: "/document-compare",
       query: {
         id: record.id,
-        pageTitle: record.ruleName || record.title,
+        pageTitle: record.ruleName,
       },
     });
   }
 
   // 审核通过
-  approveReview(record) {
+  approveReview(record: ToDoRuleItem): void {
     this.$confirm({
       title: "确认通过",
       content: `确定要通过文档"${record.ruleName}"的审核吗？`,
@@ -427,7 +425,7 @@ export default class IndexPage extends Vue {
   }
 
   // 审核驳回
-  rejectReview(record) {
+  rejectReview(record: ToDoRuleItem): void {
     this.$confirm({
       title: "确认驳回",
       content: `确定要驳回文档"${record.ruleName}"吗？`,
@@ -441,7 +439,7 @@ export default class IndexPage extends Vue {
   }
 
   // 提交审核
-  async submitReview(record, action) {
+  async submitReview(record: ToDoRuleItem, action: string): Promise<void> {
     try {
       console.log("开始审核操作:", { recordId: record.id, action });
 
@@ -459,20 +457,17 @@ export default class IndexPage extends Vue {
       await this.loadPendingReviewCount();
     } catch (error) {
       console.error("审核操作失败:", error);
-
-      // service层已经处理了错误信息，直接使用error.message
-      const errorMessage = error.message || "审核操作失败，请重试";
-      this.$message.error(errorMessage);
+      this.$message.error("审核操作失败，请重试");
     }
   }
 
   // 导出统计报告
-  async exportStatisticReport() {
+  async exportStatisticReport(): Promise<void> {
     try {
       this.$message.loading("正在生成统计报告，请稍候...", 0);
 
       // 根据当前选择的时间范围导出
-      const condition = this.activeTimeRange;
+      const condition: string = this.activeTimeRange;
       const result = await this.$roadLawyerService.exportStatisticExcel({
         condition,
       });
@@ -481,13 +476,13 @@ export default class IndexPage extends Vue {
 
       if (result) {
         // 生成文件名
-        const timeRangeMap = {
+        const timeRangeMap: TimeRangeMap = {
           month: "本月",
           quarter: "本季度",
           year: "本年度",
         };
-        const timeLabel = timeRangeMap[condition] || condition;
-        const fileName = `法规统计报告_${timeLabel}_${new Date()
+        const timeLabel: string = timeRangeMap[condition] || condition;
+        const fileName: string = `法规统计报告_${timeLabel}_${new Date()
           .toISOString()
           .slice(0, 10)}.xlsx`;
 
@@ -508,13 +503,12 @@ export default class IndexPage extends Vue {
     } catch (error) {
       this.$message.destroy();
       console.error("导出统计报告失败:", error);
-      const errorMessage = error.message || "导出失败，请重试";
-      this.$message.error(errorMessage);
+      this.$message.error("导出失败，请重试");
     }
   }
 
   // 查看法规更新详情
-  viewUpdateDetail(item) {
+  viewUpdateDetail(item: KnowledgeDataItem): void {
     this.$router.push({
       path: "/document",
       query: { id: item.id },

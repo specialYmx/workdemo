@@ -220,10 +220,18 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import { Component, Vue } from "nuxt-property-decorator";
-import { DocumentItem } from "@/model/base";
-import { KnowledgeDataItem } from "@/model/LawyerModel";
+import {
+  KnowledgeDataItem,
+  SearchButton,
+  WebsiteOption,
+  FilterOption,
+  DocumentAction,
+  KnowledgeUploadConfig,
+  CascaderOptionItem,
+  RouteQuery,
+  RuleSourceQueryParams,
+} from "@/model/LawyerModel";
 import { cascaderOptions } from "@/enum/Category";
 import FileUploadModal from "@/components/common/FileUploadModal.vue";
 import { downloadFileWithMessage } from "~/utils/personal";
@@ -234,25 +242,26 @@ import { downloadFileWithMessage } from "~/utils/personal";
   },
 })
 export default class KnowledgePage extends Vue {
-  searchText = "";
-  searchLoading = false;
-  filterSource = "all";
-  sortOrder = "desc";
-  topicCategory = [];
-  timeLinessFilter = "all";
-  effectivenessLevelFilter = "all";
-  isFavoritesMode = false;
-  isAdvancedSearchVisible = false;
-  listLoading = false;
-  currentPage = 1;
-  pageSize = 10;
-  totalDocuments = 36;
+  searchText: string = "";
+  searchLoading: boolean = false;
+  filterSource: string = "all";
+  sortOrder: string = "desc";
+  topicCategory: string[] = [];
+  timeLinessFilter: string = "all";
+  effectivenessLevelFilter: string = "all";
+  isFavoritesMode: boolean = false;
+  isAdvancedSearchVisible: boolean = false;
+  listLoading: boolean = false;
+  currentPage: number = 1;
+  pageSize: number = 10;
+  totalDocuments: number = 36;
   documents: KnowledgeDataItem[] = [];
-  websiteOptions: Array<{ value: string; label: string }> = [];
-  uploadModalVisible = false;
-  currentUploadDocId = "";
-  currentUploadDocTitle = "";
-  get uploadConfig() {
+  websiteOptions: WebsiteOption[] = [];
+  uploadModalVisible: boolean = false;
+  currentUploadDocId: string = "";
+  currentUploadDocTitle: string = "";
+
+  get uploadConfig(): KnowledgeUploadConfig {
     return {
       multiple: false,
       acceptTypes: ".doc,.docx",
@@ -263,7 +272,8 @@ export default class KnowledgePage extends Vue {
       autoUpload: false,
     };
   }
-  get searchButtons() {
+
+  get searchButtons(): SearchButton[] {
     return [
       {
         text: "搜索",
@@ -288,11 +298,11 @@ export default class KnowledgePage extends Vue {
     ];
   }
 
-  get topicCategoryOptions() {
+  get topicCategoryOptions(): CascaderOptionItem[] {
     return cascaderOptions;
   }
 
-  get timeLinessOptions() {
+  get timeLinessOptions(): FilterOption[] {
     return [
       { value: "all", label: "全部" },
       { value: "待生效", label: "待生效" },
@@ -302,7 +312,7 @@ export default class KnowledgePage extends Vue {
     ];
   }
 
-  get effectivenessLevelOptions() {
+  get effectivenessLevelOptions(): FilterOption[] {
     return [
       { value: "all", label: "全部" },
       { value: "法律法规", label: "法律法规" },
@@ -312,7 +322,7 @@ export default class KnowledgePage extends Vue {
     ];
   }
 
-  async mounted() {
+  async mounted(): Promise<void> {
     await this.loadWebsiteOptions();
     this.loadDocuments();
   }
@@ -321,7 +331,7 @@ export default class KnowledgePage extends Vue {
     return doc.isCollect || false;
   }
 
-  async onSearch() {
+  async onSearch(): Promise<void> {
     this.searchLoading = true;
     try {
       await this.loadDocuments();
@@ -332,7 +342,7 @@ export default class KnowledgePage extends Vue {
     }
   }
 
-  async toggleFavorites() {
+  async toggleFavorites(): Promise<void> {
     this.isFavoritesMode = !this.isFavoritesMode;
     this.currentPage = 1;
     await this.loadDocuments();
@@ -341,13 +351,13 @@ export default class KnowledgePage extends Vue {
     );
   }
 
-  toggleAdvancedSearch() {
+  toggleAdvancedSearch(): void {
     this.isAdvancedSearchVisible = !this.isAdvancedSearchVisible;
   }
 
-  getDocActions(doc: KnowledgeDataItem) {
-    const isFavorite = this.isDocumentFavorite(doc);
-    const actions = [
+  getDocActions(doc: KnowledgeDataItem): DocumentAction[] {
+    const isFavorite: boolean = this.isDocumentFavorite(doc);
+    const actions: DocumentAction[] = [
       {
         text: "查看",
         type: "primary",
@@ -384,11 +394,13 @@ export default class KnowledgePage extends Vue {
     return actions;
   }
 
-  viewDocument(doc: KnowledgeDataItem) {
+  viewDocument(doc: KnowledgeDataItem): void {
     this.$message.info(`正在打开: ${doc.ruleName}`);
     setTimeout(() => {
-      const isRevoke = !!(doc.revokeDateTimestamp || doc.revokeDateStr);
-      const query = {
+      const isRevoke: boolean = !!(
+        doc.revokeDateTimestamp || doc.revokeDateStr
+      );
+      const query: RouteQuery = {
         id: doc.id,
         ...(isRevoke ? { isRevoke: "true" } : {}),
       };
@@ -404,7 +416,7 @@ export default class KnowledgePage extends Vue {
       this.$message.loading(`正在准备下载: ${doc.ruleName}`, 0);
 
       const result = await this.$roadLawyerService.downloadRuleFile({
-        searchId: doc.id,
+        id: doc.id,
       });
 
       this.$message.destroy();
@@ -421,9 +433,9 @@ export default class KnowledgePage extends Vue {
     }
   }
 
-  async collectDocument(doc: KnowledgeDataItem) {
-    const isCurrentlyFavorite = this.isDocumentFavorite(doc);
-    const newCollectStatus = !isCurrentlyFavorite;
+  async collectDocument(doc: KnowledgeDataItem): Promise<void> {
+    const isCurrentlyFavorite: boolean = this.isDocumentFavorite(doc);
+    const newCollectStatus: boolean = !isCurrentlyFavorite;
     doc.isCollect = newCollectStatus;
 
     try {
@@ -442,8 +454,8 @@ export default class KnowledgePage extends Vue {
         } else {
           this.$message.info(`已取消收藏: ${doc.ruleName}`);
           if (this.isFavoritesMode) {
-            const index = this.documents.findIndex(
-              (item) => item.id === doc.id
+            const index: number = this.documents.findIndex(
+              (item: KnowledgeDataItem) => item.id === doc.id
             );
             if (index !== -1) {
               this.documents.splice(index, 1);
@@ -462,29 +474,29 @@ export default class KnowledgePage extends Vue {
     }
   }
 
-  uploadDocument(docId: string, docTitle: string) {
+  uploadDocument(docId: string, docTitle: string): void {
     this.uploadModalVisible = true;
     this.currentUploadDocId = docId;
     this.currentUploadDocTitle = docTitle;
   }
 
-  handleUploadCancel() {
+  handleUploadCancel(): void {
     this.uploadModalVisible = false;
     this.currentUploadDocId = "";
     this.currentUploadDocTitle = "";
   }
 
-  handleUploadComplete() {
+  handleUploadComplete(): void {
     this.uploadModalVisible = false;
     this.currentUploadDocId = "";
     this.currentUploadDocTitle = "";
   }
 
-  handleUploadSuccess(data: any) {
+  handleUploadSuccess(data): void {
     this.loadDocuments();
   }
 
-  removeDocument(doc: KnowledgeDataItem) {
+  removeDocument(doc: KnowledgeDataItem): void {
     this.$confirm({
       title: "确定要移除文档吗？",
       content: `文档"${doc.ruleName}"将被移除，此操作不可撤销。`,
@@ -511,12 +523,12 @@ export default class KnowledgePage extends Vue {
     });
   }
 
-  onPageChange(page: number) {
+  onPageChange(page: number): void {
     this.currentPage = page;
     this.onSearch();
   }
 
-  onShowSizeChange(current, pageSize) {
+  onShowSizeChange(current: number, pageSize: number): void {
     this.pageSize = pageSize;
     this.currentPage = 1;
     this.onSearch();
@@ -527,14 +539,16 @@ export default class KnowledgePage extends Vue {
     return type === "main" ? "gold" : "blue";
   }
 
-  async loadWebsiteOptions() {
+  async loadWebsiteOptions(): Promise<void> {
     try {
       const websiteRatioData = await this.$roadLawyerService.getWebSiteRatio();
       if (websiteRatioData && typeof websiteRatioData === "object") {
-        this.websiteOptions = Object.keys(websiteRatioData).map((key) => ({
-          value: key,
-          label: key,
-        }));
+        this.websiteOptions = Object.keys(websiteRatioData).map(
+          (key: string): WebsiteOption => ({
+            value: key,
+            label: key,
+          })
+        );
       }
     } catch (error) {
       console.error("加载网站来源数据失败:", error);
@@ -542,10 +556,12 @@ export default class KnowledgePage extends Vue {
     }
   }
 
-  async loadDocuments() {
+  async loadDocuments(): Promise<void> {
     this.listLoading = true;
     try {
-      const params: any = {};
+      const params: RuleSourceQueryParams = {
+        empId: this.$store.state.auth.id,
+      };
       if (this.searchText) {
         params.query = this.searchText;
       }
@@ -571,10 +587,7 @@ export default class KnowledgePage extends Vue {
         params.publishDateSort = this.sortOrder;
       }
 
-      // 添加empId必传参数
-      params.empId = this.$store.state.auth.id;
-
-      let result;
+      let result: KnowledgeDataItem[];
       if (this.isFavoritesMode) {
         const collectParams = {
           empId: this.$store.state.auth.id,
@@ -603,7 +616,7 @@ export default class KnowledgePage extends Vue {
     }
   }
 
-  head() {
+  get head(): { title: string } {
     return {
       title: "法规与文件大家智库 - 法律合规智能系统",
     };

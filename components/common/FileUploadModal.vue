@@ -136,19 +136,13 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import { Component, Vue, Prop, Watch, Emit } from "nuxt-property-decorator";
-
-// 上传配置接口
-interface UploadConfig {
-  multiple?: boolean;
-  acceptTypes?: string;
-  maxFileSize?: number;
-  maxFileCount?: number;
-  uploadText?: string;
-  hintText?: string;
-  autoUpload?: boolean;
-}
+import {
+  UploadConfig,
+  FileChangeData,
+  UploadSuccessData,
+  UploadErrorData,
+} from "~/model/LawyerModel";
 
 @Component
 export default class FileUploadModal extends Vue {
@@ -174,12 +168,12 @@ export default class FileUploadModal extends Vue {
 
   // 状态
   selectedFiles: File[] = [];
-  uploading = false;
-  uploadSuccess = false;
-  uploadProgress = 0;
-  errorMessage = "";
-  isDragOver = false;
-  uploadTimer: any = null;
+  uploading: boolean = false;
+  uploadSuccess: boolean = false;
+  uploadProgress: number = 0;
+  errorMessage: string = "";
+  isDragOver: boolean = false;
+  uploadTimer: NodeJS.Timeout | null = null;
 
   // 计算属性 - 获取配置值
   get uploadConfig(): Required<UploadConfig> {
@@ -209,19 +203,19 @@ export default class FileUploadModal extends Vue {
   }
 
   // 文件验证
-  beforeUpload(file: File) {
+  beforeUpload(file: File): boolean {
     this.clearError();
 
     // 检查文件类型
     if (!this.isValidFileType(file)) {
-      const typeHint = this.getFileTypeHint();
+      const typeHint: string = this.getFileTypeHint();
       this.showError(`只支持 ${typeHint} 格式的文件`);
       return false;
     }
 
     // 检查文件大小
     if (file.size > this.maxFileSize) {
-      const sizeHint = this.formatFileSize(this.maxFileSize);
+      const sizeHint: string = this.formatFileSize(this.maxFileSize);
       this.showError(`文件大小不能超过 ${sizeHint}`);
       return false;
     }
@@ -243,7 +237,9 @@ export default class FileUploadModal extends Vue {
       }
 
       // 检查是否已存在同名文件
-      const existingFile = this.selectedFiles.find((f) => f.name === file.name);
+      const existingFile: File | undefined = this.selectedFiles.find(
+        (f: File): boolean => f.name === file.name
+      );
       if (existingFile) {
         this.showError(`文件 "${file.name}" 已存在`);
         return false;
@@ -270,31 +266,33 @@ export default class FileUploadModal extends Vue {
 
   isValidFileType(file: File): boolean {
     // 根据配置的文件类型进行验证
-    const acceptTypes = this.uploadConfig.acceptTypes.toLowerCase();
-    const fileName = file.name.toLowerCase();
+    const acceptTypes: string = this.uploadConfig.acceptTypes.toLowerCase();
+    const fileName: string = file.name.toLowerCase();
 
     // 如果配置了具体的扩展名
     if (acceptTypes.includes(".")) {
-      const extensions = acceptTypes.split(",").map((ext) => ext.trim());
-      return extensions.some((ext) => fileName.endsWith(ext));
+      const extensions: string[] = acceptTypes
+        .split(",")
+        .map((ext: string): string => ext.trim());
+      return extensions.some((ext: string): boolean => fileName.endsWith(ext));
     }
 
     // 默认的文件类型验证（保持向后兼容）
-    const validTypes = [
+    const validTypes: string[] = [
       "application/pdf",
       "application/msword",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     ];
-    const validExtensions = [".pdf", ".doc", ".docx"];
+    const validExtensions: string[] = [".pdf", ".doc", ".docx"];
     return (
       validTypes.includes(file.type) ||
-      validExtensions.some((ext) => fileName.endsWith(ext))
+      validExtensions.some((ext: string): boolean => fileName.endsWith(ext))
     );
   }
 
   // 获取文件类型提示文本
   getFileTypeHint(): string {
-    const acceptTypes = this.uploadConfig.acceptTypes;
+    const acceptTypes: string = this.uploadConfig.acceptTypes;
     if (acceptTypes.includes(".")) {
       return acceptTypes.replace(/\./g, "").replace(/,/g, "、").toUpperCase();
     }
@@ -302,30 +300,33 @@ export default class FileUploadModal extends Vue {
   }
 
   // 拖拽处理
-  handleDragOver(e: DragEvent) {
+  handleDragOver(e: DragEvent): void {
     e.preventDefault();
     this.isDragOver = true;
   }
-  handleDragLeave(e: DragEvent) {
+
+  handleDragLeave(e: DragEvent): void {
     e.preventDefault();
     this.isDragOver = false;
   }
-  handleDrop(e: DragEvent) {
+
+  handleDrop(e: DragEvent): void {
     e.preventDefault();
     this.isDragOver = false;
   }
 
   // 错误处理
-  showError(message: string) {
+  showError(message: string): void {
     this.errorMessage = message;
     this.$message.error(message);
     setTimeout(() => this.clearError(), 5000);
   }
-  clearError() {
+
+  clearError(): void {
     this.errorMessage = "";
   }
 
-  removeSelectedFile(index?: number) {
+  removeSelectedFile(index?: number): void {
     if (typeof index === "number") {
       // 移除指定索引的文件
       this.selectedFiles.splice(index, 1);
@@ -344,7 +345,7 @@ export default class FileUploadModal extends Vue {
   }
 
   // 上传处理
-  async startUpload() {
+  async startUpload(): Promise<void> {
     if (this.selectedFiles.length === 0) return;
 
     this.uploading = true;
@@ -382,11 +383,6 @@ export default class FileUploadModal extends Vue {
     }
 
     try {
-      // 创建FormData
-      const formData = new FormData();
-      formData.append("id", this.documentId);
-      formData.append("file", this.selectedFile);
-
       console.log("上传参数:", {
         id: this.documentId,
         fileName: this.selectedFile.name,
@@ -394,16 +390,17 @@ export default class FileUploadModal extends Vue {
       });
 
       // 上传进度处理
-      const progressInterval = setInterval(() => {
+      const progressInterval: NodeJS.Timeout = setInterval(() => {
         if (this.uploadProgress < 90) {
           this.uploadProgress += 10;
         }
       }, 200);
 
       // 调用真实的后端接口
-      const success = await this.$roadLawyerService.uploadRuleSource({
-        id: this.documentId,
+      const success: boolean = await this.$roadLawyerService.uploadRuleSource({
         file: this.selectedFile,
+        category: "",
+        description: "",
       });
 
       clearInterval(progressInterval);
@@ -414,14 +411,14 @@ export default class FileUploadModal extends Vue {
       }
 
       // 等待一下让用户看到100%进度
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise((resolve): NodeJS.Timeout => setTimeout(resolve, 500));
     } catch (error) {
       console.error("上传失败:", error);
       throw error;
     }
   }
 
-  cancelUpload() {
+  cancelUpload(): void {
     if (this.uploadTimer) {
       clearInterval(this.uploadTimer);
       this.uploadTimer = null;
@@ -431,18 +428,18 @@ export default class FileUploadModal extends Vue {
     this.uploadProgress = 0;
   }
 
-  handleCancel() {
+  handleCancel(): void {
     this.cancelUpload();
     this.resetState();
     this.emitCancel();
   }
 
-  handleComplete() {
+  handleComplete(): void {
     this.resetState();
     this.emitComplete();
   }
 
-  resetState() {
+  resetState(): void {
     this.selectedFiles = [];
     this.uploading = false;
     this.uploadSuccess = false;
@@ -453,44 +450,40 @@ export default class FileUploadModal extends Vue {
 
   formatFileSize(bytes: number): string {
     if (bytes === 0) return "0 B";
-    const k = 1024;
-    const sizes = ["B", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    const k: number = 1024;
+    const sizes: string[] = ["B", "KB", "MB", "GB"];
+    const i: number = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   }
 
   @Watch("visible")
-  onVisibleChange(newVal: boolean) {
+  onVisibleChange(newVal: boolean): void {
     if (!newVal) this.resetState();
   }
 
   // Emit 装饰器方法
   @Emit("file-change")
-  emitFileChange(data: { files: File[]; currentFile: File | null }) {
+  emitFileChange(data: FileChangeData): FileChangeData {
     return data;
   }
 
   @Emit("upload-success")
-  emitUploadSuccess(data: {
-    files: File[];
-    file: File | null;
-    documentId: string;
-  }) {
+  emitUploadSuccess(data: UploadSuccessData): UploadSuccessData {
     return data;
   }
 
   @Emit("upload-error")
-  emitUploadError(data: { files: File[]; error: any }) {
+  emitUploadError(data: UploadErrorData): UploadErrorData {
     return data;
   }
 
   @Emit("cancel")
-  emitCancel() {
+  emitCancel(): void {
     // 无需返回值
   }
 
   @Emit("complete")
-  emitComplete() {
+  emitComplete(): void {
     // 无需返回值
   }
 }

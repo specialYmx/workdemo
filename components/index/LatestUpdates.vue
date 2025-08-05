@@ -67,17 +67,22 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import { Component, Vue, Prop } from "nuxt-property-decorator";
+import { RuleUpdateItem, UpdateTag, UpdateEmojiMap } from "~/model/LawyerModel";
+
+// 扩展 RuleUpdateItem 以支持可能的 analysis 字段
+interface UpdateItemWithAnalysis extends RuleUpdateItem {
+  analysis?: string[];
+}
 
 @Component
 export default class LatestUpdates extends Vue {
-  @Prop({ type: Array, default: () => [] }) updates!: any[];
+  @Prop({ type: Array, default: () => [] }) updates!: UpdateItemWithAnalysis[];
   @Prop({ type: Boolean, default: false }) loading!: boolean;
 
   // 获取更新emoji
-  getUpdateEmoji(status) {
-    const emojiMap = {
+  getUpdateEmoji(status: string): string {
+    const emojiMap: UpdateEmojiMap = {
       new: "⚖️",
       updated: "📋",
       effective: "📋",
@@ -87,7 +92,7 @@ export default class LatestUpdates extends Vue {
   }
 
   // 获取更新描述
-  getUpdateDescription(item) {
+  getUpdateDescription(item: UpdateItemWithAnalysis): string {
     return (
       item.summary ||
       (item.fileContent ? item.fileContent.substring(0, 200) + "..." : "") ||
@@ -96,8 +101,8 @@ export default class LatestUpdates extends Vue {
   }
 
   // 获取更新标签
-  getUpdateTags(item) {
-    const tags = [];
+  getUpdateTags(item: UpdateItemWithAnalysis): UpdateTag[] {
+    const tags: UpdateTag[] = [];
     if (item.categoryMain) {
       tags.push({ text: item.categoryMain, class: "lawyer-tag-main" });
     }
@@ -108,7 +113,7 @@ export default class LatestUpdates extends Vue {
   }
 
   // 获取AI智能解读分析
-  getUpdateAnalysis(item) {
+  getUpdateAnalysis(item: UpdateItemWithAnalysis): string[] | null {
     // 如果数据中有analysis字段，直接使用
     if (item.analysis && Array.isArray(item.analysis)) {
       return item.analysis;

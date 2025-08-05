@@ -127,27 +127,17 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import { Component, Vue, Prop, Watch, Emit } from "nuxt-property-decorator";
 import DivTextSearch from "@/components/common/DivTextSearch.vue";
 import DocumentAIChat from "@/components/common/DocumentAIChat.vue";
 import { downloadFileWithMessage } from "~/utils/personal";
-
-interface TocItem {
-  text: string;
-  level: number;
-}
-
-interface DocumentAction {
-  icon: string;
-  text?: string;
-  handler: () => void;
-}
-
-interface MetaItem {
-  icon: string;
-  content: string;
-}
+import {
+  DocumentViewerData,
+  RelatedDocumentItem,
+  DocumentMetaItem,
+  TagColorMap,
+  StatusColorMap,
+} from "~/model/LawyerModel";
 
 @Component({
   components: {
@@ -156,15 +146,15 @@ interface MetaItem {
   },
 })
 export default class DocumentViewer extends Vue {
-  @Prop({ required: true }) document: any;
-  @Prop({ default: () => [] }) relatedDocuments: any[];
+  @Prop({ required: true }) document!: DocumentViewerData;
+  @Prop({ default: () => [] }) relatedDocuments!: RelatedDocumentItem[];
 
   // 废止状态编辑相关
-  revokeStatusVisible = false;
-  tempIsRevoke = false;
+  revokeStatusVisible: boolean = false;
+  tempIsRevoke: boolean = false;
 
   // 文档元数据项
-  get documentMetaItems(): MetaItem[] {
+  get documentMetaItems(): DocumentMetaItem[] {
     return [
       {
         icon: "number",
@@ -192,7 +182,7 @@ export default class DocumentViewer extends Vue {
 
   // 获取标签样式类
   getTagClass(tag: string): string {
-    const tagColorMap: { [key: string]: string } = {
+    const tagColorMap: TagColorMap = {
       个人信息: "lawyer-tag-important",
       数据安全: "lawyer-tag-fund",
       隐私保护: "lawyer-tag-opinion",
@@ -235,7 +225,7 @@ export default class DocumentViewer extends Vue {
 
         await this.$roadLawyerService.getRuleSourceDetail({
           searchId: this.document.id,
-          isRevoke: "已废止",
+          isRevoke: true,
         });
 
         this.$message.destroy();
@@ -265,18 +255,18 @@ export default class DocumentViewer extends Vue {
 
   // 使选中内容在视图中可见
   makeSelectionVisible(): void {
-    const selection = window.getSelection();
+    const selection: Selection | null = window.getSelection();
     if (selection && selection.rangeCount > 0) {
-      const range = selection.getRangeAt(0);
+      const range: Range = selection.getRangeAt(0);
       if (range) {
         // 获取选中范围的边界矩形
-        const rect = range.getBoundingClientRect();
+        const rect: DOMRect = range.getBoundingClientRect();
 
         // 获取文档容器
-        const contentDiv = this.$refs.documentContent;
+        const contentDiv = this.$refs.documentContent as HTMLElement;
         if (contentDiv) {
           // 判断选中内容是否在可视区域内
-          const containerRect = contentDiv.getBoundingClientRect();
+          const containerRect: DOMRect = contentDiv.getBoundingClientRect();
 
           // 如果选中内容不在可视区域内，滚动到该位置
           if (
@@ -284,10 +274,13 @@ export default class DocumentViewer extends Vue {
             rect.bottom > containerRect.bottom
           ) {
             // 使用scrollIntoView确保元素可见
-            range.startContainer.parentElement?.scrollIntoView({
-              behavior: "smooth",
-              block: "center",
-            });
+            const parentElement = range.startContainer.parentElement;
+            if (parentElement) {
+              parentElement.scrollIntoView({
+                behavior: "smooth",
+                block: "center",
+              });
+            }
           }
         }
       }
@@ -296,7 +289,7 @@ export default class DocumentViewer extends Vue {
 
   // 获取状态颜色
   getStatusColor(status: string): string {
-    const colorMap: Record<string, string> = {
+    const colorMap: StatusColorMap = {
       已生效: "green",
       即将生效: "orange",
       废止: "red",
@@ -311,16 +304,18 @@ export default class DocumentViewer extends Vue {
       this.$message.loading(`正在准备下载: ${this.document.title}`, 0);
 
       const result = await this.$roadLawyerService.downloadRuleFile({
-        searchId: this.document.id,
+        id: this.document.id,
       });
 
       this.$message.destroy();
 
-      downloadFileWithMessage(result, {
-        fileName: `${this.document.title}.pdf`,
-        showMessage: true,
-        messageService: this.$message,
-      });
+      if (result) {
+        downloadFileWithMessage(result, {
+          fileName: `${this.document.title}.pdf`,
+          showMessage: true,
+          messageService: this.$message,
+        });
+      }
     } catch (error) {
       this.$message.destroy();
       console.error("下载失败:", error);
@@ -331,7 +326,7 @@ export default class DocumentViewer extends Vue {
   // 生命周期钩子
   mounted(): void {
     // 添加滚动监听，可以用于实现阅读进度等功能
-    const contentDiv = this.$refs.documentContent;
+    const contentDiv = this.$refs.documentContent as HTMLElement;
     if (contentDiv) {
       contentDiv.addEventListener("scroll", this.handleScroll);
     }
@@ -361,12 +356,12 @@ export default class DocumentViewer extends Vue {
 
   // Emit 装饰器方法
   @Emit("go-back")
-  emitGoBack() {
+  emitGoBack(): void {
     // 无需返回值
   }
 
   @Emit("open-related")
-  emitOpenRelated(document: any) {
+  emitOpenRelated(document: RelatedDocumentItem): RelatedDocumentItem {
     return document;
   }
 }

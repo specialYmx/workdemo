@@ -25,10 +25,7 @@
                 <p>{{ getMessageContent(msg.content) }}</p>
               </div>
               <div v-else class="ai-response lawyer-markdown-content">
-                <v-md-preview
-                  :text="getMessageContent(msg.content)"
-                  @error="handleMarkdownError"
-                />
+                <v-md-preview :text="getMessageContent(msg.content)" />
               </div>
             </div>
           </div>
@@ -110,33 +107,27 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import { Component, Vue, Prop } from "nuxt-property-decorator";
 import api from "~/api";
 import marked from "marked";
-
-interface AiMessage {
-  content: string;
-  isUser: boolean;
-  isWelcome?: boolean; // 标识是否为欢迎消息
-}
+import { DocumentViewerData, AiMessage } from "~/model/LawyerModel";
 
 @Component
 export default class DocumentAIChat extends Vue {
-  @Prop({ required: true }) document: any;
+  @Prop({ required: true }) document!: DocumentViewerData;
 
   // AI助手相关状态
-  aiQuestion = "";
-  aiLoading = false;
+  aiQuestion: string = "";
+  aiLoading: boolean = false;
   aiMessages: AiMessage[] = [];
-  enableNetworkQuery = false;
-  showThinking = false; // 控制"AI正在思考中"提示的显示
+  enableNetworkQuery: boolean = false;
+  showThinking: boolean = false; // 控制"AI正在思考中"提示的显示
 
   // 流式请求控制器
   private abortController: AbortController | null = null;
 
   // 组件挂载时初始化欢迎消息
-  mounted() {
+  mounted(): void {
     try {
       this.initWelcomeMessage();
     } catch (error) {
@@ -145,7 +136,7 @@ export default class DocumentAIChat extends Vue {
   }
 
   // 组件销毁时清理资源
-  beforeDestroy() {
+  beforeDestroy(): void {
     try {
       this.cancelCurrentRequest();
     } catch (error) {
@@ -154,7 +145,7 @@ export default class DocumentAIChat extends Vue {
   }
 
   // 错误处理方法
-  errorCaptured(err: Error, vm: Vue, info: string) {
+  errorCaptured(err: Error, vm: Vue, info: string): boolean {
     console.error("组件捕获到错误:", err, info);
     // 防止错误向上传播导致整个应用崩溃
     return false;
@@ -162,7 +153,7 @@ export default class DocumentAIChat extends Vue {
 
   // 初始化欢迎消息
   initWelcomeMessage(): void {
-    const welcomeMessage = `您好！我是文档AI助手。您可以向我提问关于这个文档的任何问题，请随时向我提问！`;
+    const welcomeMessage: string = `您好！我是文档AI助手。您可以向我提问关于这个文档的任何问题，请随时向我提问！`;
 
     this.aiMessages.push({
       content: welcomeMessage,
@@ -202,27 +193,30 @@ export default class DocumentAIChat extends Vue {
       this.aiLoading = true;
       this.showThinking = true;
       // 准备请求参数 - 使用 FormData 格式
-      const formData = new FormData();
+      const formData: FormData = new FormData();
       formData.append("searchId", this.document.id);
       formData.append("userId", this.$store.state.auth.id);
       formData.append("question", question);
       formData.append("enableNetworkQuery", this.enableNetworkQuery.toString());
       // 获取基础URL和token
-      const baseURL = this.$axios.defaults.baseURL;
-      const token = this.$store.state.auth.token;
-      const userId = this.$store.state.auth.id;
+      const baseURL: string = this.$axios.defaults.baseURL;
+      const token: string = this.$store.state.auth.token;
+      const userId: string = this.$store.state.auth.id;
 
       // 使用fetch进行流式请求
-      const response = await fetch(`${baseURL}${api.lawyer.getAIRobotAnswer}`, {
-        method: "POST",
-        headers: {
-          userId: userId,
-          Authorization: "Bearer " + token,
-          // 注意：使用 FormData 时不要设置 Content-Type，让浏览器自动设置
-        },
-        body: formData,
-        signal: this.abortController?.signal, // 添加取消信号
-      });
+      const response: Response = await fetch(
+        `${baseURL}${api.lawyer.getAIRobotAnswer}`,
+        {
+          method: "POST",
+          headers: {
+            userId: userId,
+            Authorization: "Bearer " + token,
+            // 注意：使用 FormData 时不要设置 Content-Type，让浏览器自动设置
+          },
+          body: formData,
+          signal: this.abortController?.signal, // 添加取消信号
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -262,14 +256,15 @@ export default class DocumentAIChat extends Vue {
     response: Response,
     aiMessage: AiMessage
   ): Promise<void> {
-    const reader = response.body?.getReader();
+    const reader: ReadableStreamDefaultReader<Uint8Array> | undefined =
+      response.body?.getReader();
     if (!reader) {
       throw new Error("无法读取响应流");
     }
 
-    const decoder = new TextDecoder();
-    let buffer = "";
-    let isFirstContent = true; // 标记是否是第一次接收到内容
+    const decoder: TextDecoder = new TextDecoder();
+    let buffer: string = "";
+    let isFirstContent: boolean = true; // 标记是否是第一次接收到内容
 
     try {
       while (true) {
@@ -286,13 +281,13 @@ export default class DocumentAIChat extends Vue {
         buffer += decoder.decode(value, { stream: true });
 
         // 按行分割数据
-        const lines = buffer.split("\n");
+        const lines: string[] = buffer.split("\n");
         buffer = lines.pop() || ""; // 保留最后一个不完整的行
 
         // 处理每一行数据
         for (const line of lines) {
           if (line.trim().startsWith("data:")) {
-            const content = line.substring(5); // 移除 "data:" 前缀
+            const content: string = line.substring(5); // 移除 "data:" 前缀
 
             // 第一次接收到内容时，隐藏"AI正在思考中"提示
             if (isFirstContent && content.trim()) {
@@ -404,7 +399,7 @@ export default class DocumentAIChat extends Vue {
   }
 
   // 安全获取消息内容，确保返回字符串类型
-  getMessageContent(content: any): string {
+  getMessageContent(content: string | object): string {
     try {
       // 如果是字符串，直接返回
       if (typeof content === "string") {
@@ -427,12 +422,6 @@ export default class DocumentAIChat extends Vue {
       console.error("处理消息内容时出错:", error);
       return "消息内容格式异常";
     }
-  }
-
-  // 处理 Markdown 渲染错误
-  handleMarkdownError(error: any): void {
-    console.error("Markdown 渲染错误:", error);
-    // 可以在这里添加用户友好的错误提示
   }
 }
 </script>

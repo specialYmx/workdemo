@@ -139,9 +139,16 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import { Component, Vue, Prop } from "nuxt-property-decorator";
 import ChartComponent from "@/components/common/ChartComponent.vue";
+import {
+  CompletedRuleItem,
+  TimeOption,
+  TrendChartData,
+  LineChartOptions,
+  ReviewStatusClassMap,
+  IconTypeMap,
+} from "~/model/LawyerModel";
 
 @Component({
   components: {
@@ -151,33 +158,33 @@ import ChartComponent from "@/components/common/ChartComponent.vue";
 export default class DashboardOverview extends Vue {
   @Prop({ type: Number, default: 0 }) monthlyUpdateCount!: number;
   @Prop({ type: Number, default: 0 }) pendingReviewCount!: number;
-  @Prop({ type: Array, default: () => [] }) recentReviews!: any[];
+  @Prop({ type: Array, default: () => [] }) recentReviews!: CompletedRuleItem[];
   @Prop({ type: Boolean, default: false }) recentReviewsLoading!: boolean;
-  @Prop({ type: Object, default: () => ({}) }) trendChartData!: any;
+  @Prop({ type: Object, default: () => ({}) }) trendChartData!: TrendChartData;
   @Prop({ type: Boolean, default: false }) trendChartLoading!: boolean;
   @Prop({ type: String, default: "month" }) activeTimeRange!: string;
   @Prop({ type: String, default: "month" }) trendChartPeriod!: string;
 
   // 时间选项
-  timeOptions = [
+  timeOptions: TimeOption[] = [
     { label: "本月", value: "month" },
     { label: "本季", value: "quarter" },
     { label: "本年", value: "year" },
   ];
 
   // 处理时间范围变更
-  handleTimeRangeChange(value) {
+  handleTimeRangeChange(value: string): void {
     this.$emit("time-range-change", value);
   }
 
   // 处理趋势图周期变更
-  handleTrendPeriodChange(value) {
+  handleTrendPeriodChange(value: string): void {
     this.$emit("trend-period-change", value);
   }
 
   // 趋势图配置
-  get trendChartOptions() {
-    const colors = ["#ffb74d", "#4caf50", "#f44336"];
+  get trendChartOptions(): LineChartOptions {
+    const colors: string[] = ["#ffb74d", "#4caf50", "#f44336"];
     return {
       grid: {
         top: "15%",
@@ -332,17 +339,18 @@ export default class DashboardOverview extends Vue {
   }
 
   // 获取已完成审核状态样式类
-  getCompletedReviewStatusClass(status) {
-    const classMap = {
+  getCompletedReviewStatusClass(status: string): string {
+    const classMap: ReviewStatusClassMap = {
       已通过: "lawyer-status-approved",
       已驳回: "lawyer-status-rejected",
+      pending: "lawyer-status-pending",
     };
     return classMap[status] || "lawyer-status-pending";
   }
 
   // 获取已完成审核图标类型
-  getCompletedReviewIconType(status) {
-    const iconMap = {
+  getCompletedReviewIconType(status: string): string {
+    const iconMap: IconTypeMap = {
       已通过: "file-done",
       已驳回: "file-exclamation",
     };

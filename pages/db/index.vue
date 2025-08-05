@@ -214,44 +214,37 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import { Component, Vue } from "nuxt-property-decorator";
 import moment from "moment";
-import { ToDoRuleItem } from "~/model/LawyerModel";
+import {
+  ToDoRuleItem,
+  FilterOption,
+  DbTableColumn,
+  PaginationConfig,
+  RowSelectionConfig,
+  StatusMap,
+  DateRange,
+  CheckRuleQueryParams,
+} from "~/model/LawyerModel";
 import { categoryOptions } from "~/enum/Category";
 import { downloadFileWithMessage } from "~/utils/personal";
-
-interface Document {
-  id: string;
-  title: string;
-  version: string;
-  docNumber?: string;
-  changeType: string;
-  type: string;
-  submitter: string;
-  submitTime: string;
-  reviewer?: string;
-  reviewTime?: string;
-  status: string;
-  source?: string;
-}
 
 @Component({})
 export default class DbPage extends Vue {
   // 搜索和筛选
-  searchText = "";
-  filterStatus = "all";
-  filterType = "";
-  dateRange = [];
+  searchText: string = "";
+  filterStatus: string = "all";
+  filterType: string = "";
+  dateRange: DateRange = [];
   // 表格加载状态
-  tableLoading = false;
+  tableLoading: boolean = false;
 
   // 表格勾选相关
   selectedRowKeys: string[] = [];
   selectedRows: ToDoRuleItem[] = [];
 
   // 当前分页状态
-  currentPagination = {
+  currentPagination: PaginationConfig = {
     current: 1,
     pageSize: 10,
     total: 0,
@@ -260,7 +253,7 @@ export default class DbPage extends Vue {
   currentDocument: ToDoRuleItem | null = null;
 
   // 状态选项
-  statusOptions = [
+  statusOptions: FilterOption[] = [
     { label: "全部状态", value: "all" },
     { label: "待审核", value: "pending" },
     { label: "已通过", value: "approved" },
@@ -268,10 +261,10 @@ export default class DbPage extends Vue {
   ];
 
   // 文档类型选项（从常量文件导入）
-  typeOptions = categoryOptions;
+  typeOptions: FilterOption[] = categoryOptions;
 
   // 表格行选择配置
-  get rowSelection() {
+  get rowSelection(): RowSelectionConfig<ToDoRuleItem> {
     return {
       selectedRowKeys: this.selectedRowKeys,
       onChange: this.onSelectChange,
@@ -284,7 +277,7 @@ export default class DbPage extends Vue {
   }
 
   // 表格列配置
-  columns = [
+  columns: DbTableColumn[] = [
     {
       title: "标题/文号",
       key: "ruleName",
@@ -293,16 +286,13 @@ export default class DbPage extends Vue {
         filterDropdown: "filterDropdown",
         filterIcon: "filterIcon",
       },
-      onFilter: (value, record) =>
-        record.ruleName.toLowerCase().includes(value.toLowerCase()) ||
-        (record.categorySub &&
-          record.categorySub.toLowerCase().includes(value.toLowerCase())),
-      onFilterDropdownVisibleChange: (visible) => {
-        if (visible) {
-          setTimeout(() => {
-            this.$refs.searchInput.focus();
-          }, 100);
-        }
+      onFilter: (value, record) => {
+        const searchValue = String(value).toLowerCase();
+        const ruleName = String(record.ruleName || "").toLowerCase();
+        const categorySub = String(record.categorySub || "").toLowerCase();
+        return (
+          ruleName.includes(searchValue) || categorySub.includes(searchValue)
+        );
       },
     },
     {
@@ -315,14 +305,10 @@ export default class DbPage extends Vue {
         filterIcon: "filterIcon",
       },
       width: 120,
-      onFilter: (value, record) =>
-        record.categoryMain.toLowerCase().includes(value.toLowerCase()),
-      onFilterDropdownVisibleChange: (visible) => {
-        if (visible) {
-          setTimeout(() => {
-            this.$refs.searchInput.focus();
-          }, 100);
-        }
+      onFilter: (value, record) => {
+        const searchValue = String(value).toLowerCase();
+        const categoryMain = String(record.categoryMain || "").toLowerCase();
+        return categoryMain.includes(searchValue);
       },
     },
     {
@@ -334,15 +320,10 @@ export default class DbPage extends Vue {
         filterDropdown: "filterDropdown",
         filterIcon: "filterIcon",
       },
-      onFilter: (value, record) =>
-        record.legalSource &&
-        record.legalSource.toLowerCase().includes(value.toLowerCase()),
-      onFilterDropdownVisibleChange: (visible) => {
-        if (visible) {
-          setTimeout(() => {
-            this.$refs.searchInput.focus();
-          }, 100);
-        }
+      onFilter: (value, record) => {
+        const searchValue = String(value).toLowerCase();
+        const legalSource = String(record.legalSource || "").toLowerCase();
+        return legalSource.includes(searchValue);
       },
     },
     {
@@ -351,7 +332,11 @@ export default class DbPage extends Vue {
       key: "createdTime",
       width: 160,
       scopedSlots: { customRender: "createdTime" },
-      sorter: (a, b) => new Date(a.createdTime) - new Date(b.createdTime),
+      sorter: (a, b) => {
+        const dateA = new Date(String(a.createdTime)).getTime();
+        const dateB = new Date(String(b.createdTime)).getTime();
+        return dateA - dateB;
+      },
     },
     {
       title: "施行日期",
@@ -359,8 +344,11 @@ export default class DbPage extends Vue {
       key: "publishTime",
       width: 160,
       scopedSlots: { customRender: "publishTime" },
-      sorter: (a, b) =>
-        new Date(a.publishTime || 0) - new Date(b.publishTime || 0),
+      sorter: (a, b) => {
+        const dateA = new Date(String(a.publishTime || 0)).getTime();
+        const dateB = new Date(String(b.publishTime || 0)).getTime();
+        return dateA - dateB;
+      },
     },
     {
       title: "状态",
@@ -387,20 +375,20 @@ export default class DbPage extends Vue {
   // 文档数据
   documents: ToDoRuleItem[] = [];
 
-  head() {
+  get head(): { title: string } {
     return {
       title: "人工审核 - 法律合规智能系统",
     };
   }
 
   // 生命周期钩子
-  async mounted() {
+  async mounted(): Promise<void> {
     // 加载文档数据
     await this.loadDocuments();
   }
 
   // 加载文档数据
-  async loadDocuments() {
+  async loadDocuments(): Promise<void> {
     this.tableLoading = true;
 
     try {
@@ -415,8 +403,12 @@ export default class DbPage extends Vue {
 
       // 调用真实API获取数据
       const result = await this.$roadLawyerService.getCheckRuleList(params);
-      if (result && result.length > 0) {
+      if (result && Array.isArray(result)) {
+        // 如果返回的是数组
         this.documents = result;
+      } else if (result && result.list && Array.isArray(result.list)) {
+        // 如果返回的是分页对象
+        this.documents = result.list;
       } else {
         this.documents = [];
       }
@@ -426,7 +418,7 @@ export default class DbPage extends Vue {
         current: 1,
         pageSize: 10,
         total: this.documents.length,
-        showTotal: (total) => `共 ${total} 条数据`,
+        showTotal: (total: number) => `共 ${total} 条数据`,
         showSizeChanger: true,
         showQuickJumper: true,
         pageSizeOptions: ["10", "20", "50", "100"],
@@ -440,14 +432,15 @@ export default class DbPage extends Vue {
   }
 
   // 获取待审核文档数量
-  get pendingCount() {
+  get pendingCount(): number {
     return this.documents.filter(
-      (doc) => doc.checkStatus === "待审核" || doc.checkStatus === null
+      (doc: ToDoRuleItem) =>
+        doc.checkStatus === "待审核" || doc.checkStatus === null
     ).length;
   }
 
   // 获取文档总数
-  get totalDocuments() {
+  get totalDocuments(): number {
     return this.documents.length;
   }
 
@@ -471,7 +464,7 @@ export default class DbPage extends Vue {
 
   // 将前端状态值转换为API状态值
   getApiCheckStatus(status: string): string {
-    const statusMap: Record<string, string> = {
+    const statusMap: StatusMap = {
       all: "",
       pending: "待审核",
       approved: "已通过",
@@ -490,37 +483,37 @@ export default class DbPage extends Vue {
     console.log("表格变化:", pagination, filters, sorter, extra);
 
     // 计算筛选后的数据数量
-    let filteredCount = this.documents.length;
+    let filteredCount: number = this.documents.length;
 
     // 如果有筛选条件，计算筛选后的数量
     if (filters && Object.keys(filters).length > 0) {
-      let result = [...this.documents];
+      let result: ToDoRuleItem[] = [...this.documents];
 
       // 应用筛选条件
-      Object.keys(filters).forEach((key) => {
+      Object.keys(filters).forEach((key: string) => {
         const filterValues = filters[key];
         if (filterValues && filterValues.length > 0) {
           if (key === "titles") {
             // 标题搜索筛选
-            const searchText = filterValues[0].toLowerCase();
+            const searchText: string = filterValues[0].toLowerCase();
             result = result.filter(
-              (item) =>
+              (item: ToDoRuleItem) =>
                 item.ruleName.toLowerCase().includes(searchText) ||
                 (item.categorySub &&
                   item.categorySub.toLowerCase().includes(searchText))
             );
           } else if (key === "checkStatus") {
-            result = result.filter((item) =>
+            result = result.filter((item: ToDoRuleItem) =>
               filterValues.includes(item.checkStatus)
             );
           } else if (key === "categoryMain") {
-            result = result.filter((item) =>
+            result = result.filter((item: ToDoRuleItem) =>
               filterValues.includes(item.categoryMain)
             );
           } else if (key === "legalSource") {
-            const searchText = filterValues[0].toLowerCase();
+            const searchText: string = filterValues[0].toLowerCase();
             result = result.filter(
-              (item) =>
+              (item: ToDoRuleItem) =>
                 item.legalSource &&
                 item.legalSource.toLowerCase().includes(searchText)
             );
@@ -535,7 +528,7 @@ export default class DbPage extends Vue {
     this.currentPagination = {
       ...pagination,
       total: filteredCount,
-      showTotal: (total) => `共 ${total} 条数据`,
+      showTotal: (total: number) => `共 ${total} 条数据`,
       showSizeChanger: true,
       showQuickJumper: true,
       pageSizeOptions: ["10", "20", "50", "100"],
@@ -566,12 +559,12 @@ export default class DbPage extends Vue {
       return status;
     }
     // 兼容数字格式的状态
-    const textMap: Record<string, string> = {
+    const textMap: StatusMap = {
       "0": "待审核",
       "1": "已通过",
       "2": "已驳回",
     };
-    return textMap[status] || "未知状态";
+    return textMap[status || ""] || "未知状态";
   }
 
   // 格式化时间显示
@@ -603,8 +596,8 @@ export default class DbPage extends Vue {
       return true;
     }
 
-    const newVersion = record.newFileVersion || 0;
-    const maxVersion = record.currentMaxFileVersion || 0;
+    const newVersion: number = Number(record.newFileVersion) || 0;
+    const maxVersion: number = Number(record.currentMaxFileVersion) || 0;
 
     return newVersion <= maxVersion;
   }
@@ -657,7 +650,7 @@ export default class DbPage extends Vue {
     try {
       // 调用统一的审核接口，通过approvalComment传递状态
       await this.$roadLawyerService.approveToDoRule({
-        id: this.currentDocument?.id,
+        id: this.currentDocument?.id || "",
         approvalComment: action === "approve" ? "已通过" : "已驳回",
       });
 
@@ -690,7 +683,7 @@ export default class DbPage extends Vue {
   ): void {
     console.log("全选变化:", selected, selectedRows, changeRows);
     if (selected) {
-      this.selectedRowKeys = selectedRows.map((row) => row.id);
+      this.selectedRowKeys = selectedRows.map((row: ToDoRuleItem) => row.id);
       this.selectedRows = selectedRows;
     } else {
       this.selectedRowKeys = [];

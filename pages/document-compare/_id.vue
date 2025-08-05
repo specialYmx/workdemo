@@ -9,15 +9,20 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import { Component, Vue } from "nuxt-property-decorator";
 import DocumentCompare from "@/components/document/DocumentCompare.vue";
+import {
+  DocumentComparePageData,
+  SectionInfo,
+  ChangeItem,
+  ReviewSubmitData,
+} from "@/model/LawyerModel";
 
 @Component({
   components: {
     DocumentCompare,
   },
-  head() {
+  head(): { title: string } {
     return {
       title: "文档版本对比 - 法律合规智能系统",
     };
@@ -25,7 +30,7 @@ import DocumentCompare from "@/components/document/DocumentCompare.vue";
 })
 export default class DocumentComparePage extends Vue {
   // 对比数据
-  documentData = {
+  documentData: DocumentComparePageData = {
     id: "",
     title: "",
     status: "pending",
@@ -37,7 +42,7 @@ export default class DocumentComparePage extends Vue {
     changes: [],
   };
 
-  loading = false;
+  loading: boolean = false;
 
   // 返回上一页
   goBack(): void {
@@ -45,7 +50,7 @@ export default class DocumentComparePage extends Vue {
   }
 
   // 处理审核提交
-  handleReviewSubmit(reviewData): void {
+  handleReviewSubmit(reviewData: ReviewSubmitData): void {
     const { action } = reviewData;
 
     // 处理审核逻辑
@@ -76,7 +81,7 @@ export default class DocumentComparePage extends Vue {
   }
 
   // 解析章节信息，提取章节号
-  parseSection(sectionRaw) {
+  parseSection(sectionRaw: string): SectionInfo {
     if (!sectionRaw) return { number: "", title: "" };
 
     // 处理各种格式的章节信息
@@ -85,15 +90,15 @@ export default class DocumentComparePage extends Vue {
     // 格式3: "第一章　总则" -> 提取"一" (全角空格)
 
     // 先去掉"第"字
-    let processed = sectionRaw.replace(/^第/, "");
+    let processed: string = sectionRaw.replace(/^第/, "");
 
     // 查找"章"字的位置
-    const chapterIndex = processed.indexOf("章");
+    const chapterIndex: number = processed.indexOf("章");
     if (chapterIndex !== -1) {
       // 提取章节号（"章"字之前的部分）
-      const chapterNumber = processed.substring(0, chapterIndex);
+      const chapterNumber: string = processed.substring(0, chapterIndex);
       // 提取章节标题（"章"字之后的部分，去掉空格）
-      const chapterTitle = processed
+      const chapterTitle: string = processed
         .substring(chapterIndex + 1)
         .replace(/[\s　]+/g, "")
         .trim();
@@ -112,12 +117,12 @@ export default class DocumentComparePage extends Vue {
   }
 
   // 格式化文档变更数据
-  formatChanges(checkResult) {
+  formatChanges(checkResult: string): ChangeItem[] {
     if (!checkResult || typeof checkResult !== "string") return [];
 
     try {
       // 处理字符串格式，去掉首尾的方括号
-      let content = checkResult.trim();
+      let content: string = checkResult.trim();
       if (content.startsWith("[") && content.endsWith("]")) {
         content = content.slice(1, -1);
       }
@@ -128,22 +133,22 @@ export default class DocumentComparePage extends Vue {
       }
 
       // 按逗号分割各个变更项，但要注意单引号内的逗号不应该分割
-      const items = this.splitChangeItems(content);
-      const changes = [];
+      const items: string[] = this.splitChangeItems(content);
+      const changes: ChangeItem[] = [];
 
-      items.forEach((item) => {
+      items.forEach((item: string) => {
         item = item.trim();
         if (!item) return;
 
         // 解析每个变更项
-        const change = this.parseChangeItem(item);
+        const change: ChangeItem | null = this.parseChangeItem(item);
         if (change) {
           changes.push(change);
         }
       });
 
       // 清理数据中的换行符和多余空格
-      return changes.map((change) => {
+      return changes.map((change: ChangeItem): ChangeItem => {
         if (change.section) {
           change.section = change.section
             .replace(/[\r\n\t]/g, "")
@@ -167,13 +172,13 @@ export default class DocumentComparePage extends Vue {
   }
 
   // 智能分割变更项，考虑单引号内的逗号
-  splitChangeItems(content) {
-    const items = [];
-    let current = "";
-    let inQuotes = false;
+  splitChangeItems(content: string): string[] {
+    const items: string[] = [];
+    let current: string = "";
+    let inQuotes: boolean = false;
 
     for (let i = 0; i < content.length; i++) {
-      const char = content[i];
+      const char: string = content[i];
 
       if (char === "'" && !inQuotes) {
         inQuotes = true;
@@ -197,13 +202,13 @@ export default class DocumentComparePage extends Vue {
   }
 
   // 解析单个变更项
-  parseChangeItem(item) {
+  parseChangeItem(item: string): ChangeItem | null {
     try {
       // 处理标题变更：第一章 标题变更：由'总则'变更为'总则11'
       if (item.includes("标题变更")) {
         const match = item.match(/^(.+?)\s+标题变更：由'(.+?)'变更为'(.+?)'$/);
         if (match) {
-          const parsedSection = this.parseSection(match[1].trim());
+          const parsedSection: SectionInfo = this.parseSection(match[1].trim());
           return {
             type: "modify",
             section: parsedSection.number,
@@ -219,12 +224,14 @@ export default class DocumentComparePage extends Vue {
       if (item.includes("删除条款：")) {
         const match = item.match(/^删除条款：(.+)$/);
         if (match) {
-          const content = match[1].trim();
+          const content: string = match[1].trim();
           // 尝试提取条款号
           const sectionMatch = content.match(/^(第.+?[章条])/);
-          let section = "";
+          let section: string = "";
           if (sectionMatch) {
-            const parsedSection = this.parseSection(sectionMatch[1]);
+            const parsedSection: SectionInfo = this.parseSection(
+              sectionMatch[1]
+            );
             section = parsedSection.number;
           }
 
@@ -242,8 +249,8 @@ export default class DocumentComparePage extends Vue {
       if (item.includes("：由'") && item.includes("'变更为'")) {
         const match = item.match(/^(.+?)：由'(.+?)'变更为'(.+?)'$/);
         if (match) {
-          const sectionText = match[1].trim();
-          const parsedSection = this.parseSection(sectionText);
+          const sectionText: string = match[1].trim();
+          const parsedSection: SectionInfo = this.parseSection(sectionText);
 
           return {
             type: "modify",
@@ -260,7 +267,7 @@ export default class DocumentComparePage extends Vue {
       if (item.includes("新增条款")) {
         const match = item.match(/^(.+?)\s*新增条款：(.+)$/);
         if (match) {
-          const parsedSection = this.parseSection(match[1].trim());
+          const parsedSection: SectionInfo = this.parseSection(match[1].trim());
           return {
             type: "add",
             section: parsedSection.number,
@@ -280,7 +287,7 @@ export default class DocumentComparePage extends Vue {
   }
 
   // 获取文档对比数据
-  async fetchDocumentData() {
+  async fetchDocumentData(): Promise<void> {
     const docId = this.$route.query.id;
     console.log("🚀 ~ DocumentComparePage ~ fetchDocumentData ~ docId:", docId);
     if (!docId) return;
@@ -290,7 +297,7 @@ export default class DocumentComparePage extends Vue {
     const pageTitle = this.$route.query.pageTitle as string;
 
     this.documentData = {
-      id: docId,
+      id: docId as string,
       title: pageTitle || "正在加载文档...",
       status: "pending",
       tags: [],
@@ -310,19 +317,19 @@ export default class DocumentComparePage extends Vue {
     try {
       // 调用接口获取文档详情
       const result = await this.$roadLawyerService.getToDoRuleDetail({
-        id: docId,
+        id: docId as string,
       });
       console.log("文档详情数据:", result);
 
       if (result && (result.oldFileContent || result.newFileContent)) {
         // 构建标签数组，包含一级和二级分类
-        const tags = [];
+        const tags: string[] = [];
         if (result.categoryMain) tags.push(result.categoryMain);
         if (result.categorySub) tags.push(result.categorySub);
 
         // 处理文档数据 - 使用从URL参数获取的标题
         this.documentData = {
-          id: docId,
+          id: docId as string,
           title:
             pageTitle ||
             `${result.categoryMain || ""}${
@@ -351,7 +358,7 @@ export default class DocumentComparePage extends Vue {
       } else {
         // 数据为空
         this.documentData = {
-          id: docId,
+          id: docId as string,
           title: pageTitle || "未找到文档数据",
           status: "pending",
           tags: [],
@@ -369,7 +376,7 @@ export default class DocumentComparePage extends Vue {
 
       // 显示错误状态
       this.documentData = {
-        id: docId,
+        id: docId as string,
         title: pageTitle || "加载失败",
         status: "pending",
         tags: [],
@@ -391,7 +398,7 @@ export default class DocumentComparePage extends Vue {
   }
 
   // 生命周期钩子
-  created() {
+  created(): void {
     // 在created钩子中获取数据
     this.fetchDocumentData();
   }

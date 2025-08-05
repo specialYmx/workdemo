@@ -301,7 +301,7 @@ export interface CaseAnalysis {
 /**
  * 人工审核列表项接口（基于mock数据结构）
  */
-export interface ToDoRuleItem {
+export interface ToDoRuleItem extends TableRecord {
   id: string;
   diffResultId: string | null;
   ruleName: string;
@@ -465,8 +465,10 @@ export interface RoadLawyerService {
   // ==================== 首页统计相关方法 ====================
   getCheckCompleteList: (params?: QueryParams) => Promise<CompletedRuleItem[]>;
   getUpdateCount: (params?: QueryParams) => Promise<number>;
-  getUpdateTimeLinessCount: (params?: QueryParams) => Promise<any>;
-  getWebSiteRatio: (params?: QueryParams) => Promise<any>;
+  getUpdateTimeLinessCount: (
+    params?: QueryParams
+  ) => Promise<TimelinessCountData>;
+  getWebSiteRatio: (params?: QueryParams) => Promise<WebsiteRatioData>;
   exportStatisticExcel: (params: {
     condition: string;
   }) => Promise<{ data: Blob; headers: ResponseHeaders } | null>;
@@ -476,14 +478,14 @@ export interface RoadLawyerService {
   downloadRuleFile: (
     params: DownloadFileParams
   ) => Promise<{ data: Blob; headers: ResponseHeaders }>;
-  getRuleSourceCollect: (params: QueryParams) => Promise<any>;
+  getRuleSourceCollect: (params: QueryParams) => Promise<KnowledgeDataItem[]>;
   getRuleSourceDetail: (params: {
     searchId: string;
     isRevoke?: boolean;
   }) => Promise<KnowledgeDataItem | null>;
   getRuleSourceList: (params: QueryParams) => Promise<KnowledgeDataItem[]>;
   getRuleUpdateList: (params: QueryParams) => Promise<RuleUpdateItem[]>;
-  initData: (params?: QueryParams) => Promise<any>;
+  initData: (params?: QueryParams) => Promise<boolean>;
   saveOrCancelCollect: (params: CollectParams) => Promise<boolean>;
   updateTimeLinessSchedule: (params: QueryParams) => Promise<boolean>;
   uploadRuleSource: (params: UploadParams) => Promise<boolean>;
@@ -494,7 +496,772 @@ export interface RoadLawyerService {
   exportExcel: (
     params: ExportParams
   ) => Promise<{ data: Blob; headers: ResponseHeaders }>;
-  getDiffResultSchedule: (params: QueryParams) => Promise<any>;
+  getDiffResultSchedule: (params: QueryParams) => Promise<ScheduleStatusData>;
   getToDoRuleDetail: (params: { id: string }) => Promise<FileCompareDetail>;
   getCheckRuleList: (params: QueryParams) => Promise<PageResult<ToDoRuleItem>>;
+}
+
+// ==================== 图表数据相关类型定义 ====================
+
+/**
+ * 饼图数据项
+ */
+export interface PieChartDataItem {
+  name: string;
+  value: number;
+  itemStyle?: {
+    color?: string;
+  };
+}
+
+/**
+ * 饼图系列数据
+ */
+export interface PieChartSeries {
+  data: PieChartDataItem[];
+  type?: string;
+  name?: string;
+}
+
+/**
+ * 图表数据结构
+ */
+export interface ChartData {
+  series: PieChartSeries[];
+}
+
+/**
+ * 图例项
+ */
+export interface LegendItem {
+  name: string;
+  value: number;
+  color: string;
+}
+
+/**
+ * ECharts 饼图配置选项
+ */
+export interface PieChartOptions {
+  color: string[];
+  tooltip: {
+    trigger: string;
+    formatter: (params: EChartsFormatterParams) => string;
+    backgroundColor: string;
+    borderColor: string;
+    textStyle: {
+      color: string;
+      fontSize: number;
+    };
+    extraCssText: string;
+  };
+  legend: {
+    show: boolean;
+  };
+  series: Array<{
+    name: string;
+    type: string;
+    radius: string[];
+    center: string[];
+    avoidLabelOverlap: boolean;
+    label: {
+      show: boolean;
+      position: string;
+      formatter: (params: EChartsFormatterParams) => string;
+      fontSize: number;
+      color: string;
+      lineHeight: number;
+    };
+    emphasis: {
+      label: {
+        show: boolean;
+        fontSize: string;
+        fontWeight: string;
+        color: string;
+      };
+      itemStyle: {
+        shadowBlur: number;
+        shadowOffsetX: number;
+        shadowColor: string;
+      };
+    };
+    labelLine: {
+      show: boolean;
+      length: number;
+      length2: number;
+      lineStyle: {
+        color: string;
+        width: number;
+      };
+    };
+    data: PieChartDataItem[];
+  }>;
+}
+
+/**
+ * 更新标签
+ */
+export interface UpdateTag {
+  text: string;
+  class: string;
+}
+
+/**
+ * 更新状态Emoji映射
+ */
+export type UpdateEmojiMap = {
+  [key: string]: string;
+  new: string;
+  updated: string;
+  effective: string;
+  deprecated: string;
+};
+
+/**
+ * Ant Design Vue 表格列配置
+ */
+export interface TableColumn {
+  title: string;
+  dataIndex?: string;
+  key: string;
+  scopedSlots?: { customRender: string };
+  width?: string;
+  align?: "left" | "center" | "right";
+}
+
+/**
+ * 审核状态样式映射
+ */
+export type ReviewStatusClassMap = {
+  [key: string]: string;
+  已通过: string;
+  已驳回: string;
+  pending: string;
+};
+
+/**
+ * 时间选项
+ */
+export interface TimeOption {
+  label: string;
+  value: string;
+}
+
+/**
+ * 趋势图轴数据
+ */
+export interface TrendChartAxisData {
+  data: string[] | number[];
+}
+
+/**
+ * 趋势图系列数据
+ */
+export interface TrendChartSeriesData {
+  data: number[];
+}
+
+/**
+ * 趋势图数据结构
+ */
+export interface TrendChartData {
+  xAxis?: TrendChartAxisData;
+  series?: TrendChartSeriesData[];
+}
+
+/**
+ * ECharts 线图配置选项
+ */
+export interface LineChartOptions {
+  grid: {
+    top: string;
+    left: string;
+    right: string;
+    bottom: string;
+    containLabel: boolean;
+  };
+  tooltip: {
+    trigger: string;
+    axisPointer: {
+      type: string;
+    };
+  };
+  xAxis: {
+    type: string;
+    data: string[] | number[];
+    axisTick: {
+      alignWithLabel: boolean;
+    };
+    axisLine: {
+      lineStyle: {
+        color: string;
+      };
+    };
+    axisLabel: {
+      color: string;
+    };
+  };
+  yAxis: {
+    type: string;
+    axisLine: {
+      show: boolean;
+    };
+    axisTick: {
+      show: boolean;
+    };
+    splitLine: {
+      lineStyle: {
+        color: string;
+      };
+    };
+    axisLabel: {
+      color: string;
+    };
+  };
+  series: Array<{
+    name: string;
+    type: string;
+    smooth: boolean;
+    data: number[];
+    itemStyle: {
+      color: string;
+    };
+    lineStyle: {
+      width: number;
+      color: string;
+    };
+    symbol: string;
+    symbolSize: number;
+    areaStyle: {
+      color: {
+        type: string;
+        x: number;
+        y: number;
+        x2: number;
+        y2: number;
+        colorStops: Array<{
+          offset: number;
+          color: string;
+        }>;
+      };
+    };
+  }>;
+}
+
+/**
+ * 图标类型映射
+ */
+export type IconTypeMap = {
+  [key: string]: string;
+  已通过: string;
+  已驳回: string;
+};
+
+/**
+ * 文档查看器显示的文档对象
+ */
+export interface DocumentViewerData {
+  id: string;
+  title: string;
+  date: string;
+  effectiveDate: string;
+  publisher: string;
+  fileNumber: string;
+  status: string;
+  views: number;
+  content: string;
+  isRevoke: boolean;
+  timeLiness: string;
+}
+
+/**
+ * 相关文档项
+ */
+export interface RelatedDocumentItem {
+  id: string;
+  title: string;
+  date: string;
+}
+
+/**
+ * 文档元数据项
+ */
+export interface DocumentMetaItem {
+  icon: string;
+  content: string;
+}
+
+/**
+ * 文档目录项
+ */
+export interface DocumentTocItem {
+  text: string;
+  level: number;
+}
+
+/**
+ * 标签颜色映射
+ */
+export type TagColorMap = {
+  [key: string]: string;
+};
+
+/**
+ * 状态颜色映射
+ */
+export type StatusColorMap = {
+  [key: string]: string;
+};
+
+/**
+ * 消息服务接口
+ */
+export interface MessageService {
+  success(content: string, duration?: number): void;
+  error(content: string, duration?: number): void;
+  info(content: string, duration?: number): void;
+  warning(content: string, duration?: number): void;
+  warn(content: string, duration?: number): void;
+  loading(content: string, duration?: number): void;
+  destroy(): void;
+}
+
+/**
+ * 文档变更项
+ */
+export interface DocumentChange {
+  section?: string;
+  position?: string;
+  type: "add" | "delete" | "modify";
+  oldText?: string;
+  newText?: string;
+}
+
+/**
+ * 文档比较数据
+ */
+export interface DocumentCompareData {
+  id: string;
+  title: string;
+  status: string;
+  tags?: string[];
+  effectDate?: string | null;
+  newFileVersion?: number | null;
+  oldFileVersion?: number | null;
+  currentMaxFileVersion?: number | null;
+  originalContent?: string;
+  newContent?: string;
+  oldPublishTime?: string;
+  newPublishTime?: string;
+  modifiedDate?: string;
+  changes: DocumentChange[];
+}
+
+/**
+ * 审核操作
+ */
+export interface ReviewAction {
+  text: string;
+  type: string;
+  handler: () => void;
+}
+
+/**
+ * 文档列配置
+ */
+export interface DocumentColumn {
+  title: string;
+  version?: string;
+  date?: string;
+  content: string;
+  contentClass: string;
+}
+
+/**
+ * 级联选择器选项
+ */
+export interface CascaderOption {
+  value: string;
+  label: string;
+  children?: CascaderOption[];
+}
+
+/**
+ * 审核提交数据
+ */
+export interface ReviewSubmitData {
+  action: string;
+  comment: string;
+}
+
+/**
+ * 文件上传配置
+ */
+export interface UploadConfig {
+  multiple?: boolean;
+  acceptTypes?: string;
+  maxFileSize?: number;
+  maxFileCount?: number;
+  uploadText?: string;
+  hintText?: string;
+  autoUpload?: boolean;
+}
+
+/**
+ * 文件变化事件数据
+ */
+export interface FileChangeData {
+  files: File[];
+  currentFile: File | null;
+}
+
+/**
+ * 上传成功事件数据
+ */
+export interface UploadSuccessData {
+  files: File[];
+  file: File | null;
+  documentId: string;
+}
+
+/**
+ * 上传失败事件数据
+ */
+export interface UploadErrorData {
+  files: File[];
+  error: Error | unknown;
+}
+
+/**
+ * AI消息
+ */
+export interface AiMessage {
+  content: string;
+  isUser: boolean;
+  isWelcome?: boolean; // 标识是否为欢迎消息
+}
+
+/**
+ * 主页图表加载状态
+ */
+export interface IndexPageChartLoading {
+  trend: boolean;
+  sources: boolean;
+}
+
+/**
+ * 主页图表数据状态
+ */
+export interface IndexPageChartData {
+  trend: TrendChartData;
+  sources: ChartData;
+}
+
+/**
+ * 主页列表加载状态
+ */
+export interface IndexPageListLoading {
+  recentReviews: boolean;
+  topReviews: boolean;
+  latestUpdates: boolean;
+}
+
+/**
+ * 时间范围映射
+ */
+export type TimeRangeMap = {
+  [key: string]: string;
+};
+
+/**
+ * 颜色映射
+ */
+export type SourceColorMap = {
+  [key: string]: string;
+};
+
+/**
+ * AI摘要点（法规更新）
+ */
+export interface AiSummaryPoint {
+  title: string;
+  content: string;
+}
+
+/**
+ * 更新项（法规更新列表显示）
+ */
+export interface UpdateItem {
+  id: string;
+  title: string;
+  description: string;
+  date: string;
+  source: string;
+  category: string;
+  type: string;
+  tags: string[];
+  aiSummary?: AiSummaryPoint[];
+}
+
+/**
+ * 筛选选项
+ */
+export interface FilterOption {
+  label: string;
+  value: string;
+}
+
+/**
+ * 标签类名映射
+ */
+export type TagClassMap = {
+  [key: string]: string;
+};
+
+/**
+ * 搜索按钮配置
+ */
+export interface SearchButton {
+  text: string;
+  icon?: string;
+  type?: string;
+  loading?: boolean;
+  isActive: boolean;
+  count?: number;
+  handler: () => void;
+}
+
+/**
+ * 网站选项
+ */
+export interface WebsiteOption {
+  value: string;
+  label: string;
+}
+
+/**
+ * 文档操作按钮
+ */
+export interface DocumentAction {
+  text: string;
+  type?: string;
+  class?: string;
+  icon?: string;
+  handler: () => void;
+}
+
+/**
+ * 上传配置（扩展版本）
+ */
+export interface KnowledgeUploadConfig {
+  multiple: boolean;
+  acceptTypes: string;
+  maxFileSize: number;
+  maxFileCount: number;
+  uploadText: string;
+  hintText: string;
+  autoUpload: boolean;
+}
+
+/**
+ * 章节信息
+ */
+export interface SectionInfo {
+  number: string;
+  title: string;
+}
+
+/**
+ * 文档变更项
+ */
+export interface ChangeItem {
+  type: string;
+  section: string;
+  position: string;
+  oldText?: string;
+  newText?: string;
+  reason: string;
+}
+
+/**
+ * 文档比较页面数据
+ */
+export interface DocumentComparePageData {
+  id: string;
+  title: string;
+  status: string;
+  tags: string[];
+  originalVersion: string;
+  newVersion: string | number;
+  originalContent: string;
+  newContent: string;
+  changes: ChangeItem[];
+  modifiedDate?: string;
+  effectDate?: string | null;
+  oldFileVersion?: string | number | null;
+  oldPublishTime?: string | null;
+  newFileVersion?: string | number | null;
+  newPublishTime?: string | null;
+  currentMaxFileVersion?: number;
+}
+
+/**
+ * 数据库页面表格列配置
+ */
+export interface DbTableColumn {
+  title: string;
+  key?: string;
+  dataIndex?: string;
+  width?: number;
+  fixed?: string;
+  scopedSlots?: {
+    customRender?: string;
+    filterDropdown?: string;
+    filterIcon?: string;
+  };
+  filters?: Array<{ text: string; value: string }>;
+  onFilter?: (value: TableFilterValue, record: TableRecord) => boolean;
+  onFilterDropdownVisibleChange?: (visible: boolean) => void;
+  sorter?: <T extends TableRecord>(a: T, b: T) => number;
+}
+
+/**
+ * 分页配置
+ */
+export interface PaginationConfig {
+  current: number;
+  pageSize: number;
+  total: number;
+  showTotal?: (total: number) => string;
+  showSizeChanger?: boolean;
+  showQuickJumper?: boolean;
+  pageSizeOptions?: string[];
+}
+
+/**
+ * 表格行选择配置
+ */
+export interface RowSelectionConfig<T extends TableRecord = TableRecord> {
+  selectedRowKeys: string[];
+  onChange: (selectedRowKeys: string[], selectedRows: T[]) => void;
+  onSelectAll: (selected: boolean, selectedRows: T[], changeRows: T[]) => void;
+  getCheckboxProps: (record: T) => { disabled: boolean; name: string };
+}
+
+/**
+ * 状态映射
+ */
+export type StatusMap = {
+  [key: string]: string;
+};
+
+/**
+ * 路由查询参数
+ */
+export interface RouteQuery {
+  id?: string;
+  pageTitle?: string;
+  isRevoke?: string;
+  [key: string]: string | string[] | null | undefined;
+}
+
+/**
+ * API查询参数基础接口
+ */
+export interface BaseQueryParams {
+  [key: string]: string | number | boolean | null | undefined;
+}
+
+/**
+ * 法规更新查询参数
+ */
+export interface RuleUpdateQueryParams extends BaseQueryParams {
+  filed?: string;
+}
+
+/**
+ * 法规来源查询参数
+ */
+export interface RuleSourceQueryParams extends BaseQueryParams {
+  query?: string;
+  timeLiness?: string;
+  effectivenessLevel?: string;
+  categoryMain?: string;
+  categorySub?: string;
+  legalSource?: string;
+  publishDateSort?: string;
+  empId: string;
+}
+
+/**
+ * 审核查询参数
+ */
+export interface CheckRuleQueryParams extends BaseQueryParams {
+  condition?: string;
+  checkStatus?: string;
+  category?: string;
+}
+
+/**
+ * 级联选择器选项
+ */
+export interface CascaderOptionItem {
+  value: string;
+  label: string;
+  children?: CascaderOptionItem[];
+}
+
+/**
+ * 日期范围
+ */
+export type DateRange = (string | Date | number)[] | null;
+
+/**
+ * 时间线统计数据
+ */
+export interface TimelinessCountData {
+  modify: number[];
+  public: number[];
+  revoke: number[];
+}
+
+/**
+ * 网站比例数据
+ */
+export interface WebsiteRatioData {
+  [websiteName: string]: number;
+}
+
+/**
+ * ECharts 格式化器参数
+ */
+export interface EChartsFormatterParams {
+  name: string;
+  value: number;
+  percent: number;
+  data?: unknown;
+  seriesName?: string;
+  color?: string;
+}
+
+/**
+ * 表格过滤器值
+ */
+export type TableFilterValue = string | number | boolean;
+
+/**
+ * 表格记录泛型接口
+ */
+export interface TableRecord {
+  [key: string]: unknown;
+}
+
+/**
+ * 调度状态数据
+ */
+export interface ScheduleStatusData {
+  status: "running" | "stopped" | "pending";
+  lastRun?: string;
+  nextRun?: string;
+  message?: string;
 }

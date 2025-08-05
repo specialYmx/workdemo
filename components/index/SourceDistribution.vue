@@ -33,9 +33,14 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import { Component, Vue, Prop } from "nuxt-property-decorator";
 import ChartComponent from "@/components/common/ChartComponent.vue";
+import {
+  ChartData,
+  LegendItem,
+  PieChartOptions,
+  PieChartDataItem,
+} from "~/model/LawyerModel";
 
 @Component({
   components: {
@@ -43,12 +48,12 @@ import ChartComponent from "@/components/common/ChartComponent.vue";
   },
 })
 export default class SourceDistribution extends Vue {
-  @Prop({ type: Object, default: () => ({}) }) chartData!: any;
-  @Prop({ type: Array, default: () => [] }) legendItems!: any[];
+  @Prop({ type: Object, default: () => ({}) }) chartData!: ChartData;
+  @Prop({ type: Array, default: () => [] }) legendItems!: LegendItem[];
   @Prop({ type: Boolean, default: false }) loading!: boolean;
 
   // 判断是否所有数据都为空
-  get isAllDataEmpty() {
+  get isAllDataEmpty(): boolean {
     if (
       !this.chartData ||
       !this.chartData.series ||
@@ -56,13 +61,16 @@ export default class SourceDistribution extends Vue {
     ) {
       return true;
     }
-    const data = this.chartData.series[0].data || [];
-    return data.length === 0 || data.every((item) => item.value === 0);
+    const data: PieChartDataItem[] = this.chartData.series[0].data || [];
+    return (
+      data.length === 0 ||
+      data.every((item: PieChartDataItem): boolean => item.value === 0)
+    );
   }
 
   // 饼图配置
-  get pieChartOptions() {
-    const colors = [
+  get pieChartOptions(): PieChartOptions {
+    const colors: string[] = [
       "#1890ff",
       "#13c2c2",
       "#52c41a",
@@ -76,7 +84,7 @@ export default class SourceDistribution extends Vue {
       color: colors,
       tooltip: {
         trigger: "item",
-        formatter: function (params) {
+        formatter: function (params): string {
           return `${params.name}: ${params.percent}%`;
         },
         backgroundColor: "rgba(0, 0, 0, 0.8)",
@@ -101,7 +109,7 @@ export default class SourceDistribution extends Vue {
           label: {
             show: true,
             position: "outside",
-            formatter: function (params) {
+            formatter: function (params): string {
               return `${params.name} | ${params.percent}%`;
             },
             fontSize: 12,

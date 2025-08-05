@@ -52,7 +52,6 @@
                   record.checkStatus === null) &&
                 canReviewItem(record)
               "
-              s
             >
               <a @click="$emit('approve', record)" class="lawyer-link-approve">
                 通过
@@ -77,16 +76,20 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import { Component, Vue, Prop } from "nuxt-property-decorator";
+import {
+  ToDoRuleItem,
+  TableColumn,
+  ReviewStatusClassMap,
+} from "~/model/LawyerModel";
 
 @Component
 export default class ReviewTable extends Vue {
-  @Prop({ type: Array, default: () => [] }) reviews!: any[];
+  @Prop({ type: Array, default: () => [] }) reviews!: ToDoRuleItem[];
   @Prop({ type: Boolean, default: false }) loading!: boolean;
 
   // 表格列定义
-  reviewColumns = [
+  reviewColumns: TableColumn[] = [
     {
       title: "标题/来源",
       dataIndex: "ruleName",
@@ -130,24 +133,26 @@ export default class ReviewTable extends Vue {
   ];
 
   // 获取待办审核状态样式类
-  getToDoReviewStatusClass(status) {
-    const classMap = {
+  getToDoReviewStatusClass(status: string | null): string {
+    const classMap: ReviewStatusClassMap = {
       已通过: "lawyer-status-approved",
       已驳回: "lawyer-status-rejected",
       pending: "lawyer-status-pending",
     };
-    return classMap[status] || "lawyer-status-pending";
+    return classMap[status || ""] || "lawyer-status-pending";
   }
 
   // 获取待办审核状态文本
-  getToDoReviewStatusText(status) {
+  getToDoReviewStatusText(status: string | null): string {
     return status || "待审核";
   }
 
   // 检查是否可以审核（版本检查）
-  canReviewItem(record) {
-    const newVersion = record.newFileVersion || record.fileVersion || 0;
-    const maxVersion = record.currentMaxFileVersion || 0;
+  canReviewItem(record: ToDoRuleItem): boolean {
+    const newVersion: number = Number(
+      record.newFileVersion || record.fileVersion || 0
+    );
+    const maxVersion: number = Number(record.currentMaxFileVersion || 0);
     return newVersion <= maxVersion;
   }
 }

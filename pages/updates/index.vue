@@ -112,53 +112,45 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import { Component, Vue } from "nuxt-property-decorator";
-import { RuleUpdateItem } from "~/model/LawyerModel";
+import {
+  RuleUpdateItem,
+  UpdateItem,
+  AiSummaryPoint,
+  FilterOption,
+  TagClassMap,
+  RuleUpdateQueryParams,
+  RouteQuery,
+} from "~/model/LawyerModel";
 import { downloadFileWithMessage } from "~/utils/personal";
 
-interface AiSummaryPoint {
-  title: string;
-  content: string;
-}
-
-interface UpdateItem {
-  id: string;
-  title: string;
-  description: string;
-  date: string;
-  source: string;
-  category: string;
-  type: string;
-  tags: string[];
-  aiSummary?: AiSummaryPoint[];
-}
-
 @Component({
-  head: () => ({ title: "法规更新与通知 - 法律合规智能系统" }),
+  head(): { title: string } {
+    return { title: "法规更新与通知 - 法律合规智能系统" };
+  },
 })
 export default class UpdatesPage extends Vue {
-  activeFilter = ""; // 默认为空，表示全部更新
-  currentPage = 1;
-  pageSize = 10;
-  loading = false;
+  activeFilter: string = ""; // 默认为空，表示全部更新
+  currentPage: number = 1;
+  pageSize: number = 10;
+  loading: boolean = false;
   updates: UpdateItem[] = [];
   rawUpdates: RuleUpdateItem[] = [];
   allUpdates: UpdateItem[] = []; // 存储所有数据用于前端分页
 
-  filterOptions = [
+  filterOptions: FilterOption[] = [
     { label: "法规更新", value: "" }, // 只保留一个tab，改名为"法规更新"
   ];
 
-  async mounted() {
+  async mounted(): Promise<void> {
     await this.loadUpdates();
   }
 
-  async loadUpdates() {
+  async loadUpdates(): Promise<void> {
     this.loading = true;
     try {
       // 构建查询参数，使用filed参数进行筛选
-      const params: any = {};
+      const params: RuleUpdateQueryParams = {};
 
       // 如果有选择筛选条件，添加filed参数
       if (this.activeFilter) {
@@ -195,10 +187,10 @@ export default class UpdatesPage extends Vue {
 
   // 将真实API数据转换为页面显示格式
   transformRawDataToDisplayFormat(rawData: RuleUpdateItem[]): UpdateItem[] {
-    return rawData.map((item) => {
+    return rawData.map((item: RuleUpdateItem): UpdateItem => {
       // 根据分类确定类型
-      const categoryMain = item.categoryMain || "";
-      let type = "law";
+      const categoryMain: string = item.categoryMain || "";
+      let type: string = "law";
       if (categoryMain.includes("政策") || categoryMain.includes("监管")) {
         type = "policy";
       } else if (
@@ -209,10 +201,12 @@ export default class UpdatesPage extends Vue {
       }
 
       // 生成标签 - 只使用分类标签，过滤空值
-      const tags = [item.categoryMain, item.categorySub].filter(Boolean);
+      const tags: string[] = [item.categoryMain, item.categorySub].filter(
+        Boolean
+      );
 
       // 生成描述 - 简化逻辑
-      const description =
+      const description: string =
         item.summary ||
         (item.fileContent ? item.fileContent.substring(0, 200) + "..." : "") ||
         "暂无详细描述";
@@ -231,19 +225,19 @@ export default class UpdatesPage extends Vue {
     });
   }
 
-  get filteredUpdates() {
+  get filteredUpdates(): UpdateItem[] {
     // API已经根据filed参数进行了筛选，直接返回所有数据
     return this.allUpdates;
   }
 
-  get paginatedUpdates() {
+  get paginatedUpdates(): UpdateItem[] {
     // 前端分页：计算当前页应该显示的数据
-    const start = (this.currentPage - 1) * this.pageSize;
-    const end = start + this.pageSize;
+    const start: number = (this.currentPage - 1) * this.pageSize;
+    const end: number = start + this.pageSize;
     return this.filteredUpdates.slice(start, end);
   }
 
-  get totalCount() {
+  get totalCount(): number {
     // 返回筛选后的总数
     return this.filteredUpdates.length;
   }
@@ -256,11 +250,13 @@ export default class UpdatesPage extends Vue {
 
   viewUpdate(id: string): void {
     // 查找对应的更新项以获取废止状态
-    const updateItem = this.rawUpdates.find((item) => item.id === id);
-    const isRevoke = !!(
+    const updateItem: RuleUpdateItem | undefined = this.rawUpdates.find(
+      (item: RuleUpdateItem) => item.id === id
+    );
+    const isRevoke: boolean = !!(
       updateItem?.revokeDateTimestamp || updateItem?.revokeDateStr
     );
-    const query = {
+    const query: RouteQuery = {
       id: id,
       ...(isRevoke ? { isRevoke: "true" } : {}),
     };
@@ -276,7 +272,7 @@ export default class UpdatesPage extends Vue {
       this.$message.loading(`正在准备下载: ${title}`, 0);
 
       const result = await this.$roadLawyerService.downloadRuleFile({
-        searchId: id,
+        id: id,
       });
 
       this.$message.destroy();
@@ -305,7 +301,7 @@ export default class UpdatesPage extends Vue {
   }
 
   getTagClass(tag: string): string {
-    const tagMap: Record<string, string> = {
+    const tagMap: TagClassMap = {
       重要法规: "lawyer-tag-important",
       资金运用: "lawyer-tag-fund",
       征求意见: "lawyer-tag-opinion",

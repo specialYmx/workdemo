@@ -177,40 +177,31 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import { Component, Vue, Prop, Emit } from "nuxt-property-decorator";
 import { cascaderOptions } from "~/enum/Category";
-
-interface ReviewAction {
-  text: string;
-  icon: string;
-  type: string;
-  handler: () => void;
-}
-
-interface DocumentColumn {
-  title: string;
-  version?: string;
-  date?: string;
-  content: string;
-  contentClass: string;
-}
+import {
+  DocumentCompareData,
+  ReviewAction,
+  DocumentColumn,
+  CascaderOption,
+  ReviewSubmitData,
+} from "~/model/LawyerModel";
 
 @Component({})
 export default class DocumentCompare extends Vue {
-  @Prop({ required: true }) document: any;
+  @Prop({ required: true }) document!: DocumentCompareData;
 
   // 标签编辑相关
-  tagEditVisible = false;
+  tagEditVisible: boolean = false;
   tempSelectedTagPath: string[] = [];
   tempEffectDate: string | null = null;
 
   // 标签选项数据
-  tagOptions = cascaderOptions;
+  tagOptions: CascaderOption[] = cascaderOptions;
 
   // 显示标签（合并为单个标签）
   get displayTag(): string {
-    const tags = this.document.tags || [];
+    const tags: string[] = this.document.tags || [];
     if (tags.length === 0) return "";
     if (tags.length === 1) return tags[0];
     return `${tags[0]}/${tags[1]}`;
@@ -235,8 +226,9 @@ export default class DocumentCompare extends Vue {
   // 是否允许审核操作
   get canReview(): boolean {
     // 检查文档版本是否允许审核
-    const newFileVersion = this.document.newFileVersion || 0;
-    const currentMaxFileVersion = this.document.currentMaxFileVersion || 0;
+    const newFileVersion: number = this.document.newFileVersion || 0;
+    const currentMaxFileVersion: number =
+      this.document.currentMaxFileVersion || 0;
     return newFileVersion <= currentMaxFileVersion;
   }
 
@@ -335,7 +327,7 @@ export default class DocumentCompare extends Vue {
 
     // 如果有两个标签，尝试匹配父子关系
     if (tags.length >= 2) {
-      const [firstTag, secondTag] = tags;
+      const [firstTag, secondTag]: [string, string] = [tags[0], tags[1]];
       for (const option of this.tagOptions) {
         if (option.value === firstTag && option.children) {
           for (const child of option.children) {
@@ -348,7 +340,7 @@ export default class DocumentCompare extends Vue {
     }
 
     // 如果只有一个标签或者没有找到匹配的父子关系
-    const currentTag = tags[0];
+    const currentTag: string = tags[0];
 
     // 先检查是否为一级标签
     for (const option of this.tagOptions) {
@@ -379,7 +371,7 @@ export default class DocumentCompare extends Vue {
   // 处理标签编辑确认
   handleTagEditConfirm(): void {
     // 生成显示标签
-    let tagDisplay = "";
+    let tagDisplay: string = "";
     if (this.tempSelectedTagPath.length === 1) {
       tagDisplay = this.tempSelectedTagPath[0];
     } else if (this.tempSelectedTagPath.length >= 2) {
@@ -404,12 +396,12 @@ export default class DocumentCompare extends Vue {
 
   // Emit 装饰器方法
   @Emit("go-back")
-  emitGoBack() {
+  emitGoBack(): void {
     // 无需返回值
   }
 
   @Emit("submit-review")
-  emitSubmitReview(data: { action: string; comment: string }) {
+  emitSubmitReview(data: ReviewSubmitData): ReviewSubmitData {
     return data;
   }
 }
