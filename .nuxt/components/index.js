@@ -1,13 +1,13 @@
-export const CommonChartComponent = () => import('../..\\components\\common\\ChartComponent.vue' /* webpackChunkName: "components/common-chart-component" */).then(c => wrapFunctional(c.default || c))
-export const CommonDivTextSearch = () => import('../..\\components\\common\\DivTextSearch.vue' /* webpackChunkName: "components/common-div-text-search" */).then(c => wrapFunctional(c.default || c))
-export const CommonDocumentAIChat = () => import('../..\\components\\common\\DocumentAIChat.vue' /* webpackChunkName: "components/common-document-a-i-chat" */).then(c => wrapFunctional(c.default || c))
-export const CommonFileUploadModal = () => import('../..\\components\\common\\FileUploadModal.vue' /* webpackChunkName: "components/common-file-upload-modal" */).then(c => wrapFunctional(c.default || c))
-export const DocumentCompare = () => import('../..\\components\\document\\DocumentCompare.vue' /* webpackChunkName: "components/document-compare" */).then(c => wrapFunctional(c.default || c))
-export const DocumentViewer = () => import('../..\\components\\document\\DocumentViewer.vue' /* webpackChunkName: "components/document-viewer" */).then(c => wrapFunctional(c.default || c))
-export const IndexDashboardOverview = () => import('../..\\components\\index\\DashboardOverview.vue' /* webpackChunkName: "components/index-dashboard-overview" */).then(c => wrapFunctional(c.default || c))
-export const IndexLatestUpdates = () => import('../..\\components\\index\\LatestUpdates.vue' /* webpackChunkName: "components/index-latest-updates" */).then(c => wrapFunctional(c.default || c))
-export const IndexReviewTable = () => import('../..\\components\\index\\ReviewTable.vue' /* webpackChunkName: "components/index-review-table" */).then(c => wrapFunctional(c.default || c))
-export const IndexSourceDistribution = () => import('../..\\components\\index\\SourceDistribution.vue' /* webpackChunkName: "components/index-source-distribution" */).then(c => wrapFunctional(c.default || c))
+export { default as CommonChartComponent } from '../..\\components\\common\\ChartComponent.vue'
+export { default as CommonDivTextSearch } from '../..\\components\\common\\DivTextSearch.vue'
+export { default as CommonDocumentAIChat } from '../..\\components\\common\\DocumentAIChat.vue'
+export { default as CommonFileUploadModal } from '../..\\components\\common\\FileUploadModal.vue'
+export { default as IndexDashboardOverview } from '../..\\components\\index\\DashboardOverview.vue'
+export { default as IndexLatestUpdates } from '../..\\components\\index\\LatestUpdates.vue'
+export { default as IndexReviewTable } from '../..\\components\\index\\ReviewTable.vue'
+export { default as IndexSourceDistribution } from '../..\\components\\index\\SourceDistribution.vue'
+export { default as DocumentCompare } from '../..\\components\\document\\DocumentCompare.vue'
+export { default as DocumentViewer } from '../..\\components\\document\\DocumentViewer.vue'
 
 // nuxt/nuxt.js#8607
 function wrapFunctional(options) {

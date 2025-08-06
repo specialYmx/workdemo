@@ -12,6 +12,9 @@ import {
   ApprovalParams,
   ExportParams,
   CompletedRuleItem,
+  RuleUpdateQueryParams,
+  RuleSourceQueryParams,
+  CheckRuleQueryParams,
 } from "~/model/LawyerModel";
 import api from "~/api";
 
@@ -223,7 +226,9 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
   // websiteName - 网站名称
   // publishDateSort - 发布日期排序
   // empId - 员工ID（用于收藏功能，从store获取）
-  async getRuleSourceList(params: QueryParams): Promise<KnowledgeDataItem[]> {
+  async getRuleSourceList(
+    params: RuleSourceQueryParams
+  ): Promise<KnowledgeDataItem[]> {
     try {
       const res = await $axios.post(
         `${api.lawyer.getRuleSourceList}`,
@@ -239,7 +244,7 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
     }
   },
 
-  async getRuleUpdateList(params: QueryParams) {
+  async getRuleUpdateList(params: RuleUpdateQueryParams) {
     try {
       const res = await $axios.post(
         `${api.lawyer.getRuleUpdateList}`,
@@ -426,7 +431,7 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
     }
   },
 
-  async getCheckRuleList(params: QueryParams) {
+  async getCheckRuleList(params: CheckRuleQueryParams) {
     try {
       const res = await $axios.post(
         `${api.lawyer.getCheckRuleList}`,

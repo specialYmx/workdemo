@@ -228,7 +228,7 @@ import {
   FilterOption,
   DocumentAction,
   KnowledgeUploadConfig,
-  CascaderOptionItem,
+  CascaderOption,
   RouteQuery,
   RuleSourceQueryParams,
 } from "@/model/LawyerModel";
@@ -298,7 +298,7 @@ export default class KnowledgePage extends Vue {
     ];
   }
 
-  get topicCategoryOptions(): CascaderOptionItem[] {
+  get topicCategoryOptions(): CascaderOption[] {
     return cascaderOptions;
   }
 
