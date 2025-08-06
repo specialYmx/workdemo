@@ -1,91 +1,221 @@
 // 法律合规智能系统数据模型
 
+// ==================== 核心类型定义（优先导出）====================
+
+// 饼图系列数据
+export interface PieChartSeries {
+  data: PieChartDataItem[];
+  type?: string;
+  name?: string;
+}
+
+// 饼图数据项
+export interface PieChartDataItem {
+  name: string;
+  value: number;
+  itemStyle?: {
+    color?: string;
+  };
+}
+
+// 趋势图轴数据
+export interface TrendChartAxisData {
+  data: string[] | number[];
+}
+
+// 趋势图系列数据
+export interface TrendChartSeriesData {
+  data: number[];
+}
+
+// 文档变更项
+export interface DocumentChange {
+  section?: string;
+  position?: string;
+  type: "add" | "delete" | "modify";
+  oldText?: string;
+  newText?: string;
+}
+
+// 图表数据结构
+export interface ChartData {
+  series: PieChartSeries[];
+}
+
+// 趋势图数据结构
+export interface TrendChartData {
+  xAxis?: TrendChartAxisData;
+  series?: TrendChartSeriesData[];
+}
+
+// 文档查看器显示的文档对象
+export interface DocumentViewerData {
+  id: string;
+  title: string;
+  date: string;
+  effectiveDate: string;
+  publisher: string;
+  fileNumber: string;
+  status: string;
+  views: number;
+  content: string;
+  isRevoke: boolean;
+  timeLiness: string;
+}
+
+// 相关文档项
+export interface RelatedDocumentItem {
+  id: string;
+  title: string;
+  date: string;
+}
+
+// 文档比较数据
+export interface DocumentCompareData {
+  id: string;
+  title: string;
+  status: string;
+  tags?: string[];
+  effectDate?: string | null;
+  newFileVersion?: number | null;
+  oldFileVersion?: number | null;
+  currentMaxFileVersion?: number | null;
+  originalContent?: string;
+  newContent?: string;
+  oldPublishTime?: string;
+  newPublishTime?: string;
+  modifiedDate?: string;
+  changes: DocumentChange[];
+}
+
+// 审核提交数据
+export interface ReviewSubmitData {
+  action: string;
+  comment: string;
+}
+
+// 文件上传配置
+export interface UploadConfig {
+  multiple?: boolean;
+  acceptTypes?: string;
+  maxFileSize?: number;
+  maxFileCount?: number;
+  uploadText?: string;
+  hintText?: string;
+  autoUpload?: boolean;
+}
+
+// 文件变化事件数据
+export interface FileChangeData {
+  files: File[];
+  currentFile: File | null;
+}
+
+// 上传成功事件数据
+export interface UploadSuccessData {
+  files: File[];
+  file: File | null;
+  documentId: string;
+}
+
+// 上传失败事件数据
+export interface UploadErrorData {
+  files: File[];
+  error: Error | unknown;
+}
+
 // ==================== 通用类型定义 ====================
 
-/**
- * 搜索匹配位置信息
- */
+// 搜索匹配位置信息
 export interface MatchPosition {
   start: number; // 匹配开始位置
   length: number; // 匹配长度
 }
 
-/**
- * 搜索匹配位置集合
- */
+// 搜索匹配位置集合
 export type MatchesPosition = Record<string, MatchPosition[]>;
 
-/**
- * 通用查询参数接口
- */
-export interface QueryParams {
+// ==================== 基础参数接口 ====================
+
+// 通用字符串映射接口
+export interface StringMap {
+  [key: string]: string;
+}
+
+// 通用数值映射接口
+export interface NumberMap {
+  [key: string]: number;
+}
+
+// 通用布尔映射接口
+export interface BooleanMap {
+  [key: string]: boolean;
+}
+
+// 通用混合类型映射接口
+export interface MixedMap {
+  [key: string]: string | number | boolean | null | undefined;
+}
+
+// 包含文件类型的混合映射接口
+export interface FileUploadMap {
+  [key: string]: File | string | number | boolean | undefined;
+}
+
+// 基础查询参数接口
+export interface BaseQueryParams extends MixedMap {}
+
+// 通用查询参数接口（继承基础参数）
+export interface QueryParams extends BaseQueryParams {
   page?: number;
   pageSize?: number;
   keyword?: string;
   sortBy?: string;
   sortOrder?: "asc" | "desc";
-  [key: string]: string | number | boolean | undefined;
 }
 
-/**
- * 文件删除参数
- */
-export interface DeleteRuleParams {
+// ==================== 专用参数接口 ====================
+
+// 文件删除参数
+export interface DeleteRuleParams extends MixedMap {
   id: string;
-  [key: string]: string | number | boolean;
 }
 
-/**
- * 文件下载参数
- */
-export interface DownloadFileParams {
+// 文件下载参数
+export interface DownloadFileParams extends MixedMap {
   id: string;
   fileType?: string;
-  [key: string]: string | number | boolean | undefined;
 }
 
-/**
- * 收藏操作参数
- */
-export interface CollectParams {
+// 收藏操作参数
+export interface CollectParams extends MixedMap {
   searchId: string;
   empId: string;
   isCollect: boolean;
-  [key: string]: string | number | boolean;
 }
 
-/**
- * 文件上传参数
- */
-export interface UploadParams {
+// 文件上传参数
+export interface UploadParams extends FileUploadMap {
   file: File;
   category?: string;
   description?: string;
-  [key: string]: File | string | number | boolean | undefined;
 }
 
-/**
- * 审核操作参数
- */
-export interface ApprovalParams {
+// 审核操作参数
+export interface ApprovalParams extends MixedMap {
   id: string;
   approvalComment: string;
   effectDate?: string | null;
-  [key: string]: string | number | boolean | null | undefined;
 }
 
-/**
- * 导出参数
- */
+// 导出参数
 export interface ExportParams {
   ids?: string[];
   id?: string;
   format?: "excel" | "pdf";
 }
 
-/**
- * HTTP响应头接口
- */
+// HTTP响应头接口
 export interface ResponseHeaders {
   [key: string]: string | string[] | undefined;
   "content-disposition"?: string;
@@ -95,54 +225,9 @@ export interface ResponseHeaders {
 
 // ==================== 首页统计相关数据模型 ====================
 
-/**
- * 首页统计概览数据
- */
-export interface HomeStatistics {
-  totalRules: number; // 总法规数量
-  pendingReviews: number; // 待审核数量
-  riskAlerts: number; // 风险告警数量
-  complianceRate: number; // 合规率
-  updateTime: string; // 更新时间
-}
-
-/**
- * 风险分析数据
- */
-export interface RiskAnalysis {
-  riskLevel: "high" | "medium" | "low";
-  riskCount: number;
-  riskDescription: string;
-  affectedAreas: string[];
-  createTime: string;
-}
-
-/**
- * 合规状态统计
- */
-export interface ComplianceStatus {
-  compliant: number; // 合规数量
-  nonCompliant: number; // 不合规数量
-  pending: number; // 待确认数量
-  total: number; // 总数量
-  complianceRate: number; // 合规率
-}
-
-/**
- * 趋势分析数据
- */
-export interface TrendAnalysis {
-  date: string;
-  ruleCount: number;
-  reviewCount: number;
-  complianceRate: number;
-}
-
 // ==================== 大家智库相关数据模型 ====================
 
-/**
- * 法规文档信息（基于真实API数据结构）
- */
+// 法规文档信息（基于真实API数据结构）
 export interface KnowledgeDataItem {
   revokeDateTimestamp: number | null;
   modifyDateTimestamp: number | null;
@@ -188,9 +273,7 @@ export interface KnowledgeDataItem {
   modifyDateStr: string | null;
 }
 
-/**
- * 法规更新列表项接口（基于真实API数据结构）
- */
+// 法规更新列表项接口（基于真实API数据结构）
 export interface RuleUpdateItem {
   id: string;
   ruleName: string;
@@ -234,73 +317,9 @@ export interface RuleUpdateItem {
   _matchesPosition: MatchesPosition;
 }
 
-/**
- * 法规文档信息（保留原有接口以兼容其他代码）
- */
-export interface RuleSourceItem {
-  id: string;
-  title: string;
-  content: string;
-  category: string;
-  categoryName: string;
-  publishDate: string;
-  effectiveDate: string;
-  status: "active" | "inactive" | "draft";
-  source: string; // 来源
-  tags: string[];
-  createTime: string;
-  updateTime: string;
-}
-
-/**
- * 法规分类
- */
-export interface RuleCategory {
-  id: string;
-  name: string;
-  parentId?: string;
-  level: number;
-  ruleCount: number;
-  children?: RuleCategory[];
-}
-
-/**
- * 研究报告
- */
-export interface ResearchReport {
-  id: string;
-  title: string;
-  abstract: string;
-  author: string;
-  publishDate: string;
-  category: string;
-  tags: string[];
-  downloadUrl: string;
-  viewCount: number;
-  createTime: string;
-}
-
-/**
- * 案例分析
- */
-export interface CaseAnalysis {
-  id: string;
-  title: string;
-  caseNumber: string;
-  court: string;
-  judgmentDate: string;
-  category: string;
-  summary: string;
-  keyPoints: string[];
-  relatedRules: string[];
-  createTime: string;
-}
-
 // ==================== 人工审核相关数据模型 ====================
 
-/**
- * 人工审核列表项接口（基于mock数据结构）
- */
+// 人工审核列表项接口（基于mock数据结构）
 export interface ToDoRuleItem extends TableRecord {
   id: string;
   diffResultId: string | null;
@@ -328,9 +347,7 @@ export interface ToDoRuleItem extends TableRecord {
   currentMaxFileVersion?: number | null; // 新增字段：当前最大文件版本
 }
 
-/**
- * 已完成审核列表项接口（基于completeRuleList数据结构）
- */
+// 已完成审核列表项接口（基于completeRuleList数据结构）
 export interface CompletedRuleItem {
   id: string;
   diffResultId: string | null;
@@ -362,79 +379,9 @@ export interface CompletedRuleItem {
   pid: string | null;
 }
 
-/**
- * 审核历史记录接口
- */
-export interface ReviewHistory {
-  id: string;
-  ruleId: string;
-  ruleName: string;
-  reviewerId: string;
-  reviewerName: string;
-  action: "submit" | "approve" | "reject" | "assign";
-  comment: string;
-  reviewTime: string;
-  previousStatus: string;
-  currentStatus: string;
-}
-
-/**
- * 审核流程接口
- */
-export interface ReviewProcess {
-  id: string;
-  ruleId: string;
-  currentStep: number;
-  totalSteps: number;
-  stepName: string;
-  stepDescription: string;
-  assignee: string;
-  assigneeName: string;
-  status: "pending" | "in_progress" | "completed";
-  deadline: string;
-}
-
 // ==================== 通用数据模型 ====================
 
-/**
- * 文件信息接口
- */
-export interface FileInfo {
-  id: string;
-  fileName: string;
-  fileType: string;
-  fileSize: number;
-  filePath: string;
-  uploadTime: string;
-  uploader: string;
-  uploaderName: string;
-}
-
-/**
- * 用户权限接口
- */
-export interface UserPermission {
-  userId: string;
-  userName: string;
-  role: string;
-  permissions: string[];
-  departmentId: string;
-  departmentName: string;
-}
-
-/**
- * 分页查询参数
- */
-export interface PageParams {
-  page?: number;
-  pageSize?: number;
-  sortBy?: string;
-  sortOrder?: "asc" | "desc";
-}
-
-/**
- * 分页响应结果
- */
+// 分页响应结果
 export interface PageResult<T> {
   list: T[];
   total: number;
@@ -458,9 +405,7 @@ export interface FileCompareDetail {
   id?: string; // 添加ID
   checkStatus?: string; // 添加审核状态
 }
-/**
- * 法律合规智能系统服务接口定义
- */
+// 法律合规智能系统服务接口定义
 export interface RoadLawyerService {
   // ==================== 首页统计相关方法 ====================
   getCheckCompleteList: (params?: QueryParams) => Promise<CompletedRuleItem[]>;
@@ -483,8 +428,12 @@ export interface RoadLawyerService {
     searchId: string;
     isRevoke?: boolean;
   }) => Promise<KnowledgeDataItem | null>;
-  getRuleSourceList: (params: QueryParams) => Promise<KnowledgeDataItem[]>;
-  getRuleUpdateList: (params: QueryParams) => Promise<RuleUpdateItem[]>;
+  getRuleSourceList: (
+    params: RuleSourceQueryParams
+  ) => Promise<KnowledgeDataItem[]>;
+  getRuleUpdateList: (
+    params: RuleUpdateQueryParams
+  ) => Promise<RuleUpdateItem[]>;
   initData: (params?: QueryParams) => Promise<boolean>;
   saveOrCancelCollect: (params: CollectParams) => Promise<boolean>;
   updateTimeLinessSchedule: (params: QueryParams) => Promise<boolean>;
@@ -498,50 +447,21 @@ export interface RoadLawyerService {
   ) => Promise<{ data: Blob; headers: ResponseHeaders }>;
   getDiffResultSchedule: (params: QueryParams) => Promise<ScheduleStatusData>;
   getToDoRuleDetail: (params: { id: string }) => Promise<FileCompareDetail>;
-  getCheckRuleList: (params: QueryParams) => Promise<PageResult<ToDoRuleItem>>;
+  getCheckRuleList: (
+    params: CheckRuleQueryParams
+  ) => Promise<PageResult<ToDoRuleItem>>;
 }
 
 // ==================== 图表数据相关类型定义 ====================
 
-/**
- * 饼图数据项
- */
-export interface PieChartDataItem {
-  name: string;
-  value: number;
-  itemStyle?: {
-    color?: string;
-  };
-}
-
-/**
- * 饼图系列数据
- */
-export interface PieChartSeries {
-  data: PieChartDataItem[];
-  type?: string;
-  name?: string;
-}
-
-/**
- * 图表数据结构
- */
-export interface ChartData {
-  series: PieChartSeries[];
-}
-
-/**
- * 图例项
- */
+// 图例项
 export interface LegendItem {
   name: string;
   value: number;
   color: string;
 }
 
-/**
- * ECharts 饼图配置选项
- */
+// ECharts 饼图配置选项
 export interface PieChartOptions {
   color: string[];
   tooltip: {
@@ -598,28 +518,21 @@ export interface PieChartOptions {
   }>;
 }
 
-/**
- * 更新标签
- */
+// 更新标签
 export interface UpdateTag {
   text: string;
   class: string;
 }
 
-/**
- * 更新状态Emoji映射
- */
-export type UpdateEmojiMap = {
-  [key: string]: string;
+// 更新状态Emoji映射
+export interface UpdateEmojiMap extends StringMap {
   new: string;
   updated: string;
   effective: string;
   deprecated: string;
-};
+}
 
-/**
- * Ant Design Vue 表格列配置
- */
+// Ant Design Vue 表格列配置
 export interface TableColumn {
   title: string;
   dataIndex?: string;
@@ -629,49 +542,20 @@ export interface TableColumn {
   align?: "left" | "center" | "right";
 }
 
-/**
- * 审核状态样式映射
- */
-export type ReviewStatusClassMap = {
-  [key: string]: string;
+// 审核状态样式映射
+export interface ReviewStatusClassMap extends StringMap {
   已通过: string;
   已驳回: string;
   pending: string;
-};
+}
 
-/**
- * 时间选项
- */
+// 时间选项
 export interface TimeOption {
   label: string;
   value: string;
 }
 
-/**
- * 趋势图轴数据
- */
-export interface TrendChartAxisData {
-  data: string[] | number[];
-}
-
-/**
- * 趋势图系列数据
- */
-export interface TrendChartSeriesData {
-  data: number[];
-}
-
-/**
- * 趋势图数据结构
- */
-export interface TrendChartData {
-  xAxis?: TrendChartAxisData;
-  series?: TrendChartSeriesData[];
-}
-
-/**
- * ECharts 线图配置选项
- */
+// ECharts 线图配置选项
 export interface LineChartOptions {
   grid: {
     top: string;
@@ -748,74 +632,31 @@ export interface LineChartOptions {
   }>;
 }
 
-/**
- * 图标类型映射
- */
-export type IconTypeMap = {
-  [key: string]: string;
+// 图标类型映射
+export interface IconTypeMap extends StringMap {
   已通过: string;
   已驳回: string;
-};
-
-/**
- * 文档查看器显示的文档对象
- */
-export interface DocumentViewerData {
-  id: string;
-  title: string;
-  date: string;
-  effectiveDate: string;
-  publisher: string;
-  fileNumber: string;
-  status: string;
-  views: number;
-  content: string;
-  isRevoke: boolean;
-  timeLiness: string;
 }
 
-/**
- * 相关文档项
- */
-export interface RelatedDocumentItem {
-  id: string;
-  title: string;
-  date: string;
-}
-
-/**
- * 文档元数据项
- */
+// 文档元数据项
 export interface DocumentMetaItem {
   icon: string;
   content: string;
 }
 
-/**
- * 文档目录项
- */
+// 文档目录项
 export interface DocumentTocItem {
   text: string;
   level: number;
 }
 
-/**
- * 标签颜色映射
- */
-export type TagColorMap = {
-  [key: string]: string;
-};
+// 标签颜色映射
+export type TagColorMap = StringMap;
 
-/**
- * 状态颜色映射
- */
-export type StatusColorMap = {
-  [key: string]: string;
-};
+// 状态颜色映射
+export type StatusColorMap = StringMap;
 
-/**
- * 消息服务接口
- */
+// 消息服务接口
 export interface MessageService {
   success(content: string, duration?: number): void;
   error(content: string, duration?: number): void;
@@ -826,49 +667,14 @@ export interface MessageService {
   destroy(): void;
 }
 
-/**
- * 文档变更项
- */
-export interface DocumentChange {
-  section?: string;
-  position?: string;
-  type: "add" | "delete" | "modify";
-  oldText?: string;
-  newText?: string;
-}
-
-/**
- * 文档比较数据
- */
-export interface DocumentCompareData {
-  id: string;
-  title: string;
-  status: string;
-  tags?: string[];
-  effectDate?: string | null;
-  newFileVersion?: number | null;
-  oldFileVersion?: number | null;
-  currentMaxFileVersion?: number | null;
-  originalContent?: string;
-  newContent?: string;
-  oldPublishTime?: string;
-  newPublishTime?: string;
-  modifiedDate?: string;
-  changes: DocumentChange[];
-}
-
-/**
- * 审核操作
- */
+// 审核操作
 export interface ReviewAction {
   text: string;
   type: string;
   handler: () => void;
 }
 
-/**
- * 文档列配置
- */
+// 文档列配置
 export interface DocumentColumn {
   title: string;
   version?: string;
@@ -877,120 +683,52 @@ export interface DocumentColumn {
   contentClass: string;
 }
 
-/**
- * 级联选择器选项
- */
+// 级联选择器选项（统一接口）
 export interface CascaderOption {
   value: string;
   label: string;
   children?: CascaderOption[];
 }
 
-/**
- * 审核提交数据
- */
-export interface ReviewSubmitData {
-  action: string;
-  comment: string;
-}
-
-/**
- * 文件上传配置
- */
-export interface UploadConfig {
-  multiple?: boolean;
-  acceptTypes?: string;
-  maxFileSize?: number;
-  maxFileCount?: number;
-  uploadText?: string;
-  hintText?: string;
-  autoUpload?: boolean;
-}
-
-/**
- * 文件变化事件数据
- */
-export interface FileChangeData {
-  files: File[];
-  currentFile: File | null;
-}
-
-/**
- * 上传成功事件数据
- */
-export interface UploadSuccessData {
-  files: File[];
-  file: File | null;
-  documentId: string;
-}
-
-/**
- * 上传失败事件数据
- */
-export interface UploadErrorData {
-  files: File[];
-  error: Error | unknown;
-}
-
-/**
- * AI消息
- */
+// AI消息
 export interface AiMessage {
   content: string;
   isUser: boolean;
   isWelcome?: boolean; // 标识是否为欢迎消息
 }
 
-/**
- * 主页图表加载状态
- */
+// 主页图表加载状态
 export interface IndexPageChartLoading {
   trend: boolean;
   sources: boolean;
 }
 
-/**
- * 主页图表数据状态
- */
+// 主页图表数据状态
 export interface IndexPageChartData {
   trend: TrendChartData;
   sources: ChartData;
 }
 
-/**
- * 主页列表加载状态
- */
+// 主页列表加载状态
 export interface IndexPageListLoading {
   recentReviews: boolean;
   topReviews: boolean;
   latestUpdates: boolean;
 }
 
-/**
- * 时间范围映射
- */
-export type TimeRangeMap = {
-  [key: string]: string;
-};
+// 时间范围映射
+export type TimeRangeMap = StringMap;
 
-/**
- * 颜色映射
- */
-export type SourceColorMap = {
-  [key: string]: string;
-};
+// 颜色映射
+export type SourceColorMap = StringMap;
 
-/**
- * AI摘要点（法规更新）
- */
+// AI摘要点（法规更新）
 export interface AiSummaryPoint {
   title: string;
   content: string;
 }
 
-/**
- * 更新项（法规更新列表显示）
- */
+// 更新项（法规更新列表显示）
 export interface UpdateItem {
   id: string;
   title: string;
@@ -1003,24 +741,16 @@ export interface UpdateItem {
   aiSummary?: AiSummaryPoint[];
 }
 
-/**
- * 筛选选项
- */
+// 筛选选项
 export interface FilterOption {
   label: string;
   value: string;
 }
 
-/**
- * 标签类名映射
- */
-export type TagClassMap = {
-  [key: string]: string;
-};
+// 标签类名映射
+export type TagClassMap = StringMap;
 
-/**
- * 搜索按钮配置
- */
+// 搜索按钮配置
 export interface SearchButton {
   text: string;
   icon?: string;
@@ -1031,17 +761,13 @@ export interface SearchButton {
   handler: () => void;
 }
 
-/**
- * 网站选项
- */
+// 网站选项
 export interface WebsiteOption {
   value: string;
   label: string;
 }
 
-/**
- * 文档操作按钮
- */
+// 文档操作按钮
 export interface DocumentAction {
   text: string;
   type?: string;
@@ -1050,9 +776,7 @@ export interface DocumentAction {
   handler: () => void;
 }
 
-/**
- * 上传配置（扩展版本）
- */
+// 上传配置（扩展版本）
 export interface KnowledgeUploadConfig {
   multiple: boolean;
   acceptTypes: string;
@@ -1063,17 +787,13 @@ export interface KnowledgeUploadConfig {
   autoUpload: boolean;
 }
 
-/**
- * 章节信息
- */
+// 章节信息
 export interface SectionInfo {
   number: string;
   title: string;
 }
 
-/**
- * 文档变更项
- */
+// 文档变更项
 export interface ChangeItem {
   type: string;
   section: string;
@@ -1083,9 +803,7 @@ export interface ChangeItem {
   reason: string;
 }
 
-/**
- * 文档比较页面数据
- */
+// 文档比较页面数据
 export interface DocumentComparePageData {
   id: string;
   title: string;
@@ -1105,9 +823,7 @@ export interface DocumentComparePageData {
   currentMaxFileVersion?: number;
 }
 
-/**
- * 数据库页面表格列配置
- */
+// 数据库页面表格列配置
 export interface DbTableColumn {
   title: string;
   key?: string;
@@ -1125,9 +841,7 @@ export interface DbTableColumn {
   sorter?: <T extends TableRecord>(a: T, b: T) => number;
 }
 
-/**
- * 分页配置
- */
+// 分页配置
 export interface PaginationConfig {
   current: number;
   pageSize: number;
@@ -1138,9 +852,7 @@ export interface PaginationConfig {
   pageSizeOptions?: string[];
 }
 
-/**
- * 表格行选择配置
- */
+// 表格行选择配置
 export interface RowSelectionConfig<T extends TableRecord = TableRecord> {
   selectedRowKeys: string[];
   onChange: (selectedRowKeys: string[], selectedRows: T[]) => void;
@@ -1148,16 +860,10 @@ export interface RowSelectionConfig<T extends TableRecord = TableRecord> {
   getCheckboxProps: (record: T) => { disabled: boolean; name: string };
 }
 
-/**
- * 状态映射
- */
-export type StatusMap = {
-  [key: string]: string;
-};
+// 状态映射
+export type StatusMap = StringMap;
 
-/**
- * 路由查询参数
- */
+// 路由查询参数
 export interface RouteQuery {
   id?: string;
   pageTitle?: string;
@@ -1165,23 +871,12 @@ export interface RouteQuery {
   [key: string]: string | string[] | null | undefined;
 }
 
-/**
- * API查询参数基础接口
- */
-export interface BaseQueryParams {
-  [key: string]: string | number | boolean | null | undefined;
-}
-
-/**
- * 法规更新查询参数
- */
+// 法规更新查询参数
 export interface RuleUpdateQueryParams extends BaseQueryParams {
   filed?: string;
 }
 
-/**
- * 法规来源查询参数
- */
+// 法规来源查询参数
 export interface RuleSourceQueryParams extends BaseQueryParams {
   query?: string;
   timeLiness?: string;
@@ -1193,48 +888,29 @@ export interface RuleSourceQueryParams extends BaseQueryParams {
   empId: string;
 }
 
-/**
- * 审核查询参数
- */
+// 审核查询参数
 export interface CheckRuleQueryParams extends BaseQueryParams {
   condition?: string;
   checkStatus?: string;
   category?: string;
 }
 
-/**
- * 级联选择器选项
- */
-export interface CascaderOptionItem {
-  value: string;
-  label: string;
-  children?: CascaderOptionItem[];
-}
-
-/**
- * 日期范围
- */
+// 日期范围
 export type DateRange = (string | Date | number)[] | null;
 
-/**
- * 时间线统计数据
- */
+// 时间线统计数据
 export interface TimelinessCountData {
   modify: number[];
   public: number[];
   revoke: number[];
 }
 
-/**
- * 网站比例数据
- */
+// 网站比例数据
 export interface WebsiteRatioData {
   [websiteName: string]: number;
 }
 
-/**
- * ECharts 格式化器参数
- */
+// ECharts 格式化器参数
 export interface EChartsFormatterParams {
   name: string;
   value: number;
@@ -1244,21 +920,15 @@ export interface EChartsFormatterParams {
   color?: string;
 }
 
-/**
- * 表格过滤器值
- */
+// 表格过滤器值
 export type TableFilterValue = string | number | boolean;
 
-/**
- * 表格记录泛型接口
- */
+// 表格记录泛型接口
 export interface TableRecord {
   [key: string]: unknown;
 }
 
-/**
- * 调度状态数据
- */
+// 调度状态数据
 export interface ScheduleStatusData {
   status: "running" | "stopped" | "pending";
   lastRun?: string;
