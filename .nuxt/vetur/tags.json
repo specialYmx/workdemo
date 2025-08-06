@@ -11,6 +11,12 @@
   "CommonFileUploadModal": {
     "description": "Auto imported from components/common/FileUploadModal.vue"
   },
+  "DocumentCompare": {
+    "description": "Auto imported from components/document/DocumentCompare.vue"
+  },
+  "DocumentViewer": {
+    "description": "Auto imported from components/document/DocumentViewer.vue"
+  },
   "IndexDashboardOverview": {
     "description": "Auto imported from components/index/DashboardOverview.vue"
   },
@@ -22,11 +28,5 @@
   },
   "IndexSourceDistribution": {
     "description": "Auto imported from components/index/SourceDistribution.vue"
-  },
-  "DocumentCompare": {
-    "description": "Auto imported from components/document/DocumentCompare.vue"
-  },
-  "DocumentViewer": {
-    "description": "Auto imported from components/document/DocumentViewer.vue"
   }
 }

@@ -33,9 +33,7 @@
             v-if="document.status === 'pending' && !canReview"
             class="lawyer-version-warning"
           >
-            当前版本(V{{ document.newFileVersion || 0 }})高于系统最高版本(V{{
-              document.currentMaxFileVersion || 0
-            }})，请先更新系统版本
+            {{ getReviewWarningMessage() }}
           </div>
           <a-button class="lawyer-back-btn" @click="goBack">
             <a-icon type="arrow-left" />
@@ -229,7 +227,32 @@ export default class DocumentCompare extends Vue {
     const newFileVersion: number = this.document.newFileVersion || 0;
     const currentMaxFileVersion: number =
       this.document.currentMaxFileVersion || 0;
-    return newFileVersion <= currentMaxFileVersion;
+
+    // 检查文档内容是否加载失败
+    const hasContentError = this.documentColumns.some(
+      (col) =>
+        col.content === "error" || col.content === "加载失败，请刷新页面重试"
+    );
+
+    return newFileVersion <= currentMaxFileVersion && !hasContentError;
+  }
+
+  // 获取审核警告信息
+  getReviewWarningMessage(): string {
+    const newFileVersion: number = this.document.newFileVersion || 0;
+    const currentMaxFileVersion: number =
+      this.document.currentMaxFileVersion || 0;
+    const hasContentError = this.documentColumns.some(
+      (col) =>
+        col.content === "error" || col.content === "加载失败，请刷新页面重试"
+    );
+
+    if (hasContentError) {
+      return "文档内容加载失败，请刷新页面重试";
+    } else if (newFileVersion > currentMaxFileVersion) {
+      return `当前版本(V${newFileVersion})高于系统最高版本(V${currentMaxFileVersion})，请先更新系统版本`;
+    }
+    return "当前状态不允许审核";
   }
 
   // 文档列数据
@@ -278,9 +301,24 @@ export default class DocumentCompare extends Vue {
 
   // 处理通过审核
   handleApprove(): void {
-    // 检查版本是否允许审核
+    // 检查是否允许审核
     if (!this.canReview) {
-      this.$message.error("当前版本高于系统最高版本，不允许审核");
+      // 检查具体的不允许审核的原因
+      const newFileVersion: number = this.document.newFileVersion || 0;
+      const currentMaxFileVersion: number =
+        this.document.currentMaxFileVersion || 0;
+      const hasContentError = this.documentColumns.some(
+        (col) =>
+          col.content === "error" || col.content === "加载失败，请刷新页面重试"
+      );
+
+      if (hasContentError) {
+        this.$message.error("文档内容加载失败，请刷新页面重试后再进行审核");
+      } else if (newFileVersion > currentMaxFileVersion) {
+        this.$message.error("当前版本高于系统最高版本，不允许审核");
+      } else {
+        this.$message.error("当前状态不允许审核");
+      }
       return;
     }
 
@@ -300,9 +338,24 @@ export default class DocumentCompare extends Vue {
 
   // 处理驳回审核
   handleReject(): void {
-    // 检查版本是否允许审核
+    // 检查是否允许审核
     if (!this.canReview) {
-      this.$message.error("当前版本高于系统最高版本，不允许审核");
+      // 检查具体的不允许审核的原因
+      const newFileVersion: number = this.document.newFileVersion || 0;
+      const currentMaxFileVersion: number =
+        this.document.currentMaxFileVersion || 0;
+      const hasContentError = this.documentColumns.some(
+        (col) =>
+          col.content === "error" || col.content === "加载失败，请刷新页面重试"
+      );
+
+      if (hasContentError) {
+        this.$message.error("文档内容加载失败，请刷新页面重试后再进行审核");
+      } else if (newFileVersion > currentMaxFileVersion) {
+        this.$message.error("当前版本高于系统最高版本，不允许审核");
+      } else {
+        this.$message.error("当前状态不允许审核");
+      }
       return;
     }
 
