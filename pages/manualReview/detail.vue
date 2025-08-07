@@ -1,5 +1,8 @@
 <template>
-  <div class="document-compare-page-wrapper" ref="documentComparePageContainer">
+  <div
+    class="lawyer-manual-review-detail-wrapper"
+    ref="documentComparePageContainer"
+  >
     <document-compare
       :document="documentData"
       @go-back="goBack"
@@ -23,12 +26,15 @@ import {
     DocumentCompare,
   },
   head(): { title: string } {
+    const pageTitle = this.$route.query.pageTitle as string;
     return {
-      title: "文档版本对比 - 法律合规智能系统",
+      title: pageTitle
+        ? `${pageTitle} - 法律合规智能系统`
+        : "文档版本对比 - 法律合规智能系统",
     };
   },
 })
-export default class DocumentComparePage extends Vue {
+export default class ManualReviewDetailPage extends Vue {
   // 对比数据
   documentData: DocumentComparePageData = {
     id: "",
@@ -71,7 +77,7 @@ export default class DocumentComparePage extends Vue {
 
         // 审核后返回列表页
         setTimeout(() => {
-          this.$router.push("/db");
+          this.$router.push("/manualReview");
         }, 1500);
       })
       .catch((error) => {
@@ -289,16 +295,19 @@ export default class DocumentComparePage extends Vue {
   // 获取文档对比数据
   async fetchDocumentData(): Promise<void> {
     const docId = this.$route.query.id;
-    console.log("🚀 ~ DocumentComparePage ~ fetchDocumentData ~ docId:", docId);
+    const pageTitle = this.$route.query.pageTitle;
+    console.log(
+      "🚀 ~ ManualReviewDetailPage ~ fetchDocumentData ~ docId:",
+      docId
+    );
+    console.log("页面标题:", pageTitle);
     if (!docId) return;
 
     this.loading = true;
-    // 从路由获取文档标题
-    const pageTitle = this.$route.query.pageTitle as string;
 
     this.documentData = {
       id: docId as string,
-      title: pageTitle || "正在加载文档...",
+      title: (pageTitle as string) || "正在加载文档...",
       status: "pending",
       tags: [],
       originalVersion: "",
@@ -331,7 +340,7 @@ export default class DocumentComparePage extends Vue {
         this.documentData = {
           id: docId as string,
           title:
-            pageTitle ||
+            (pageTitle as string) ||
             `${result.categoryMain || ""}${
               result.categorySub ? "/" + result.categorySub : ""
             }`,
@@ -359,7 +368,7 @@ export default class DocumentComparePage extends Vue {
         // 数据为空
         this.documentData = {
           id: docId as string,
-          title: pageTitle || "未找到文档数据",
+          title: (pageTitle as string) || "未找到文档数据",
           status: "pending",
           tags: [],
           originalVersion: "",
@@ -377,7 +386,7 @@ export default class DocumentComparePage extends Vue {
       // 显示错误状态
       this.documentData = {
         id: docId as string,
-        title: pageTitle || "加载失败",
+        title: (pageTitle as string) || "加载失败",
         status: "pending",
         tags: [],
         originalVersion: "",
@@ -404,3 +413,11 @@ export default class DocumentComparePage extends Vue {
   }
 }
 </script>
+
+<style lang="less" scoped>
+.lawyer-manual-review-detail-wrapper {
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+</style>

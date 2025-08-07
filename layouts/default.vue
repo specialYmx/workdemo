@@ -17,7 +17,7 @@
               首页概览
             </nuxt-link>
             <nuxt-link
-              to="/knowledge"
+              to="/lawyerKnowledge"
               class="lawyer-nav-link"
               exact-active-class="active"
             >
@@ -25,7 +25,7 @@
               大家智库
             </nuxt-link>
             <nuxt-link
-              to="/updates"
+              to="/lawyerUpdate"
               class="lawyer-nav-link"
               exact-active-class="active"
             >
@@ -34,7 +34,7 @@
               <span class="lawyer-badge">5</span>
             </nuxt-link>
             <nuxt-link
-              to="/db"
+              to="/manualReview"
               class="lawyer-nav-link"
               exact-active-class="active"
             >

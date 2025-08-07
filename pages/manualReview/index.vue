@@ -229,8 +229,14 @@ import {
 import { categoryOptions } from "~/enum/Category";
 import { downloadFileWithMessage } from "~/utils/personal";
 
-@Component({})
-export default class DbPage extends Vue {
+@Component({
+  head(): { title: string } {
+    return {
+      title: "人工审核 - 法律合规智能系统",
+    };
+  },
+})
+export default class ManualReviewPage extends Vue {
   // 搜索和筛选
   searchText: string = "";
   filterStatus: string = "all";
@@ -286,7 +292,7 @@ export default class DbPage extends Vue {
         filterDropdown: "filterDropdown",
         filterIcon: "filterIcon",
       },
-      onFilter: (value, record) => {
+      onFilter: (value, record: ToDoRuleItem) => {
         const searchValue = String(value).toLowerCase();
         const ruleName = String(record.ruleName || "").toLowerCase();
         const categorySub = String(record.categorySub || "").toLowerCase();
@@ -305,7 +311,7 @@ export default class DbPage extends Vue {
         filterIcon: "filterIcon",
       },
       width: 120,
-      onFilter: (value, record) => {
+      onFilter: (value, record: ToDoRuleItem) => {
         const searchValue = String(value).toLowerCase();
         const categoryMain = String(record.categoryMain || "").toLowerCase();
         return categoryMain.includes(searchValue);
@@ -320,7 +326,7 @@ export default class DbPage extends Vue {
         filterDropdown: "filterDropdown",
         filterIcon: "filterIcon",
       },
-      onFilter: (value, record) => {
+      onFilter: (value, record: ToDoRuleItem) => {
         const searchValue = String(value).toLowerCase();
         const legalSource = String(record.legalSource || "").toLowerCase();
         return legalSource.includes(searchValue);
@@ -361,7 +367,7 @@ export default class DbPage extends Vue {
         { text: "已通过", value: "已通过" },
         { text: "已驳回", value: "已驳回" },
       ],
-      onFilter: (value, record) => record.checkStatus === value,
+      onFilter: (value, record: ToDoRuleItem) => record.checkStatus === value,
     },
     {
       title: "操作",
@@ -374,12 +380,6 @@ export default class DbPage extends Vue {
 
   // 文档数据
   documents: ToDoRuleItem[] = [];
-
-  get head(): { title: string } {
-    return {
-      title: "人工审核 - 法律合规智能系统",
-    };
-  }
 
   // 生命周期钩子
   async mounted(): Promise<void> {
@@ -474,7 +474,7 @@ export default class DbPage extends Vue {
   }
 
   // 日期范围变化
-  onDateRangeChange(dates: moment.Moment[], dateStrings: string[]): void {
+  onDateRangeChange(_dates: moment.Moment[], _dateStrings: string[]): void {
     // 日期已经双向绑定到dateRange，这里可以加入额外处理
   }
 
@@ -576,9 +576,9 @@ export default class DbPage extends Vue {
   // 查看文档
   viewDocument(document: ToDoRuleItem): void {
     this.$message.info(`查看文档: ${document.ruleName}`);
-    // 实际项目中可能会跳转到文档比较页面
+    // 跳转到文档比较详情页面
     this.$router.push({
-      path: "/document-compare",
+      path: "/manualReview/detail",
       query: {
         id: document.id,
         pageTitle: document.ruleName,

@@ -390,11 +390,11 @@ export default class IndexPage extends Vue {
 
   // 页面跳转方法
   goToReviewPage(): void {
-    this.$router.push("/db");
+    this.$router.push("/manualReview");
   }
 
   goToUpdatesPage(): void {
-    this.$router.push("/updates");
+    this.$router.push("/lawyerUpdate");
   }
 
   // 查看法规更新详情
@@ -405,11 +405,12 @@ export default class IndexPage extends Vue {
     );
     const query: RouteQuery = {
       id: item.id,
+      pageTitle: item.ruleName,
       ...(isRevoke ? { isRevoke: "true" } : {}),
     };
 
     this.$router.push({
-      path: "/document",
+      path: "/lawyerUpdate/detail",
       query,
     });
   }
@@ -419,7 +420,7 @@ export default class IndexPage extends Vue {
     this.$message.info(`查看详情: ${record.ruleName}`);
     // 跳转到文档比较页面
     this.$router.push({
-      path: "/document-compare",
+      path: "/manualReview/detail",
       query: {
         id: record.id,
         pageTitle: record.ruleName,

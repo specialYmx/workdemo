@@ -131,7 +131,7 @@ import { downloadFileWithMessage } from "~/utils/personal";
     return { title: "法规更新与通知 - 法律合规智能系统" };
   },
 })
-export default class UpdatesPage extends Vue {
+export default class LawyerUpdatePage extends Vue {
   activeFilter: string = ""; // 默认为空，表示全部更新
   currentPage: number = 1;
   pageSize: number = 10;
@@ -260,11 +260,12 @@ export default class UpdatesPage extends Vue {
     );
     const query: RouteQuery = {
       id: id,
+      pageTitle: updateItem?.ruleName || "法规更新详情",
       ...(isRevoke ? { isRevoke: "true" } : {}),
     };
 
     this.$router.push({
-      path: "/document",
+      path: "/lawyerUpdate/detail",
       query,
     });
   }

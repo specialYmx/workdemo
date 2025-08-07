@@ -1,5 +1,5 @@
 <template>
-  <div class="document-page-wrapper">
+  <div class="lawyer-knowledge-detail-wrapper">
     <document-viewer
       :document="document"
       :relatedDocuments="relatedDocuments"
@@ -11,6 +11,7 @@
 
 <script lang="ts">
 import { Component, Vue } from "nuxt-property-decorator";
+import DocumentViewer from "@/components/document/DocumentViewer.vue";
 import { KnowledgeDataItem } from "~/model/LawyerModel";
 
 // 文档显示数据接口
@@ -35,14 +36,20 @@ interface RelatedDocument {
   date: string;
 }
 
-@Component({})
-export default class DocumentPage extends Vue {
- get head(): { title: string } {
+@Component({
+  components: {
+    DocumentViewer,
+  },
+  head(): { title: string } {
+    const pageTitle = this.$route.query.pageTitle as string;
     return {
-      title: "法律合规智能系统",
+      title: pageTitle
+        ? `${pageTitle} - 法律合规智能系统`
+        : "智库文档详情 - 法律合规智能系统",
     };
-  }
-
+  },
+})
+export default class LawyerKnowledgeDetailPage extends Vue {
   // 文档数据
   document: DocumentDisplayData = {
     id: "",
@@ -95,8 +102,11 @@ export default class DocumentPage extends Vue {
   // 打开相关文档
   openRelatedDocument(doc: RelatedDocument): void {
     this.$router.push({
-      path: "/document",
-      query: { id: doc.id },
+      path: "/lawyerKnowledge/detail",
+      query: {
+        id: doc.id,
+        pageTitle: doc.title,
+      },
     });
   }
 
@@ -136,12 +146,12 @@ export default class DocumentPage extends Vue {
       } else {
         // 如果没有获取到数据，显示错误信息
         this.$message.error("未找到文档数据");
-        this.$router.push("/knowledge");
+        this.$router.push("/lawyerKnowledge");
       }
     } catch (error) {
       console.error("获取文档详情失败:", error);
       this.$message.error("获取文档详情失败，请重试");
-      this.$router.push("/knowledge");
+      this.$router.push("/lawyerKnowledge");
     } finally {
       this.loading = false;
     }
@@ -196,7 +206,14 @@ export default class DocumentPage extends Vue {
   // 生命周期钩子
   async mounted(): Promise<void> {
     const docId = this.$route.query.id;
+    const pageTitle = this.$route.query.pageTitle;
     console.log("文档ID:", docId);
+    console.log("页面标题:", pageTitle);
+
+    // 如果有 pageTitle 参数，先设置标题
+    if (pageTitle && typeof pageTitle === "string") {
+      this.document.title = pageTitle;
+    }
 
     // 从路由查询参数中获取isRevoke状态
     const isRevokeParam = this.$route.query.isRevoke;
@@ -209,8 +226,16 @@ export default class DocumentPage extends Vue {
       await this.fetchDocument(docId);
     } else {
       this.$message.error("缺少文档ID参数");
-      this.$router.push("/knowledge");
+      this.$router.push("/lawyerKnowledge");
     }
   }
 }
 </script>
+
+<style lang="less" scoped>
+.lawyer-knowledge-detail-wrapper {
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+</style>

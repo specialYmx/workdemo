@@ -144,9 +144,7 @@
               <div class="lawyer-document-main-content">
                 <div class="lawyer-document-header">
                   <h3 class="lawyer-document-title">
-                    <nuxt-link :to="`/document/${doc.id}`">{{
-                      doc.ruleName
-                    }}</nuxt-link>
+                    {{ doc.ruleName }}
                   </h3>
                   <div class="lawyer-document-meta">
                     <span
@@ -240,8 +238,13 @@ import { downloadFileWithMessage } from "~/utils/personal";
   components: {
     FileUploadModal,
   },
+  head(): { title: string } {
+    return {
+      title: "法规与文件大家智库 - 法律合规智能系统",
+    };
+  },
 })
-export default class KnowledgePage extends Vue {
+export default class LawyerKnowledgePage extends Vue {
   searchText: string = "";
   searchLoading: boolean = false;
   filterSource: string = "all";
@@ -402,10 +405,11 @@ export default class KnowledgePage extends Vue {
       );
       const query: RouteQuery = {
         id: doc.id,
+        pageTitle: doc.ruleName,
         ...(isRevoke ? { isRevoke: "true" } : {}),
       };
       this.$router.push({
-        path: "/document",
+        path: "/lawyerKnowledge/detail",
         query,
       });
     }, 500);
@@ -614,12 +618,6 @@ export default class KnowledgePage extends Vue {
     } finally {
       this.listLoading = false;
     }
-  }
-
-  get head(): { title: string } {
-    return {
-      title: "法规与文件大家智库 - 法律合规智能系统",
-    };
   }
 }
 </script>
