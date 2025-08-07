@@ -13,12 +13,21 @@
       <div class="lawyer-upload-container">
         <!-- 文件选择 -->
         <div v-if="!uploading && !uploadSuccess">
-          <a-upload-dragger
-            :multiple="uploadConfig.multiple"
-            :before-upload="beforeUpload"
-            :show-upload-list="false"
+          <!-- 隐藏的原生文件输入 -->
+          <input
+            ref="fileInput"
+            type="file"
             :accept="acceptTypes"
+            :multiple="uploadConfig.multiple"
+            @change="handleNativeFileChange"
+            style="display: none"
+          />
+
+          <!-- 自定义拖拽区域 -->
+          <div
+            class="lawyer-upload-dragger"
             :class="{ 'drag-over': isDragOver }"
+            @click="triggerFileSelect"
             @drop="handleDrop"
             @dragover="handleDragOver"
             @dragleave="handleDragLeave"
@@ -30,7 +39,7 @@
               </div>
               <div class="lawyer-upload-hint">{{ uploadConfig.hintText }}</div>
             </div>
-          </a-upload-dragger>
+          </div>
 
           <!-- 已选择文件列表 -->
           <div v-if="selectedFiles.length > 0" class="lawyer-files-container">
@@ -47,6 +56,7 @@
                 type="link"
                 icon="delete"
                 @click="removeSelectedFile(index)"
+                :disabled="uploading"
               />
             </div>
 
@@ -174,6 +184,7 @@ export default class FileUploadModal extends Vue {
   errorMessage: string = "";
   isDragOver: boolean = false;
   uploadTimer: NodeJS.Timeout | null = null;
+  processingFile: boolean = false; // 新增：文件处理状态
 
   // 计算属性 - 获取配置值
   get uploadConfig(): Required<UploadConfig> {
@@ -202,65 +213,9 @@ export default class FileUploadModal extends Vue {
     return this.uploadConfig.maxFileSize;
   }
 
-  // 文件验证
+  // 保留 beforeUpload 方法以防其他地方调用，但现在使用 processFile
   beforeUpload(file: File): boolean {
-    this.clearError();
-
-    // 检查文件类型
-    if (!this.isValidFileType(file)) {
-      const typeHint: string = this.getFileTypeHint();
-      this.showError(`只支持 ${typeHint} 格式的文件`);
-      return false;
-    }
-
-    // 检查文件大小
-    if (file.size > this.maxFileSize) {
-      const sizeHint: string = this.formatFileSize(this.maxFileSize);
-      this.showError(`文件大小不能超过 ${sizeHint}`);
-      return false;
-    }
-
-    if (file.size === 0) {
-      this.showError("不能上传空文件");
-      return false;
-    }
-
-    // 检查文件数量限制
-    if (!this.uploadConfig.multiple) {
-      // 单文件模式，替换现有文件
-      this.selectedFiles = [file];
-    } else {
-      // 多文件模式，检查数量限制
-      if (this.selectedFiles.length >= this.uploadConfig.maxFileCount) {
-        this.showError(`最多只能选择 ${this.uploadConfig.maxFileCount} 个文件`);
-        return false;
-      }
-
-      // 检查是否已存在同名文件
-      const existingFile: File | undefined = this.selectedFiles.find(
-        (f: File): boolean => f.name === file.name
-      );
-      if (existingFile) {
-        this.showError(`文件 "${file.name}" 已存在`);
-        return false;
-      }
-
-      this.selectedFiles.push(file);
-    }
-
-    // 触发文件变化事件
-    this.emitFileChange({
-      files: this.selectedFiles,
-      currentFile: file,
-    });
-
-    // 如果启用自动上传，立即开始上传
-    if (this.uploadConfig.autoUpload) {
-      this.$nextTick(() => {
-        this.startUpload();
-      });
-    }
-
+    this.processFile(file);
     return false;
   }
 
@@ -299,6 +254,93 @@ export default class FileUploadModal extends Vue {
     return "PDF、DOC、DOCX";
   }
 
+  // 触发文件选择
+  triggerFileSelect(): void {
+    const fileInput = this.$refs.fileInput as HTMLInputElement;
+    if (fileInput) {
+      fileInput.click();
+    }
+  }
+
+  // 处理原生文件输入变化
+  handleNativeFileChange(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    const files = target.files;
+
+    if (files && files.length > 0) {
+      const file = files[0];
+
+      // 立即处理文件，快速显示到列表
+      this.processFile(file);
+
+      // 延迟清空输入，确保文件对话框完全关闭
+      setTimeout(() => {
+        target.value = "";
+      }, 100);
+    }
+  }
+
+  // 处理文件的核心方法
+  processFile(file: File): void {
+    this.clearError();
+
+    // 检查文件类型
+    if (!this.isValidFileType(file)) {
+      const typeHint: string = this.getFileTypeHint();
+      this.showError(`只支持 ${typeHint} 格式的文件`);
+      return;
+    }
+
+    // 检查文件大小
+    if (file.size > this.maxFileSize) {
+      const sizeHint: string = this.formatFileSize(this.maxFileSize);
+      this.showError(`文件大小不能超过 ${sizeHint}`);
+      return;
+    }
+
+    if (file.size === 0) {
+      this.showError("不能上传空文件");
+      return;
+    }
+
+    // 检查文件数量限制
+    if (!this.uploadConfig.multiple) {
+      // 单文件模式，替换现有文件
+      this.selectedFiles = [file];
+    } else {
+      // 多文件模式，检查数量限制
+      if (this.selectedFiles.length >= this.uploadConfig.maxFileCount) {
+        this.showError(`最多只能选择 ${this.uploadConfig.maxFileCount} 个文件`);
+        return;
+      }
+
+      // 检查是否已存在同名文件
+      const existingFile: File | undefined = this.selectedFiles.find(
+        (f: File): boolean => f.name === file.name
+      );
+      if (existingFile) {
+        this.showError(`文件 "${file.name}" 已存在`);
+        return;
+      }
+
+      this.selectedFiles.push(file);
+    }
+
+    // 立即显示成功提示
+    this.$message.success(`文件 "${file.name}" 已选择`);
+
+    // 立即触发文件变化事件
+    this.emitFileChange({
+      files: this.selectedFiles,
+      currentFile: file,
+    });
+
+    // 如果启用自动上传，立即开始上传
+    if (this.uploadConfig.autoUpload) {
+      this.startUpload();
+    }
+  }
+
   // 拖拽处理
   handleDragOver(e: DragEvent): void {
     e.preventDefault();
@@ -313,6 +355,13 @@ export default class FileUploadModal extends Vue {
   handleDrop(e: DragEvent): void {
     e.preventDefault();
     this.isDragOver = false;
+
+    // 处理拖拽的文件
+    const files = e.dataTransfer?.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      this.processFile(file);
+    }
   }
 
   // 错误处理
@@ -396,11 +445,10 @@ export default class FileUploadModal extends Vue {
         }
       }, 200);
 
-      // 调用真实的后端接口
+      // 调用真实的后端接口，使用新的参数结构
       const success: boolean = await this.$roadLawyerService.uploadRuleSource({
+        id: this.documentId,
         file: this.selectedFile,
-        category: "",
-        description: "",
       });
 
       clearInterval(progressInterval);
@@ -446,6 +494,7 @@ export default class FileUploadModal extends Vue {
     this.uploadProgress = 0;
     this.clearError();
     this.isDragOver = false;
+    this.processingFile = false; // 重置文件处理状态
   }
 
   formatFileSize(bytes: number): string {
@@ -492,6 +541,31 @@ export default class FileUploadModal extends Vue {
 <style lang="less" scoped>
 .lawyer-upload-container {
   padding: 16px 0;
+}
+
+/* 自定义拖拽区域样式 */
+.lawyer-upload-dragger {
+  position: relative;
+  width: 100%;
+  height: 180px;
+  text-align: center;
+  background: #fafafa;
+  border: 1px dashed #d9d9d9;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: border-color 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    border-color: #1890ff;
+  }
+
+  &.drag-over {
+    border-color: #1890ff;
+    background: #f0f8ff;
+  }
 }
 
 .lawyer-upload-content {
