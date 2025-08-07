@@ -7,16 +7,8 @@
         <div class="lawyer-updates-header">
           <h2 class="lawyer-title">智库更新与通知</h2>
           <div class="lawyer-filter-tabs">
-            <button
-              v-for="filter in filterOptions"
-              :key="filter.value"
-              :class="[
-                'lawyer-filter-btn',
-                { 'lawyer-filter-btn-active': activeFilter === filter.value },
-              ]"
-              @click="() => setActiveFilter(filter.value)"
-            >
-              {{ filter.label }}
+            <button class="lawyer-filter-btn lawyer-filter-btn-active">
+              法规更新
             </button>
           </div>
         </div>
@@ -93,13 +85,13 @@
           </div>
 
           <!-- 无内容展示 -->
-          <div v-if="!filteredUpdates.length" class="lawyer-no-updates">
+          <div v-if="!allUpdates.length" class="lawyer-no-updates">
             <a-empty description="没有匹配的数据" />
           </div>
         </div>
 
         <!-- 分页器 -->
-        <div class="lawyer-pagination" v-if="filteredUpdates.length">
+        <div class="lawyer-pagination" v-if="allUpdates.length">
           <a-pagination
             v-model="currentPage"
             :total="totalCount"
@@ -120,7 +112,6 @@ import { Component, Vue } from "nuxt-property-decorator";
 import {
   RuleUpdateItem,
   UpdateItem,
-  FilterOption,
   RuleUpdateQueryParams,
   RouteQuery,
 } from "~/model/LawyerModel";
@@ -133,17 +124,12 @@ export default class LawyerUpdatePage extends Vue {
     return { title: "法规更新与通知 - 法律合规智能系统" };
   }
 
-  activeFilter: string = ""; // 默认为空，表示全部更新
   currentPage: number = 1;
   pageSize: number = 10;
   loading: boolean = false;
   updates: UpdateItem[] = [];
   rawUpdates: RuleUpdateItem[] = [];
   allUpdates: UpdateItem[] = []; // 存储所有数据用于前端分页
-
-  filterOptions: FilterOption[] = [
-    { label: "法规更新", value: "" }, // 只保留一个tab，改名为"法规更新"
-  ];
 
   async mounted(): Promise<void> {
     await this.loadUpdates();
@@ -152,13 +138,8 @@ export default class LawyerUpdatePage extends Vue {
   async loadUpdates(): Promise<void> {
     this.loading = true;
     try {
-      // 构建查询参数，使用filed参数进行筛选
+      // 构建查询参数
       const params: RuleUpdateQueryParams = {};
-
-      // 如果有选择筛选条件，添加filed参数
-      if (this.activeFilter) {
-        params.filed = this.activeFilter;
-      }
 
       console.log("查询参数:", params);
 
@@ -228,27 +209,16 @@ export default class LawyerUpdatePage extends Vue {
     });
   }
 
-  get filteredUpdates(): UpdateItem[] {
-    // API已经根据filed参数进行了筛选，直接返回所有数据
-    return this.allUpdates;
-  }
-
   get paginatedUpdates(): UpdateItem[] {
     // 前端分页：计算当前页应该显示的数据
     const start: number = (this.currentPage - 1) * this.pageSize;
     const end: number = start + this.pageSize;
-    return this.filteredUpdates.slice(start, end);
+    return this.allUpdates.slice(start, end);
   }
 
   get totalCount(): number {
-    // 返回筛选后的总数
-    return this.filteredUpdates.length;
-  }
-
-  async setActiveFilter(filter: string): Promise<void> {
-    this.activeFilter = filter;
-    // 重新加载数据（API会根据filed参数筛选）
-    await this.loadUpdates();
+    // 返回总数
+    return this.allUpdates.length;
   }
 
   viewUpdate(id: string): void {
