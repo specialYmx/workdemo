@@ -274,7 +274,7 @@ export default class UpdatesPage extends Vue {
       this.$message.loading(`正在准备下载: ${title}`, 0);
 
       const result = await this.$roadLawyerService.downloadRuleFile({
-        id: id,
+        searchId: id,
       });
 
       this.$message.destroy();

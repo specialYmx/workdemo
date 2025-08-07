@@ -304,7 +304,7 @@ export default class DocumentViewer extends Vue {
       this.$message.loading(`正在准备下载: ${this.document.title}`, 0);
 
       const result = await this.$roadLawyerService.downloadRuleFile({
-        id: this.document.id,
+        searchId: this.document.id,
       });
 
       this.$message.destroy();

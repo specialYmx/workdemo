@@ -416,7 +416,7 @@ export default class KnowledgePage extends Vue {
       this.$message.loading(`正在准备下载: ${doc.ruleName}`, 0);
 
       const result = await this.$roadLawyerService.downloadRuleFile({
-        id: doc.id,
+        searchId: doc.id,
       });
 
       this.$message.destroy();

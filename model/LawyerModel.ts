@@ -183,7 +183,7 @@ export interface DeleteRuleParams extends MixedMap {
 
 // 文件下载参数
 export interface DownloadFileParams extends MixedMap {
-  id: string;
+  searchId: string;
   fileType?: string;
 }
 
@@ -226,94 +226,60 @@ export interface ResponseHeaders {
 
 // ==================== 大家智库相关数据模型 ====================
 
-// 法规文档信息（基于真实API数据结构）
-export interface KnowledgeDataItem {
-  revokeDateTimestamp: number | null;
-  modifyDateTimestamp: number | null;
-  effectDateStr: string | null;
-  _matchesPosition: MatchesPosition;
-  compilationType: string | null;
-  categorySub: string;
-  readCount: number;
-  filePathTxt: string;
-  checkStatus: string | null;
-  effectDateTimestamp: number | null;
-  ruleName: string;
-  createdTime: string | null;
-  publishDateTimestamp: number;
-  filePathOther: string;
+// 法规数据基础接口（公共字段）
+export interface BaseRuleItem {
   id: string;
-  initDataFlag: number;
-  fileVersion: number;
-  updateTimeStr: string | null;
-  revokeDateStr: string | null;
-  summary: string;
-  publishTime: string | null;
-  effectDate: string | null;
+  ruleName: string;
+  websiteName: string;
+  legalSource?: string;
   createdTimeStr: string;
   createdTimestamp: number;
-  topicCategory: string | null;
-  updateTime: string | null;
-  isCollect?: boolean; // 收藏状态字段
-  publishDateStr: string;
-  docNo: string | null;
-  url: string | null;
-  updateTimestamp: number | null;
-  thinktankType: string | null;
-  websiteName: string;
-  legalSource?: string; // 发布机构或来源信息，替代 websiteName 使用
-  effectivenessLevel: string;
-  diffResultId: string | null;
   categoryMain: string;
-  deleted: number;
-  checkTime: string | null;
+  categorySub: string;
   timeLiness: string;
   fileContent: string;
+  publishDateStr: string;
+  publishDateTimestamp: number;
+  effectDateStr: string | null;
+  effectDateTimestamp: number | null;
   modifyDateStr: string | null;
+  modifyDateTimestamp: number | null;
+  revokeDateStr: string | null;
+  revokeDateTimestamp: number | null;
+  filePathTxt: string;
+  filePathOther: string;
+  fileVersion: number;
+  updateTimeStr: string | null;
+  updateTime: string | null;
+  updateTimestamp: number | null;
+  summary: string;
+  readCount: number;
+  docNo: string | null;
+  url: string | null;
+  checkStatus: string | null;
+  checkTime: string | null;
+  thinktankType: string | null;
+  compilationType: string | null;
+  effectivenessLevel: string;
+  topicCategory: string | null;
+  diffResultId: string | null;
+  initDataFlag: number;
+  deleted: number;
+  _matchesPosition: MatchesPosition;
+}
+
+// 法规文档信息（基于真实API数据结构）
+export interface KnowledgeDataItem extends BaseRuleItem {
+  createdTime: string | null;
+  publishTime: string | null;
+  effectDate: string | null;
+  isCollect?: boolean; // 收藏状态字段
 }
 
 // 法规更新列表项接口（基于真实API数据结构）
-export interface RuleUpdateItem {
-  id: string;
-  ruleName: string;
-  websiteName: string;
-  legalSource?: string; // 发布机构或来源信息，替代 websiteName 使用
-  createdTimeStr: string;
-  createdTimestamp: number;
-  categoryMain: string | null;
-  categorySub: string | null;
-  timeLiness: string;
-  fileContent: string;
-  publishDateStr: string | null;
-  publishDateTimestamp: number | null;
-  effectDateStr: string | null;
-  effectDateTimestamp: number | null;
-  modifyDateStr: string | null;
-  modifyDateTimestamp: number | null;
-  revokeDateStr: string | null;
-  revokeDateTimestamp: number | null;
-  filePathTxt: string | null;
-  filePathOther: string | null;
-  fileVersion: number | null;
+export interface RuleUpdateItem extends BaseRuleItem {
   currentMaxFileVersion: number | null;
-  updateTimeStr: string | null;
-  updateTime: string | null;
-  updateTimestamp: number | null;
-  summary: string;
-  readCount: number;
   documentNo: string | null;
-  docNo: string | null;
-  url: string | null;
-  checkStatus: string | null;
-  checkTime: string | null;
-  thinktankType: string | null;
-  compilationType: string | null;
-  effectivenessLevel: string | null;
-  topicCategory: string | null;
-  diffResultId: string | null;
-  initDataFlag: string | null;
-  deleted: number;
-  _matchesPosition: MatchesPosition;
 }
 
 // ==================== 人工审核相关数据模型 ====================
