@@ -311,7 +311,7 @@ export default class DocumentViewer extends Vue {
 
       if (result) {
         downloadFileWithMessage(result, {
-          fileName: `${this.document.title}.pdf`,
+          fileName: `${this.document.title}.docx`,
           showMessage: true,
           messageService: this.$message,
         });

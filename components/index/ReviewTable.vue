@@ -41,6 +41,10 @@
           </span>
         </template>
 
+        <template slot="createdTime" slot-scope="text">
+          {{ formatTime(text) }}
+        </template>
+
         <template slot="action" slot-scope="text, record">
           <div class="lawyer-action-links">
             <a @click="$emit('view-detail', record)" class="lawyer-link-view">
@@ -77,6 +81,7 @@
 
 <script lang="ts">
 import { Component, Vue, Prop } from "nuxt-property-decorator";
+import moment from "moment";
 import {
   ToDoRuleItem,
   TableColumn,
@@ -115,6 +120,7 @@ export default class ReviewTable extends Vue {
       dataIndex: "createdTime",
       key: "createdTime",
       width: "15%",
+      scopedSlots: { customRender: "createdTime" },
     },
     {
       title: "状态",
@@ -154,6 +160,12 @@ export default class ReviewTable extends Vue {
     );
     const maxVersion: number = Number(record.currentMaxFileVersion || 0);
     return newVersion <= maxVersion;
+  }
+
+  // 格式化时间显示
+  formatTime(timeStr: string): string {
+    if (!timeStr) return "-";
+    return moment(timeStr).format("YYYY-MM-DD HH:mm:ss");
   }
 }
 </script>

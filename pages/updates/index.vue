@@ -280,7 +280,7 @@ export default class UpdatesPage extends Vue {
       this.$message.destroy();
 
       downloadFileWithMessage(result, {
-        fileName: `${title}.pdf`,
+        fileName: `${title}.docx`,
         showMessage: true,
         messageService: this.$message,
       });

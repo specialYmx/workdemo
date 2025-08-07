@@ -422,7 +422,7 @@ export default class KnowledgePage extends Vue {
       this.$message.destroy();
 
       downloadFileWithMessage(result, {
-        fileName: `${doc.ruleName}.pdf`,
+        fileName: `${doc.ruleName}.docx`,
         showMessage: true,
         messageService: this.$message,
       });

@@ -56,7 +56,7 @@ import LatestUpdates from "@/components/index/LatestUpdates.vue";
 import {
   CompletedRuleItem,
   ToDoRuleItem,
-  KnowledgeDataItem,
+  BaseRuleItem,
   IndexPageChartLoading,
   IndexPageChartData,
   IndexPageListLoading,
@@ -65,6 +65,7 @@ import {
   SourceColorMap,
   TrendChartData,
   ChartData,
+  RouteQuery,
 } from "~/model/LawyerModel";
 import { downloadFileWithMessage } from "~/utils/personal";
 
@@ -110,7 +111,7 @@ export default class IndexPage extends Vue {
   // 列表数据
   recentReviews: CompletedRuleItem[] = [];
   topReviews: ToDoRuleItem[] = [];
-  latestUpdates: KnowledgeDataItem[] = [];
+  latestUpdates: BaseRuleItem[] = [];
 
   // 统计数据
   pendingReviewCount: number = 0;
@@ -347,10 +348,8 @@ export default class IndexPage extends Vue {
   async loadLatestUpdates(): Promise<void> {
     this.listLoading.latestUpdates = true;
     try {
-      const params = {
-        empId: this.$store.state.auth.id,
-      };
-      const data = await this.$roadLawyerService.getRuleSourceList(params);
+      const params = {};
+      const data = await this.$roadLawyerService.getRuleUpdateList(params);
       // 前端取前5条数据
       this.latestUpdates = Array.isArray(data) ? data.slice(0, 5) : [];
     } catch (error) {
@@ -396,6 +395,23 @@ export default class IndexPage extends Vue {
 
   goToUpdatesPage(): void {
     this.$router.push("/updates");
+  }
+
+  // 查看法规更新详情
+  viewUpdateDetail(item: BaseRuleItem): void {
+    // 检查废止状态
+    const isRevoke: boolean = !!(
+      item.revokeDateTimestamp || item.revokeDateStr
+    );
+    const query: RouteQuery = {
+      id: item.id,
+      ...(isRevoke ? { isRevoke: "true" } : {}),
+    };
+
+    this.$router.push({
+      path: "/document",
+      query,
+    });
   }
 
   // 审核操作方法
@@ -505,14 +521,6 @@ export default class IndexPage extends Vue {
       console.error("导出统计报告失败:", error);
       this.$message.error("导出失败，请重试");
     }
-  }
-
-  // 查看法规更新详情
-  viewUpdateDetail(item: KnowledgeDataItem): void {
-    this.$router.push({
-      path: "/document",
-      query: { id: item.id },
-    });
   }
 }
 </script>

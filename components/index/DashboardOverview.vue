@@ -81,7 +81,7 @@
                 <div class="lawyer-review-content">
                   <div class="lawyer-review-title">{{ item.ruleName }}</div>
                   <div class="lawyer-review-subtitle">
-                    <span>完成日期: {{ item.checkTime }}</span>
+                    <span>完成日期: {{ formatTime(item.checkTime) }}</span>
                     <a-divider type="vertical" />
                     <span>状态：</span>
                     <span
@@ -141,6 +141,7 @@
 <script lang="ts">
 import { Component, Vue, Prop } from "nuxt-property-decorator";
 import ChartComponent from "@/components/common/ChartComponent.vue";
+import moment from "moment";
 import {
   CompletedRuleItem,
   TimeOption,
@@ -355,6 +356,12 @@ export default class DashboardOverview extends Vue {
       已驳回: "file-exclamation",
     };
     return iconMap[status] || "file-sync";
+  }
+
+  // 格式化时间显示
+  formatTime(timeStr: string): string {
+    if (!timeStr) return "-";
+    return moment(timeStr).format("YYYY-MM-DD HH:mm:ss");
   }
 }
 </script>
