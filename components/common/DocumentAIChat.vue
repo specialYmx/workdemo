@@ -109,7 +109,6 @@
 <script lang="ts">
 import { Component, Vue, Prop } from "nuxt-property-decorator";
 import api from "~/api";
-import marked from "marked";
 import { DocumentViewerData, AiMessage } from "~/model/LawyerModel";
 
 @Component
@@ -295,7 +294,7 @@ export default class DocumentAIChat extends Vue {
               isFirstContent = false;
             }
 
-            aiMessage.content += content;
+            aiMessage.content += this.formatTextWithNewlines(content);
 
             // 强制更新视图
             this.$forceUpdate();
@@ -353,29 +352,6 @@ export default class DocumentAIChat extends Vue {
     this.enableNetworkQuery = !this.enableNetworkQuery;
   }
 
-  // 将 Markdown 转换为 HTML
-  markdownToHtml(content: string): string {
-    if (!content) return "";
-
-    try {
-      // 配置 marked 选项
-      marked.setOptions({
-        breaks: true, // 支持换行符转换为 <br>
-        gfm: true, // 启用 GitHub Flavored Markdown
-        sanitize: false, // 不清理 HTML（因为我们信任 AI 的输出）
-        smartLists: true, // 智能列表处理
-        smartypants: true, // 智能标点符号
-      });
-
-      // 转换 markdown 为 HTML
-      return marked(content);
-    } catch (error) {
-      console.error("Markdown 转换错误:", error);
-      // 如果转换失败，返回原始内容
-      return content.replace(/\n/g, "<br>");
-    }
-  }
-
   // 处理发送按钮点击
   handleSend(): void {
     if (this.aiQuestion.trim() && !this.aiLoading) {
@@ -397,27 +373,37 @@ export default class DocumentAIChat extends Vue {
       this.handleSend();
     }
   }
+  // 格式化文本换行（处理中文序号格式）
+  formatTextWithNewlines(text: string): string {
+    if (!text) return "";
+
+    // 扩展正则，支持：一、二、... 1. 2. ... （一） （二） ... 1、 2、 ...
+    const pattern =
+      /([一二三四五六七八九十]+、|（[一二三四五六七八九十]+）|\d+[.、])/g;
+
+    // 替换并规范化换行
+    return text.replace(pattern, "\n$1").replace(/\n+/g, "\n\n"); // 合并多个换行
+  }
 
   // 安全获取消息内容，确保返回字符串类型
   getMessageContent(content: string | object): string {
     try {
-      // 如果是字符串，直接返回
-      if (typeof content === "string") {
-        return content || "";
+      // 统一转换为字符串
+      let textContent = "";
+
+      if (!content) {
+        textContent = "";
+      } else if (typeof content === "string") {
+        textContent = content;
+      } else if (typeof content === "object") {
+        textContent = JSON.stringify(content, null, 2);
+      } else {
+        // 处理 number, boolean 等其他类型
+        textContent = String(content);
       }
 
-      // 如果是数字或布尔值，转换为字符串
-      if (typeof content === "number" || typeof content === "boolean") {
-        return String(content);
-      }
-
-      // 如果是对象或数组，转换为JSON字符串
-      if (content && typeof content === "object") {
-        return JSON.stringify(content, null, 2);
-      }
-
-      // 其他情况返回空字符串
-      return "";
+      // 应用换行格式化
+      return this.formatTextWithNewlines(textContent);
     } catch (error) {
       console.error("处理消息内容时出错:", error);
       return "消息内容格式异常";
