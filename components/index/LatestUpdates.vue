@@ -144,7 +144,6 @@ export default class LatestUpdates extends Vue {
 
     &:last-child {
       margin-bottom: 0;
-      border-bottom: none;
     }
 
     .lawyer-update-icon {

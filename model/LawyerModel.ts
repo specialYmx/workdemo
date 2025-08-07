@@ -196,9 +196,8 @@ export interface CollectParams extends MixedMap {
 
 // 文件上传参数
 export interface UploadParams extends FileUploadMap {
+  id: string;
   file: File;
-  category?: string;
-  description?: string;
 }
 
 // 审核操作参数
@@ -722,23 +721,18 @@ export type TimeRangeMap = StringMap;
 // 颜色映射
 export type SourceColorMap = StringMap;
 
-// AI摘要点（法规更新）
-export interface AiSummaryPoint {
-  title: string;
-  content: string;
-}
-
 // 更新项（法规更新列表显示）
 export interface UpdateItem {
   id: string;
   title: string;
   description: string;
+  fileContent?: string;
+  summary?: string;
   date: string;
   source: string;
   category: string;
   type: string;
   tags: string[];
-  aiSummary?: AiSummaryPoint[];
 }
 
 // 筛选选项

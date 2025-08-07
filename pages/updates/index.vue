@@ -42,20 +42,24 @@
             <div class="lawyer-update-content">
               <div class="lawyer-flex lawyer-justify-between">
                 <h3 class="lawyer-update-title">
-                  <nuxt-link :to="`/document/${item.id}`">{{
-                    item.title
-                  }}</nuxt-link>
+                  {{ item.title }}
                 </h3>
                 <span class="lawyer-text-light">{{ item.date }}</span>
               </div>
               <p class="lawyer-update-summary">{{ item.description }}</p>
 
               <!-- AI智能解读 -->
-              <div v-if="item.aiSummary?.length" class="lawyer-ai-summary">
+              <div
+                v-if="item.summary && parseSummaryArray(item.summary).length"
+                class="lawyer-ai-summary"
+              >
                 <h4>AI智能解读主要变更点：</h4>
                 <ul>
-                  <li v-for="point in item.aiSummary" :key="point.title">
-                    <strong>{{ point.title }}：</strong>{{ point.content }}
+                  <li
+                    v-for="(point, index) in parseSummaryArray(item.summary)"
+                    :key="index"
+                  >
+                    <span v-html="formatSummaryPoint(point)"></span>
                   </li>
                 </ul>
               </div>
@@ -65,9 +69,9 @@
               >
                 <div class="lawyer-flex lawyer-gap-sm">
                   <span
-                    v-for="tag in item.tags"
+                    v-for="(tag, index) in item.tags"
                     :key="tag"
-                    :class="['lawyer-tag', getTagClass(tag)]"
+                    :class="['lawyer-tag', getTagClass(index)]"
                   >
                     {{ tag }}
                   </span>
@@ -116,9 +120,7 @@ import { Component, Vue } from "nuxt-property-decorator";
 import {
   RuleUpdateItem,
   UpdateItem,
-  AiSummaryPoint,
   FilterOption,
-  TagClassMap,
   RuleUpdateQueryParams,
   RouteQuery,
 } from "~/model/LawyerModel";
@@ -205,9 +207,8 @@ export default class UpdatesPage extends Vue {
         Boolean
       );
 
-      // 生成描述 - 简化逻辑
+      // 生成描述 - 优先使用fileContent并进行字数省略
       const description: string =
-        item.summary ||
         (item.fileContent ? item.fileContent.substring(0, 200) + "..." : "") ||
         "暂无详细描述";
 
@@ -215,12 +216,13 @@ export default class UpdatesPage extends Vue {
         id: item.id,
         title: item.ruleName || "未知标题",
         description,
+        fileContent: item.fileContent || "",
+        summary: item.summary || "",
         date: item.createdTimeStr || item.publishDateStr || "未知时间",
         source: item.legalSource || "未知来源",
         category: item.categoryMain || "其他",
         type,
         tags,
-        aiSummary: [], // 暂时不生成AI摘要，可以后续根据需要添加
       };
     });
   }
@@ -294,28 +296,87 @@ export default class UpdatesPage extends Vue {
     // 前端分页，不需要重新请求API
   }
 
-  onPageSizeChange(current: number, size: number): void {
+  onPageSizeChange(_current: number, size: number): void {
     this.currentPage = 1;
     this.pageSize = size;
     // 前端分页，不需要重新请求API
   }
 
-  getTagClass(tag: string): string {
-    const tagMap: TagClassMap = {
-      重要法规: "lawyer-tag-important",
-      资金运用: "lawyer-tag-fund",
-      征求意见: "lawyer-tag-opinion",
-      偿付能力: "lawyer-tag-solvency",
-      风险提示: "lawyer-tag-risk",
-      另类投资: "lawyer-tag-alternative",
-      机构监管: "lawyer-tag-supervision",
-      公司治理: "lawyer-tag-governance",
-      行业协会: "lawyer-tag-association",
-      风控合规: "lawyer-tag-compliance",
-      关联交易: "lawyer-tag-related",
-      其他机构: "lawyer-tag-other",
-    };
-    return tagMap[tag] || "lawyer-tag-default";
+  getTagClass(index: number = 0): string {
+    // 第0个标签是主分类，使用橙色
+    if (index === 0) {
+      return "lawyer-tag-main";
+    }
+
+    // 其他都是子分类，使用蓝色
+    return "lawyer-tag-sub";
+  }
+
+  // 解析summary数组字符串
+  parseSummaryArray(summaryStr: string): string[] {
+    if (!summaryStr) return [];
+
+    try {
+      // 去掉首尾的方括号
+      let cleanStr = summaryStr.trim();
+      if (cleanStr.startsWith("[") && cleanStr.endsWith("]")) {
+        cleanStr = cleanStr.slice(1, -1);
+      }
+
+      // 按逗号分割，但要考虑冒号后可能有逗号的情况
+      const items: string[] = [];
+      let currentItem = "";
+      let inQuotes = false;
+
+      for (let i = 0; i < cleanStr.length; i++) {
+        const char = cleanStr[i];
+
+        if (char === '"' || char === "'") {
+          inQuotes = !inQuotes;
+          continue;
+        }
+
+        if (char === "," && !inQuotes) {
+          if (currentItem.trim()) {
+            items.push(currentItem.trim());
+          }
+          currentItem = "";
+        } else {
+          currentItem += char;
+        }
+      }
+
+      // 添加最后一个项目
+      if (currentItem.trim()) {
+        items.push(currentItem.trim());
+      }
+
+      return items.filter(Boolean);
+    } catch (error) {
+      console.warn("解析summary失败:", error);
+      // 如果解析失败，尝试简单按逗号分割
+      return summaryStr
+        .replace(/^\[|\]$/g, "") // 去掉首尾方括号
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean);
+    }
+  }
+
+  // 格式化summary条目，将冒号前的内容加粗
+  formatSummaryPoint(point: string): string {
+    if (!point) return "";
+
+    // 查找第一个冒号的位置
+    const colonIndex = point.indexOf(":");
+    if (colonIndex === -1) {
+      return point;
+    }
+
+    const title = point.substring(0, colonIndex).trim();
+    const content = point.substring(colonIndex + 1).trim();
+
+    return `<strong>${title}：</strong>${content}`;
   }
 }
 </script>
@@ -421,15 +482,7 @@ export default class UpdatesPage extends Vue {
     font-weight: 500;
     margin-bottom: 8px;
     line-height: 1.4;
-
-    a {
-      color: var(--lawyer-text);
-      text-decoration: none;
-
-      &:hover {
-        color: var(--lawyer-primary);
-      }
-    }
+    color: var(--lawyer-text);
   }
 
   .lawyer-update-summary {
@@ -440,50 +493,35 @@ export default class UpdatesPage extends Vue {
 
   .lawyer-tag {
     display: inline-block;
-    padding: 2px 8px;
+    padding: 4px 12px;
+    border: 1px solid #ddd;
     border-radius: 3px;
+    background-color: #fff;
+    color: var(--lawyer-text-light);
     font-size: 12px;
+    font-weight: 400;
     line-height: 1.2;
+    white-space: nowrap;
 
-    &.lawyer-tag-important,
-    &.lawyer-tag-risk {
-      background: rgba(239, 68, 68, 0.1);
-      color: #ef4444;
+    // 主要分类 - 橙色
+    &.lawyer-tag-main {
+      border-color: #fa8c16;
+      color: #fa8c16;
+      background-color: rgba(250, 140, 22, 0.1);
     }
 
-    &.lawyer-tag-fund,
-    &.lawyer-tag-governance {
-      background: rgba(245, 158, 11, 0.1);
-      color: var(--lawyer-primary);
-    }
-
-    &.lawyer-tag-opinion,
-    &.lawyer-tag-association {
-      background: rgba(24, 144, 255, 0.1);
+    // 子分类 - 蓝色
+    &.lawyer-tag-sub {
+      border-color: #1890ff;
       color: #1890ff;
+      background-color: rgba(24, 144, 255, 0.1);
     }
 
-    &.lawyer-tag-solvency,
-    &.lawyer-tag-compliance {
-      background: rgba(114, 46, 209, 0.1);
-      color: #722ed1;
-    }
-
-    &.lawyer-tag-alternative,
-    &.lawyer-tag-related {
-      background: rgba(19, 194, 194, 0.1);
-      color: #13c2c2;
-    }
-
-    &.lawyer-tag-supervision {
-      background: rgba(82, 196, 26, 0.1);
-      color: #52c41a;
-    }
-
-    &.lawyer-tag-other,
+    // 默认样式
     &.lawyer-tag-default {
-      background: rgba(140, 140, 140, 0.1);
-      color: #8c8c8c;
+      border-color: #d9d9d9;
+      color: #595959;
+      background-color: rgba(217, 217, 217, 0.1);
     }
   }
 
@@ -516,17 +554,17 @@ export default class UpdatesPage extends Vue {
   }
 
   .lawyer-ai-summary {
-    margin: 12px 0;
-    padding: 12px;
-    background: #fffbeb;
-    border-radius: 4px;
-    border: 1px solid #fef3c7;
-
+    margin: 16px 0;
+    padding: 16px;
+    background: #fdf6e9;
+    border-radius: 6px;
     h4 {
       font-size: 14px;
-      font-weight: 500;
-      margin-bottom: 8px;
-      color: var(--lawyer-text);
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: var(--lawyer-primary);
+      display: flex;
+      align-items: center;
     }
 
     ul {
@@ -536,9 +574,11 @@ export default class UpdatesPage extends Vue {
 
       li {
         color: var(--lawyer-text-light);
-        margin-bottom: 6px;
-        line-height: 1.5;
+        margin-bottom: 8px;
+        line-height: 1.6;
         font-size: 13px;
+        padding-left: 0;
+        position: relative;
 
         &:last-child {
           margin-bottom: 0;
@@ -546,7 +586,11 @@ export default class UpdatesPage extends Vue {
 
         strong {
           color: var(--lawyer-text);
-          font-weight: 500;
+          font-weight: 600;
+        }
+
+        span {
+          display: block;
         }
       }
     }
