@@ -14,9 +14,19 @@ export default async ({ app: { context } }) => {
     const GithubTheme = await import("@kangc/v-md-editor/lib/theme/github.js");
     const hljs = await import("highlight.js");
 
-    // 配置主题
+    // 配置主题，增加更宽松的解析选项
     VMdPreview.default.use(GithubTheme.default, {
       Hljs: hljs.default,
+      extend(md) {
+        // 配置 markdown-it 解析器，使其更宽松
+        md.set({
+          html: true, // 允许 HTML 标签
+          xhtmlOut: false, // 使用 HTML 而不是 XHTML
+          breaks: true, // 将换行符转换为 <br>
+          linkify: true, // 自动识别链接
+          typographer: true, // 启用智能引号和其他排版替换
+        });
+      },
     });
 
     // 注册到 Vue
