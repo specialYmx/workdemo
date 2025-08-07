@@ -203,7 +203,7 @@
       </div>
 
       <!-- 文件上传组件 -->
-      <FileUploadModal
+      <common-file-upload-modal
         :visible="uploadModalVisible"
         :title="`更新文档: ${currentUploadDocTitle}`"
         :document-id="currentUploadDocId"
@@ -231,20 +231,18 @@ import {
   RuleSourceQueryParams,
 } from "@/model/LawyerModel";
 import { cascaderOptions } from "@/enum/Category";
-import FileUploadModal from "@/components/common/FileUploadModal.vue";
+
 import { downloadFileWithMessage } from "~/utils/personal";
 
-@Component({
-  components: {
-    FileUploadModal,
-  },
+@Component({})
+export default class LawyerKnowledgePage extends Vue {
+  // 页面头部配置
   head(): { title: string } {
     return {
       title: "法规与文件大家智库 - 法律合规智能系统",
     };
-  },
-})
-export default class LawyerKnowledgePage extends Vue {
+  }
+
   searchText: string = "";
   searchLoading: boolean = false;
   filterSource: string = "all";

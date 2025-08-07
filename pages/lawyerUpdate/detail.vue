@@ -11,7 +11,7 @@
 
 <script lang="ts">
 import { Component, Vue } from "nuxt-property-decorator";
-import DocumentViewer from "@/components/document/DocumentViewer.vue";
+
 import { KnowledgeDataItem } from "~/model/LawyerModel";
 
 // 文档显示数据接口
@@ -36,10 +36,9 @@ interface RelatedDocument {
   date: string;
 }
 
-@Component({
-  components: {
-    DocumentViewer,
-  },
+@Component({})
+export default class LawyerUpdateDetailPage extends Vue {
+  // 页面头部配置
   head(): { title: string } {
     const pageTitle = this.$route.query.pageTitle as string;
     return {
@@ -47,9 +46,8 @@ interface RelatedDocument {
         ? `${pageTitle} - 法律合规智能系统`
         : "法规更新详情 - 法律合规智能系统",
     };
-  },
-})
-export default class LawyerUpdateDetailPage extends Vue {
+  }
+
   // 文档数据
   document: DocumentDisplayData = {
     id: "",

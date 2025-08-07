@@ -127,7 +127,7 @@
           </div>
         </div>
         <div class="lawyer-chart-container">
-          <chart-component
+          <common-chart-component
             :options="trendChartOptions"
             :loading="trendChartLoading"
             :auto-resize="true"
@@ -140,7 +140,7 @@
 
 <script lang="ts">
 import { Component, Vue, Prop } from "nuxt-property-decorator";
-import ChartComponent from "@/components/common/ChartComponent.vue";
+
 import moment from "moment";
 import {
   CompletedRuleItem,
@@ -151,11 +151,7 @@ import {
   IconTypeMap,
 } from "~/model/LawyerModel";
 
-@Component({
-  components: {
-    ChartComponent,
-  },
-})
+@Component({})
 export default class DashboardOverview extends Vue {
   @Prop({ type: Number, default: 0 }) monthlyUpdateCount!: number;
   @Prop({ type: Number, default: 0 }) pendingReviewCount!: number;

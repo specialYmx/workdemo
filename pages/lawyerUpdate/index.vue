@@ -126,12 +126,13 @@ import {
 } from "~/model/LawyerModel";
 import { downloadFileWithMessage } from "~/utils/personal";
 
-@Component({
+@Component({})
+export default class LawyerUpdatePage extends Vue {
+  // 页面头部配置
   head(): { title: string } {
     return { title: "法规更新与通知 - 法律合规智能系统" };
-  },
-})
-export default class LawyerUpdatePage extends Vue {
+  }
+
   activeFilter: string = ""; // 默认为空，表示全部更新
   currentPage: number = 1;
   pageSize: number = 10;

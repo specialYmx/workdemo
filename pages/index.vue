@@ -2,7 +2,7 @@
   <div class="index-page-wrapper">
     <div class="lawyer-page-container">
       <!-- 顶部仪表盘 -->
-      <dashboard-overview
+      <index-dashboard-overview
         :monthly-update-count="monthlyUpdateCount"
         :pending-review-count="pendingReviewCount"
         :recent-reviews="recentReviews"
@@ -18,7 +18,7 @@
       />
 
       <!-- Top 5 需要人工审核 -->
-      <review-table
+      <index-review-table
         :reviews="topReviews"
         :loading="listLoading.topReviews"
         @view-all="goToReviewPage"
@@ -29,7 +29,7 @@
 
       <!-- 环形图和来源分布 -->
       <div class="lawyer-two-column-chart-grid">
-        <source-distribution
+        <index-source-distribution
           :chart-data="chartData.sources"
           :legend-items="sourceLegendItems"
           :loading="chartLoading.sources"
@@ -37,7 +37,7 @@
       </div>
 
       <!-- 最新法规更新卡片 -->
-      <latest-updates
+      <index-latest-updates
         :updates="latestUpdates"
         :loading="listLoading.latestUpdates"
         @view-all="goToUpdatesPage"
@@ -49,10 +49,6 @@
 
 <script lang="ts">
 import { Component, Vue } from "nuxt-property-decorator";
-import DashboardOverview from "@/components/index/DashboardOverview.vue";
-import ReviewTable from "@/components/index/ReviewTable.vue";
-import SourceDistribution from "@/components/index/SourceDistribution.vue";
-import LatestUpdates from "@/components/index/LatestUpdates.vue";
 import {
   CompletedRuleItem,
   ToDoRuleItem,
@@ -69,20 +65,15 @@ import {
 } from "~/model/LawyerModel";
 import { downloadFileWithMessage } from "~/utils/personal";
 
-@Component({
-  components: {
-    DashboardOverview,
-    ReviewTable,
-    SourceDistribution,
-    LatestUpdates,
-  },
+@Component({})
+export default class IndexPage extends Vue {
+  // 页面头部配置
   head(): { title: string } {
     return {
       title: "首页概览 - 法律合规智能系统",
     };
-  },
-})
-export default class IndexPage extends Vue {
+  }
+
   // 数据加载状态
   chartLoading: IndexPageChartLoading = {
     trend: true,

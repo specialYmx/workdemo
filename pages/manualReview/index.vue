@@ -229,14 +229,15 @@ import {
 import { categoryOptions } from "~/enum/Category";
 import { downloadFileWithMessage } from "~/utils/personal";
 
-@Component({
+@Component({})
+export default class ManualReviewPage extends Vue {
+  // 页面头部配置
   head(): { title: string } {
     return {
       title: "人工审核 - 法律合规智能系统",
     };
-  },
-})
-export default class ManualReviewPage extends Vue {
+  }
+
   // 搜索和筛选
   searchText: string = "";
   filterStatus: string = "all";

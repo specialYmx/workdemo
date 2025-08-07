@@ -58,7 +58,7 @@
             </div>
 
             <!-- 文档内容 -->
-            <DivTextSearch>
+            <common-div-text-search>
               <div
                 class="lawyer-document-content lawyer-scrollable"
                 ref="documentContent"
@@ -66,13 +66,13 @@
               >
                 <div v-html="document.content"></div>
               </div>
-            </DivTextSearch>
+            </common-div-text-search>
           </a-card>
         </div>
 
         <!-- 右侧：文档智能问答 -->
         <div class="lawyer-document-right">
-          <DocumentAIChat :document="document" />
+          <common-document-a-i-chat :document="document" />
         </div>
       </div>
 
@@ -128,8 +128,7 @@
 
 <script lang="ts">
 import { Component, Vue, Prop, Watch, Emit } from "nuxt-property-decorator";
-import DivTextSearch from "@/components/common/DivTextSearch.vue";
-import DocumentAIChat from "@/components/common/DocumentAIChat.vue";
+
 import { downloadFileWithMessage } from "~/utils/personal";
 import {
   DocumentViewerData,
@@ -139,12 +138,7 @@ import {
   StatusColorMap,
 } from "~/model/LawyerModel";
 
-@Component({
-  components: {
-    DivTextSearch,
-    DocumentAIChat,
-  },
-})
+@Component({})
 export default class DocumentViewer extends Vue {
   @Prop({ required: true }) document!: DocumentViewerData;
   @Prop({ default: () => [] }) relatedDocuments!: RelatedDocumentItem[];

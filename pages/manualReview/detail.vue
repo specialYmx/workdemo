@@ -13,7 +13,7 @@
 
 <script lang="ts">
 import { Component, Vue } from "nuxt-property-decorator";
-import DocumentCompare from "@/components/document/DocumentCompare.vue";
+
 import {
   DocumentComparePageData,
   SectionInfo,
@@ -21,10 +21,9 @@ import {
   ReviewSubmitData,
 } from "@/model/LawyerModel";
 
-@Component({
-  components: {
-    DocumentCompare,
-  },
+@Component({})
+export default class ManualReviewDetailPage extends Vue {
+  // 页面头部配置
   head(): { title: string } {
     const pageTitle = this.$route.query.pageTitle as string;
     return {
@@ -32,9 +31,8 @@ import {
         ? `${pageTitle} - 法律合规智能系统`
         : "文档版本对比 - 法律合规智能系统",
     };
-  },
-})
-export default class ManualReviewDetailPage extends Vue {
+  }
+
   // 对比数据
   documentData: DocumentComparePageData = {
     id: "",

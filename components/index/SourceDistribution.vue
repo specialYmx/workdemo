@@ -7,7 +7,7 @@
           <a-empty description="暂无数据" />
         </div>
 
-        <chart-component
+        <common-chart-component
           v-else
           :options="pieChartOptions"
           :loading="loading"
@@ -34,7 +34,7 @@
 
 <script lang="ts">
 import { Component, Vue, Prop } from "nuxt-property-decorator";
-import ChartComponent from "@/components/common/ChartComponent.vue";
+
 import {
   ChartData,
   LegendItem,
@@ -42,11 +42,7 @@ import {
   PieChartDataItem,
 } from "~/model/LawyerModel";
 
-@Component({
-  components: {
-    ChartComponent,
-  },
-})
+@Component({})
 export default class SourceDistribution extends Vue {
   @Prop({ type: Object, default: () => ({}) }) chartData!: ChartData;
   @Prop({ type: Array, default: () => [] }) legendItems!: LegendItem[];
