@@ -13,33 +13,20 @@
       <div class="lawyer-upload-container">
         <!-- 文件选择 -->
         <div v-if="!uploading && !uploadSuccess">
-          <!-- 隐藏的原生文件输入 -->
-          <input
-            ref="fileInput"
-            type="file"
-            :accept="acceptTypes"
+          <a-upload-dragger
             :multiple="uploadConfig.multiple"
-            @change="handleNativeFileChange"
-            style="display: none"
-          />
-
-          <!-- 自定义拖拽区域 -->
-          <div
-            class="lawyer-upload-dragger"
-            :class="{ 'drag-over': isDragOver }"
-            @click="triggerFileSelect"
-            @drop="handleDrop"
-            @dragover="handleDragOver"
-            @dragleave="handleDragLeave"
+            :accept="uploadConfig.acceptTypes"
+            :beforeUpload="beforeUpload"
+            :fileList="fileList"
+            :showUploadList="false"
+            @change="handleUploadChange"
           >
-            <div class="lawyer-upload-content">
-              <a-icon type="inbox" class="lawyer-upload-icon" />
-              <div class="lawyer-upload-text">
-                {{ uploadConfig.uploadText }}
-              </div>
-              <div class="lawyer-upload-hint">{{ uploadConfig.hintText }}</div>
-            </div>
-          </div>
+            <p class="ant-upload-drag-icon">
+              <a-icon type="inbox" />
+            </p>
+            <p class="ant-upload-text">{{ uploadConfig.uploadText }}</p>
+            <p class="ant-upload-hint">{{ uploadConfig.hintText }}</p>
+          </a-upload-dragger>
 
           <!-- 已选择文件列表 -->
           <div v-if="selectedFiles.length > 0" class="lawyer-files-container">
@@ -182,7 +169,6 @@ export default class FileUploadModal extends Vue {
   uploadSuccess: boolean = false;
   uploadProgress: number = 0;
   errorMessage: string = "";
-  isDragOver: boolean = false;
   uploadTimer: NodeJS.Timeout | null = null;
   processingFile: boolean = false; // 新增：文件处理状态
 
@@ -213,10 +199,26 @@ export default class FileUploadModal extends Vue {
     return this.uploadConfig.maxFileSize;
   }
 
-  // 保留 beforeUpload 方法以防其他地方调用，但现在使用 processFile
+  // antd-vue Upload 组件需要的 fileList
+  get fileList(): any[] {
+    return this.selectedFiles.map((file, index) => ({
+      uid: `file-${index}`,
+      name: file.name,
+      status: "done",
+      originFileObj: file,
+    }));
+  }
+
+  // antd-vue Upload 组件的 beforeUpload 钩子
   beforeUpload(file: File): boolean {
     this.processFile(file);
-    return false;
+    return false; // 阻止自动上传
+  }
+
+  // antd-vue Upload 组件的 change 事件处理
+  handleUploadChange(info: any): void {
+    // 这里主要用于处理 Upload 组件的内部状态变化
+    // 实际的文件处理在 beforeUpload 中完成
   }
 
   isValidFileType(file: File): boolean {
@@ -252,32 +254,6 @@ export default class FileUploadModal extends Vue {
       return acceptTypes.replace(/\./g, "").replace(/,/g, "、").toUpperCase();
     }
     return "PDF、DOC、DOCX";
-  }
-
-  // 触发文件选择
-  triggerFileSelect(): void {
-    const fileInput = this.$refs.fileInput as HTMLInputElement;
-    if (fileInput) {
-      fileInput.click();
-    }
-  }
-
-  // 处理原生文件输入变化
-  handleNativeFileChange(event: Event): void {
-    const target = event.target as HTMLInputElement;
-    const files = target.files;
-
-    if (files && files.length > 0) {
-      const file = files[0];
-
-      // 立即处理文件，快速显示到列表
-      this.processFile(file);
-
-      // 延迟清空输入，确保文件对话框完全关闭
-      setTimeout(() => {
-        target.value = "";
-      }, 100);
-    }
   }
 
   // 处理文件的核心方法
@@ -338,29 +314,6 @@ export default class FileUploadModal extends Vue {
     // 如果启用自动上传，立即开始上传
     if (this.uploadConfig.autoUpload) {
       this.startUpload();
-    }
-  }
-
-  // 拖拽处理
-  handleDragOver(e: DragEvent): void {
-    e.preventDefault();
-    this.isDragOver = true;
-  }
-
-  handleDragLeave(e: DragEvent): void {
-    e.preventDefault();
-    this.isDragOver = false;
-  }
-
-  handleDrop(e: DragEvent): void {
-    e.preventDefault();
-    this.isDragOver = false;
-
-    // 处理拖拽的文件
-    const files = e.dataTransfer?.files;
-    if (files && files.length > 0) {
-      const file = files[0];
-      this.processFile(file);
     }
   }
 
@@ -493,7 +446,6 @@ export default class FileUploadModal extends Vue {
     this.uploadSuccess = false;
     this.uploadProgress = 0;
     this.clearError();
-    this.isDragOver = false;
     this.processingFile = false; // 重置文件处理状态
   }
 
@@ -538,55 +490,34 @@ export default class FileUploadModal extends Vue {
 }
 </script>
 
-<style lang="less" scoped>
+<style lang="less">
 .lawyer-upload-container {
   padding: 16px 0;
-}
 
-/* 自定义拖拽区域样式 */
-.lawyer-upload-dragger {
-  position: relative;
-  width: 100%;
-  height: 180px;
-  text-align: center;
-  background: #fafafa;
-  border: 1px dashed #d9d9d9;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: border-color 0.3s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  // 自定义 antd Upload 组件样式
+  .ant-upload-dragger {
+    height: 180px;
 
-  &:hover {
-    border-color: #1890ff;
-  }
+    .ant-upload-drag-icon {
+      margin-bottom: 16px;
 
-  &.drag-over {
-    border-color: #1890ff;
-    background: #f0f8ff;
-  }
-}
+      .anticon {
+        font-size: 48px;
+        color: #1890ff;
+      }
+    }
 
-.lawyer-upload-content {
-  padding: 24px;
-  text-align: center;
+    .ant-upload-text {
+      font-size: 16px;
+      color: #333;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
 
-  .lawyer-upload-icon {
-    font-size: 48px;
-    color: #1890ff;
-    margin-bottom: 16px;
-    display: block;
-  }
-  .lawyer-upload-text {
-    font-size: 16px;
-    color: #333;
-    margin-bottom: 8px;
-    font-weight: 500;
-  }
-  .lawyer-upload-hint {
-    color: #999;
-    font-size: 14px;
+    .ant-upload-hint {
+      color: #999;
+      font-size: 14px;
+    }
   }
 }
 
@@ -708,21 +639,5 @@ export default class FileUploadModal extends Vue {
   margin-top: 24px;
   padding-top: 16px;
   border-top: 1px solid #f0f0f0;
-}
-
-// Ant Design组件样式
-.ant-upload-dragger {
-  border: 2px dashed #d9d9d9;
-  border-radius: 8px;
-  min-height: 160px;
-  transition: all 0.3s;
-  background: #fafafa;
-  padding: 20px;
-
-  &:hover,
-  &.drag-over {
-    border-color: #1890ff;
-    background: #f0f8ff;
-  }
 }
 </style>
