@@ -35,8 +35,8 @@ export interface MessageService {
  * 下载配置选项接口
  */
 export interface DownloadOptions {
-  /** 文件名，如果不提供则尝试从响应头获取 */
-  fileName?: string;
+  /** 文件名（必填），如果后端响应头中有content-disposition则优先使用后端设置的文件名 */
+  fileName: string;
   /** 是否显示消息提示，默认为 false */
   showMessage?: boolean;
   /** 消息服务实例，当 showMessage 为 true 时必须提供 */
@@ -51,7 +51,7 @@ export interface DownloadOptions {
  */
 export function downloadFileWithMessage(
   fileData: Blob | DownloadResult | null,
-  options: DownloadOptions = {}
+  options: DownloadOptions
 ): boolean {
   if (!fileData) {
     console.error("文件数据为空");
@@ -60,7 +60,7 @@ export function downloadFileWithMessage(
 
   try {
     let blob: Blob;
-    let fileName = options.fileName || "download";
+    let fileName = options.fileName;
 
     // 处理不同类型的文件数据
     if (fileData instanceof Blob) {
@@ -68,8 +68,8 @@ export function downloadFileWithMessage(
     } else if (fileData && typeof fileData === "object" && "data" in fileData) {
       blob = fileData.data;
 
-      // 尝试从响应头获取文件名
-      if (!options.fileName && fileData.headers?.["content-disposition"]) {
+      // 如果后端响应头中有content-disposition，优先使用后端设置的文件名
+      if (fileData.headers?.["content-disposition"]) {
         const disposition = fileData.headers["content-disposition"];
         const matches = disposition.match(
           /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/

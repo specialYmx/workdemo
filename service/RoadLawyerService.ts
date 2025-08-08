@@ -1,9 +1,7 @@
 import { AxiosInstance } from "axios";
 import {
   RoadLawyerService,
-  FileCompareDetail,
   KnowledgeDataItem,
-  ResponseHeaders,
   QueryParams,
   DeleteRuleParams,
   DownloadFileParams,
@@ -27,16 +25,16 @@ const toFormData = (obj: Record<string, unknown>): FormData => {
       // 修复：正确处理布尔值false，只排除null和undefined
       if (value !== null && value !== undefined) {
         if (Array.isArray(value)) {
-          // 处理数组参数
-          value.forEach((item, index) => {
+          // 处理数组参数 - 每个元素使用相同的key名
+          value.forEach((item) => {
             if (
               typeof item === "string" ||
               typeof item === "number" ||
               typeof item === "boolean"
             ) {
-              formData.append(`${key}[${index}]`, String(item));
+              formData.append(key, String(item));
             } else if (item instanceof Blob) {
-              formData.append(`${key}[${index}]`, item);
+              formData.append(key, item);
             }
           });
         } else {
@@ -352,20 +350,14 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
 
   async exportExcel(params: ExportParams) {
     try {
-      // 支持ids数组参数
-      let requestUrl = `${api.lawyer.exportExcel}`;
-
       if (params.ids && Array.isArray(params.ids)) {
-        // 将ids数组转换为JSON字符串传递给后端
-        const formData = new FormData();
-        formData.append("ids", JSON.stringify(params.ids));
-
-        console.log("导出参数:", JSON.stringify(params.ids));
-
-        const res = await $axios.post(requestUrl, formData, {
-          responseType: "blob",
-        });
-
+        const res = await $axios.post(
+          `${api.lawyer.exportExcel}`,
+          toFormData(params as Record<string, unknown>),
+          {
+            responseType: "blob",
+          }
+        );
         if (res.data) return { data: res.data, headers: res.headers };
         return null;
       } else {
