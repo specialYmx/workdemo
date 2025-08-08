@@ -32,6 +32,7 @@ export interface TrendChartSeriesData {
 export interface DocumentChange {
   section?: string;
   position?: string;
+  sectionDisplay?: string; // 展示用的原始章节文本（如“第一章”“第四条”）
   type: "add" | "delete" | "modify";
   oldText?: string;
   newText?: string;
@@ -748,20 +749,9 @@ export interface KnowledgeUploadConfig {
 }
 
 // 章节信息
-export interface SectionInfo {
-  number: string;
-  title: string;
-}
 
 // 文档变更项
-export interface ChangeItem {
-  type: string;
-  section: string;
-  position: string;
-  oldText?: string;
-  newText?: string;
-  reason: string;
-}
+export type ChangeItem = DocumentChange;
 
 // 文档比较页面数据
 export interface DocumentComparePageData {

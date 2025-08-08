@@ -64,7 +64,7 @@
           </div>
 
           <a-spin :spinning="recentReviewsLoading">
-            <div>
+            <div class="lawyer-review-list">
               <div
                 class="lawyer-review-item"
                 v-for="(item, index) in recentReviews"
@@ -543,6 +543,10 @@ export default class DashboardOverview extends Vue {
       }
     }
   }
+}
+
+.lawyer-review-list {
+  min-height: 200px;
 }
 
 .lawyer-review-item {

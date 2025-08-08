@@ -238,9 +238,7 @@ import { downloadFileWithMessage } from "~/utils/personal";
 export default class LawyerKnowledgePage extends Vue {
   // 页面头部配置
   head(): { title: string } {
-    return {
-      title: "法规与文件大家智库 - 法律合规智能系统",
-    };
+    return { title: "法律合规智能系统" };
   }
 
   searchText: string = "";
@@ -252,7 +250,7 @@ export default class LawyerKnowledgePage extends Vue {
   effectivenessLevelFilter: string = "all";
   isFavoritesMode: boolean = false;
   isAdvancedSearchVisible: boolean = false;
-  listLoading: boolean = false;
+  listLoading: boolean = true;
   currentPage: number = 1;
   pageSize: number = 10;
   totalDocuments: number = 36;

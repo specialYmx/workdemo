@@ -64,8 +64,8 @@
           <div class="lawyer-column-header">
             审阅内容
             <span class="version-info">
-              (V{{ document.oldFileVersion || "1.0" }} vs V{{
-                document.newFileVersion || "1.1"
+              (V{{ Number(document.oldFileVersion || 1) }} vs V{{
+                Number(document.newFileVersion || 1)
               }})
             </span>
           </div>
@@ -89,10 +89,7 @@
             >
               <div class="change-title">
                 {{
-                  [
-                    change.section ? `第${change.section}章` : "",
-                    change.position || "",
-                  ]
+                  [change.sectionDisplay || "", change.position || ""]
                     .filter(Boolean)
                     .join(" ")
                 }}
@@ -100,7 +97,7 @@
 
               <div class="change-detail">
                 <div v-if="change.type === 'add'" class="change-text">
-                  修改内容：<span class="highlight-text">{{
+                  新增内容：<span class="highlight-text">{{
                     change.newText
                   }}</span>
                 </div>

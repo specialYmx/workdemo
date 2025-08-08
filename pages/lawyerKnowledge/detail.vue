@@ -40,12 +40,7 @@ interface RelatedDocument {
 export default class LawyerKnowledgeDetailPage extends Vue {
   // 页面头部配置
   head(): { title: string } {
-    const pageTitle = this.$route.query.pageTitle as string;
-    return {
-      title: pageTitle
-        ? `${pageTitle} - 法律合规智能系统`
-        : "智库文档详情 - 法律合规智能系统",
-    };
+    return { title: "法律合规智能系统" };
   }
 
   // 文档数据

@@ -121,7 +121,7 @@ import { downloadFileWithMessage } from "~/utils/personal";
 export default class LawyerUpdatePage extends Vue {
   // 页面头部配置
   head(): { title: string } {
-    return { title: "法规更新与通知 - 法律合规智能系统" };
+    return { title: "法律合规智能系统" };
   }
 
   currentPage: number = 1;

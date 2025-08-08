@@ -16,7 +16,6 @@ import { Component, Vue } from "nuxt-property-decorator";
 
 import {
   DocumentComparePageData,
-  SectionInfo,
   ChangeItem,
   ReviewSubmitData,
 } from "@/model/LawyerModel";
@@ -25,11 +24,8 @@ import {
 export default class ManualReviewDetailPage extends Vue {
   // 页面头部配置
   head(): { title: string } {
-    const pageTitle = this.$route.query.pageTitle as string;
     return {
-      title: pageTitle
-        ? `${pageTitle} - 法律合规智能系统`
-        : "文档版本对比 - 法律合规智能系统",
+      title: "法律合规智能系统",
     };
   }
 
@@ -84,90 +80,118 @@ export default class ManualReviewDetailPage extends Vue {
       });
   }
 
-  // 解析章节信息，提取章节号
-  parseSection(sectionRaw: string): SectionInfo {
-    if (!sectionRaw) return { number: "", title: "" };
-
-    // 处理各种格式的章节信息
-    // 格式1: "第壹章" -> 提取"壹"
-    // 格式2: "第一章 总则" -> 提取"一"
-    // 格式3: "第一章　总则" -> 提取"一" (全角空格)
-
-    // 先去掉"第"字
-    let processed: string = sectionRaw.replace(/^第/, "");
-
-    // 查找"章"字的位置
-    const chapterIndex: number = processed.indexOf("章");
-    if (chapterIndex !== -1) {
-      // 提取章节号（"章"字之前的部分）
-      const chapterNumber: string = processed.substring(0, chapterIndex);
-      // 提取章节标题（"章"字之后的部分，去掉空格）
-      const chapterTitle: string = processed
-        .substring(chapterIndex + 1)
-        .replace(/[\s　]+/g, "")
-        .trim();
-
-      return {
-        number: chapterNumber,
-        title: chapterTitle,
-      };
-    }
-
-    // 如果没有"章"字，返回原始内容作为number
-    return {
-      number: processed,
-      title: "",
-    };
-  }
-
-  // 格式化文档变更数据
+  // 格式化文档变更数据（内联完成分割与解析，减少冗余方法）
   formatChanges(checkResult: string): ChangeItem[] {
     if (!checkResult || typeof checkResult !== "string") return [];
 
     try {
-      // 处理字符串格式，去掉首尾的方括号
+      // 1) 去掉方括号
       let content: string = checkResult.trim();
       if (content.startsWith("[") && content.endsWith("]")) {
         content = content.slice(1, -1);
       }
+      if (!content.trim()) return [];
 
-      // 如果内容为空，返回空数组
-      if (!content.trim()) {
-        return [];
+      // 2) 智能分割（处理引号内逗号）
+      const items: string[] = [];
+      let current = "";
+      let inQuotes = false;
+      for (let i = 0; i < content.length; i++) {
+        const ch = content[i];
+        if (ch === "'" && !inQuotes) inQuotes = true;
+        else if (ch === "'" && inQuotes) inQuotes = false;
+        else if (ch === "," && !inQuotes) {
+          if (current.trim()) items.push(current.trim());
+          current = "";
+          continue;
+        }
+        current += ch;
+      }
+      if (current.trim()) items.push(current.trim());
+
+      // 3) 解析每一项
+      const changes: ChangeItem[] = [];
+      for (const raw of items) {
+        const item = raw.trim();
+        if (!item) continue;
+
+        // 标题变更
+        let m = item.match(/^(.+?)\s+标题变更：由'(.+?)'变更为'(.+?)'$/);
+        if (m) {
+          const sectionText = m[1].trim();
+          changes.push({
+            type: "modify",
+            position: "标题变更",
+            sectionDisplay: sectionText,
+            oldText: m[2].trim(),
+            newText: m[3].trim(),
+          });
+          continue;
+        }
+
+        // 删除条款
+        m = item.match(/^删除条款：(.+)$/);
+        if (m) {
+          const contentText = m[1].trim();
+          const displayMatch = contentText.match(/^(第.+?[章条])/);
+          changes.push({
+            type: "delete",
+            position: "删除内容",
+            sectionDisplay: displayMatch ? displayMatch[1] : "",
+            oldText: contentText,
+          });
+          continue;
+        }
+
+        // 内容变更：由'..'变更为'..'
+        m = item.match(/^(.+?)：由'(.+?)'变更为'(.+?)'$/);
+        if (m) {
+          const sectionText = m[1].trim();
+          changes.push({
+            type: "modify",
+            position: sectionText,
+            sectionDisplay: sectionText,
+            oldText: m[2].trim(),
+            newText: m[3].trim(),
+          });
+          continue;
+        }
+
+        // 新增条款
+        m = item.match(/^(.+?)\s*新增条款：(.+)$/);
+        if (m) {
+          const sectionText = m[1].trim();
+          changes.push({
+            type: "add",
+            position: "新增内容",
+            sectionDisplay: sectionText,
+            newText: m[2].trim(),
+          });
+          continue;
+        }
+
+        // 未匹配
+        console.warn("无法解析的变更项:", item);
       }
 
-      // 按逗号分割各个变更项，但要注意单引号内的逗号不应该分割
-      const items: string[] = this.splitChangeItems(content);
-      const changes: ChangeItem[] = [];
-
-      items.forEach((item: string) => {
-        item = item.trim();
-        if (!item) return;
-
-        // 解析每个变更项
-        const change: ChangeItem | null = this.parseChangeItem(item);
-        if (change) {
-          changes.push(change);
-        }
-      });
-
-      // 清理数据中的换行符和多余空格
-      return changes.map((change: ChangeItem): ChangeItem => {
-        if (change.section) {
-          change.section = change.section
+      // 4) 统一清理空白
+      return changes.map((c) => {
+        if (c.section)
+          c.section = c.section
             .replace(/[\r\n\t]/g, "")
             .replace(/\s+/g, " ")
             .trim();
-        }
-
-        if (change.position) {
-          change.position = change.position
+        if (c.position)
+          c.position = c.position
             .replace(/[\r\n\t]/g, "")
             .replace(/\s+/g, " ")
             .trim();
-        }
-
-        return change;
+        if (c.sectionDisplay)
+          c.sectionDisplay = c.sectionDisplay
+            .replace(/[\r\n\t]/g, "")
+            .replace(/\s+/g, " ")
+            .trim();
+        return c;
       });
     } catch (error) {
       console.error("解析变更数据失败:", error);
@@ -175,134 +199,12 @@ export default class ManualReviewDetailPage extends Vue {
     }
   }
 
-  // 智能分割变更项，考虑单引号内的逗号
-  splitChangeItems(content: string): string[] {
-    const items: string[] = [];
-    let current: string = "";
-    let inQuotes: boolean = false;
-
-    for (let i = 0; i < content.length; i++) {
-      const char: string = content[i];
-
-      if (char === "'" && !inQuotes) {
-        inQuotes = true;
-      } else if (char === "'" && inQuotes) {
-        inQuotes = false;
-      } else if (char === "," && !inQuotes) {
-        if (current.trim()) {
-          items.push(current.trim());
-        }
-        current = "";
-        continue;
-      }
-      current += char;
-    }
-
-    if (current.trim()) {
-      items.push(current.trim());
-    }
-
-    return items;
-  }
-
-  // 解析单个变更项
-  parseChangeItem(item: string): ChangeItem | null {
-    try {
-      // 处理标题变更：第一章 标题变更：由'总则'变更为'总则11'
-      if (item.includes("标题变更")) {
-        const match = item.match(/^(.+?)\s+标题变更：由'(.+?)'变更为'(.+?)'$/);
-        if (match) {
-          const parsedSection: SectionInfo = this.parseSection(match[1].trim());
-          return {
-            type: "modify",
-            section: parsedSection.number,
-            position: "标题变更",
-            oldText: match[2].trim(),
-            newText: match[3].trim(),
-            reason: "修改章节标题",
-          };
-        }
-      }
-
-      // 处理删除条款：删除条款：第四条  从事证券投资基金活动...
-      if (item.includes("删除条款：")) {
-        const match = item.match(/^删除条款：(.+)$/);
-        if (match) {
-          const content: string = match[1].trim();
-          // 尝试提取条款号
-          const sectionMatch = content.match(/^(第.+?[章条])/);
-          let section: string = "";
-          if (sectionMatch) {
-            const parsedSection: SectionInfo = this.parseSection(
-              sectionMatch[1]
-            );
-            section = parsedSection.number;
-          }
-
-          return {
-            type: "delete",
-            section: section,
-            position: "删除内容",
-            oldText: content,
-            reason: "删除原有条款",
-          };
-        }
-      }
-
-      // 处理内容变更：第二条：由'在中华人民共和国境内'变更为'在22中华人民共和国境内'
-      if (item.includes("：由'") && item.includes("'变更为'")) {
-        const match = item.match(/^(.+?)：由'(.+?)'变更为'(.+?)'$/);
-        if (match) {
-          const sectionText: string = match[1].trim();
-          const parsedSection: SectionInfo = this.parseSection(sectionText);
-
-          return {
-            type: "modify",
-            section: parsedSection.number,
-            position: sectionText,
-            oldText: match[2].trim(),
-            newText: match[3].trim(),
-            reason: "修改条款内容",
-          };
-        }
-      }
-
-      // 处理新增条款（如果有的话）
-      if (item.includes("新增条款")) {
-        const match = item.match(/^(.+?)\s*新增条款：(.+)$/);
-        if (match) {
-          const parsedSection: SectionInfo = this.parseSection(match[1].trim());
-          return {
-            type: "add",
-            section: parsedSection.number,
-            position: "新增内容",
-            newText: match[2].trim(),
-            reason: "新增法规条款",
-          };
-        }
-      }
-
-      console.warn("无法解析的变更项:", item);
-      return null;
-    } catch (error) {
-      console.error("解析变更项失败:", item, error);
-      return null;
-    }
-  }
-
   // 获取文档对比数据
   async fetchDocumentData(): Promise<void> {
     const docId = this.$route.query.id;
     const pageTitle = this.$route.query.pageTitle;
-    console.log(
-      "🚀 ~ ManualReviewDetailPage ~ fetchDocumentData ~ docId:",
-      docId
-    );
-    console.log("页面标题:", pageTitle);
     if (!docId) return;
-
     this.loading = true;
-
     this.documentData = {
       id: docId as string,
       title: (pageTitle as string) || "正在加载文档...",

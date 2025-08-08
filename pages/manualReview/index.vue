@@ -224,7 +224,6 @@ import {
   RowSelectionConfig,
   StatusMap,
   DateRange,
-  CheckRuleQueryParams,
 } from "~/model/LawyerModel";
 import { categoryOptions } from "~/enum/Category";
 import { downloadFileWithMessage } from "~/utils/personal";
@@ -233,9 +232,7 @@ import { downloadFileWithMessage } from "~/utils/personal";
 export default class ManualReviewPage extends Vue {
   // 页面头部配置
   head(): { title: string } {
-    return {
-      title: "人工审核 - 法律合规智能系统",
-    };
+    return { title: "法律合规智能系统" };
   }
 
   // 搜索和筛选
@@ -760,7 +757,7 @@ export default class ManualReviewPage extends Vue {
   }
 
   .lawyer-filter-select {
-    width: 150px;
+    width: 150px !important;
   }
 
   .lawyer-btn-export {
