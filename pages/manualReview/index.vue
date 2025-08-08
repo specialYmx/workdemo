@@ -219,14 +219,13 @@ import moment from "moment";
 import {
   ToDoRuleItem,
   FilterOption,
-  DbTableColumn,
-  PaginationConfig,
-  RowSelectionConfig,
   StatusMap,
   DateRange,
 } from "~/model/LawyerModel";
 import { categoryOptions } from "~/enum/Category";
 import { downloadFileWithMessage } from "~/utils/personal";
+import { RowSelectionConfig } from "~/model/LawyerModel";
+import { CustomColumn, CustomPagination } from "~/model/CommonModel";
 
 @Component({})
 export default class ManualReviewPage extends Vue {
@@ -247,11 +246,15 @@ export default class ManualReviewPage extends Vue {
   selectedRowKeys: string[] = [];
   selectedRows: ToDoRuleItem[] = [];
 
-  // 当前分页状态
-  currentPagination: PaginationConfig = {
+  // 当前分页状态（使用 CommonModel 的 CustomPagination）
+  currentPagination: CustomPagination = {
     current: 1,
     pageSize: 10,
     total: 0,
+    showTotal: (total: number) => `共 ${total} 条数据`,
+    showSizeChanger: true,
+    showQuickJumper: true,
+    pageSizeOptions: ["10", "20", "50", "100"],
   };
 
   currentDocument: ToDoRuleItem | null = null;
@@ -280,8 +283,8 @@ export default class ManualReviewPage extends Vue {
     };
   }
 
-  // 表格列配置
-  columns: DbTableColumn[] = [
+  // 表格列配置（使用 any 以避免对 CommonModel.ts 的依赖）
+  columns: CustomColumn[] = [
     {
       title: "标题/文号",
       key: "ruleName",
@@ -290,7 +293,7 @@ export default class ManualReviewPage extends Vue {
         filterDropdown: "filterDropdown",
         filterIcon: "filterIcon",
       },
-      onFilter: (value, record: ToDoRuleItem) => {
+      onFilter: (value: string, record: ToDoRuleItem) => {
         const searchValue = String(value).toLowerCase();
         const ruleName = String(record.ruleName || "").toLowerCase();
         const categorySub = String(record.categorySub || "").toLowerCase();
@@ -309,7 +312,7 @@ export default class ManualReviewPage extends Vue {
         filterIcon: "filterIcon",
       },
       width: 120,
-      onFilter: (value, record: ToDoRuleItem) => {
+      onFilter: (value: string, record: ToDoRuleItem) => {
         const searchValue = String(value).toLowerCase();
         const categoryMain = String(record.categoryMain || "").toLowerCase();
         return categoryMain.includes(searchValue);
@@ -324,7 +327,7 @@ export default class ManualReviewPage extends Vue {
         filterDropdown: "filterDropdown",
         filterIcon: "filterIcon",
       },
-      onFilter: (value, record: ToDoRuleItem) => {
+      onFilter: (value: string, record: ToDoRuleItem) => {
         const searchValue = String(value).toLowerCase();
         const legalSource = String(record.legalSource || "").toLowerCase();
         return legalSource.includes(searchValue);
@@ -336,7 +339,7 @@ export default class ManualReviewPage extends Vue {
       key: "createdTime",
       width: 160,
       scopedSlots: { customRender: "createdTime" },
-      sorter: (a, b) => {
+      sorter: (a: ToDoRuleItem, b: ToDoRuleItem) => {
         const dateA = new Date(String(a.createdTime)).getTime();
         const dateB = new Date(String(b.createdTime)).getTime();
         return dateA - dateB;
@@ -348,7 +351,7 @@ export default class ManualReviewPage extends Vue {
       key: "publishTime",
       width: 160,
       scopedSlots: { customRender: "publishTime" },
-      sorter: (a, b) => {
+      sorter: (a: ToDoRuleItem, b: ToDoRuleItem) => {
         const dateA = new Date(String(a.publishTime || 0)).getTime();
         const dateB = new Date(String(b.publishTime || 0)).getTime();
         return dateA - dateB;
@@ -365,7 +368,8 @@ export default class ManualReviewPage extends Vue {
         { text: "已通过", value: "已通过" },
         { text: "已驳回", value: "已驳回" },
       ],
-      onFilter: (value, record: ToDoRuleItem) => record.checkStatus === value,
+      onFilter: (value: string, record: ToDoRuleItem) =>
+        record.checkStatus === value,
     },
     {
       title: "操作",
@@ -526,10 +530,6 @@ export default class ManualReviewPage extends Vue {
     this.currentPagination = {
       ...pagination,
       total: filteredCount,
-      showTotal: (total: number) => `共 ${total} 条数据`,
-      showSizeChanger: true,
-      showQuickJumper: true,
-      pageSizeOptions: ["10", "20", "50", "100"],
     };
   }
 

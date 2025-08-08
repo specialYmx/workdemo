@@ -82,19 +82,16 @@
 <script lang="ts">
 import { Component, Vue, Prop } from "nuxt-property-decorator";
 import moment from "moment";
-import {
-  ToDoRuleItem,
-  TableColumn,
-  ReviewStatusClassMap,
-} from "~/model/LawyerModel";
+import { ToDoRuleItem, ReviewStatusClassMap } from "~/model/LawyerModel";
+import { CustomColumn } from "~/model/CommonModel";
 
 @Component
 export default class ReviewTable extends Vue {
   @Prop({ type: Array, default: () => [] }) reviews!: ToDoRuleItem[];
   @Prop({ type: Boolean, default: false }) loading!: boolean;
 
-  // 表格列定义
-  reviewColumns: TableColumn[] = [
+  // 表格列定义（优先使用 CommonModel 的 CustomColumn 类型）
+  reviewColumns: CustomColumn[] = [
     {
       title: "标题/来源",
       dataIndex: "ruleName",

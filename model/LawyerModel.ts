@@ -286,7 +286,7 @@ export interface RuleUpdateItem extends BaseRuleItem {
 // ==================== 人工审核相关数据模型 ====================
 
 // 人工审核列表项接口（基于mock数据结构）
-export interface ToDoRuleItem extends TableRecord {
+export interface ToDoRuleItem {
   id: string;
   diffResultId: string | null;
   ruleName: string;
@@ -496,16 +496,6 @@ export interface UpdateEmojiMap extends StringMap {
   updated: string;
   effective: string;
   deprecated: string;
-}
-
-// Ant Design Vue 表格列配置
-export interface TableColumn {
-  title: string;
-  dataIndex?: string;
-  key: string;
-  scopedSlots?: { customRender: string };
-  width?: string;
-  align?: "left" | "center" | "right";
 }
 
 // 审核状态样式映射
@@ -773,43 +763,6 @@ export interface DocumentComparePageData {
   currentMaxFileVersion?: number;
 }
 
-// 数据库页面表格列配置
-export interface DbTableColumn {
-  title: string;
-  key?: string;
-  dataIndex?: string;
-  width?: number;
-  fixed?: string;
-  scopedSlots?: {
-    customRender?: string;
-    filterDropdown?: string;
-    filterIcon?: string;
-  };
-  filters?: Array<{ text: string; value: string }>;
-  onFilter?: (value: TableFilterValue, record: TableRecord) => boolean;
-  onFilterDropdownVisibleChange?: (visible: boolean) => void;
-  sorter?: <T extends TableRecord>(a: T, b: T) => number;
-}
-
-// 分页配置
-export interface PaginationConfig {
-  current: number;
-  pageSize: number;
-  total: number;
-  showTotal?: (total: number) => string;
-  showSizeChanger?: boolean;
-  showQuickJumper?: boolean;
-  pageSizeOptions?: string[];
-}
-
-// 表格行选择配置
-export interface RowSelectionConfig<T extends TableRecord = TableRecord> {
-  selectedRowKeys: string[];
-  onChange: (selectedRowKeys: string[], selectedRows: T[]) => void;
-  onSelectAll: (selected: boolean, selectedRows: T[], changeRows: T[]) => void;
-  getCheckboxProps: (record: T) => { disabled: boolean; name: string };
-}
-
 // 状态映射
 export type StatusMap = StringMap;
 
@@ -860,6 +813,14 @@ export interface WebsiteRatioData {
   [websiteName: string]: number;
 }
 
+// 表格行选择配置（恢复，避免依赖 CommonModel，且不使用 any）
+export interface RowSelectionConfig<T = unknown> {
+  selectedRowKeys: string[];
+  onChange: (selectedRowKeys: string[], selectedRows: T[]) => void;
+  onSelectAll: (selected: boolean, selectedRows: T[], changeRows: T[]) => void;
+  getCheckboxProps: (record: T) => { disabled: boolean; name: string };
+}
+
 // ECharts 格式化器参数
 export interface EChartsFormatterParams {
   name: string;
@@ -868,14 +829,6 @@ export interface EChartsFormatterParams {
   data?: unknown;
   seriesName?: string;
   color?: string;
-}
-
-// 表格过滤器值
-export type TableFilterValue = string | number | boolean;
-
-// 表格记录泛型接口
-export interface TableRecord {
-  [key: string]: unknown;
 }
 
 // 调度状态数据
