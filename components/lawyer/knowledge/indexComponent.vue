@@ -203,7 +203,7 @@
       </div>
 
       <!-- 文件上传组件 -->
-      <common-file-upload-modal
+      <lawyer-common-file-upload-modal
         :visible="uploadModalVisible"
         :title="`更新文档: ${currentUploadDocTitle}`"
         :document-id="currentUploadDocId"

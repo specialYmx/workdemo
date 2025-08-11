@@ -1,36 +1,36 @@
 {
-  "CommonChartComponent": {
-    "description": "Auto imported from components/common/ChartComponent.vue"
-  },
-  "CommonDivTextSearch": {
-    "description": "Auto imported from components/common/DivTextSearch.vue"
-  },
-  "CommonDocumentAIChat": {
-    "description": "Auto imported from components/common/DocumentAIChat.vue"
-  },
-  "CommonFileUploadModal": {
-    "description": "Auto imported from components/common/FileUploadModal.vue"
-  },
   "LawyerIndexComponent": {
     "description": "Auto imported from components/lawyer/indexComponent.vue"
   },
-  "DocumentCompare": {
-    "description": "Auto imported from components/document/DocumentCompare.vue"
+  "LawyerCommonChartComponent": {
+    "description": "Auto imported from components/lawyer/common/ChartComponent.vue"
   },
-  "DocumentViewer": {
-    "description": "Auto imported from components/document/DocumentViewer.vue"
+  "LawyerCommonDivTextSearch": {
+    "description": "Auto imported from components/lawyer/common/DivTextSearch.vue"
   },
-  "IndexDashboardOverview": {
-    "description": "Auto imported from components/index/DashboardOverview.vue"
+  "LawyerCommonDocumentAIChat": {
+    "description": "Auto imported from components/lawyer/common/DocumentAIChat.vue"
   },
-  "IndexLatestUpdates": {
-    "description": "Auto imported from components/index/LatestUpdates.vue"
+  "LawyerCommonFileUploadModal": {
+    "description": "Auto imported from components/lawyer/common/FileUploadModal.vue"
   },
-  "IndexReviewTable": {
-    "description": "Auto imported from components/index/ReviewTable.vue"
+  "LawyerDocumentCompare": {
+    "description": "Auto imported from components/lawyer/document/DocumentCompare.vue"
   },
-  "IndexSourceDistribution": {
-    "description": "Auto imported from components/index/SourceDistribution.vue"
+  "LawyerDocumentViewer": {
+    "description": "Auto imported from components/lawyer/document/DocumentViewer.vue"
+  },
+  "LawyerIndexDashboardOverview": {
+    "description": "Auto imported from components/lawyer/index/DashboardOverview.vue"
+  },
+  "LawyerIndexLatestUpdates": {
+    "description": "Auto imported from components/lawyer/index/LatestUpdates.vue"
+  },
+  "LawyerIndexReviewTable": {
+    "description": "Auto imported from components/lawyer/index/ReviewTable.vue"
+  },
+  "LawyerIndexSourceDistribution": {
+    "description": "Auto imported from components/lawyer/index/SourceDistribution.vue"
   },
   "LawyerKnowledgeDetailComponent": {
     "description": "Auto imported from components/lawyer/knowledge/detailComponent.vue"

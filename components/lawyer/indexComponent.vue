@@ -2,7 +2,7 @@
   <div class="index-page-wrapper">
     <div class="lawyer-page-container">
       <!-- 顶部仪表盘 -->
-      <index-dashboard-overview
+      <lawyer-index-dashboard-overview
         :monthly-update-count="monthlyUpdateCount"
         :pending-review-count="pendingReviewCount"
         :recent-reviews="recentReviews"
@@ -18,7 +18,7 @@
       />
 
       <!-- Top 5 需要人工审核 -->
-      <index-review-table
+      <lawyer-index-review-table
         :reviews="topReviews"
         :loading="listLoading.topReviews"
         @view-all="goToReviewPage"
@@ -29,7 +29,7 @@
 
       <!-- 环形图和来源分布 -->
       <div class="lawyer-two-column-chart-grid">
-        <index-source-distribution
+        <lawyer-index-source-distribution
           :chart-data="chartData.sources"
           :legend-items="sourceLegendItems"
           :loading="chartLoading.sources"
@@ -37,7 +37,7 @@
       </div>
 
       <!-- 最新法规更新卡片 -->
-      <index-latest-updates
+      <lawyer-index-latest-updates
         :updates="latestUpdates"
         :loading="listLoading.latestUpdates"
         @view-all="goToUpdatesPage"

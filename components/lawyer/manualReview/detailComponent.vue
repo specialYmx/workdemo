@@ -3,7 +3,7 @@
     class="lawyer-manual-review-detail-wrapper"
     ref="documentComparePageContainer"
   >
-    <document-compare
+    <lawyer-document-compare
       :document="documentData"
       @go-back="goBack"
       @submit-review="handleReviewSubmit"

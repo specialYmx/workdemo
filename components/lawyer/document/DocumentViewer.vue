@@ -58,21 +58,21 @@
             </div>
 
             <!-- 文档内容 -->
-            <common-div-text-search>
+            <lawyer-common-div-text-search>
               <div
-                class="lawyer-document-content lawyer-scrollable"
+                class="lawyer-document-content lawyer-scrollable lawyer-markdown-content"
                 ref="documentContent"
                 tabindex="0"
               >
-                <div v-html="document.content"></div>
+                <v-md-preview :text="document.content" />
               </div>
-            </common-div-text-search>
+            </lawyer-common-div-text-search>
           </a-card>
         </div>
 
         <!-- 右侧：文档智能问答 -->
         <div class="lawyer-document-right">
-          <common-document-a-i-chat :document="document" />
+          <lawyer-common-document-a-i-chat :document="document" />
         </div>
       </div>
 
@@ -481,71 +481,6 @@ export default class DocumentViewer extends Vue {
     overflow-y: auto;
     height: 100%;
   }
-
-  // 文档内容样式
-  :deep(.lawyer-document-content) {
-    h1.doc-title {
-      font-size: 22px;
-      text-align: center;
-      margin-bottom: 16px;
-      font-weight: 600;
-    }
-
-    p.doc-meta {
-      text-align: center;
-      color: var(--lawyer-text-light);
-      margin-bottom: 30px;
-    }
-
-    .doc-toc {
-      background: var(--lawyer-border-light);
-      padding: 24px;
-      border-radius: 8px;
-      margin-bottom: 30px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-
-      h2 {
-        margin-top: 0;
-        margin-bottom: 12px;
-        font-size: 18px;
-      }
-    }
-
-    h2 {
-      margin-top: 26px;
-      margin-bottom: 18px;
-      font-size: 20px;
-      color: #333;
-      border-bottom: 2px solid var(--lawyer-primary);
-      padding-bottom: 10px;
-    }
-
-    p.doc-article {
-      margin-bottom: 18px;
-      text-indent: 28px;
-      line-height: 26px;
-      color: #333;
-      letter-spacing: 0.3px;
-    }
-
-    /* 给条款编号添加颜色 */
-    .doc-article strong:first-child {
-      color: var(--lawyer-primary);
-      font-weight: 600;
-    }
-
-    strong {
-      font-weight: 600;
-      color: #222;
-    }
-
-    /* 搜索结果高亮样式 */
-    ::selection {
-      background-color: rgba(var(--lawyer-primary-rgb), 0.3);
-      color: var(--lawyer-text-dark);
-    }
-  }
-
   // 废止状态编辑弹窗样式
   .lawyer-revoke-status-content {
     .lawyer-status-row {

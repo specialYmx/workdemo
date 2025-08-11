@@ -42,7 +42,6 @@ export default {
   data: () => ({
     chart: null,
     resizeObserver: null,
-    resizeHandler: null,
   }),
   computed: {
     containerStyle() {
@@ -63,20 +62,16 @@ export default {
   },
   mounted() {
     this.initChart();
+
+    // 自动调整大小
     if (this.autoResize) {
-      this.resizeHandler = debounce(() => {
+      const resizeHandler = debounce(() => {
         this.chart && this.chart.resize();
       }, 100);
 
-      // 使用ResizeObserver替代window resize事件
-      if (typeof ResizeObserver !== "undefined") {
-        this.resizeObserver = new ResizeObserver(this.resizeHandler);
-        if (this.$refs.chartContainer) {
-          this.resizeObserver.observe(this.$refs.chartContainer);
-        }
-      } else {
-        // 兼容不支持ResizeObserver的浏览器，使用传统方式
-        window.addEventListener("resize", this.resizeHandler);
+      this.resizeObserver = new ResizeObserver(resizeHandler);
+      if (this.$refs.chartContainer) {
+        this.resizeObserver.observe(this.$refs.chartContainer);
       }
     }
   },
@@ -90,8 +85,6 @@ export default {
     if (this.resizeObserver) {
       this.resizeObserver.disconnect();
       this.resizeObserver = null;
-    } else if (this.resizeHandler) {
-      window.removeEventListener("resize", this.resizeHandler);
     }
   },
   methods: {
@@ -129,12 +122,6 @@ export default {
         maskColor: "rgba(255, 255, 255, 0.8)",
         textColor: "#f59e0b",
       });
-    },
-    resize() {
-      this.chart && this.chart.resize();
-    },
-    getChart() {
-      return this.chart;
     },
   },
 };

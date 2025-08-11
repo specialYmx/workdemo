@@ -7,7 +7,7 @@
           <a-empty description="暂无数据" />
         </div>
 
-        <common-chart-component
+        <lawyer-common-chart-component
           v-else
           :options="pieChartOptions"
           :loading="loading"

@@ -136,24 +136,9 @@ export interface StringMap {
   [key: string]: string;
 }
 
-// 通用数值映射接口
-export interface NumberMap {
-  [key: string]: number;
-}
-
-// 通用布尔映射接口
-export interface BooleanMap {
-  [key: string]: boolean;
-}
-
 // 通用混合类型映射接口
 export interface MixedMap {
   [key: string]: string | number | boolean | null | undefined;
-}
-
-// 包含文件类型的混合映射接口
-export interface FileUploadMap {
-  [key: string]: File | string | number | boolean | undefined;
 }
 
 // 基础查询参数接口
@@ -189,9 +174,10 @@ export interface CollectParams extends MixedMap {
 }
 
 // 文件上传参数
-export interface UploadParams extends FileUploadMap {
+export interface UploadParams {
   id: string;
   file: File;
+  [key: string]: File | string | number | boolean | undefined;
 }
 
 // 审核操作参数
@@ -479,20 +465,6 @@ export interface PieChartOptions {
   }>;
 }
 
-// 更新标签
-export interface UpdateTag {
-  text: string;
-  class: string;
-}
-
-// 更新状态Emoji映射
-export interface UpdateEmojiMap extends StringMap {
-  new: string;
-  updated: string;
-  effective: string;
-  deprecated: string;
-}
-
 // 审核状态样式映射
 export interface ReviewStatusClassMap extends StringMap {
   已通过: string;
@@ -593,12 +565,6 @@ export interface IconTypeMap extends StringMap {
 export interface DocumentMetaItem {
   icon: string;
   content: string;
-}
-
-// 文档目录项
-export interface DocumentTocItem {
-  text: string;
-  level: number;
 }
 
 // 消息服务接口

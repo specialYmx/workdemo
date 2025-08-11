@@ -51,7 +51,11 @@
                     v-for="(point, index) in parseSummaryArray(item.summary)"
                     :key="index"
                   >
-                    <span v-html="formatSummaryPoint(point)"></span>
+                    <span>
+                      <strong v-if="getSummaryTitle(point)"
+                        >{{ getSummaryTitle(point) }}：</strong
+                      >{{ getSummaryContent(point) }}
+                    </span>
                   </li>
                 </ul>
               </div>
@@ -330,20 +334,28 @@ export default class LawyerUpdatesIndexComponent extends Vue {
     }
   }
 
-  // 格式化summary条目，将冒号前的内容加粗
-  formatSummaryPoint(point: string): string {
+  // 获取摘要标题（冒号前的内容）
+  getSummaryTitle(point: string): string {
     if (!point) return "";
 
-    // 查找第一个冒号的位置
+    const colonIndex = point.indexOf(":");
+    if (colonIndex === -1) {
+      return "";
+    }
+
+    return point.substring(0, colonIndex).trim();
+  }
+
+  // 获取摘要内容（冒号后的内容）
+  getSummaryContent(point: string): string {
+    if (!point) return "";
+
     const colonIndex = point.indexOf(":");
     if (colonIndex === -1) {
       return point;
     }
 
-    const title = point.substring(0, colonIndex).trim();
-    const content = point.substring(colonIndex + 1).trim();
-
-    return `<strong>${title}：</strong>${content}`;
+    return point.substring(colonIndex + 1).trim();
   }
 }
 </script>

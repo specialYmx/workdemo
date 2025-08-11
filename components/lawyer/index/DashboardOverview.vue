@@ -127,7 +127,7 @@
           </div>
         </div>
         <div class="lawyer-chart-container">
-          <common-chart-component
+          <lawyer-common-chart-component
             :options="trendChartOptions"
             :loading="trendChartLoading"
             :auto-resize="true"

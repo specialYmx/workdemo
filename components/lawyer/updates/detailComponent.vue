@@ -1,6 +1,6 @@
 <template>
   <div class="lawyer-update-detail-wrapper">
-    <document-viewer :document="document" @go-back="goBack" />
+    <lawyer-document-viewer :document="document" @go-back="goBack" />
   </div>
 </template>
 
@@ -91,42 +91,8 @@ export default class LawyerUpdatesDetailComponent extends Vue {
       return "暂无内容";
     }
 
-    // 将纯文本内容转换为HTML格式
-    const formatted: string = content
-      .split("\n")
-      .map((line: string): string => {
-        line = line.trim();
-        if (!line) return "";
-
-        // 处理标题（如：保险公司资金运用统计制度）
-        if (
-          line.match(/^[一二三四五六七八九十]+、/) ||
-          line.match(/^第[一二三四五六七八九十]+章/)
-        ) {
-          return `<h2 class="doc-title">${line}</h2>`;
-        }
-
-        // 处理条款
-        if (
-          line.match(/^第[一二三四五六七八九十\d]+条/) ||
-          line.match(/^[一二三四五六七八九十]+、/)
-        ) {
-          return `<p class="doc-article"><strong>${line}</strong></p>`;
-        }
-
-        // 处理文号等特殊格式
-        if (line.match(/^[〔\[].+[〕\]]/) || line.match(/号$/)) {
-          return `<p class="doc-meta">${line}</p>`;
-        }
-
-        // 处理普通段落
-        return `<p class="doc-article">${line}</p>`;
-      })
-      .filter(Boolean)
-      .join("\n");
-
-    console.log("格式化结果:", formatted);
-    return formatted;
+    // v-md-preview 可以直接处理纯文本，保持原始格式
+    return content;
   }
 
   // 生命周期钩子

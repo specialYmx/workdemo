@@ -55,7 +55,7 @@
             <span v-if="col.date"> {{ col.date }} </span>）
           </div>
           <div class="lawyer-column-content">
-            <div v-html="formatContentDisplay(col.content)"></div>
+            <v-md-preview :text="formatContentForMarkdown(col.content)" />
           </div>
         </div>
 
@@ -276,18 +276,18 @@ export default class DocumentCompare extends Vue {
     ];
   }
 
-  // 格式化内容显示，将文本转换为HTML
-  formatContentDisplay(content: string): string {
-    if (!content) return '<p class="lawyer-empty-content">无内容</p>';
-    if (content === "error")
-      return '<p class="lawyer-error-content">加载失败，请刷新页面重试</p>';
-    if (content.trim() === "")
-      return '<p class="lawyer-empty-content">无内容</p>';
+  // 格式化内容
+  formatContentForMarkdown(content: string): string {
+    if (!content) return "无内容";
+    if (content === "error") return "加载失败，请刷新页面重试";
+    if (content.trim() === "") return "无内容";
 
-    // 如果内容已经包含HTML标签，则直接返回
-    if (content.includes("<")) return content;
+    // 如果内容已经包含HTML标签，先移除HTML标签
+    if (content.includes("<")) {
+      content = content.replace(/<[^>]*>/g, "");
+    }
 
-    // 简单处理：保留原始文本，让CSS处理换行
+    // v-md-preview 可以直接处理纯文本，保持原始格式
     return content;
   }
 
