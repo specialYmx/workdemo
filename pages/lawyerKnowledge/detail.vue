@@ -12,29 +12,11 @@
 <script lang="ts">
 import { Component, Vue } from "nuxt-property-decorator";
 
-import { KnowledgeDataItem } from "~/model/LawyerModel";
-
-// 文档显示数据接口
-interface DocumentDisplayData {
-  id: string;
-  title: string;
-  date: string;
-  effectiveDate: string;
-  publisher: string;
-  fileNumber: string;
-  status: string;
-  views: number;
-  content: string;
-  isRevoke: boolean;
-  timeLiness: string;
-}
-
-// 相关文档接口
-interface RelatedDocument {
-  id: string;
-  title: string;
-  date: string;
-}
+import {
+  KnowledgeDataItem,
+  DocumentViewerData,
+  RelatedDocumentItem,
+} from "~/model/LawyerModel";
 
 @Component({})
 export default class LawyerKnowledgeDetailPage extends Vue {
@@ -44,7 +26,7 @@ export default class LawyerKnowledgeDetailPage extends Vue {
   }
 
   // 文档数据
-  document: DocumentDisplayData = {
+  document: DocumentViewerData = {
     id: "",
     title: "正在加载...",
     date: "",
@@ -64,7 +46,7 @@ export default class LawyerKnowledgeDetailPage extends Vue {
   isRevoke: boolean = false;
 
   // 相关文档（模拟数据）
-  relatedDocuments: RelatedDocument[] = [
+  relatedDocuments: RelatedDocumentItem[] = [
     {
       id: "2",
       title: "《中华人民共和国数据安全法》",
@@ -93,7 +75,7 @@ export default class LawyerKnowledgeDetailPage extends Vue {
   }
 
   // 打开相关文档
-  openRelatedDocument(doc: RelatedDocument): void {
+  openRelatedDocument(doc: RelatedDocumentItem): void {
     this.$router.push({
       path: "/lawyerKnowledge/detail",
       query: {
