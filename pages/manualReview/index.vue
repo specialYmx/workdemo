@@ -55,22 +55,6 @@
           </a-button>
         </div>
 
-        <!-- 统计信息 -->
-        <div class="lawyer-stats-info">
-          总计: <strong>{{ totalDocuments }}</strong> 条 / 待审核:
-          <strong>{{ pendingCount }}</strong> 条 / 已选中:
-          <strong>{{ selectedRowKeys.length }}</strong> 条
-          <a-tooltip placement="right">
-            <template slot="title">
-              <span>版本规则：文件版本高于系统最高版本时，不允许审核操作</span>
-            </template>
-            <a-icon
-              type="info-circle"
-              style="margin-left: 8px; color: #1890ff"
-            />
-          </a-tooltip>
-        </div>
-
         <!-- 文档列表表格 -->
         <div class="lawyer-table-wrapper">
           <!-- 暂无数据状态 -->
@@ -108,7 +92,7 @@
 
             <!-- 状态列插槽 -->
             <span slot="status" slot-scope="text">
-              <span :class="['lawyer-status-text', `status-${text}`]">
+              <span :class="getCheckStatusClass(text)">
                 {{ getCheckStatusText(text) }}
               </span>
             </span>
@@ -122,6 +106,24 @@
             <span slot="publishTime" slot-scope="text">
               {{ formatTime(text) }}
             </span>
+
+            <!-- 操作列表头插槽 -->
+            <template slot="actionTitle">
+              <div class="lawyer-action-header">
+                <span>操作</span>
+                <a-tooltip placement="left">
+                  <template slot="title">
+                    <span
+                      >版本规则：文件版本高于系统最高版本时，不允许审核操作</span
+                    >
+                  </template>
+                  <a-icon
+                    type="info-circle"
+                    style="margin-left: 8px; color: #1890ff"
+                  />
+                </a-tooltip>
+              </div>
+            </template>
 
             <!-- 操作列插槽 -->
             <span slot="action" slot-scope="text, record">
@@ -374,7 +376,10 @@ export default class ManualReviewPage extends Vue {
     {
       title: "操作",
       key: "action",
-      scopedSlots: { customRender: "action" },
+      scopedSlots: {
+        customRender: "action",
+        title: "actionTitle",
+      },
       fixed: "right",
       width: 180,
     },
@@ -431,19 +436,6 @@ export default class ManualReviewPage extends Vue {
     } finally {
       this.tableLoading = false;
     }
-  }
-
-  // 获取待审核文档数量
-  get pendingCount(): number {
-    return this.documents.filter(
-      (doc: ToDoRuleItem) =>
-        doc.checkStatus === "待审核" || doc.checkStatus === null
-    ).length;
-  }
-
-  // 获取文档总数
-  get totalDocuments(): number {
-    return this.documents.length;
   }
 
   // 搜索方法
@@ -563,6 +555,17 @@ export default class ManualReviewPage extends Vue {
       "2": "已驳回",
     };
     return textMap[status || ""] || "未知状态";
+  }
+
+  // 获取审核状态样式类（使用全局样式）
+  getCheckStatusClass(status: string | null): string {
+    const statusText = this.getCheckStatusText(status);
+    const classMap: StatusMap = {
+      待审核: "lawyer-status-pending",
+      已通过: "lawyer-status-approved",
+      已驳回: "lawyer-status-rejected",
+    };
+    return classMap[statusText] || "lawyer-status-pending";
   }
 
   // 格式化时间显示
@@ -773,16 +776,12 @@ export default class ManualReviewPage extends Vue {
     }
   }
 
-  // 统计信息
-  .lawyer-stats-info {
-    color: var(--lawyer-text-light);
-    font-size: 14px;
-    margin-top: 10px;
-
-    strong {
-      color: var(--lawyer-text);
-      font-weight: 600;
-    }
+  // 操作列表头样式
+  .lawyer-action-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
   }
 
   // 表格包装器
@@ -835,24 +834,6 @@ export default class ManualReviewPage extends Vue {
     &:hover {
       color: #cf1322;
       background-color: #fff2f0;
-    }
-  }
-
-  // 状态文字样式
-  .lawyer-status-text {
-    font-weight: 500;
-
-    // 不同状态颜色
-    &.status-pending {
-      color: #fa8c16;
-    }
-
-    &.status-approved {
-      color: #52c41a;
-    }
-
-    &.status-rejected {
-      color: #ff4d4f;
     }
   }
 
