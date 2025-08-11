@@ -64,13 +64,6 @@ export interface DocumentViewerData {
   timeLiness: string;
 }
 
-// 相关文档项
-export interface RelatedDocumentItem {
-  id: string;
-  title: string;
-  date: string;
-}
-
 // 文档比较数据
 export interface DocumentCompareData {
   id: string;

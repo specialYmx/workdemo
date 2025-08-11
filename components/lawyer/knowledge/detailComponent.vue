@@ -1,22 +1,13 @@
 <template>
   <div class="lawyer-knowledge-detail-wrapper">
-    <document-viewer
-      :document="document"
-      :relatedDocuments="relatedDocuments"
-      @go-back="goBack"
-      @open-related="openRelatedDocument"
-    />
+    <document-viewer :document="document" @go-back="goBack" />
   </div>
 </template>
 
 <script lang="ts">
 import { Component, Vue } from "nuxt-property-decorator";
 
-import {
-  KnowledgeDataItem,
-  DocumentViewerData,
-  RelatedDocumentItem,
-} from "~/model/LawyerModel";
+import { KnowledgeDataItem, DocumentViewerData } from "~/model/LawyerModel";
 
 @Component({ name: "lawyer-knowledge-detail-component" })
 export default class LawyerKnowledgeDetailComponent extends Vue {
@@ -40,44 +31,9 @@ export default class LawyerKnowledgeDetailComponent extends Vue {
   // 废止状态控制（从文档详情弹窗的已废止控件获取）
   isRevoke: boolean = false;
 
-  // 相关文档（模拟数据）
-  relatedDocuments: RelatedDocumentItem[] = [
-    {
-      id: "2",
-      title: "《中华人民共和国数据安全法》",
-      date: "2021-06-10",
-    },
-    {
-      id: "3",
-      title: "《网络安全审查办法》",
-      date: "2022-01-04",
-    },
-    {
-      id: "4",
-      title: "《互联网信息服务深度合成管理规定》",
-      date: "2022-12-11",
-    },
-    {
-      id: "5",
-      title: "《关于个人信息出境标准合同办法》",
-      date: "2023-02-24",
-    },
-  ];
-
   // 返回上一页
   goBack(): void {
     this.$router.back();
-  }
-
-  // 打开相关文档
-  openRelatedDocument(doc: RelatedDocumentItem): void {
-    this.$router.push({
-      path: "/lawyerKnowledge/detail",
-      query: {
-        id: doc.id,
-        pageTitle: doc.title,
-      },
-    });
   }
 
   // 获取文档详情数据

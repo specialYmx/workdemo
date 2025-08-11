@@ -132,7 +132,6 @@ import { Component, Vue, Prop, Watch, Emit } from "nuxt-property-decorator";
 import { downloadFileWithMessage } from "~/utils/personal";
 import {
   DocumentViewerData,
-  RelatedDocumentItem,
   DocumentMetaItem,
   TagColorMap,
   StatusColorMap,
@@ -141,7 +140,6 @@ import {
 @Component({})
 export default class DocumentViewer extends Vue {
   @Prop({ required: true }) document!: DocumentViewerData;
-  @Prop({ default: () => [] }) relatedDocuments!: RelatedDocumentItem[];
 
   // 废止状态编辑相关
   revokeStatusVisible: boolean = false;
@@ -352,11 +350,6 @@ export default class DocumentViewer extends Vue {
   @Emit("go-back")
   emitGoBack(): void {
     // 无需返回值
-  }
-
-  @Emit("open-related")
-  emitOpenRelated(document: RelatedDocumentItem): RelatedDocumentItem {
-    return document;
   }
 }
 </script>
