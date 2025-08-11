@@ -451,8 +451,28 @@ export default class DocumentCompare extends Vue {
   }
 
   @Emit("submit-review")
-  emitSubmitReview(data: ReviewSubmitData): ReviewSubmitData {
-    return data;
+  emitSubmitReview(data: ReviewSubmitData): ReviewSubmitData & {
+    categoryMain?: string;
+    categorySub?: string;
+    effectDateStr?: string | null;
+  } {
+    // 从当前文档的标签中获取分类信息
+    const categoryMain =
+      this.document.tags && this.document.tags.length > 0
+        ? this.document.tags[0]
+        : undefined;
+    const categorySub =
+      this.document.tags && this.document.tags.length > 1
+        ? this.document.tags[1]
+        : undefined;
+    const effectDateStr = this.document.effectDate;
+
+    return {
+      ...data,
+      categoryMain,
+      categorySub,
+      effectDateStr,
+    };
   }
 }
 </script>

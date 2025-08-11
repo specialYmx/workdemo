@@ -17,8 +17,9 @@ import '..\\node_modules\\@kangc\\v-md-editor\\lib\\style\\preview.css'
 import '..\\node_modules\\@kangc\\v-md-editor\\lib\\theme\\style\\github.css'
 
 import _6f6c098b from '..\\layouts\\default.vue'
+import _2d280385 from '..\\layouts\\page.vue'
 
-const layouts = { "_default": sanitizeComponent(_6f6c098b) }
+const layouts = { "_default": sanitizeComponent(_6f6c098b),"_page": sanitizeComponent(_2d280385) }
 
 export default {
   render (h, props) {

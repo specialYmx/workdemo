@@ -205,7 +205,9 @@ export interface UploadParams extends FileUploadMap {
 export interface ApprovalParams extends MixedMap {
   id: string;
   approvalComment: string;
-  effectDate?: string | null;
+  effectDateStr?: string | null;
+  categoryMain?: string;
+  categorySub?: string;
 }
 
 // 导出参数

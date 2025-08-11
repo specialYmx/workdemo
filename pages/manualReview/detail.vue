@@ -20,7 +20,7 @@ import {
   ReviewSubmitData,
 } from "@/model/LawyerModel";
 
-@Component({})
+@Component({ layout: "page", middleware: "auth" })
 export default class ManualReviewDetailPage extends Vue {
   // 页面头部配置
   head(): { title: string } {
@@ -50,8 +50,20 @@ export default class ManualReviewDetailPage extends Vue {
   }
 
   // 处理审核提交
-  handleReviewSubmit(reviewData: ReviewSubmitData): void {
-    const { action } = reviewData;
+  handleReviewSubmit(
+    reviewData: ReviewSubmitData & {
+      categoryMain?: string;
+      categorySub?: string;
+      effectDateStr?: string | null;
+    }
+  ): void {
+    const { action, categoryMain, categorySub, effectDateStr } = reviewData;
+
+    // 检查必要的分类信息
+    if (!categoryMain) {
+      this.$message.error("请先在文档对比页面设置分类信息");
+      return;
+    }
 
     // 处理审核逻辑
     // 调用API
@@ -59,7 +71,9 @@ export default class ManualReviewDetailPage extends Vue {
       .approveToDoRule({
         id: this.documentData.id,
         approvalComment: action === "approve" ? "已通过" : "已驳回",
-        effectDate: this.documentData.effectDate, // 使用当前文档的施行日期
+        effectDateStr: effectDateStr || this.documentData.effectDate, // 优先使用弹窗设置的施行日期
+        categoryMain: categoryMain,
+        categorySub: categorySub,
       })
       .then(() => {
         this.documentData.status =

@@ -117,7 +117,7 @@ import {
 } from "~/model/LawyerModel";
 import { downloadFileWithMessage } from "~/utils/personal";
 
-@Component({})
+@Component({ layout: "page", middleware: "auth" })
 export default class LawyerUpdatePage extends Vue {
   // 页面头部配置
   head(): { title: string } {

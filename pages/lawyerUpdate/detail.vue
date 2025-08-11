@@ -18,7 +18,7 @@ import {
   RelatedDocumentItem,
 } from "~/model/LawyerModel";
 
-@Component({})
+@Component({ layout: "page", middleware: "auth" })
 export default class LawyerUpdateDetailPage extends Vue {
   // 页面头部配置
   head(): { title: string } {

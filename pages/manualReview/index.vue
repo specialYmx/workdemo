@@ -227,7 +227,7 @@ import { downloadFileWithMessage } from "~/utils/personal";
 import { RowSelectionConfig } from "~/model/LawyerModel";
 import { CustomColumn, CustomPagination } from "~/model/CommonModel";
 
-@Component({})
+@Component({ layout: "page", middleware: "auth" })
 export default class ManualReviewPage extends Vue {
   // 页面头部配置
   head(): { title: string } {
