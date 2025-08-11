@@ -1,4 +1,16 @@
 {
+  "IndexDashboardOverview": {
+    "description": "Auto imported from components/index/DashboardOverview.vue"
+  },
+  "IndexLatestUpdates": {
+    "description": "Auto imported from components/index/LatestUpdates.vue"
+  },
+  "IndexReviewTable": {
+    "description": "Auto imported from components/index/ReviewTable.vue"
+  },
+  "IndexSourceDistribution": {
+    "description": "Auto imported from components/index/SourceDistribution.vue"
+  },
   "CommonChartComponent": {
     "description": "Auto imported from components/common/ChartComponent.vue"
   },
@@ -16,17 +28,5 @@
   },
   "DocumentViewer": {
     "description": "Auto imported from components/document/DocumentViewer.vue"
-  },
-  "IndexDashboardOverview": {
-    "description": "Auto imported from components/index/DashboardOverview.vue"
-  },
-  "IndexLatestUpdates": {
-    "description": "Auto imported from components/index/LatestUpdates.vue"
-  },
-  "IndexReviewTable": {
-    "description": "Auto imported from components/index/ReviewTable.vue"
-  },
-  "IndexSourceDistribution": {
-    "description": "Auto imported from components/index/SourceDistribution.vue"
   }
 }

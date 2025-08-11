@@ -19,7 +19,6 @@
             :beforeUpload="beforeUpload"
             :fileList="fileList"
             :showUploadList="false"
-            @change="handleUploadChange"
           >
             <p class="ant-upload-drag-icon">
               <a-icon type="inbox" />
@@ -151,15 +150,7 @@ export default class FileUploadModal extends Vue {
   // 上传配置
   @Prop({
     type: Object,
-    default: () => ({
-      multiple: false,
-      acceptTypes: ".pdf,.doc,.docx",
-      maxFileSize: 500 * 1024 * 1024, // 500MB
-      maxFileCount: 1,
-      uploadText: "点击或拖拽文件到此区域上传",
-      hintText: "支持 PDF、DOC、DOCX 格式，文件大小不超过 500MB",
-      autoUpload: false,
-    }),
+    default: () => ({}),
   })
   config!: UploadConfig;
 
@@ -170,7 +161,6 @@ export default class FileUploadModal extends Vue {
   uploadProgress: number = 0;
   errorMessage: string = "";
   uploadTimer: NodeJS.Timeout | null = null;
-  processingFile: boolean = false; // 新增：文件处理状态
 
   // 计算属性 - 获取配置值
   get uploadConfig(): Required<UploadConfig> {
@@ -191,16 +181,8 @@ export default class FileUploadModal extends Vue {
     return this.selectedFiles.length > 0 ? this.selectedFiles[0] : null;
   }
 
-  get acceptTypes(): string {
-    return this.uploadConfig.acceptTypes;
-  }
-
-  get maxFileSize(): number {
-    return this.uploadConfig.maxFileSize;
-  }
-
   // antd-vue Upload 组件需要的 fileList
-  get fileList(): any[] {
+  get fileList() {
     return this.selectedFiles.map((file, index) => ({
       uid: `file-${index}`,
       name: file.name,
@@ -213,12 +195,6 @@ export default class FileUploadModal extends Vue {
   beforeUpload(file: File): boolean {
     this.processFile(file);
     return false; // 阻止自动上传
-  }
-
-  // antd-vue Upload 组件的 change 事件处理
-  handleUploadChange(info: any): void {
-    // 这里主要用于处理 Upload 组件的内部状态变化
-    // 实际的文件处理在 beforeUpload 中完成
   }
 
   isValidFileType(file: File): boolean {
@@ -268,8 +244,10 @@ export default class FileUploadModal extends Vue {
     }
 
     // 检查文件大小
-    if (file.size > this.maxFileSize) {
-      const sizeHint: string = this.formatFileSize(this.maxFileSize);
+    if (file.size > this.uploadConfig.maxFileSize) {
+      const sizeHint: string = this.formatFileSize(
+        this.uploadConfig.maxFileSize
+      );
       this.showError(`文件大小不能超过 ${sizeHint}`);
       return;
     }
@@ -446,7 +424,6 @@ export default class FileUploadModal extends Vue {
     this.uploadSuccess = false;
     this.uploadProgress = 0;
     this.clearError();
-    this.processingFile = false; // 重置文件处理状态
   }
 
   formatFileSize(bytes: number): string {
