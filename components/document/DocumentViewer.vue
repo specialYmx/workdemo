@@ -127,15 +127,10 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue, Prop, Watch, Emit } from "nuxt-property-decorator";
+import { Component, Vue, Prop, Emit } from "nuxt-property-decorator";
 
 import { downloadFileWithMessage } from "~/utils/personal";
-import {
-  DocumentViewerData,
-  DocumentMetaItem,
-  TagColorMap,
-  StatusColorMap,
-} from "~/model/LawyerModel";
+import { DocumentViewerData, DocumentMetaItem } from "~/model/LawyerModel";
 
 @Component({})
 export default class DocumentViewer extends Vue {
@@ -170,27 +165,6 @@ export default class DocumentViewer extends Vue {
   // 返回上一页
   goBack(): void {
     this.emitGoBack();
-  }
-
-  // 获取标签样式类
-  getTagClass(tag: string): string {
-    const tagColorMap: TagColorMap = {
-      个人信息: "lawyer-tag-important",
-      数据安全: "lawyer-tag-fund",
-      隐私保护: "lawyer-tag-opinion",
-      跨境数据: "lawyer-tag-solvency",
-      公司治理: "lawyer-tag-governance",
-      董事会管理: "lawyer-tag-supervision",
-      监事会管理: "lawyer-tag-association",
-      高管管理: "lawyer-tag-compliance",
-      重要管理: "lawyer-tag-important",
-      合规: "lawyer-tag-compliance",
-      风控: "lawyer-tag-risk",
-      保险产品: "lawyer-tag-fund",
-      理财产品: "lawyer-tag-alternative",
-      投资产品: "lawyer-tag-related",
-    };
-    return tagColorMap[tag] || "lawyer-tag-default";
   }
 
   // 处理状态标签点击
@@ -279,17 +253,6 @@ export default class DocumentViewer extends Vue {
     }
   }
 
-  // 获取状态颜色
-  getStatusColor(status: string): string {
-    const colorMap: StatusColorMap = {
-      已生效: "green",
-      即将生效: "orange",
-      废止: "red",
-      征求意见中: "blue",
-    };
-    return colorMap[status] || "default";
-  }
-
   // 下载文档
   async downloadDocument(): Promise<void> {
     try {
@@ -313,37 +276,6 @@ export default class DocumentViewer extends Vue {
       console.error("下载失败:", error);
       this.$message.error("下载失败，请检查网络连接后重试");
     }
-  }
-
-  // 生命周期钩子
-  mounted(): void {
-    // 添加滚动监听，可以用于实现阅读进度等功能
-    const contentDiv = this.$refs.documentContent as HTMLElement;
-    if (contentDiv) {
-      contentDiv.addEventListener("scroll", this.handleScroll);
-    }
-
-    // 添加键盘快捷键支持
-    window.addEventListener("keydown", this.handleKeyDown);
-  }
-
-  // 处理滚动事件
-  handleScroll(): void {
-    // 实际项目中，这里可以实现阅读进度跟踪等功能
-  }
-
-  // 处理键盘事件
-  handleKeyDown(event: KeyboardEvent): void {
-    // 键盘事件处理（搜索功能已移至 DivTextSearch 组件）
-  }
-
-  // 组件销毁前清理
-  beforeDestroy(): void {
-    const contentDiv = this.$refs.documentContent as HTMLElement;
-    if (contentDiv) {
-      contentDiv.removeEventListener("scroll", this.handleScroll);
-    }
-    window.removeEventListener("keydown", this.handleKeyDown);
   }
 
   // Emit 装饰器方法
@@ -423,111 +355,6 @@ export default class DocumentViewer extends Vue {
         opacity: 0.6;
         transform: none;
       }
-    }
-  }
-
-  .lawyer-doc-tag {
-    display: inline-block;
-    padding: 4px 12px;
-    border: 1px solid #ddd;
-    border-radius: 3px;
-    background-color: #fff;
-    color: var(--lawyer-text-light);
-    font-size: 12px;
-    font-weight: 400;
-    line-height: 1.2;
-    white-space: nowrap;
-
-    // 重要法规 - 红色
-    &.lawyer-tag-important {
-      border-color: #ff4d4f;
-      color: #ff4d4f;
-      background-color: rgba(255, 77, 79, 0.1);
-    }
-
-    // 资金运用 - 橙色
-    &.lawyer-tag-fund {
-      border-color: #fa8c16;
-      color: #fa8c16;
-      background-color: rgba(250, 140, 22, 0.1);
-    }
-
-    // 征求意见 - 蓝色
-    &.lawyer-tag-opinion {
-      border-color: #1890ff;
-      color: #1890ff;
-      background-color: rgba(24, 144, 255, 0.1);
-    }
-
-    // 主要标签 - 金色（类似原型图）
-    &.lawyer-tag-primary {
-      border-color: #ffd666;
-      color: #d48806;
-      background-color: #fff7e6;
-      font-weight: 500;
-    }
-
-    // 偿付能力 - 紫色
-    &.lawyer-tag-solvency {
-      border-color: #722ed1;
-      color: #722ed1;
-      background-color: rgba(114, 46, 209, 0.1);
-    }
-
-    // 风险提示 - 红色
-    &.lawyer-tag-risk {
-      border-color: #ff4d4f;
-      color: #ff4d4f;
-      background-color: rgba(255, 77, 79, 0.1);
-    }
-
-    // 另类投资 - 青色
-    &.lawyer-tag-alternative {
-      border-color: #13c2c2;
-      color: #13c2c2;
-      background-color: rgba(19, 194, 194, 0.1);
-    }
-
-    // 机构监管 - 绿色
-    &.lawyer-tag-supervision {
-      border-color: #52c41a;
-      color: #52c41a;
-      background-color: rgba(82, 196, 26, 0.1);
-    }
-
-    // 公司治理 - 橙色
-    &.lawyer-tag-governance {
-      border-color: #fa8c16;
-      color: #fa8c16;
-      background-color: rgba(250, 140, 22, 0.1);
-    }
-
-    // 行业协会 - 蓝色
-    &.lawyer-tag-association {
-      border-color: #1890ff;
-      color: #1890ff;
-      background-color: rgba(24, 144, 255, 0.1);
-    }
-
-    // 风控合规 - 紫色
-    &.lawyer-tag-compliance {
-      border-color: #722ed1;
-      color: #722ed1;
-      background-color: rgba(114, 46, 209, 0.1);
-    }
-
-    // 关联交易 - 青色
-    &.lawyer-tag-related {
-      border-color: #13c2c2;
-      color: #13c2c2;
-      background-color: rgba(19, 194, 194, 0.1);
-    }
-
-    // 默认样式
-    &.lawyer-tag-default {
-      border-color: #d9d9d9;
-      color: #595959;
-      background-color: rgba(217, 217, 217, 0.1);
     }
   }
 
@@ -716,23 +543,6 @@ export default class DocumentViewer extends Vue {
     ::selection {
       background-color: rgba(var(--lawyer-primary-rgb), 0.3);
       color: var(--lawyer-text-dark);
-    }
-  }
-
-  // 标签编辑模态框样式
-  .lawyer-tag-edit-content {
-    padding: 20px 0;
-  }
-
-  .lawyer-tag-select-row {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-
-    label {
-      font-weight: 500;
-      color: var(--lawyer-text);
-      min-width: 80px;
     }
   }
 

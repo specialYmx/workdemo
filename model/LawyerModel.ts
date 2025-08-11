@@ -601,12 +601,6 @@ export interface DocumentTocItem {
   level: number;
 }
 
-// 标签颜色映射
-export type TagColorMap = StringMap;
-
-// 状态颜色映射
-export type StatusColorMap = StringMap;
-
 // 消息服务接口
 export interface MessageService {
   success(content: string, duration?: number): void;
