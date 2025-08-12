@@ -80,14 +80,6 @@
                 驳回
               </a>
             </template>
-            <span
-              v-else-if="
-                record.checkStatus === '待审核' || record.checkStatus === null
-              "
-              class="lawyer-version-notice"
-            >
-              版本受限
-            </span>
           </div>
         </template>
       </a-table>
@@ -250,12 +242,6 @@ export default class ReviewTable extends Vue {
   align-items: center;
   justify-content: center;
   gap: 4px;
-}
-
-.lawyer-version-notice {
-  color: #999;
-  font-size: 12px;
-  font-style: italic;
 }
 
 /* 空状态样式 */

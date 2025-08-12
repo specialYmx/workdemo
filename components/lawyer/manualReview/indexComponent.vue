@@ -145,14 +145,6 @@
                     驳回
                   </a>
                 </template>
-                <span
-                  v-else-if="
-                    record.checkStatus === '待审核' ||
-                    record.checkStatus === null
-                  "
-                  class="lawyer-version-notice"
-                  >版本受限</span
-                >
               </div>
             </span>
 
@@ -857,12 +849,6 @@ export default class LawyerManualReviewIndexComponent extends Vue {
       color: white;
       font-weight: 500;
     }
-  }
-
-  .lawyer-version-notice {
-    color: #999;
-    font-size: 12px;
-    font-style: italic;
   }
 
   /* 空状态样式 */
