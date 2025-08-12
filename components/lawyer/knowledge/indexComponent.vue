@@ -258,11 +258,11 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
   get uploadConfig(): KnowledgeUploadConfig {
     return {
       multiple: false,
-      acceptTypes: ".doc,.docx",
-      maxFileSize: 50 * 1024 * 1024,
+      acceptTypes: ".doc",
+      maxFileSize: 500 * 1024 * 1024,
       maxFileCount: 1,
       uploadText: "点击或拖拽文件到此区域上传",
-      hintText: "支持 DOC、DOCX 格式，文件大小不超过 50MB",
+      hintText: "仅支持 DOC 格式，文件大小不超过 500MB",
       autoUpload: false,
     };
   }
@@ -367,7 +367,7 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
     if (!this.isFavoritesMode) {
       actions.push({
         type: isFavorite ? "primary" : "default",
-        text: isFavorite ? "已收藏" : "收藏",
+        text: isFavorite ? "取消收藏" : "收藏",
         handler: () => this.collectDocument(doc),
       });
     }

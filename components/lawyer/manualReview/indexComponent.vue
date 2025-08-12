@@ -453,11 +453,6 @@ export default class LawyerManualReviewIndexComponent extends Vue {
     return statusMap[status] || "";
   }
 
-  // 日期范围变化
-  onDateRangeChange(_dates: moment.Moment[], _dateStrings: string[]): void {
-    // 日期已经双向绑定到dateRange，这里可以加入额外处理
-  }
-
   // 表格变化事件
   handleTableChange(pagination, filters, sorter, extra): void {
     console.log("表格变化:", pagination, filters, sorter, extra);
@@ -569,6 +564,7 @@ export default class LawyerManualReviewIndexComponent extends Vue {
       query: {
         id: document.id,
         pageTitle: document.ruleName,
+        checkStatus: document.checkStatus || "待审核", // 传递审核状态
       },
     });
   }

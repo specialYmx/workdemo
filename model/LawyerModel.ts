@@ -33,7 +33,7 @@ export interface DocumentChange {
   section?: string;
   position?: string;
   sectionDisplay?: string; // 展示用的原始章节文本（如“第一章”“第四条”）
-  type: "add" | "delete" | "modify";
+  type: "add" | "delete" | "modify" | "info";
   oldText?: string;
   newText?: string;
 }
@@ -69,6 +69,7 @@ export interface DocumentCompareData {
   id: string;
   title: string;
   status: string;
+  checkStatus?: string; // 原始审核状态
   tags?: string[];
   effectDate?: string | null;
   newFileVersion?: number | null;
@@ -705,6 +706,7 @@ export interface DocumentComparePageData {
   id: string;
   title: string;
   status: string;
+  checkStatus?: string; // 原始审核状态
   tags: string[];
   originalVersion: string;
   newVersion: string | number;

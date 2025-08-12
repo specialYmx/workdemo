@@ -29,10 +29,7 @@
           </div>
         </div>
         <div class="lawyer-header-actions">
-          <div
-            v-if="document.status === 'pending' && !canReview"
-            class="lawyer-version-warning"
-          >
+          <div v-if="shouldShowWarning" class="lawyer-version-warning">
             {{ getReviewWarningMessage() }}
           </div>
           <a-button class="lawyer-back-btn" @click="goBack">
@@ -70,7 +67,7 @@
             </span>
           </div>
 
-          <div class="review-summary">
+          <div v-if="!hasSpecialInfo" class="review-summary">
             <a-icon type="exclamation-circle" class="summary-icon" />
             共有
             <span class="change-count">{{ document.changes.length }}</span>
@@ -79,7 +76,7 @@
 
           <div class="review-content">
             <div v-if="document.changes.length === 0" class="no-changes">
-              暂无修改记录或正在加载中...
+              暂无数据
             </div>
 
             <div
@@ -87,29 +84,44 @@
               :key="index"
               class="change-item"
             >
-              <div class="change-title">
-                {{
-                  [change.sectionDisplay || "", change.position || ""]
-                    .filter(Boolean)
-                    .join(" ")
-                }}
+              <!-- 处理特殊信息类型 -->
+              <div v-if="change.type === 'info'" class="info-message">
+                <a-icon type="info-circle" class="info-icon" />
+                <span v-if="change.position === '无旧版文件'">
+                  无旧版文档数据
+                </span>
+                <span v-else-if="change.position === '无新版文件'">
+                  无新版文档数据
+                </span>
+                <span v-else>{{ change.position }}</span>
               </div>
 
-              <div class="change-detail">
-                <div v-if="change.type === 'add'" class="change-text">
-                  新增内容：<span class="highlight-text">{{
-                    change.newText
-                  }}</span>
+              <!-- 正常变更内容 -->
+              <div v-else>
+                <div class="change-title">
+                  {{
+                    [change.sectionDisplay || "", change.position || ""]
+                      .filter(Boolean)
+                      .join(" ")
+                  }}
                 </div>
-                <div v-else-if="change.type === 'delete'" class="change-text">
-                  删除了"<span class="deleted-text">{{ change.oldText }}</span
-                  >"
-                </div>
-                <div v-else-if="change.type === 'modify'" class="change-text">
-                  修改内容：<span class="highlight-text">{{
-                    change.newText
-                  }}</span
-                  >，原内容："{{ change.oldText }}"
+
+                <div class="change-detail">
+                  <div v-if="change.type === 'add'" class="change-text">
+                    新增内容：<span class="highlight-text">{{
+                      change.newText
+                    }}</span>
+                  </div>
+                  <div v-else-if="change.type === 'delete'" class="change-text">
+                    删除了"<span class="deleted-text">{{ change.oldText }}</span
+                    >"
+                  </div>
+                  <div v-else-if="change.type === 'modify'" class="change-text">
+                    修改内容：<span class="highlight-text">{{
+                      change.newText
+                    }}</span
+                    >，原内容："{{ change.oldText }}"
+                  </div>
                 </div>
               </div>
             </div>
@@ -118,7 +130,7 @@
       </div>
 
       <!-- 审核按钮固定在右下角 -->
-      <div v-if="document.status === 'pending' && canReview" class="tx-r">
+      <div v-if="shouldShowReviewButtons" class="tx-r">
         <a-button
           class="ml-8"
           v-for="(action, index) in reviewActions"
@@ -218,6 +230,36 @@ export default class DocumentCompare extends Vue {
     ];
   }
 
+  // 是否显示审核按钮
+  get shouldShowReviewButtons(): boolean {
+    // 首先检查文档的审核状态是否为'待审核'
+    const isPendingStatus =
+      this.document.checkStatus === "待审核" ||
+      (this.document.checkStatus === undefined &&
+        this.document.status === "pending");
+    console.log("🚀 ~ DocumentCompare ~ this.document:", this.document);
+
+    // 只有在待审核状态下才进一步检查其他条件
+    return isPendingStatus && this.canReview;
+  }
+
+  // 是否显示警告信息
+  get shouldShowWarning(): boolean {
+    // 首先检查文档的审核状态是否为'待审核'
+    const isPendingStatus =
+      this.document.checkStatus === "待审核" ||
+      (this.document.checkStatus === undefined &&
+        this.document.status === "pending");
+
+    // 只有在待审核状态下且不能审核时才显示警告
+    return isPendingStatus && !this.canReview;
+  }
+
+  // 是否有特殊信息（无旧版文件或无新版文件）
+  get hasSpecialInfo(): boolean {
+    return this.document.changes.some((change) => change.type === "info");
+  }
+
   // 是否允许审核操作
   get canReview(): boolean {
     // 检查文档版本是否允许审核
@@ -261,7 +303,7 @@ export default class DocumentCompare extends Vue {
           ? `V${this.document.oldFileVersion}`
           : undefined,
         date: this.document.oldPublishTime || "",
-        content: this.document.originalContent || "加载中...",
+        content: this.document.originalContent || "暂无数据",
         contentClass: "lawyer-original-content",
       },
       {
@@ -270,7 +312,7 @@ export default class DocumentCompare extends Vue {
           ? `V${this.document.newFileVersion}`
           : undefined,
         date: this.document.modifiedDate || this.document.newPublishTime || "",
-        content: this.document.newContent || "加载中...",
+        content: this.document.newContent || "暂无数据",
         contentClass: "lawyer-new-content",
       },
     ];
@@ -278,9 +320,10 @@ export default class DocumentCompare extends Vue {
 
   // 格式化内容
   formatContentForMarkdown(content: string): string {
-    if (!content) return "无内容";
+    if (!content) return "暂无数据";
     if (content === "error") return "加载失败，请刷新页面重试";
-    if (content.trim() === "") return "无内容";
+    if (content === "加载中...") return "暂无数据";
+    if (content.trim() === "") return "暂无数据";
 
     // 如果内容已经包含HTML标签，先移除HTML标签
     if (content.includes("<")) {
@@ -713,6 +756,23 @@ export default class DocumentCompare extends Vue {
   .deleted-text {
     color: #ff4d4f;
     text-decoration: line-through;
+  }
+
+  .info-message {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background-color: #f6ffed;
+    border: 1px solid #b7eb8f;
+    border-radius: 6px;
+    color: #52c41a;
+    font-size: 14px;
+
+    .info-icon {
+      font-size: 16px;
+      color: #52c41a;
+    }
   }
 
   .lawyer-empty-content {

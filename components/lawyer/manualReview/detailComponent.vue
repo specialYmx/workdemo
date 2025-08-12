@@ -97,6 +97,22 @@ export default class LawyerManualReviewDetailComponent extends Vue {
       if (content.startsWith("[") && content.endsWith("]")) {
         content = content.slice(1, -1);
       }
+
+      // 检查特殊情况：无旧版文件或无新版文件
+      const trimmedContent = content.trim();
+      if (trimmedContent === "无旧版文件" || trimmedContent === "无新版文件") {
+        // 返回特殊标记，用于在UI中显示相应信息
+        return [
+          {
+            type: "info" as any,
+            position: trimmedContent,
+            sectionDisplay: "",
+            oldText: "",
+            newText: "",
+          },
+        ];
+      }
+
       if (!content.trim()) return [];
 
       // 2) 智能分割（处理引号内逗号）
@@ -210,17 +226,19 @@ export default class LawyerManualReviewDetailComponent extends Vue {
   async fetchDocumentData(): Promise<void> {
     const docId = this.$route.query.id;
     const pageTitle = this.$route.query.pageTitle;
+    const checkStatus = this.$route.query.checkStatus; // 从路由参数获取审核状态
     if (!docId) return;
     this.loading = true;
     this.documentData = {
       id: docId as string,
       title: (pageTitle as string) || "正在加载文档...",
       status: "pending",
+      checkStatus: (checkStatus as string) || "待审核", // 使用路由参数中的审核状态
       tags: [],
       originalVersion: "",
       newVersion: "",
-      originalContent: "加载中...",
-      newContent: "加载中...",
+      originalContent: "暂无数据",
+      newContent: "暂无数据",
       changes: [],
       oldFileVersion: null,
       oldPublishTime: null,
@@ -257,6 +275,7 @@ export default class LawyerManualReviewDetailComponent extends Vue {
               : result.checkStatus === "2"
               ? "rejected"
               : "pending",
+          checkStatus: (checkStatus as string) || "待审核", // 使用路由参数中的审核状态
           tags: tags, // 使用包含一级和二级分类的标签数组
           originalVersion: "原始版本",
           newVersion: result.newFileVersion || "修订版本",
@@ -277,6 +296,7 @@ export default class LawyerManualReviewDetailComponent extends Vue {
           id: docId as string,
           title: (pageTitle as string) || "未找到文档数据",
           status: "pending",
+          checkStatus: (checkStatus as string) || "待审核",
           tags: [],
           originalVersion: "",
           newVersion: "",
@@ -295,6 +315,7 @@ export default class LawyerManualReviewDetailComponent extends Vue {
         id: docId as string,
         title: (pageTitle as string) || "加载失败",
         status: "pending",
+        checkStatus: (checkStatus as string) || "待审核",
         tags: [],
         originalVersion: "",
         newVersion: "",

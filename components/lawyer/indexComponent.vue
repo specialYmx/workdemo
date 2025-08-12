@@ -392,6 +392,7 @@ export default class IndexComponent extends Vue {
       query: {
         id: record.id,
         pageTitle: record.ruleName,
+        checkStatus: record.checkStatus || "待审核", // 传递审核状态
       },
     });
   }
