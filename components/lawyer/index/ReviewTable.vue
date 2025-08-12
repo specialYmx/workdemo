@@ -45,6 +45,22 @@
           {{ formatTime(text) }}
         </template>
 
+        <!-- 操作列表头插槽 -->
+        <template slot="actionTitle">
+          <div class="lawyer-action-header">
+            <span>操作</span>
+            <a-tooltip placement="left">
+              <template slot="title">
+                <span
+                  >版本规则：文件版本高于系统最高版本时，不允许审核操作</span
+                >
+              </template>
+              <a-icon type="info-circle" class="ml-8" />
+            </a-tooltip>
+          </div>
+        </template>
+
+        <!-- 操作列插槽 -->
         <template slot="action" slot-scope="text, record">
           <div class="lawyer-action-links">
             <a @click="$emit('view-detail', record)" class="lawyer-link-view">
@@ -68,9 +84,9 @@
               v-else-if="
                 record.checkStatus === '待审核' || record.checkStatus === null
               "
-              class="lawyer-version-warning"
+              class="lawyer-version-notice"
             >
-              版本过高
+              版本受限
             </span>
           </div>
         </template>
@@ -127,9 +143,11 @@ export default class ReviewTable extends Vue {
       width: "10%",
     },
     {
-      title: "操作",
       key: "action",
-      scopedSlots: { customRender: "action" },
+      scopedSlots: {
+        customRender: "action",
+        title: "actionTitle",
+      },
       width: "15%",
       align: "center",
     },
@@ -226,7 +244,15 @@ export default class ReviewTable extends Vue {
   }
 }
 
-.lawyer-version-warning {
+// 操作列表头样式
+.lawyer-action-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.lawyer-version-notice {
   color: #999;
   font-size: 12px;
   font-style: italic;

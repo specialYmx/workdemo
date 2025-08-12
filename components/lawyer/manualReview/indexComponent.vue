@@ -117,10 +117,7 @@
                       >版本规则：文件版本高于系统最高版本时，不允许审核操作</span
                     >
                   </template>
-                  <a-icon
-                    type="info-circle"
-                    style="margin-left: 8px; color: #1890ff"
-                  />
+                  <a-icon type="info-circle" class="ml-8" />
                 </a-tooltip>
               </div>
             </template>
@@ -369,7 +366,6 @@ export default class LawyerManualReviewIndexComponent extends Vue {
         record.checkStatus === value,
     },
     {
-      title: "操作",
       key: "action",
       scopedSlots: {
         customRender: "action",
