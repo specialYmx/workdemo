@@ -27,7 +27,7 @@
         <template slot="titleColumn" slot-scope="text, record">
           <div class="lawyer-table-title">{{ record.ruleName }}</div>
           <div class="lawyer-table-subtitle">
-            来源：{{ record.legalSource }}
+            文号：{{ record.docNo || "无" }}
           </div>
         </template>
 
@@ -101,7 +101,7 @@ export default class ReviewTable extends Vue {
   // 表格列定义（优先使用 CommonModel 的 CustomColumn 类型）
   reviewColumns: CustomColumn[] = [
     {
-      title: "标题/来源",
+      title: "标题/文号",
       dataIndex: "ruleName",
       key: "ruleName",
       scopedSlots: { customRender: "titleColumn" },
@@ -162,6 +162,12 @@ export default class ReviewTable extends Vue {
 
   // 检查是否可以审核（版本检查）
   canReviewItem(record: ToDoRuleItem): boolean {
+    if (
+      record.newFileVersion === undefined ||
+      record.currentMaxFileVersion === undefined
+    ) {
+      return true;
+    }
     const newVersion: number = Number(
       record.newFileVersion || record.fileVersion || 0
     );

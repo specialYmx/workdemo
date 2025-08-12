@@ -271,6 +271,7 @@ export interface ToDoRuleItem {
   id: string;
   diffResultId: string | null;
   ruleName: string;
+  docNo?: string; // 文号
   websiteName: string;
   legalSource?: string; // 发布机构或来源信息，替代 websiteName 使用
   url: string;
@@ -394,8 +395,9 @@ export interface RoadLawyerService {
   ) => Promise<{ data: Blob; headers: ResponseHeaders }>;
   getDiffResultSchedule: (params: QueryParams) => Promise<ScheduleStatusData>;
   getToDoRuleDetail: (params: { id: string }) => Promise<FileCompareDetail>;
-  getCheckRuleList: (
-    params: CheckRuleQueryParams
+  getRuleList: (
+    params?: CheckRuleQueryParams,
+    useCase?: "homepage" | "management"
   ) => Promise<PageResult<ToDoRuleItem>>;
 }
 

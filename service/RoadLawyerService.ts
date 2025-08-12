@@ -423,18 +423,28 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
     }
   },
 
-  async getCheckRuleList(params: CheckRuleQueryParams) {
+  // 智能规则列表获取方法 - 根据使用场景自动选择合适的接口
+  async getRuleList(
+    params: CheckRuleQueryParams = {},
+    useCase: "homepage" | "management" = "management"
+  ) {
     try {
-      const res = await $axios.post(
-        `${api.lawyer.getCheckRuleList}`,
-        toFormData(params)
-      );
+      // 根据使用场景选择接口：
+      // homepage: 首页待办列表，使用 getTodoRuleList
+      // management: 人工审核管理页面，使用 getCheckRuleList
+      const apiEndpoint =
+        useCase === "homepage"
+          ? api.lawyer.getTodoRuleList
+          : api.lawyer.getCheckRuleList;
+
+      const res = await $axios.post(apiEndpoint, toFormData(params));
+
       if (res.data?.data) {
         return res.data.data;
       }
       return [];
     } catch (error) {
-      console.error("Error fetching check rule list:", error);
+      console.error(`Error fetching rule list (${useCase}):`, error);
       return [];
     }
   },

@@ -114,11 +114,10 @@ export default class IndexComponent extends Vue {
 
       // 加载列表数据
       await this.loadRecentReviews();
-      await this.loadTopReviews();
+      await this.loadTopReviewsAndCount(); // 合并加载待审核数据和统计数据
       await this.loadLatestUpdates();
 
       // 加载统计数据
-      await this.loadPendingReviewCount();
       await this.loadMonthlyUpdateCount();
     } catch (error) {
       console.error("加载数据失败:", error);
@@ -215,11 +214,8 @@ export default class IndexComponent extends Vue {
     }
   }
 
-  // 加载图表数据的通用方法
-  async loadPieChartData(
-    chartType: string,
-    duration: number = 1500
-  ): Promise<void> {
+  // 加载来源分布图表数据
+  async loadPieChartData(): Promise<void> {
     const loadingKey = "sources";
     this.chartLoading[loadingKey] = true;
 
@@ -293,7 +289,7 @@ export default class IndexComponent extends Vue {
 
   // 加载来源分布数据
   loadSourcesChartData(): Promise<void> {
-    return this.loadPieChartData("sources", 1500);
+    return this.loadPieChartData();
   }
 
   // 加载近期完成审核数据
@@ -311,18 +307,21 @@ export default class IndexComponent extends Vue {
     }
   }
 
-  // 加载需要人工审核的数据
-  async loadTopReviews(): Promise<void> {
+  // 加载需要人工审核的数据和统计数据（合并优化，避免重复调用接口）
+  async loadTopReviewsAndCount(): Promise<void> {
     this.listLoading.topReviews = true;
     try {
-      const data = await this.$roadLawyerService.getCheckRuleList({});
-      // 前端取前5条数据
-      this.topReviews = Array.isArray(data)
-        ? data.slice(0, 5)
-        : (data?.list || []).slice(0, 5);
+      // 使用统一的 getRuleList 方法，指定为首页场景
+      const data = await this.$roadLawyerService.getRuleList({}, "homepage");
+      const reviewList = Array.isArray(data) ? data : data?.list || [];
+
+      // 同时更新列表和统计数据
+      this.topReviews = reviewList.slice(0, 5);
+      this.pendingReviewCount = reviewList.length;
     } catch (error) {
       console.error("加载待审核数据失败:", error);
       this.topReviews = [];
+      this.pendingReviewCount = 0;
     } finally {
       this.listLoading.topReviews = false;
     }
@@ -332,8 +331,7 @@ export default class IndexComponent extends Vue {
   async loadLatestUpdates(): Promise<void> {
     this.listLoading.latestUpdates = true;
     try {
-      const params = {};
-      const data = await this.$roadLawyerService.getRuleUpdateList(params);
+      const data = await this.$roadLawyerService.getRuleUpdateList({});
       // 前端取前5条数据
       this.latestUpdates = Array.isArray(data) ? data.slice(0, 5) : [];
     } catch (error) {
@@ -341,20 +339,6 @@ export default class IndexComponent extends Vue {
       this.latestUpdates = [];
     } finally {
       this.listLoading.latestUpdates = false;
-    }
-  }
-
-  // 加载待审核统计数据
-  async loadPendingReviewCount(): Promise<void> {
-    try {
-      const data = await this.$roadLawyerService.getCheckRuleList({});
-      // 获取数组长度作为统计数据
-      this.pendingReviewCount = Array.isArray(data)
-        ? data.length
-        : data?.list?.length || 0;
-    } catch (error) {
-      console.error("加载待审核统计数据失败:", error);
-      this.pendingReviewCount = 0;
     }
   }
 
@@ -454,8 +438,7 @@ export default class IndexComponent extends Vue {
       this.$message.success(action === "approve" ? "审核已通过" : "文档已驳回");
 
       // 重新加载数据
-      await this.loadTopReviews();
-      await this.loadPendingReviewCount();
+      await this.loadTopReviewsAndCount();
     } catch (error) {
       console.error("审核操作失败:", error);
       this.$message.error("审核操作失败，请重试");

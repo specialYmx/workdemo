@@ -391,8 +391,11 @@ export default class LawyerManualReviewIndexComponent extends Vue {
 
       console.log("查询参数:", params);
 
-      // 调用真实API获取数据
-      const result = await this.$roadLawyerService.getCheckRuleList(params);
+      // 调用统一的 getRuleList 方法，指定为管理场景
+      const result = await this.$roadLawyerService.getRuleList(
+        params,
+        "management"
+      );
       if (result && Array.isArray(result)) {
         // 如果返回的是数组
         this.documents = result;
