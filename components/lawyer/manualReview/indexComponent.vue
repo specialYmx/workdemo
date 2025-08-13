@@ -28,23 +28,23 @@
               {{ option.label }}
             </span>
           </div>
-
-          <a-select
-            v-model="filterType"
-            placeholder="请选择分类"
-            class="lawyer-filter-select"
-            @change="onFilterChange"
-            allowClear
-          >
-            <a-select-option value="">全部分类</a-select-option>
-            <a-select-option
-              v-for="option in typeOptions"
-              :key="option.value"
-              :value="option.value"
+          <div class="lawyer-filter-select">
+            <a-select
+              v-model="filterType"
+              placeholder="请选择分类"
+              @change="onFilterChange"
+              allowClear
             >
-              {{ option.label }}
-            </a-select-option>
-          </a-select>
+              <a-select-option value="">全部分类</a-select-option>
+              <a-select-option
+                v-for="option in typeOptions"
+                :key="option.value"
+                :value="option.value"
+              >
+                {{ option.label }}
+              </a-select-option>
+            </a-select>
+          </div>
 
           <a-button
             @click="exportData"
@@ -213,7 +213,7 @@ import {
   StatusMap,
   DateRange,
 } from "~/model/LawyerModel";
-import { categoryOptions } from "~/enum/Category";
+import { categoryOptions } from "~/enum/Lawyer";
 import { downloadFileWithMessage } from "~/utils/personal";
 import { RowSelectionConfig } from "~/model/LawyerModel";
 import { CustomColumn, CustomPagination } from "~/model/CommonModel";
@@ -744,7 +744,7 @@ export default class LawyerManualReviewIndexComponent extends Vue {
   }
 
   .lawyer-filter-select {
-    width: 150px !important;
+    width: 150px;
   }
 
   .lawyer-btn-export {

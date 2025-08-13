@@ -237,7 +237,7 @@ import {
   RouteQuery,
   RuleSourceQueryParams,
 } from "@/model/LawyerModel";
-import { cascaderOptions } from "@/enum/Category";
+import { cascaderOptions } from "@/enum/Lawyer";
 
 import { downloadFileWithMessage } from "~/utils/personal";
 
