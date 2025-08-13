@@ -124,7 +124,10 @@
         </div>
 
         <!-- 无结果提示 -->
-        <div class="lawyer-no-results" v-if="!listLoading && !documents.length">
+        <div
+          class="lawyer-no-results"
+          v-if="!listLoading && !allDocuments.length"
+        >
           <h3>未能找到相关结果</h3>
           <p>请尝试调整您的搜索关键词或筛选条件。</p>
         </div>
@@ -253,7 +256,6 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
   currentPage: number = 1;
   pageSize: number = 10;
   totalDocuments: number = 0;
-  documents: KnowledgeDataItem[] = [];
   allDocuments: KnowledgeDataItem[] = []; // 存储所有数据用于前端分页
   websiteOptions: WebsiteOption[] = [];
   uploadModalVisible: boolean = false;
@@ -451,10 +453,7 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
         empId: this.$store.state.auth.id,
         isCollect: newCollectStatus,
       };
-      console.log("🚀 ~  ~ collectDocument ~ params:", params);
-
       const success = await this.$roadLawyerService.saveOrCancelCollect(params);
-
       if (success) {
         if (newCollectStatus) {
           this.$message.success(`已收藏: ${doc.ruleName}`);
