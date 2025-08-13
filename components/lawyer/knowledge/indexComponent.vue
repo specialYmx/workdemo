@@ -132,11 +132,11 @@
         <!-- 文档列表 -->
         <div
           class="lawyer-document-list"
-          v-if="!listLoading && documents.length"
+          v-if="!listLoading && allDocuments.length"
         >
           <div
             class="lawyer-document-item"
-            v-for="doc in documents"
+            v-for="doc in paginatedDocuments"
             :key="doc.id"
           >
             <div class="lawyer-document-item-content">
@@ -188,13 +188,17 @@
           </div>
 
           <!-- 分页 -->
-          <div class="lawyer-pagination" v-if="documents.length">
+          <div class="lawyer-pagination" v-if="allDocuments.length">
             <a-pagination
               :current="currentPage"
               :total="totalDocuments"
               :pageSize="pageSize"
               show-size-changer
               show-quick-jumper
+              :show-total="
+                (total, range) =>
+                  `共 ${total} 条记录，显示第 ${range[0]}-${range[1]} 条`
+              "
               @change="onPageChange"
               @showSizeChange="onShowSizeChange"
             />
@@ -248,8 +252,9 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
   listLoading: boolean = true;
   currentPage: number = 1;
   pageSize: number = 10;
-  totalDocuments: number = 36;
+  totalDocuments: number = 0;
   documents: KnowledgeDataItem[] = [];
+  allDocuments: KnowledgeDataItem[] = []; // 存储所有数据用于前端分页
   websiteOptions: WebsiteOption[] = [];
   uploadModalVisible: boolean = false;
   currentUploadDocId: string = "";
@@ -258,11 +263,11 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
   get uploadConfig(): KnowledgeUploadConfig {
     return {
       multiple: false,
-      acceptTypes: ".doc",
+      acceptTypes: ".doc,.docx",
       maxFileSize: 500 * 1024 * 1024,
       maxFileCount: 1,
       uploadText: "点击或拖拽文件到此区域上传",
-      hintText: "仅支持 DOC 格式，文件大小不超过 500MB",
+      hintText: "仅支持 DOC、DOCX 格式，文件大小不超过 500MB",
       autoUpload: false,
     };
   }
@@ -290,6 +295,13 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
         handler: this.toggleAdvancedSearch,
       },
     ];
+  }
+
+  get paginatedDocuments(): KnowledgeDataItem[] {
+    // 前端分页：计算当前页应该显示的数据
+    const start: number = (this.currentPage - 1) * this.pageSize;
+    const end: number = start + this.pageSize;
+    return this.allDocuments.slice(start, end);
   }
 
   get topicCategoryOptions(): CascaderOption[] {
@@ -449,12 +461,12 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
         } else {
           this.$message.info(`已取消收藏: ${doc.ruleName}`);
           if (this.isFavoritesMode) {
-            const index: number = this.documents.findIndex(
+            const index: number = this.allDocuments.findIndex(
               (item: KnowledgeDataItem) => item.id === doc.id
             );
             if (index !== -1) {
-              this.documents.splice(index, 1);
-              this.totalDocuments = this.documents.length;
+              this.allDocuments.splice(index, 1);
+              this.totalDocuments = this.allDocuments.length;
             }
           }
         }
@@ -520,13 +532,13 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
 
   onPageChange(page: number): void {
     this.currentPage = page;
-    this.onSearch();
+    // 前端分页，不需要重新请求API
   }
 
   onShowSizeChange(current: number, pageSize: number): void {
     this.pageSize = pageSize;
     this.currentPage = 1;
-    this.onSearch();
+    // 前端分页，不需要重新请求API
   }
 
   getTagColor(category: string, type: string = "main"): string {
@@ -595,16 +607,18 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
       }
 
       if (result && Array.isArray(result)) {
-        this.documents = result;
+        this.allDocuments = result;
         this.totalDocuments = result.length;
+        // 重置到第一页
+        this.currentPage = 1;
       } else {
-        this.documents = [];
+        this.allDocuments = [];
         this.totalDocuments = 0;
       }
     } catch (error) {
       console.error("加载文档数据失败", error);
       this.$message.error("加载数据失败，请刷新页面重试");
-      this.documents = [];
+      this.allDocuments = [];
       this.totalDocuments = 0;
     } finally {
       this.listLoading = false;

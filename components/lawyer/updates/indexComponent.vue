@@ -102,6 +102,10 @@
             :page-size="pageSize"
             show-size-changer
             show-quick-jumper
+            :show-total="
+              (total, range) =>
+                `共 ${total} 条记录，显示第 ${range[0]}-${range[1]} 条`
+            "
             @change="onPageChange"
             @showSizeChange="onPageSizeChange"
           />

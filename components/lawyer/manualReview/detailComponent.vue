@@ -172,7 +172,7 @@ export default class LawyerManualReviewDetailComponent extends Vue {
           const sectionText = m[1].trim();
           changes.push({
             type: "modify",
-            position: sectionText,
+            position: "内容变更",
             sectionDisplay: sectionText,
             oldText: m[2].trim(),
             newText: m[3].trim(),
@@ -199,11 +199,6 @@ export default class LawyerManualReviewDetailComponent extends Vue {
 
       // 4) 统一清理空白
       return changes.map((c) => {
-        if (c.section)
-          c.section = c.section
-            .replace(/[\r\n\t]/g, "")
-            .replace(/\s+/g, " ")
-            .trim();
         if (c.position)
           c.position = c.position
             .replace(/[\r\n\t]/g, "")

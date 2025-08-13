@@ -75,7 +75,7 @@ export function downloadFileWithMessage(
           /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/
         );
         if (matches && matches[1]) {
-          fileName = matches[1].replace(/['"]/g, "");
+          fileName = decodeURI(matches[1].replace(/['"]/g, ""));
         }
       }
     } else {
