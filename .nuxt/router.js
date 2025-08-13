@@ -4,6 +4,7 @@ import { normalizeURL, decode } from 'ufo'
 import { interopDefault } from './utils'
 import scrollBehavior from './router.scrollBehavior.js'
 
+const _3c20d440 = () => interopDefault(import('..\\pages\\lawyerIndex\\index.vue' /* webpackChunkName: "pages/lawyerIndex/index" */))
 const _f95945d8 = () => interopDefault(import('..\\pages\\lawyerKnowledge\\index.vue' /* webpackChunkName: "pages/lawyerKnowledge/index" */))
 const _472a0619 = () => interopDefault(import('..\\pages\\lawyerUpdate\\index.vue' /* webpackChunkName: "pages/lawyerUpdate/index" */))
 const _056e9ab0 = () => interopDefault(import('..\\pages\\manualReview\\index.vue' /* webpackChunkName: "pages/manualReview/index" */))
@@ -24,6 +25,10 @@ export const routerOptions = {
   scrollBehavior,
 
   routes: [{
+    path: "/lawyerIndex",
+    component: _3c20d440,
+    name: "lawyerIndex"
+  }, {
     path: "/lawyerKnowledge",
     component: _f95945d8,
     name: "lawyerKnowledge"

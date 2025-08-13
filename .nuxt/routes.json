@@ -1,5 +1,12 @@
 [
   {
+    "name": "lawyerIndex",
+    "path": "/lawyerIndex",
+    "component": "D:\\\\temp_demo\\\\report-html\\\\law\\\\pages\\\\lawyerIndex\\\\index.vue",
+    "chunkName": "pages/lawyerIndex/index",
+    "_name": "_3c20d440"
+  },
+  {
     "name": "lawyerKnowledge",
     "path": "/lawyerKnowledge",
     "component": "D:\\\\temp_demo\\\\report-html\\\\law\\\\pages\\\\lawyerKnowledge\\\\index.vue",
