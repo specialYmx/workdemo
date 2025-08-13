@@ -413,6 +413,8 @@ export default class DocumentAIChat extends Vue {
 </script>
 
 <style lang="less">
+@import "~/assets/styles/lawyer.less";
+
 .document-ai-chat-card {
   height: 100%;
   display: flex;

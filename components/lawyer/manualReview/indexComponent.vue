@@ -711,6 +711,8 @@ export default class LawyerManualReviewIndexComponent extends Vue {
 </script>
 
 <style lang="less">
+@import "~/assets/styles/lawyer.less";
+
 .db-page-wrapper {
   // 整体卡片样式
   .lawyer-main-card {

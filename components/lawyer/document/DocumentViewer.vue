@@ -287,6 +287,8 @@ export default class DocumentViewer extends Vue {
 </script>
 
 <style lang="less">
+@import "~/assets/styles/lawyer.less";
+
 .document-viewer-wrapper {
   // 基础布局
   .lawyer-document-page {

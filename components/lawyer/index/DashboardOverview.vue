@@ -363,6 +363,8 @@ export default class DashboardOverview extends Vue {
 </script>
 
 <style lang="less">
+@import "~/assets/styles/lawyer.less";
+
 .lawyer-dashboard-card {
   margin-bottom: 24px;
 

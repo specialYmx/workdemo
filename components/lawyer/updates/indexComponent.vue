@@ -365,6 +365,8 @@ export default class LawyerUpdatesIndexComponent extends Vue {
 </script>
 
 <style lang="less">
+@import "~/assets/styles/lawyer.less";
+
 .updates-page-wrapper {
   .lawyer-updates-header {
     margin-bottom: 24px;

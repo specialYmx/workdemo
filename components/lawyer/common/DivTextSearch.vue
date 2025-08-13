@@ -240,7 +240,9 @@ export default class DivTextSearch extends Vue {
 }
 </script>
 
-<style>
+<style lang="less">
+@import "~/assets/styles/lawyer.less";
+
 .lawyer-div-text-search-container {
   background: var(--lawyer-surface);
   overflow: hidden;

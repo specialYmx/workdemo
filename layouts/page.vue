@@ -61,3 +61,7 @@ export default class PageLayout extends Vue {
   locale = zhCN;
 }
 </script>
+
+<style lang="less">
+@import "~/assets/styles/lawyer.less";
+</style>

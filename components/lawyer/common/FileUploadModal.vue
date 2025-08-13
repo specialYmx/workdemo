@@ -468,6 +468,8 @@ export default class FileUploadModal extends Vue {
 </script>
 
 <style lang="less">
+@import "~/assets/styles/lawyer.less";
+
 .lawyer-upload-container {
   padding: 16px 0;
 

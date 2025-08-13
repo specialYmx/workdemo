@@ -510,6 +510,8 @@ export default class DocumentCompare extends Vue {
 </script>
 
 <style lang="less">
+@import "~/assets/styles/lawyer.less";
+
 .document-compare-wrapper {
   overflow: hidden;
   background: var(--lawyer-background);

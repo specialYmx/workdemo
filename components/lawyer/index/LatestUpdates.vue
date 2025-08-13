@@ -195,6 +195,8 @@ export default class LatestUpdates extends Vue {
 </script>
 
 <style lang="less">
+@import "~/assets/styles/lawyer.less";
+
 .lawyer-updates-list {
   display: flex;
   flex-direction: column;

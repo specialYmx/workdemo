@@ -627,6 +627,8 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
 </script>
 
 <style lang="less">
+@import "~/assets/styles/lawyer.less";
+
 .knowledge-page-wrapper {
   background-color: var(--lawyer-background);
   padding: 20px;

@@ -630,9 +630,6 @@ export interface IndexPageListLoading {
   latestUpdates: boolean;
 }
 
-// 时间范围映射
-export type TimeRangeMap = StringMap;
-
 // 颜色映射
 export type SourceColorMap = StringMap;
 

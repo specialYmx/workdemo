@@ -338,6 +338,8 @@ export default class LawyerManualReviewDetailComponent extends Vue {
 </script>
 
 <style lang="less">
+@import "~/assets/styles/lawyer.less";
+
 .lawyer-manual-review-detail-wrapper {
   width: 100%;
   height: 100vh;

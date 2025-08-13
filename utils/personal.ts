@@ -35,8 +35,8 @@ export interface MessageService {
  * 下载配置选项接口
  */
 export interface DownloadOptions {
-  /** 文件名（必填），如果后端响应头中有content-disposition则优先使用后端设置的文件名 */
-  fileName: string;
+  /** 文件名，如果后端响应头中有content-disposition则优先使用后端设置的文件名 */
+  fileName?: string;
   /** 是否显示消息提示，默认为 false */
   showMessage?: boolean;
   /** 消息服务实例，当 showMessage 为 true 时必须提供 */
@@ -49,10 +49,10 @@ export interface DownloadOptions {
  * @param options - 下载配置选项
  * @returns boolean - 下载是否成功
  */
-export function downloadFileWithMessage(
+export const downloadFileWithMessage = (
   fileData: Blob | DownloadResult | null,
   options: DownloadOptions
-): boolean {
+): boolean => {
   if (!fileData) {
     console.error("文件数据为空");
     return false;
@@ -61,7 +61,6 @@ export function downloadFileWithMessage(
   try {
     let blob: Blob;
     let fileName = options.fileName;
-
     // 处理不同类型的文件数据
     if (fileData instanceof Blob) {
       blob = fileData;
@@ -113,4 +112,4 @@ export function downloadFileWithMessage(
 
     return false;
   }
-}
+};

@@ -143,6 +143,8 @@ export default class SourceDistribution extends Vue {
 </script>
 
 <style lang="less">
+@import "~/assets/styles/lawyer.less";
+
 .lawyer-pie-chart-layout {
   display: flex;
   align-items: center;

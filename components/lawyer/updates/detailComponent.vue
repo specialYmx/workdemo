@@ -125,6 +125,8 @@ export default class LawyerUpdatesDetailComponent extends Vue {
 </script>
 
 <style lang="less">
+@import "~/assets/styles/lawyer.less";
+
 .lawyer-update-detail-wrapper {
   width: 100%;
   height: 100vh;

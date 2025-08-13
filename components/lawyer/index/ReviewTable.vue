@@ -184,6 +184,8 @@ export default class ReviewTable extends Vue {
 </script>
 
 <style lang="less">
+@import "~/assets/styles/lawyer.less";
+
 .lawyer-review-table {
   .lawyer-table-title {
     font-weight: 500;

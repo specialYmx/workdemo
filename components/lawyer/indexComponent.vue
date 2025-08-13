@@ -57,7 +57,6 @@ import {
   IndexPageChartData,
   IndexPageListLoading,
   LegendItem,
-  TimeRangeMap,
   SourceColorMap,
   TrendChartData,
   ChartData,
@@ -460,20 +459,9 @@ export default class IndexComponent extends Vue {
       this.$message.destroy();
 
       if (result) {
-        // 生成文件名
-        const timeRangeMap: TimeRangeMap = {
-          month: "本月",
-          quarter: "本季度",
-          year: "本年度",
-        };
-        const timeLabel: string = timeRangeMap[condition] || condition;
-        const fileName: string = `法规统计报告_${timeLabel}_${new Date()
-          .toISOString()
-          .slice(0, 10)}.xlsx`;
-
         if (
           downloadFileWithMessage(result, {
-            fileName,
+            fileName: "法规统计报告.xlsx",
             showMessage: true,
             messageService: this.$message,
           })
@@ -495,6 +483,8 @@ export default class IndexComponent extends Vue {
 </script>
 
 <style lang="less">
+@import "~/assets/styles/lawyer.less";
+
 .index-page-wrapper {
   .lawyer-page-container {
     padding: 20px;
