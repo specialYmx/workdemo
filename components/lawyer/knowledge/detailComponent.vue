@@ -1,6 +1,10 @@
 <template>
   <div class="lawyer-knowledge-detail-wrapper">
-    <lawyer-document-viewer :document="document" @go-back="goBack" />
+    <lawyer-document-viewer
+      :document="document"
+      @go-back="goBack"
+      @update-document-status="handleUpdateDocumentStatus"
+    />
   </div>
 </template>
 
@@ -36,6 +40,15 @@ export default class LawyerKnowledgeDetailComponent extends Vue {
     this.$router.back();
   }
 
+  // 处理文档状态更新
+  handleUpdateDocumentStatus(statusData: {
+    isRevoke: boolean;
+    timeLiness: string;
+  }): void {
+    this.document.isRevoke = statusData.isRevoke;
+    this.document.timeLiness = statusData.timeLiness;
+  }
+
   // 获取文档详情数据
   async fetchDocument(docId: string): Promise<void> {
     if (!docId) return;
@@ -47,13 +60,10 @@ export default class LawyerKnowledgeDetailComponent extends Vue {
           searchId: docId,
           isRevoke: this.isRevoke,
         });
-      console.log("获取到的文档详情:", result);
 
       if (result) {
         // 转换KnowledgeDataItem数据为DocumentViewer需要的格式
-        const formattedContent: string = this.formatContent(result.fileContent);
-        console.log("格式化后的内容:", formattedContent);
-
+        const formattedContent: string = result.fileContent || "暂无内容";
         this.document = {
           id: result.id,
           title: result.ruleName,
@@ -67,8 +77,6 @@ export default class LawyerKnowledgeDetailComponent extends Vue {
           isRevoke: result.timeLiness === "已废止",
           timeLiness: result.timeLiness || "未知",
         };
-
-        console.log("设置后的document:", this.document);
       } else {
         // 如果没有获取到数据，显示错误信息
         this.$message.error("未找到文档数据");
@@ -81,18 +89,6 @@ export default class LawyerKnowledgeDetailComponent extends Vue {
     } finally {
       this.loading = false;
     }
-  }
-
-  // 格式化文档内容
-  formatContent(content: string): string {
-    console.log("原始内容:", content);
-    if (!content) {
-      console.log("内容为空，返回暂无内容");
-      return "暂无内容";
-    }
-
-    // v-md-preview 可以直接处理纯文本，保持原始格式
-    return content;
   }
 
   // 生命周期钩子

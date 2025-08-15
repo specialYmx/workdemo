@@ -196,9 +196,11 @@ export default class DocumentViewer extends Vue {
 
         this.$message.destroy();
 
-        // 更新为已废止状态
-        this.document.isRevoke = true;
-        this.document.timeLiness = "已废止";
+        // 通过事件通知父组件更新状态
+        this.emitUpdateDocumentStatus({
+          isRevoke: true,
+          timeLiness: "已废止",
+        });
 
         this.$message.success(`文档状态已更新为：已废止`);
       } else {
@@ -282,6 +284,14 @@ export default class DocumentViewer extends Vue {
   @Emit("go-back")
   emitGoBack(): void {
     // 无需返回值
+  }
+
+  @Emit("update-document-status")
+  emitUpdateDocumentStatus(statusData: {
+    isRevoke: boolean;
+    timeLiness: string;
+  }): { isRevoke: boolean; timeLiness: string } {
+    return statusData;
   }
 }
 </script>

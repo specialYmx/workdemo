@@ -1,6 +1,10 @@
 <template>
   <div class="lawyer-update-detail-wrapper">
-    <lawyer-document-viewer :document="document" @go-back="goBack" />
+    <lawyer-document-viewer
+      :document="document"
+      @go-back="goBack"
+      @update-document-status="handleUpdateDocumentStatus"
+    />
   </div>
 </template>
 
@@ -34,6 +38,15 @@ export default class LawyerUpdatesDetailComponent extends Vue {
   // 返回上一页
   goBack(): void {
     this.$router.back();
+  }
+
+  // 处理文档状态更新
+  handleUpdateDocumentStatus(statusData: {
+    isRevoke: boolean;
+    timeLiness: string;
+  }): void {
+    this.document.isRevoke = statusData.isRevoke;
+    this.document.timeLiness = statusData.timeLiness;
   }
 
   // 获取文档详情数据
