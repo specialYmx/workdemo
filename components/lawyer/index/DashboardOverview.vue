@@ -179,9 +179,63 @@ export default class DashboardOverview extends Vue {
     this.$emit("trend-period-change", value);
   }
 
+  // 将十六进制颜色转换为RGB格式
+  hexToRgb(hex: string): string {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    if (!result) return "0, 0, 0";
+
+    const r = parseInt(result[1], 16);
+    const g = parseInt(result[2], 16);
+    const b = parseInt(result[3], 16);
+
+    return `${r}, ${g}, ${b}`;
+  }
+
+  // 生成系列配置
+  generateSeriesConfig(name: string, dataIndex: number, colorIndex: number) {
+    const colors: string[] = ["#ffb74d", "#4caf50", "#f44336"];
+    const color = colors[colorIndex];
+
+    return {
+      name,
+      type: "line",
+      smooth: true,
+      data: this.trendChartData.series?.[dataIndex]?.data || [],
+      itemStyle: {
+        color,
+      },
+      lineStyle: {
+        width: 3,
+        color,
+      },
+      symbol: "circle",
+      symbolSize: 8,
+      areaStyle: {
+        color: {
+          type: "linear",
+          x: 0,
+          y: 0,
+          x2: 0,
+          y2: 1,
+          colorStops: [
+            {
+              offset: 0,
+              color: `rgba(${this.hexToRgb(color)}, 0.6)`,
+            },
+            {
+              offset: 1,
+              color: `rgba(${this.hexToRgb(color)}, 0.1)`,
+            },
+          ],
+        },
+      },
+    };
+  }
+
   // 趋势图配置
   get trendChartOptions(): LineChartOptions {
-    const colors: string[] = ["#ffb74d", "#4caf50", "#f44336"];
+    const seriesNames = ["新发布", "修订", "废止"];
+
     return {
       grid: {
         top: "15%",
@@ -228,110 +282,9 @@ export default class DashboardOverview extends Vue {
           color: "#666",
         },
       },
-      series: [
-        {
-          name: "新发布",
-          type: "line",
-          smooth: true,
-          data: this.trendChartData.series?.[0]?.data || [],
-          itemStyle: {
-            color: colors[0],
-          },
-          lineStyle: {
-            width: 3,
-            color: colors[0],
-          },
-          symbol: "circle",
-          symbolSize: 8,
-          areaStyle: {
-            color: {
-              type: "linear",
-              x: 0,
-              y: 0,
-              x2: 0,
-              y2: 1,
-              colorStops: [
-                {
-                  offset: 0,
-                  color: "rgba(255, 183, 77, 0.6)",
-                },
-                {
-                  offset: 1,
-                  color: "rgba(255, 183, 77, 0.1)",
-                },
-              ],
-            },
-          },
-        },
-        {
-          name: "修订",
-          type: "line",
-          smooth: true,
-          data: this.trendChartData.series?.[1]?.data || [],
-          itemStyle: {
-            color: colors[1],
-          },
-          lineStyle: {
-            width: 3,
-            color: colors[1],
-          },
-          symbol: "circle",
-          symbolSize: 8,
-          areaStyle: {
-            color: {
-              type: "linear",
-              x: 0,
-              y: 0,
-              x2: 0,
-              y2: 1,
-              colorStops: [
-                {
-                  offset: 0,
-                  color: "rgba(76, 175, 80, 0.6)",
-                },
-                {
-                  offset: 1,
-                  color: "rgba(76, 175, 80, 0.1)",
-                },
-              ],
-            },
-          },
-        },
-        {
-          name: "废止",
-          type: "line",
-          smooth: true,
-          data: this.trendChartData.series?.[2]?.data || [],
-          itemStyle: {
-            color: colors[2],
-          },
-          lineStyle: {
-            width: 3,
-            color: colors[2],
-          },
-          symbol: "circle",
-          symbolSize: 8,
-          areaStyle: {
-            color: {
-              type: "linear",
-              x: 0,
-              y: 0,
-              x2: 0,
-              y2: 1,
-              colorStops: [
-                {
-                  offset: 0,
-                  color: "rgba(244, 67, 54, 0.6)",
-                },
-                {
-                  offset: 1,
-                  color: "rgba(244, 67, 54, 0.1)",
-                },
-              ],
-            },
-          },
-        },
-      ],
+      series: seriesNames.map((name, index) =>
+        this.generateSeriesConfig(name, index, index)
+      ),
     };
   }
 
