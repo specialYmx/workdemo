@@ -72,8 +72,11 @@
             <div class="lawyer-status-info">
               <div class="lawyer-status-title">正在更新文档</div>
               <div class="lawyer-file-detail">文档：{{ documentTitle }}</div>
-              <div class="lawyer-file-detail">
-                文件：{{ selectedFile?.name }}
+              <div class="lawyer-file-detail" v-if="selectedFiles.length === 1">
+                文件：{{ selectedFiles[0]?.name }}
+              </div>
+              <div class="lawyer-file-detail" v-else>
+                文件：共 {{ selectedFiles.length }} 个文件
               </div>
             </div>
           </div>
@@ -96,10 +99,19 @@
             <div class="lawyer-status-info">
               <div class="lawyer-status-title">上传完成</div>
               <div class="lawyer-file-detail">文档：{{ documentTitle }}</div>
-              <div class="lawyer-file-detail">
-                文件：{{ selectedFile?.name }}
+              <div class="lawyer-file-detail" v-if="selectedFiles.length === 1">
+                文件：{{ selectedFiles[0]?.name }}
               </div>
-              <div class="lawyer-success-message">文件已成功上传并更新</div>
+              <div class="lawyer-file-detail" v-else>
+                文件：共 {{ selectedFiles.length }} 个文件
+              </div>
+              <div class="lawyer-success-message">
+                {{
+                  selectedFiles.length === 1
+                    ? "文件已成功上传并更新"
+                    : `${selectedFiles.length} 个文件已成功上传并更新`
+                }}
+              </div>
             </div>
           </div>
         </div>
@@ -135,7 +147,6 @@
 import { Component, Vue, Prop, Watch, Emit } from "nuxt-property-decorator";
 import {
   UploadConfig,
-  FileChangeData,
   UploadSuccessData,
   UploadErrorData,
 } from "~/model/LawyerModel";
@@ -160,7 +171,7 @@ export default class FileUploadModal extends Vue {
   uploadSuccess: boolean = false;
   uploadProgress: number = 0;
   errorMessage: string = "";
-  uploadTimer: NodeJS.Timeout | null = null;
+  progressTimer: NodeJS.Timeout | null = null;
 
   // 计算属性 - 获取配置值
   get uploadConfig(): Required<UploadConfig> {
@@ -198,38 +209,29 @@ export default class FileUploadModal extends Vue {
   }
 
   isValidFileType(file: File): boolean {
-    // 根据配置的文件类型进行验证
+    // 完全根据配置的 acceptTypes 进行验证
     const acceptTypes: string = this.uploadConfig.acceptTypes.toLowerCase();
     const fileName: string = file.name.toLowerCase();
 
-    // 如果配置了具体的扩展名
-    if (acceptTypes.includes(".")) {
-      const extensions: string[] = acceptTypes
-        .split(",")
-        .map((ext: string): string => ext.trim());
-      return extensions.some((ext: string): boolean => fileName.endsWith(ext));
-    }
+    // 解析扩展名列表
+    const extensions: string[] = acceptTypes
+      .split(",")
+      .map((ext: string): string => ext.trim())
+      .filter((ext: string): boolean => ext.length > 0);
 
-    // 默认的文件类型验证（保持向后兼容）
-    const validTypes: string[] = [
-      "application/pdf",
-      "application/msword",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    ];
-    const validExtensions: string[] = [".pdf", ".doc", ".docx"];
-    return (
-      validTypes.includes(file.type) ||
-      validExtensions.some((ext: string): boolean => fileName.endsWith(ext))
-    );
+    // 验证文件扩展名
+    return extensions.some((ext: string): boolean => fileName.endsWith(ext));
   }
 
   // 获取文件类型提示文本
   getFileTypeHint(): string {
     const acceptTypes: string = this.uploadConfig.acceptTypes;
-    if (acceptTypes.includes(".")) {
-      return acceptTypes.replace(/\./g, "").replace(/,/g, "、").toUpperCase();
-    }
-    return "PDF、DOC、DOCX";
+    return acceptTypes
+      .split(",")
+      .map((ext: string): string => ext.trim().replace(/\./g, ""))
+      .filter((ext: string): boolean => ext.length > 0)
+      .join("、")
+      .toUpperCase();
   }
 
   // 处理文件的核心方法
@@ -283,12 +285,6 @@ export default class FileUploadModal extends Vue {
     // 立即显示成功提示
     this.$message.success(`文件 "${file.name}" 已选择`);
 
-    // 立即触发文件变化事件
-    this.emitFileChange({
-      files: this.selectedFiles,
-      currentFile: file,
-    });
-
     // 如果启用自动上传，立即开始上传
     if (this.uploadConfig.autoUpload) {
       this.startUpload();
@@ -316,12 +312,6 @@ export default class FileUploadModal extends Vue {
     }
 
     this.clearError();
-
-    // 触发文件变化事件
-    this.emitFileChange({
-      files: this.selectedFiles,
-      currentFile: null,
-    });
   }
 
   // 上传处理
@@ -356,51 +346,76 @@ export default class FileUploadModal extends Vue {
     }
   }
 
-  // 真实上传到后端
+  // 真实上传到后端 - 支持单文件和多文件
   async simulateUpload(): Promise<void> {
-    if (!this.selectedFile || !this.documentId) {
+    if (this.selectedFiles.length === 0 || !this.documentId) {
       throw new Error("缺少必要的上传参数");
     }
 
     try {
+      const totalFiles = this.selectedFiles.length;
+      let completedFiles = 0;
+
       console.log("上传参数:", {
         id: this.documentId,
-        fileName: this.selectedFile.name,
-        fileSize: this.selectedFile.size,
+        totalFiles: totalFiles,
+        files: this.selectedFiles.map((f) => ({ name: f.name, size: f.size })),
       });
 
       // 上传进度处理
-      const progressInterval: NodeJS.Timeout = setInterval(() => {
-        if (this.uploadProgress < 90) {
-          this.uploadProgress += 10;
-        }
+      this.progressTimer = setInterval(() => {
+        // 基础进度：已完成文件的进度 + 当前文件的模拟进度
+        const baseProgress = (completedFiles / totalFiles) * 100;
+        const currentFileProgress = Math.min(90, this.uploadProgress % 100);
+        const totalProgress = Math.min(
+          90,
+          baseProgress + currentFileProgress / totalFiles
+        );
+        this.uploadProgress = totalProgress;
       }, 200);
 
-      // 调用真实的后端接口，使用新的参数结构
-      const success: boolean = await this.$roadLawyerService.uploadRuleSource({
-        id: this.documentId,
-        file: this.selectedFile,
-      });
+      // 遍历上传所有文件
+      for (let i = 0; i < this.selectedFiles.length; i++) {
+        const file = this.selectedFiles[i];
 
-      clearInterval(progressInterval);
-      this.uploadProgress = 100;
+        console.log(`正在上传第 ${i + 1}/${totalFiles} 个文件: ${file.name}`);
 
-      if (!success) {
-        throw new Error("上传失败");
+        // 调用真实的后端接口
+        const success: boolean = await this.$roadLawyerService.uploadRuleSource(
+          {
+            id: this.documentId,
+            file: file,
+          }
+        );
+
+        if (!success) {
+          throw new Error(`文件 "${file.name}" 上传失败`);
+        }
+
+        completedFiles++;
       }
+
+      this.uploadProgress = 100;
 
       // 等待一下让用户看到100%进度
       await new Promise((resolve): NodeJS.Timeout => setTimeout(resolve, 500));
     } catch (error) {
       console.error("上传失败:", error);
       throw error;
+    } finally {
+      // 确保在任何情况下都清理定时器
+      if (this.progressTimer) {
+        clearInterval(this.progressTimer);
+        this.progressTimer = null;
+      }
     }
   }
 
   cancelUpload(): void {
-    if (this.uploadTimer) {
-      clearInterval(this.uploadTimer);
-      this.uploadTimer = null;
+    // 清理进度定时器
+    if (this.progressTimer) {
+      clearInterval(this.progressTimer);
+      this.progressTimer = null;
     }
     this.uploading = false;
     this.uploadSuccess = false;
@@ -439,12 +454,12 @@ export default class FileUploadModal extends Vue {
     if (!newVal) this.resetState();
   }
 
-  // Emit 装饰器方法
-  @Emit("file-change")
-  emitFileChange(data: FileChangeData): FileChangeData {
-    return data;
+  // 组件销毁时清理异步任务
+  beforeDestroy(): void {
+    this.cancelUpload();
   }
 
+  // Emit 装饰器方法
   @Emit("upload-success")
   emitUploadSuccess(data: UploadSuccessData): UploadSuccessData {
     return data;

@@ -2,6 +2,18 @@
   "LawyerIndexComponent": {
     "description": "Auto imported from components/lawyer/indexComponent.vue"
   },
+  "LawyerCommonChartComponent": {
+    "description": "Auto imported from components/lawyer/common/ChartComponent.vue"
+  },
+  "LawyerCommonDivTextSearch": {
+    "description": "Auto imported from components/lawyer/common/DivTextSearch.vue"
+  },
+  "LawyerCommonDocumentAIChat": {
+    "description": "Auto imported from components/lawyer/common/DocumentAIChat.vue"
+  },
+  "LawyerCommonFileUploadModal": {
+    "description": "Auto imported from components/lawyer/common/FileUploadModal.vue"
+  },
   "LawyerDocumentCompare": {
     "description": "Auto imported from components/lawyer/document/DocumentCompare.vue"
   },
@@ -20,29 +32,17 @@
   "LawyerIndexSourceDistribution": {
     "description": "Auto imported from components/lawyer/index/SourceDistribution.vue"
   },
-  "LawyerCommonChartComponent": {
-    "description": "Auto imported from components/lawyer/common/ChartComponent.vue"
+  "LawyerManualReviewDetailComponent": {
+    "description": "Auto imported from components/lawyer/manualReview/detailComponent.vue"
   },
-  "LawyerCommonDivTextSearch": {
-    "description": "Auto imported from components/lawyer/common/DivTextSearch.vue"
-  },
-  "LawyerCommonDocumentAIChat": {
-    "description": "Auto imported from components/lawyer/common/DocumentAIChat.vue"
-  },
-  "LawyerCommonFileUploadModal": {
-    "description": "Auto imported from components/lawyer/common/FileUploadModal.vue"
+  "LawyerManualReviewIndexComponent": {
+    "description": "Auto imported from components/lawyer/manualReview/indexComponent.vue"
   },
   "LawyerKnowledgeDetailComponent": {
     "description": "Auto imported from components/lawyer/knowledge/detailComponent.vue"
   },
   "LawyerKnowledgeIndexComponent": {
     "description": "Auto imported from components/lawyer/knowledge/indexComponent.vue"
-  },
-  "LawyerManualReviewDetailComponent": {
-    "description": "Auto imported from components/lawyer/manualReview/detailComponent.vue"
-  },
-  "LawyerManualReviewIndexComponent": {
-    "description": "Auto imported from components/lawyer/manualReview/indexComponent.vue"
   },
   "LawyerUpdatesDetailComponent": {
     "description": "Auto imported from components/lawyer/updates/detailComponent.vue"

@@ -487,8 +487,6 @@ export default class IndexComponent extends Vue {
 
 .index-page-wrapper {
   .lawyer-page-container {
-    padding: 20px;
-
     .lawyer-two-column-chart-grid {
       display: flex;
       margin-bottom: 24px;

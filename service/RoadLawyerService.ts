@@ -19,39 +19,46 @@ import api from "~/api";
 // 将对象转换为FormData的辅助函数
 const toFormData = (obj: Record<string, unknown>): FormData => {
   const formData = new FormData();
-  if (obj && typeof obj === "object") {
-    Object.keys(obj).forEach((key) => {
-      const value = obj[key];
-      // 修复：正确处理布尔值false，只排除null和undefined
-      if (value !== null && value !== undefined) {
-        if (Array.isArray(value)) {
-          // 处理数组参数 - 每个元素使用相同的key名
-          value.forEach((item) => {
-            if (
-              typeof item === "string" ||
-              typeof item === "number" ||
-              typeof item === "boolean"
-            ) {
-              formData.append(key, String(item));
-            } else if (item instanceof Blob) {
-              formData.append(key, item);
-            }
-          });
-        } else {
-          // 确保值是可以添加到FormData的类型
-          if (
-            typeof value === "string" ||
-            typeof value === "number" ||
-            typeof value === "boolean"
-          ) {
-            formData.append(key, String(value));
-          } else if (value instanceof Blob) {
-            formData.append(key, value);
-          }
-        }
-      }
-    });
+
+  if (!obj || typeof obj !== "object") {
+    return formData;
   }
+
+  // 检查值是否可以添加到FormData
+  const isValidFormDataValue = (
+    value: unknown
+  ): value is string | number | boolean | Blob => {
+    return (
+      typeof value === "string" ||
+      typeof value === "number" ||
+      typeof value === "boolean" ||
+      value instanceof Blob
+    );
+  };
+
+  // 添加单个值到FormData
+  const appendValue = (key: string, value: unknown): void => {
+    if (isValidFormDataValue(value)) {
+      const formValue = value instanceof Blob ? value : String(value);
+      formData.append(key, formValue);
+    }
+  };
+
+  Object.entries(obj).forEach(([key, value]) => {
+    // 跳过null和undefined值
+    if (value === null || value === undefined) {
+      return;
+    }
+
+    if (Array.isArray(value)) {
+      // 处理数组参数 - 每个元素使用相同的key名
+      value.forEach((item) => appendValue(key, item));
+    } else {
+      // 处理单个值
+      appendValue(key, value);
+    }
+  });
+
   return formData;
 };
 

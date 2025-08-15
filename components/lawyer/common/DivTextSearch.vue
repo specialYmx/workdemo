@@ -41,7 +41,7 @@
 
 <script lang="ts">
 import { Component, Vue, Watch } from "vue-property-decorator";
-
+import debounce from "lodash/debounce";
 @Component({
   name: "DivTextSearch",
 })
@@ -52,15 +52,55 @@ export default class DivTextSearch extends Vue {
   currentIndex: number = -1;
   highlightSpans: HTMLSpanElement[] = [];
   private observer: MutationObserver | null = null;
+  private debouncedHighlight: any;
 
   mounted() {
+    // 初始化防抖函数
+    this.debouncedHighlight = debounce(this.performHighlight, 200);
     this.initMutationObserver();
   }
 
   beforeDestroy() {
+    // 取消防抖函数
+    if (
+      this.debouncedHighlight &&
+      typeof this.debouncedHighlight.cancel === "function"
+    ) {
+      this.debouncedHighlight.cancel();
+    }
+
+    // 清理观察器
     if (this.observer) {
       this.observer.disconnect();
       this.observer = null;
+    }
+  }
+
+  // 执行高亮操作的方法
+  performHighlight() {
+    const content = this.$refs.searchableContent as HTMLElement;
+
+    // 暂时断开观察器，避免高亮操作触发无限循环
+    if (this.observer) this.observer.disconnect();
+
+    // 重新高亮当前搜索词
+    this.clearHighlights();
+    this.highlightAll();
+
+    // 尝试保持当前搜索位置
+    if (this.highlightSpans.length > 0) {
+      // 确保当前索引在有效范围内
+      if (this.currentIndex >= this.highlightSpans.length) {
+        this.currentIndex = 0;
+      }
+      this.updateCurrentHighlight();
+    } else {
+      this.currentIndex = -1;
+    }
+
+    // 重新启动观察器
+    if (this.observer) {
+      this.observer.observe(content, { childList: true, subtree: true });
     }
   }
 
@@ -68,30 +108,9 @@ export default class DivTextSearch extends Vue {
   initMutationObserver() {
     const content = this.$refs.searchableContent as HTMLElement;
     this.observer = new MutationObserver(() => {
-      // 如果用户正在搜索，需要重新高亮
+      // 如果用户正在搜索，使用防抖函数重新高亮
       if (this.searchTerm && this.lastSearchTerm) {
-        // 暂时断开观察器，避免高亮操作触发无限循环
-        if (this.observer) this.observer.disconnect();
-
-        // 重新高亮当前搜索词
-        this.clearHighlights();
-        this.highlightAll();
-
-        // 尝试保持当前搜索位置
-        if (this.highlightSpans.length > 0) {
-          // 确保当前索引在有效范围内
-          if (this.currentIndex >= this.highlightSpans.length) {
-            this.currentIndex = 0;
-          }
-          this.updateCurrentHighlight();
-        } else {
-          this.currentIndex = -1;
-        }
-
-        // 重新启动观察器
-        if (this.observer) {
-          this.observer.observe(content, { childList: true, subtree: true });
-        }
+        this.debouncedHighlight();
       }
     });
 
@@ -132,6 +151,7 @@ export default class DivTextSearch extends Vue {
 
     let node: Text | null;
     while ((node = walker.nextNode() as Text | null)) {
+      regex.lastIndex = 0;
       if (regex.test(node.nodeValue || "")) {
         nodesToProcess.push(node);
       }
@@ -227,7 +247,6 @@ export default class DivTextSearch extends Vue {
   // 清空搜索
   clearSearch() {
     this.searchTerm = "";
-    this.resetSearch();
   }
 
   // 清空时自动清除高亮

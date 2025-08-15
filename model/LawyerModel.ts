@@ -594,7 +594,6 @@ export interface DocumentColumn {
   version?: string;
   date?: string;
   content: string;
-  contentClass: string;
 }
 
 // 级联选择器选项（统一接口）
@@ -732,7 +731,8 @@ export interface RouteQuery {
 
 // 法规更新查询参数
 export interface RuleUpdateQueryParams extends BaseQueryParams {
-  filed?: string;
+  query?: string;
+  field?: string;
 }
 
 // 法规来源查询参数

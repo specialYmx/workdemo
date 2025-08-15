@@ -108,6 +108,7 @@
 
 <script lang="ts">
 import { Component, Vue, Prop } from "nuxt-property-decorator";
+import debounce from "lodash/debounce";
 import api from "~/api";
 import { DocumentViewerData, AiMessage } from "~/model/LawyerModel";
 
@@ -125,6 +126,11 @@ export default class DocumentAIChat extends Vue {
   // 流式请求控制器
   private abortController: AbortController | null = null;
 
+  // 防抖滚动函数
+  private scrollToBottomDebounced = debounce(() => {
+    this.scrollToBottom();
+  }, 50); // 50ms防抖，保持响应性
+
   // 组件挂载时初始化欢迎消息
   mounted(): void {
     try {
@@ -138,16 +144,16 @@ export default class DocumentAIChat extends Vue {
   beforeDestroy(): void {
     try {
       this.cancelCurrentRequest();
+      // 清理防抖函数
+      if (
+        this.scrollToBottomDebounced &&
+        typeof this.scrollToBottomDebounced.cancel === "function"
+      ) {
+        this.scrollToBottomDebounced.cancel();
+      }
     } catch (error) {
       console.error("清理资源时出错:", error);
     }
-  }
-
-  // 错误处理方法
-  errorCaptured(err: Error, vm: Vue, info: string): boolean {
-    console.error("组件捕获到错误:", err, info);
-    // 防止错误向上传播导致整个应用崩溃
-    return false;
   }
 
   // 初始化欢迎消息
@@ -299,10 +305,8 @@ export default class DocumentAIChat extends Vue {
             // 强制更新视图
             this.$forceUpdate();
 
-            // 滚动到底部
-            this.$nextTick(() => {
-              this.scrollToBottom();
-            });
+            // 使用防抖滚动到底部，减少高频滚动操作
+            this.scrollToBottomDebounced();
           }
         }
       }
@@ -328,7 +332,7 @@ export default class DocumentAIChat extends Vue {
   scrollToBottom(): void {
     try {
       this.$nextTick(() => {
-        const aiMessagesEl = this.$refs.aiMessages as HTMLElement;
+        const aiMessagesEl = this.$refs.aiMessages as HTMLElement | null;
         if (aiMessagesEl && aiMessagesEl.scrollTo) {
           aiMessagesEl.scrollTop = aiMessagesEl.scrollHeight;
         }
@@ -396,7 +400,12 @@ export default class DocumentAIChat extends Vue {
       } else if (typeof content === "string") {
         textContent = content;
       } else if (typeof content === "object") {
-        textContent = JSON.stringify(content, null, 2);
+        try {
+          textContent = JSON.stringify(content, null, 2);
+        } catch (e) {
+          // 处理循环引用或其他 JSON.stringify 错误
+          textContent = "[无法序列化的对象]";
+        }
       } else {
         // 处理 number, boolean 等其他类型
         textContent = String(content);
@@ -541,6 +550,11 @@ export default class DocumentAIChat extends Vue {
       }
 
       .toolbar-right {
+        .stop-btn {
+          background: #ff4d4f;
+          border-color: #ff4d4f;
+          color: #fff;
+        }
         .send-btn,
         .stop-btn {
           border-radius: 6px;
@@ -550,17 +564,6 @@ export default class DocumentAIChat extends Vue {
 
           &:disabled {
             opacity: 0.5;
-          }
-        }
-
-        .stop-btn {
-          background: #ff4d4f;
-          border-color: #ff4d4f;
-          color: #fff;
-
-          &:hover {
-            background: #ff7875;
-            border-color: #ff7875;
           }
         }
       }
@@ -609,7 +612,7 @@ export default class DocumentAIChat extends Vue {
     }
 
     &-ai {
-      background-color: #eeeeee;
+      background-color: #eee;
       align-self: flex-start;
       border-bottom-left-radius: 3px;
       p {
@@ -624,7 +627,7 @@ export default class DocumentAIChat extends Vue {
     align-items: center;
     gap: 8px;
     padding: 10px 14px;
-    background-color: #eeeeee;
+    background-color: #eee;
     border-radius: 8px;
     align-self: flex-start;
     max-width: 85%;

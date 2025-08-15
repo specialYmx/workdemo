@@ -46,6 +46,7 @@
     "@nuxtjs/eslint-module": "^2.0.0",
     "@nuxtjs/stylelint-module": "^4.0.0",
     "@types/echarts": "^4.9.22",
+    "@types/lodash": "^4.17.20",
     "@types/node": "^24.0.4",
     "@types/vue": "^2.0.0",
     "@types/vue-router": "^2.0.0",

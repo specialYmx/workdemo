@@ -262,7 +262,7 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
   currentUploadDocId: string = "";
   currentUploadDocTitle: string = "";
 
-  get uploadConfig(): KnowledgeUploadConfig {
+  get uploadConfig() {
     return {
       multiple: false,
       acceptTypes: ".doc,.docx",

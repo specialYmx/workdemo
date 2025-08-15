@@ -54,7 +54,7 @@
             >）
           </div>
           <div class="lawyer-column-content">
-            <v-md-preview :text="formatContentForMarkdown(col.content)" />
+            <v-md-preview :text="col.content||'暂无数据'" />
           </div>
         </div>
 
@@ -235,8 +235,6 @@ export default class DocumentCompare extends Vue {
       this.document.checkStatus === "待审核" ||
       (this.document.checkStatus === undefined &&
         this.document.status === "pending");
-    console.log("🚀 ~ DocumentCompare ~ this.document:", this.document);
-
     // 只有在待审核状态下才进一步检查其他条件
     return isPendingStatus && this.canReview;
   }
@@ -325,7 +323,6 @@ export default class DocumentCompare extends Vue {
           : undefined,
         date: this.document.oldPublishTime || "",
         content: this.document.originalContent || "暂无数据",
-        contentClass: "lawyer-original-content",
       },
       {
         title: "修改后文档",
@@ -334,25 +331,8 @@ export default class DocumentCompare extends Vue {
           : undefined,
         date: this.document.modifiedDate || this.document.newPublishTime || "",
         content: this.document.newContent || "暂无数据",
-        contentClass: "lawyer-new-content",
       },
     ];
-  }
-
-  // 格式化内容
-  formatContentForMarkdown(content: string): string {
-    if (!content) return "暂无数据";
-    if (content === "error") return "加载失败，请刷新页面重试";
-    if (content === "加载中...") return "暂无数据";
-    if (content.trim() === "") return "暂无数据";
-
-    // 如果内容已经包含HTML标签，先移除HTML标签
-    if (content.includes("<")) {
-      content = content.replace(/<[^>]*>/g, "");
-    }
-
-    // v-md-preview 可以直接处理纯文本，保持原始格式
-    return content;
   }
 
   // 返回上一页

@@ -93,9 +93,8 @@
 }
 /* 页面容器 */
 .lawyer-page-container {
-  max-width: 1600px;
+  padding: 20px;
   margin: 0 auto;
-  padding: 1.5rem;
 }
 .lawyer-page-container .ant-select,
 .lawyer-page-container .ant-calendar-picker,
