@@ -78,7 +78,7 @@
 import { Component, Vue, Prop } from "nuxt-property-decorator";
 import { BaseRuleItem } from "~/model/LawyerModel";
 
-@Component
+@Component({ name: "latest-updates" })
 export default class LatestUpdates extends Vue {
   @Prop({ type: Array, default: () => [] }) updates!: BaseRuleItem[];
   @Prop({ type: Boolean, default: false }) loading!: boolean;
@@ -97,10 +97,13 @@ export default class LatestUpdates extends Vue {
 
   // 获取更新描述
   getUpdateDescription(item: BaseRuleItem): string {
-    return (
-      (item.fileContent ? item.fileContent.substring(0, 200) + "..." : "") ||
-      "暂无详细描述"
-    );
+    if (!item.fileContent) {
+      return "暂无详细描述";
+    }
+
+    return item.fileContent.length > 200
+      ? item.fileContent.substring(0, 200) + "..."
+      : item.fileContent;
   }
 
   // 获取更新标签
@@ -121,50 +124,59 @@ export default class LatestUpdates extends Vue {
   parseSummaryArray(summaryStr: string): string[] {
     if (!summaryStr) return [];
 
+    // 首先尝试使用 JSON.parse 安全解析数组字符串
     try {
-      // 去掉首尾的方括号
-      let cleanStr = summaryStr.trim();
-      if (cleanStr.startsWith("[") && cleanStr.endsWith("]")) {
-        cleanStr = cleanStr.slice(1, -1);
+      const parsed = JSON.parse(summaryStr);
+      if (Array.isArray(parsed)) {
+        return parsed.filter(Boolean);
       }
-
-      // 按逗号分割，但要考虑冒号后可能有逗号的情况
-      const items: string[] = [];
-      let currentItem = "";
-      let inQuotes = false;
-
-      for (let i = 0; i < cleanStr.length; i++) {
-        const char = cleanStr[i];
-
-        if (char === '"' || char === "'") {
-          inQuotes = !inQuotes;
-          continue;
+    } catch {
+      // JSON.parse 失败，使用手动解析逻辑作为回退方案
+      try {
+        // 去掉首尾的方括号
+        let cleanStr = summaryStr.trim();
+        if (cleanStr.startsWith("[") && cleanStr.endsWith("]")) {
+          cleanStr = cleanStr.slice(1, -1);
         }
 
-        if (char === "," && !inQuotes) {
-          if (currentItem.trim()) {
-            items.push(currentItem.trim());
+        // 按逗号分割，但要考虑引号内的逗号
+        const items: string[] = [];
+        let currentItem = "";
+        let inQuotes = false;
+
+        for (let i = 0; i < cleanStr.length; i++) {
+          const char = cleanStr[i];
+
+          if (char === '"' || char === "'") {
+            inQuotes = !inQuotes;
+            continue;
           }
-          currentItem = "";
-        } else {
-          currentItem += char;
+
+          if (char === "," && !inQuotes) {
+            if (currentItem.trim()) {
+              items.push(currentItem.trim());
+            }
+            currentItem = "";
+          } else {
+            currentItem += char;
+          }
         }
-      }
 
-      // 添加最后一个项目
-      if (currentItem.trim()) {
-        items.push(currentItem.trim());
-      }
+        // 添加最后一个项目
+        if (currentItem.trim()) {
+          items.push(currentItem.trim());
+        }
 
-      return items.filter(Boolean);
-    } catch (error) {
-      console.warn("解析summary失败:", error);
-      // 如果解析失败，尝试简单按逗号分割
-      return summaryStr
-        .replace(/^\[|\]$/g, "") // 去掉首尾方括号
-        .split(",")
-        .map((item) => item.trim())
-        .filter(Boolean);
+        return items.filter(Boolean);
+      } catch (error) {
+        console.warn("解析summary失败，使用最简单的分割方式:", error);
+        // 最后的回退：简单按逗号分割
+        return summaryStr
+          .replace(/^\[|\]$/g, "")
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean);
+      }
     }
   }
 
