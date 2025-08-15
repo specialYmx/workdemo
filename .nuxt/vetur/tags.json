@@ -32,17 +32,17 @@
   "LawyerIndexSourceDistribution": {
     "description": "Auto imported from components/lawyer/index/SourceDistribution.vue"
   },
-  "LawyerManualReviewDetailComponent": {
-    "description": "Auto imported from components/lawyer/manualReview/detailComponent.vue"
-  },
-  "LawyerManualReviewIndexComponent": {
-    "description": "Auto imported from components/lawyer/manualReview/indexComponent.vue"
-  },
   "LawyerKnowledgeDetailComponent": {
     "description": "Auto imported from components/lawyer/knowledge/detailComponent.vue"
   },
   "LawyerKnowledgeIndexComponent": {
     "description": "Auto imported from components/lawyer/knowledge/indexComponent.vue"
+  },
+  "LawyerManualReviewDetailComponent": {
+    "description": "Auto imported from components/lawyer/manualReview/detailComponent.vue"
+  },
+  "LawyerManualReviewIndexComponent": {
+    "description": "Auto imported from components/lawyer/manualReview/indexComponent.vue"
   },
   "LawyerUpdatesDetailComponent": {
     "description": "Auto imported from components/lawyer/updates/detailComponent.vue"

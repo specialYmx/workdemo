@@ -744,6 +744,7 @@ export interface RuleSourceQueryParams extends BaseQueryParams {
   categorySub?: string;
   legalSource?: string;
   publishDateSort?: string;
+  publishDateStr?: string;
   empId: string;
 }
 

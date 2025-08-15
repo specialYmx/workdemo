@@ -9,10 +9,10 @@ export { default as LawyerIndexDashboardOverview } from '../..\\components\\lawy
 export { default as LawyerIndexLatestUpdates } from '../..\\components\\lawyer\\index\\LatestUpdates.vue'
 export { default as LawyerIndexReviewTable } from '../..\\components\\lawyer\\index\\ReviewTable.vue'
 export { default as LawyerIndexSourceDistribution } from '../..\\components\\lawyer\\index\\SourceDistribution.vue'
-export { default as LawyerManualReviewDetailComponent } from '../..\\components\\lawyer\\manualReview\\detailComponent.vue'
-export { default as LawyerManualReviewIndexComponent } from '../..\\components\\lawyer\\manualReview\\indexComponent.vue'
 export { default as LawyerKnowledgeDetailComponent } from '../..\\components\\lawyer\\knowledge\\detailComponent.vue'
 export { default as LawyerKnowledgeIndexComponent } from '../..\\components\\lawyer\\knowledge\\indexComponent.vue'
+export { default as LawyerManualReviewDetailComponent } from '../..\\components\\lawyer\\manualReview\\detailComponent.vue'
+export { default as LawyerManualReviewIndexComponent } from '../..\\components\\lawyer\\manualReview\\indexComponent.vue'
 export { default as LawyerUpdatesDetailComponent } from '../..\\components\\lawyer\\updates\\detailComponent.vue'
 export { default as LawyerUpdatesIndexComponent } from '../..\\components\\lawyer\\updates\\indexComponent.vue'
 

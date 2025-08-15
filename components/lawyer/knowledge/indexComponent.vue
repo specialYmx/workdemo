@@ -97,6 +97,18 @@
                 </a-select-option>
               </a-select>
             </div>
+            <!-- 发布时间筛选 -->
+            <div class="lawyer-filter-group">
+              <a-date-picker
+                v-model="publishDate"
+                style="width: 100%"
+                placeholder="发布时间"
+                format="YYYY-MM-DD"
+                value-format="YYYY-MM-DD"
+                @change="onSearch"
+                :allowClear="true"
+              />
+            </div>
             <!-- 排序方式 -->
             <div class="lawyer-filter-group">
               <a-select
@@ -250,6 +262,7 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
   topicCategory: string[] = [];
   timeLinessFilter: string = "all";
   effectivenessLevelFilter: string = "all";
+  publishDate: string | null = null;
   isFavoritesMode: boolean = false;
   isAdvancedSearchVisible: boolean = false;
   listLoading: boolean = true;
@@ -262,7 +275,7 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
   currentUploadDocId: string = "";
   currentUploadDocTitle: string = "";
 
-  get uploadConfig() {
+  get uploadConfig(): KnowledgeUploadConfig {
     return {
       multiple: false,
       acceptTypes: ".doc,.docx",
@@ -591,6 +604,10 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
       }
       if (this.sortOrder) {
         params.publishDateSort = this.sortOrder;
+      }
+      if (this.publishDate) {
+        // 处理发布时间筛选
+        params.publishDateStr = this.publishDate;
       }
 
       let result: KnowledgeDataItem[];
