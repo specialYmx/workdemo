@@ -48,6 +48,17 @@ export default class SourceDistribution extends Vue {
   @Prop({ type: Array, default: () => [] }) legendItems!: LegendItem[];
   @Prop({ type: Boolean, default: false }) loading!: boolean;
 
+  // 饼图颜色配置
+  private readonly PIE_CHART_COLORS: string[] = [
+    "#1890ff",
+    "#13c2c2",
+    "#52c41a",
+    "#faad14",
+    "#722ed1",
+    "#eb2f96",
+    "#fadb14",
+  ];
+
   // 判断是否所有数据都为空
   get isAllDataEmpty(): boolean {
     if (
@@ -66,22 +77,12 @@ export default class SourceDistribution extends Vue {
 
   // 饼图配置
   get pieChartOptions(): PieChartOptions {
-    const colors: string[] = [
-      "#1890ff",
-      "#13c2c2",
-      "#52c41a",
-      "#faad14",
-      "#722ed1",
-      "#eb2f96",
-      "#fadb14",
-    ];
-
     return {
-      color: colors,
+      color: this.PIE_CHART_COLORS,
       tooltip: {
         trigger: "item",
         formatter: function (params): string {
-          return `${params.name}: ${params.percent}%`;
+          return `${params.name}: ${Math.round(params.percent)}%`;
         },
         backgroundColor: "rgba(0, 0, 0, 0.8)",
         borderColor: "transparent",
@@ -106,7 +107,7 @@ export default class SourceDistribution extends Vue {
             show: true,
             position: "outside",
             formatter: function (params): string {
-              return `${params.name} | ${params.percent}%`;
+              return `${params.name} | ${Math.round(params.percent)}%`;
             },
             fontSize: 12,
             color: "#333",

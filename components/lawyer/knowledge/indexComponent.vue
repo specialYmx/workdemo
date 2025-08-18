@@ -417,20 +417,16 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
 
   viewDocument(doc: KnowledgeDataItem): void {
     this.$message.info(`正在打开: ${doc.ruleName}`);
-    setTimeout(() => {
-      const isRevoke: boolean = !!(
-        doc.revokeDateTimestamp || doc.revokeDateStr
-      );
-      const query: RouteQuery = {
-        id: doc.id,
-        pageTitle: doc.ruleName,
-        ...(isRevoke ? { isRevoke: "true" } : {}),
-      };
-      this.$router.push({
-        path: "/lawyerKnowledge/detail",
-        query,
-      });
-    }, 500);
+    const isRevoke: boolean = !!(doc.revokeDateTimestamp || doc.revokeDateStr);
+    const query: RouteQuery = {
+      id: doc.id,
+      pageTitle: doc.ruleName,
+      ...(isRevoke ? { isRevoke: "true" } : {}),
+    };
+    this.$router.push({
+      path: "/lawyerKnowledge/detail",
+      query,
+    });
   }
 
   async downloadDocument(doc: KnowledgeDataItem): Promise<void> {

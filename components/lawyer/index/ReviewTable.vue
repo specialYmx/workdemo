@@ -203,14 +203,14 @@ export default class ReviewTable extends Vue {
   display: flex;
   gap: 8px;
   align-items: center;
-}
-
-.lawyer-link-view {
-  color: #666;
   cursor: pointer;
   transition: color 0.2s ease;
   padding: 2px 6px;
   border-radius: 3px;
+}
+
+.lawyer-link-view {
+  color: #666;
 
   &:hover {
     color: #333;
@@ -220,10 +220,6 @@ export default class ReviewTable extends Vue {
 
 .lawyer-link-approve {
   color: #52c41a;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  padding: 2px 6px;
-  border-radius: 3px;
 
   &:hover {
     color: #389e0d;
@@ -233,10 +229,6 @@ export default class ReviewTable extends Vue {
 
 .lawyer-link-reject {
   color: #ff4d4f;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  padding: 2px 6px;
-  border-radius: 3px;
 
   &:hover {
     color: #cf1322;

@@ -243,7 +243,7 @@ export default class IndexComponent extends Vue {
         const legendItems: LegendItem[] = [];
 
         Object.keys(sourceData).forEach((key: string) => {
-          const value: number = (sourceData as any)[key];
+          const value: number = sourceData[key];
 
           // 饼图只显示有数据的项目（避免0%扇形）
           if (value > 0) {

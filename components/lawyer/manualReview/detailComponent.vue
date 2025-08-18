@@ -77,14 +77,20 @@ export default class LawyerManualReviewDetailComponent extends Vue {
         );
 
         // 审核后返回列表页
-        setTimeout(() => {
-          this.$router.push("/manualReview");
-        }, 1500);
+        this.$router.push("/manualReview");
       })
       .catch((error) => {
         console.error("审核操作失败:", error);
         this.$message.error("审核操作失败，请重试");
       });
+  }
+
+  // 字符串清理工具函数
+  private normalizeString(str: string): string {
+    return str
+      .replace(/[\r\n\t]/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
   }
 
   // 格式化文档变更数据（内联完成分割与解析，减少冗余方法）
@@ -199,16 +205,9 @@ export default class LawyerManualReviewDetailComponent extends Vue {
 
       // 4) 统一清理空白
       return changes.map((c) => {
-        if (c.position)
-          c.position = c.position
-            .replace(/[\r\n\t]/g, "")
-            .replace(/\s+/g, " ")
-            .trim();
+        if (c.position) c.position = this.normalizeString(c.position);
         if (c.sectionDisplay)
-          c.sectionDisplay = c.sectionDisplay
-            .replace(/[\r\n\t]/g, "")
-            .replace(/\s+/g, " ")
-            .trim();
+          c.sectionDisplay = this.normalizeString(c.sectionDisplay);
         return c;
       });
     } catch (error) {
@@ -338,8 +337,6 @@ export default class LawyerManualReviewDetailComponent extends Vue {
 </script>
 
 <style lang="less">
-@import "~/assets/styles/lawyer.less";
-
 .lawyer-manual-review-detail-wrapper {
   width: 100%;
   height: 100vh;
