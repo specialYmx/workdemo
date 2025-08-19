@@ -73,14 +73,13 @@
             :loading="tableLoading"
             :rowKey="(record) => record.id"
             :row-selection="rowSelection"
-            @change="handleTableChange"
           >
             <!-- 标题列插槽 -->
             <template slot="ruleName" slot-scope="text, record">
               <div>
                 <div>{{ record.ruleName }}</div>
                 <div style="color: #999; font-size: 12px">
-                  文号：{{ record.docNo || "无" }}
+                  文号：{{ record.documentNo || record.docNo || "无" }}
                 </div>
               </div>
             </template>
@@ -216,7 +215,8 @@ import {
 import { categoryOptions } from "~/enum/Lawyer";
 import { downloadFileWithMessage } from "~/utils/personal";
 import { RowSelectionConfig } from "~/model/LawyerModel";
-import { CustomColumn, CustomPagination } from "~/model/CommonModel";
+import { CustomColumn } from "~/model/CommonModel";
+import { userCheckList } from "~/mock/userCheck";
 
 @Component({ name: "lawyer-manual-review-index-component" })
 export default class LawyerManualReviewIndexComponent extends Vue {
@@ -232,17 +232,16 @@ export default class LawyerManualReviewIndexComponent extends Vue {
   selectedRowKeys: string[] = [];
   selectedRows: ToDoRuleItem[] = [];
 
-  // 当前分页状态（使用 CommonModel 的 CustomPagination）
-  currentPagination: CustomPagination = {
+  // 当前分页配置
+  currentPagination: any = {
     current: 1,
     pageSize: 10,
-    total: 0,
-    showTotal: (total: number) => `共 ${total} 条数据`,
     showSizeChanger: true,
     showQuickJumper: true,
+    showTotal: (total: number, range: number[]) =>
+      `共 ${total} 条数据，显示第 ${range[0]}-${range[1]} 条`,
     pageSizeOptions: ["10", "20", "50", "100"],
   };
-
   currentDocument: ToDoRuleItem | null = null;
 
   // 状态选项
@@ -391,30 +390,20 @@ export default class LawyerManualReviewIndexComponent extends Vue {
 
       console.log("查询参数:", params);
 
-      // 调用统一的 getRuleList 方法，指定为管理场景
+      // 暂时使用 mock 数据测试分页效果
+      // TODO: 恢复真实 API 调用
       const result = await this.$roadLawyerService.getRuleList(
         params,
         "management"
       );
-      if (result && Array.isArray(result)) {
-        // 如果返回的是数组
-        this.documents = result;
-      } else if (result && result.list && Array.isArray(result.list)) {
-        // 如果返回的是分页对象
-        this.documents = result.list;
-      } else {
-        this.documents = [];
-      }
 
-      // 更新分页信息
+      // 使用 mock 数据，mock 数据就是数组格式
+      this.documents = result;
+
+      // 重置页码到第一页
       this.currentPagination = {
+        ...this.currentPagination,
         current: 1,
-        pageSize: 10,
-        total: this.documents.length,
-        showTotal: (total: number) => `共 ${total} 条数据`,
-        showSizeChanger: true,
-        showQuickJumper: true,
-        pageSizeOptions: ["10", "20", "50", "100"],
       };
     } catch (error) {
       console.error("错误详情:", error);
@@ -453,67 +442,20 @@ export default class LawyerManualReviewIndexComponent extends Vue {
     return statusMap[status] || "";
   }
 
-  // 表格变化事件
-  handleTableChange(pagination, filters, sorter, extra): void {
-    console.log("表格变化:", pagination, filters, sorter, extra);
-
-    // 计算筛选后的数据数量
-    let filteredCount: number = this.documents.length;
-
-    // 如果有筛选条件，计算筛选后的数量
-    if (filters && Object.keys(filters).length > 0) {
-      let result: ToDoRuleItem[] = [...this.documents];
-
-      // 应用筛选条件
-      Object.keys(filters).forEach((key: string) => {
-        const filterValues = filters[key];
-        if (filterValues && filterValues.length > 0) {
-          if (key === "titles") {
-            // 标题搜索筛选
-            const searchText: string = filterValues[0].toLowerCase();
-            result = result.filter(
-              (item: ToDoRuleItem) =>
-                item.ruleName.toLowerCase().includes(searchText) ||
-                (item.categorySub &&
-                  item.categorySub.toLowerCase().includes(searchText))
-            );
-          } else if (key === "checkStatus") {
-            result = result.filter((item: ToDoRuleItem) =>
-              filterValues.includes(item.checkStatus)
-            );
-          } else if (key === "categoryMain") {
-            result = result.filter((item: ToDoRuleItem) =>
-              filterValues.includes(item.categoryMain)
-            );
-          } else if (key === "legalSource") {
-            const searchText: string = filterValues[0].toLowerCase();
-            result = result.filter(
-              (item: ToDoRuleItem) =>
-                item.legalSource &&
-                item.legalSource.toLowerCase().includes(searchText)
-            );
-          }
-        }
-      });
-
-      filteredCount = result.length;
-    }
-
-    // 更新分页状态
-    this.currentPagination = {
-      ...pagination,
-      total: filteredCount,
-    };
-  }
+  // 移除 handleTableChange，让表格自动处理分页、筛选和排序
 
   // 处理搜索
-  handleSearch(selectedKeys, confirm, dataIndex): void {
+  handleSearch(
+    selectedKeys: string[],
+    confirm: Function,
+    dataIndex: string
+  ): void {
     confirm();
     console.log("搜索:", selectedKeys, dataIndex);
   }
 
   // 处理重置
-  handleReset(clearFilters): void {
+  handleReset(clearFilters: Function): void {
     clearFilters();
   }
 
@@ -640,7 +582,7 @@ export default class LawyerManualReviewIndexComponent extends Vue {
       // 显示成功消息
       this.$message.success(action === "approve" ? "审核已通过" : "文档已驳回");
 
-      // 重新加载表格数据，确保数据一致性
+      // 重新加载表格数据
       await this.loadDocuments();
     } catch (error) {
       console.error("审核操作失败:", error);

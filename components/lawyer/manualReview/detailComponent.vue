@@ -110,7 +110,7 @@ export default class LawyerManualReviewDetailComponent extends Vue {
         // 返回特殊标记，用于在UI中显示相应信息
         return [
           {
-            type: "info" as any,
+            type: "info",
             position: trimmedContent,
             sectionDisplay: "",
             oldText: "",
@@ -145,23 +145,25 @@ export default class LawyerManualReviewDetailComponent extends Vue {
         if (!item) continue;
 
         // 标题变更
-        let m = item.match(/^(.+?)\s+标题变更：由'(.+?)'变更为'(.+?)'$/);
-        if (m) {
-          const sectionText = m[1].trim();
+        let titleChangeMatch = item.match(
+          /^(.+?)\s+标题变更：由'(.+?)'变更为'(.+?)'$/
+        );
+        if (titleChangeMatch) {
+          const sectionText = titleChangeMatch[1].trim();
           changes.push({
             type: "modify",
             position: "标题变更",
             sectionDisplay: sectionText,
-            oldText: m[2].trim(),
-            newText: m[3].trim(),
+            oldText: titleChangeMatch[2].trim(),
+            newText: titleChangeMatch[3].trim(),
           });
           continue;
         }
 
         // 删除条款
-        m = item.match(/^删除条款：(.+)$/);
-        if (m) {
-          const contentText = m[1].trim();
+        titleChangeMatch = item.match(/^删除条款：(.+)$/);
+        if (titleChangeMatch) {
+          const contentText = titleChangeMatch[1].trim();
           const displayMatch = contentText.match(/^(第.+?[章条])/);
           changes.push({
             type: "delete",
@@ -173,28 +175,28 @@ export default class LawyerManualReviewDetailComponent extends Vue {
         }
 
         // 内容变更：由'..'变更为'..'
-        m = item.match(/^(.+?)：由'(.+?)'变更为'(.+?)'$/);
-        if (m) {
-          const sectionText = m[1].trim();
+        titleChangeMatch = item.match(/^(.+?)：由'(.+?)'变更为'(.+?)'$/);
+        if (titleChangeMatch) {
+          const sectionText = titleChangeMatch[1].trim();
           changes.push({
             type: "modify",
             position: "内容变更",
             sectionDisplay: sectionText,
-            oldText: m[2].trim(),
-            newText: m[3].trim(),
+            oldText: titleChangeMatch[2].trim(),
+            newText: titleChangeMatch[3].trim(),
           });
           continue;
         }
 
         // 新增条款
-        m = item.match(/^(.+?)\s*新增条款：(.+)$/);
-        if (m) {
-          const sectionText = m[1].trim();
+        titleChangeMatch = item.match(/^(.+?)\s*新增条款：(.+)$/);
+        if (titleChangeMatch) {
+          const sectionText = titleChangeMatch[1].trim();
           changes.push({
             type: "add",
             position: "新增内容",
             sectionDisplay: sectionText,
-            newText: m[2].trim(),
+            newText: titleChangeMatch[2].trim(),
           });
           continue;
         }
@@ -276,8 +278,8 @@ export default class LawyerManualReviewDetailComponent extends Vue {
           originalContent: result.oldFileContent || "",
           newContent: result.newFileContent || "",
           changes: this.formatChanges(result.checkResult),
-          modifiedDate: result.newPublishTime || result.effect_date,
-          effectDate: result.effect_date,
+          modifiedDate: result.newPublishTime || result.effectDate,
+          effectDate: result.effectDate,
           oldFileVersion: result.oldFileVersion,
           oldPublishTime: result.oldPublishTime,
           newFileVersion: result.newFileVersion,

@@ -237,7 +237,7 @@ export interface BaseRuleItem {
   updateTimestamp: number | null;
   summary: string;
   readCount: number;
-  docNo: string | null;
+  documentNo: string | null;
   url: string | null;
   checkStatus: string | null;
   checkTime: string | null;
@@ -272,7 +272,7 @@ export interface ToDoRuleItem {
   id: string;
   diffResultId: string | null;
   ruleName: string;
-  docNo?: string; // 文号
+  documentNo?: string; // 文号
   websiteName: string;
   legalSource?: string; // 发布机构或来源信息，替代 websiteName 使用
   url: string;
@@ -329,19 +329,9 @@ export interface CompletedRuleItem {
 }
 
 // ==================== 通用数据模型 ====================
-
-// 分页响应结果
-export interface PageResult<T> {
-  list: T[];
-  total: number;
-  page: number;
-  pageSize: number;
-  totalPages: number;
-}
-
 export interface FileCompareDetail {
   newFileVersion: number | null;
-  effect_date: string;
+  effectDate: string;
   newFileContent: string;
   categoryMain: string;
   categorySub?: string; // 添加二级分类
@@ -399,7 +389,7 @@ export interface RoadLawyerService {
   getRuleList: (
     params?: CheckRuleQueryParams,
     useCase?: "homepage" | "management"
-  ) => Promise<PageResult<ToDoRuleItem>>;
+  ) => Promise<ToDoRuleItem[]>;
 }
 
 // ==================== 图表数据相关类型定义 ====================

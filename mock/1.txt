@@ -1,0 +1,54 @@
+一、获取列表
+1.url：/rule/crawl/getHtmlList
+2.参数：
+字段	说明	类型	是否必须
+websiteCode	网站编码	String	否
+websiteName	网站名称	String	否
+articleTitle	文章标题	String	否
+detailUrl	文章详情页地址（含附件链接）	String	否
+attachments	附件链接数组，JSON格式存储，包含附件URL及描述等	String	否
+publishDate	文章发布日期（yyyy-MM-dd）	String	否
+publishDateStart	暂时不用	String	否
+publishDateEnd	暂时不用	String	否
+orderBy	排序字段（默认created_time）	String	否
+sortRules	ASC / DESC	String	否
+current	当前页，默认1	String	否
+size	每页数量，默认10	String	否
+
+3.返回值
+字段	说明	类型
+status	状态值	Enum
+message	附加消息	String
+sucess	是否成功	Boolean
+timestamp	时间戳	Long
+data	数据	
+Data.total	一共多少数据	Long
+Data.Size	一共多少页	Long
+Data.current	当前页数	Long
+Data.records	当前页数据	数组
+Data.records.[n].id	主键	String
+Data.records.[n].websiteCode	网站编码	
+Data.records.[n].websiteName	网站名称	
+Data.records.[n].articleTitle	文章标题	
+Data.records.[n].detailUrl	文章详情页地址（含附件链接）	
+Data.records.[n].attachments	附件链接数组，JSON格式存储，包含附件URL及描述等	
+Data.records.[n].processStatus	处理状态	
+Data.records.[n].publishDate	文章发布日期	
+Data.records.[n].detailHtml	详情页完整HTML	
+Data.records.[n].fireCrawlContent	fire_crawl的爬取内容	
+Data.records.[n].fireCrawlHtml	fire_craw爬取的html	
+Data.records.[n].createdTime	记录创建时间	
+Data.records.[n].updateTime	记录最后修改时间	
+二、运行对应的任务
+1.URL：/rule/crawl/grabThisPage
+2.参数：
+字段	说明	类型
+id	主键	String
+3.返回值
+字段	说明	类型
+status	主键	Enum
+message	附加消息	String
+sucess	是否成功	Boolean
+timestamp	时间戳
+	Long
+data	数据	String

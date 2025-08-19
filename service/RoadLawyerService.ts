@@ -406,7 +406,7 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
       // 如果接口返回空数据，返回默认结构
       return {
         newFileVersion: null,
-        effect_date: "",
+        effectDate: "",
         newFileContent: "",
         categoryMain: "",
         newPublishTime: "",
@@ -419,7 +419,7 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
       // 返回一个符合 FileCompareDetail 类型的空对象
       return {
         newFileVersion: null,
-        effect_date: "",
+        effectDate: "",
         newFileContent: "",
         categoryMain: "",
         newPublishTime: "",

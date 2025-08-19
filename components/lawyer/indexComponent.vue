@@ -312,7 +312,7 @@ export default class IndexComponent extends Vue {
     try {
       // 使用统一的 getRuleList 方法，指定为首页场景
       const data = await this.$roadLawyerService.getRuleList({}, "homepage");
-      const reviewList = Array.isArray(data) ? data : data?.list || [];
+      const reviewList = data || [];
 
       // 同时更新列表和统计数据
       this.topReviews = reviewList.slice(0, 5);

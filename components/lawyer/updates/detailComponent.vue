@@ -73,7 +73,7 @@ export default class LawyerUpdatesDetailComponent extends Vue {
           date: result.publishDateStr || result.createdTimeStr,
           effectiveDate: result.effectDateStr || "暂无",
           publisher: result.legalSource || result.websiteName,
-          fileNumber: result.docNo || "暂无",
+          fileNumber: result.documentNo || "暂无",
           status: result.timeLiness || "未知",
           views: result.readCount,
           content: formattedContent,

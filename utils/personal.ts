@@ -65,6 +65,10 @@ export const downloadFileWithMessage = (
     if (fileData instanceof Blob) {
       blob = fileData;
     } else if (fileData && typeof fileData === "object" && "data" in fileData) {
+      if (!(fileData.data instanceof Blob)) {
+        console.error("无效的文件数据类型");
+        return false;
+      }
       blob = fileData.data;
 
       // 如果后端响应头中有content-disposition，优先使用后端设置的文件名

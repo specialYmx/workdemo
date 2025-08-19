@@ -27,7 +27,7 @@
         <template slot="titleColumn" slot-scope="text, record">
           <div class="lawyer-table-title">{{ record.ruleName }}</div>
           <div class="lawyer-table-subtitle">
-            文号：{{ record.docNo || "无" }}
+            文号：{{ record.documentNo || "无" }}
           </div>
         </template>
 
