@@ -42,6 +42,14 @@
               人工审核
               <span class="lawyer-badge">3</span>
             </nuxt-link>
+            <nuxt-link
+              to="/crawlStatistics"
+              class="lawyer-nav-link"
+              exact-active-class="active"
+            >
+              <a-icon type="bar-chart" />
+              爬取统计
+            </nuxt-link>
           </nav>
         </div>
       </header>
