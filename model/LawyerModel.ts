@@ -267,65 +267,62 @@ export interface RuleUpdateItem extends BaseRuleItem {
 
 // ==================== 人工审核相关数据模型 ====================
 
-// 人工审核列表项接口（基于mock数据结构）
+// 人工审核列表项接口（基于真实数据结构）
 export interface ToDoRuleItem {
   id: string;
   diffResultId: string | null;
   ruleName: string;
-  documentNo?: string; // 文号
-  websiteName: string;
-  legalSource?: string; // 发布机构或来源信息，替代 websiteName 使用
+  documentNo: string | null; // 文号，如："银保监发〔2021〕47号"
+  websiteName: string; // 网站名称，如："中国政府网"
+  legalSource: string | null; // 发布机构，如："国家金融监督管理总局"
   url: string;
-  publishTime: string | null;
-  effectDate: string | null;
-  categoryMain: string;
-  categorySub: string;
-  thinktankType: string | null;
-  compilationType: string | null;
-  effectivenessLevel: string | null;
-  topicCategory: string | null;
-  filePathTxt: string | null;
-  filePathOther: string | null;
-  fileVersion: string | null;
-  updateTime: string | null;
-  checkTime: string | null;
-  checkStatus: string | null;
-  deleted: number;
-  createdTime: string;
-  newFileVersion?: number | null; // 新增字段：新文件版本
-  currentMaxFileVersion?: number | null; // 新增字段：当前最大文件版本
+  publishTime: string | null; // 发布时间，如："2025-08-06"
+  effectDate: string | null; // 生效日期，如："2021-12-08"
+  categoryMain: string | null; // 主分类
+  categorySub: string | null; // 子分类
+  effectivenessLevel: string | null; // 效力层级，如："部门规章规范性文件"
+  filePathTxt: string | null; // txt文件路径
+  filePathOther: string | null; // 其他文件路径，如docx
+  fileVersion: number; // 文件版本号
+  updateTime: string | null; // 更新时间
+  checkTime: string | null; // 审核时间
+  checkStatus: string; // 审核状态，如："待审核"
+  deleted: number; // 删除标记，0表示未删除
+  createdTime: string; // 创建时间，如："2025-08-13T19:14:27"
+  currentMaxFileVersion: number; // 当前最大文件版本
+  parentId: string | null; // 父级ID
+  ruleType: string | null; // 规则类型，如："notice_node"
+  invokeContent: string | null; // 调用内容
+  noticeContent: string | null; // 通知内容，JSON字符串格式
 }
 
-// 已完成审核列表项接口（基于completeRuleList数据结构）
+// 已完成审核列表项接口（基于真实数据结构）
 export interface CompletedRuleItem {
   id: string;
   diffResultId: string | null;
   ruleName: string;
-  documentNo: string | null;
-  websiteName: string;
-  legalSource?: string; // 发布机构或来源信息，替代 websiteName 使用
+  documentNo: string | null; // 文号
+  websiteName: string; // 网站名称
+  legalSource: string | null; // 发布机构
   url: string;
-  publishTime: string | null;
-  effectDate: string | null;
-  categoryMain: string | null;
-  categorySub: string | null;
-  thinktankType: string | null;
-  compilationType: string | null;
-  effectivenessLevel: string | null;
-  topicCategory: string | null;
-  filePathTxt: string | null;
-  filePathOther: string | null;
-  fileVersion: string | null;
-  updateTime: string | null;
-  checkTime: string;
-  checkStatus: string; // "已通过" | "已驳回"
-  noticeContent: string | null;
-  invokeContent: string | null;
-  deleted: number;
-  createdTime: string;
-  ruleType: string;
-  currentMaxFileVersion: number | null;
-  pid: string | null;
+  publishTime: string | null; // 发布时间
+  effectDate: string | null; // 生效日期
+  categoryMain: string | null; // 主分类
+  categorySub: string | null; // 子分类
+  effectivenessLevel: string | null; // 效力层级
+  filePathTxt: string | null; // txt文件路径
+  filePathOther: string | null; // 其他文件路径
+  fileVersion: number; // 文件版本号
+  updateTime: string | null; // 更新时间
+  checkTime: string; // 审核时间
+  checkStatus: string; // 审核状态："已通过" | "已驳回"
+  noticeContent: string | null; // 通知内容，JSON字符串格式
+  invokeContent: string | null; // 调用内容
+  deleted: number; // 删除标记
+  createdTime: string; // 创建时间
+  ruleType: string | null; // 规则类型
+  currentMaxFileVersion: number; // 当前最大文件版本
+  parentId: string | null; // 父级ID（统一字段名）
 }
 
 // ==================== 通用数据模型 ====================
@@ -373,7 +370,6 @@ export interface RoadLawyerService {
   getRuleUpdateList: (
     params: RuleUpdateQueryParams
   ) => Promise<RuleUpdateItem[]>;
-  initData: (params?: QueryParams) => Promise<boolean>;
   saveOrCancelCollect: (params: CollectParams) => Promise<boolean>;
   updateTimeLinessSchedule: (params: QueryParams) => Promise<boolean>;
   uploadRuleSource: (params: UploadParams) => Promise<boolean>;
@@ -390,6 +386,14 @@ export interface RoadLawyerService {
     params?: CheckRuleQueryParams,
     useCase?: "homepage" | "management"
   ) => Promise<ToDoRuleItem[]>;
+
+  // ==================== 爬取统计相关方法 ====================
+  getCrawlHtmlList: (
+    params: CrawlStatisticsQueryParams
+  ) => Promise<CrawlStatisticsResponse>;
+  executeCrawlTask: (
+    params: ExecuteCrawlTaskParams
+  ) => Promise<ExecuteCrawlTaskResponse>;
 }
 
 // ==================== 图表数据相关类型定义 ====================
@@ -784,4 +788,67 @@ export interface ScheduleStatusData {
   lastRun?: string;
   nextRun?: string;
   message?: string;
+}
+
+// ==================== 爬取统计相关数据模型 ====================
+
+// 爬取数据项
+export interface CrawlDataItem {
+  id: string;
+  websiteCode: string;
+  websiteName: string;
+  articleTitle: string;
+  detailUrl: string;
+  attachments: string | null;
+  processStatus: string;
+  publishDate: string;
+  detailHtml: string;
+  fireCrawlContent: string;
+  fireCrawlHtml: string;
+  createdTime: string | null;
+  updateTime: string;
+}
+
+// 爬取统计查询参数
+export interface CrawlStatisticsQueryParams extends BaseQueryParams {
+  websiteCode?: string;
+  websiteName?: string;
+  articleTitle?: string;
+  detailUrl?: string;
+  attachments?: string;
+  publishDate?: string;
+  publishDateStart?: string;
+  publishDateEnd?: string;
+  orderBy?: string;
+  sortRules?: string;
+  current?: number;
+  size?: number;
+}
+
+// 爬取统计响应数据
+export interface CrawlStatisticsResponse {
+  status: string;
+  message: string;
+  success: boolean;
+  timestamp: number;
+  data: {
+    total: number;
+    size: number;
+    current: number;
+    records: CrawlDataItem[];
+  };
+}
+
+// 执行爬取任务参数
+export interface ExecuteCrawlTaskParams extends MixedMap {
+  id: string;
+}
+
+// 执行爬取任务响应
+export interface ExecuteCrawlTaskResponse {
+  status: string;
+  message: string;
+  success: boolean;
+  timestamp: number;
+  data: string;
 }

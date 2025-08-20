@@ -73,13 +73,14 @@
             :loading="tableLoading"
             :rowKey="(record) => record.id"
             :row-selection="rowSelection"
+            @change="handleTableChange"
           >
             <!-- 标题列插槽 -->
             <template slot="ruleName" slot-scope="text, record">
               <div>
                 <div>{{ record.ruleName }}</div>
                 <div style="color: #999; font-size: 12px">
-                  文号：{{ record.documentNo || record.docNo || "无" }}
+                  文号：{{ record.documentNo || "无" }}
                 </div>
               </div>
             </template>
@@ -442,8 +443,16 @@ export default class LawyerManualReviewIndexComponent extends Vue {
     return statusMap[status] || "";
   }
 
-  // 移除 handleTableChange，让表格自动处理分页、筛选和排序
-
+  // 表格变化事件
+  handleTableChange(pagination): void {
+    console.log("🚀 ~  ~ = ~ pagination:", pagination);
+    // 计算筛选后的数据数量
+    this.currentPagination = {
+      ...this.currentPagination,
+      current: pagination.current,
+      pageSize: pagination.pageSize,
+    };
+  }
   // 处理搜索
   handleSearch(
     selectedKeys: string[],
@@ -515,13 +524,13 @@ export default class LawyerManualReviewIndexComponent extends Vue {
   canReviewItem(record: ToDoRuleItem): boolean {
     // 如果版本字段不存在，默认允许审核
     if (
-      record.newFileVersion === undefined ||
+      record.fileVersion === undefined ||
       record.currentMaxFileVersion === undefined
     ) {
       return true;
     }
 
-    const newVersion: number = Number(record.newFileVersion) || 0;
+    const newVersion: number = Number(record.fileVersion) || 0;
     const maxVersion: number = Number(record.currentMaxFileVersion) || 0;
 
     return newVersion <= maxVersion;

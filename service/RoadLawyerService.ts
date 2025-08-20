@@ -13,6 +13,10 @@ import {
   RuleUpdateQueryParams,
   RuleSourceQueryParams,
   CheckRuleQueryParams,
+  CrawlStatisticsQueryParams,
+  CrawlStatisticsResponse,
+  ExecuteCrawlTaskParams,
+  ExecuteCrawlTaskResponse,
 } from "~/model/LawyerModel";
 import api from "~/api";
 
@@ -265,22 +269,6 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
     }
   },
 
-  async initData(params: QueryParams = {}) {
-    try {
-      const res = await $axios.post(
-        `${api.lawyer.initData}`,
-        toFormData(params)
-      );
-      if (res.data?.data) {
-        return res.data.data;
-      }
-      return {};
-    } catch (error) {
-      console.error("Error initializing data:", error);
-      return {};
-    }
-  },
-
   async saveOrCancelCollect(params: CollectParams) {
     try {
       const res = await $axios.post(
@@ -453,6 +441,69 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
     } catch (error) {
       console.error(`Error fetching rule list (${useCase}):`, error);
       return [];
+    }
+  },
+
+  // ==================== 爬取统计相关方法 ====================
+  async getCrawlHtmlList(
+    params: CrawlStatisticsQueryParams
+  ): Promise<CrawlStatisticsResponse> {
+    const defaultData = {
+      total: 0,
+      size: params.size || 10,
+      current: params.current || 1,
+      records: [],
+    };
+
+    try {
+      const res = await $axios.post(
+        api.lawyer.getCrawlHtmlList,
+        toFormData(params)
+      );
+      return (
+        res.data || {
+          status: "error",
+          message: "No data received",
+          success: false,
+          timestamp: Date.now(),
+          data: defaultData,
+        }
+      );
+    } catch (error) {
+      console.error("Error fetching crawl html list:", error);
+      return {
+        status: "error",
+        message: error instanceof Error ? error.message : "Unknown error",
+        success: false,
+        timestamp: Date.now(),
+        data: defaultData,
+      };
+    }
+  },
+
+  async executeCrawlTask(
+    params: ExecuteCrawlTaskParams
+  ): Promise<ExecuteCrawlTaskResponse> {
+    const defaultResponse = {
+      status: "error",
+      message: "No response received",
+      success: false,
+      timestamp: Date.now(),
+      data: "",
+    };
+
+    try {
+      const res = await $axios.post(
+        api.lawyer.executeCrawlTask,
+        toFormData(params)
+      );
+      return res.data || defaultResponse;
+    } catch (error) {
+      console.error("Error executing crawl task:", error);
+      return {
+        ...defaultResponse,
+        message: error instanceof Error ? error.message : "Unknown error",
+      };
     }
   },
 });

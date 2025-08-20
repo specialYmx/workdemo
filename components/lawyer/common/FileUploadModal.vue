@@ -128,9 +128,7 @@
             @click="startUpload"
             >开始上传</a-button
           >
-          <a-button v-if="uploading && !uploadSuccess" @click="cancelUpload"
-            >取消上传</a-button
-          >
+
           <a-button
             v-if="!uploading && uploadSuccess"
             type="primary"
@@ -411,19 +409,7 @@ export default class FileUploadModal extends Vue {
     }
   }
 
-  cancelUpload(): void {
-    // 清理进度定时器
-    if (this.progressTimer) {
-      clearInterval(this.progressTimer);
-      this.progressTimer = null;
-    }
-    this.uploading = false;
-    this.uploadSuccess = false;
-    this.uploadProgress = 0;
-  }
-
   handleCancel(): void {
-    this.cancelUpload();
     this.resetState();
     this.emitCancel();
   }
@@ -434,6 +420,12 @@ export default class FileUploadModal extends Vue {
   }
 
   resetState(): void {
+    // 清理进度定时器
+    if (this.progressTimer) {
+      clearInterval(this.progressTimer);
+      this.progressTimer = null;
+    }
+
     this.selectedFiles = [];
     this.uploading = false;
     this.uploadSuccess = false;
@@ -456,7 +448,11 @@ export default class FileUploadModal extends Vue {
 
   // 组件销毁时清理异步任务
   beforeDestroy(): void {
-    this.cancelUpload();
+    // 清理进度定时器
+    if (this.progressTimer) {
+      clearInterval(this.progressTimer);
+      this.progressTimer = null;
+    }
   }
 
   // Emit 装饰器方法
