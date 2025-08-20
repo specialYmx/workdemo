@@ -533,7 +533,7 @@ export default class LawyerManualReviewIndexComponent extends Vue {
     const newVersion: number = Number(record.fileVersion) || 0;
     const maxVersion: number = Number(record.currentMaxFileVersion) || 0;
 
-    return newVersion <= maxVersion;
+    return newVersion > maxVersion;
   }
 
   // 审核通过

@@ -7,6 +7,7 @@
       :document="documentData"
       @go-back="goBack"
       @submit-review="handleReviewSubmit"
+      @update-document="handleUpdateDocument"
     />
   </div>
 </template>
@@ -40,6 +41,16 @@ export default class LawyerManualReviewDetailComponent extends Vue {
   // 返回上一页
   goBack(): void {
     this.$router.back();
+  }
+
+  // 处理文档更新
+  handleUpdateDocument(updateData: {
+    tags: string[];
+    effectDate: string | null;
+  }): void {
+    // 更新本地文档数据
+    this.documentData.tags = updateData.tags;
+    this.documentData.effectDate = updateData.effectDate;
   }
 
   // 处理审核提交

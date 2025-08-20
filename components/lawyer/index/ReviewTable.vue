@@ -163,16 +163,16 @@ export default class ReviewTable extends Vue {
   // 检查是否可以审核（版本检查）
   canReviewItem(record: ToDoRuleItem): boolean {
     if (
-      record.newFileVersion === undefined ||
+      record.fileVersion === undefined ||
       record.currentMaxFileVersion === undefined
     ) {
       return true;
     }
     const newVersion: number = Number(
-      record.newFileVersion || record.fileVersion || 0
+      record.fileVersion || record.fileVersion || 0
     );
     const maxVersion: number = Number(record.currentMaxFileVersion || 0);
-    return newVersion <= maxVersion;
+    return newVersion > maxVersion;
   }
 
   // 格式化时间显示
