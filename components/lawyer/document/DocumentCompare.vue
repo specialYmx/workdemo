@@ -54,7 +54,7 @@
             >）
           </div>
           <div class="lawyer-column-content">
-            <v-md-preview :text="col.content||'暂无数据'" />
+            <v-md-preview :text="col.content || '暂无数据'" />
           </div>
         </div>
 
@@ -192,7 +192,7 @@ import {
   ReviewSubmitData,
 } from "~/model/LawyerModel";
 
-@Component({})
+@Component({ name: "document-compare" })
 export default class DocumentCompare extends Vue {
   @Prop({ required: true }) document!: DocumentCompareData;
 
@@ -256,37 +256,35 @@ export default class DocumentCompare extends Vue {
     return this.document.changes.some((change) => change.type === "info");
   }
 
+  // 获取版本和内容状态信息
+  private getVersionStatus() {
+    return {
+      newFileVersion: this.document.newFileVersion || 0,
+      currentMaxFileVersion: this.document.currentMaxFileVersion || 0,
+      hasContentError: this.documentColumns.some(
+        (col) =>
+          col.content === "error" || col.content === "加载失败，请刷新页面重试"
+      ),
+    };
+  }
+
   // 是否允许审核操作
   get canReview(): boolean {
-    // 检查文档版本是否允许审核
-    const newFileVersion: number = this.document.newFileVersion || 0;
-    const currentMaxFileVersion: number =
-      this.document.currentMaxFileVersion || 0;
-
-    // 检查文档内容是否加载失败
-    const hasContentError = this.documentColumns.some(
-      (col) =>
-        col.content === "error" || col.content === "加载失败，请刷新页面重试"
-    );
-
-    return newFileVersion <= currentMaxFileVersion && !hasContentError;
+    const { newFileVersion, currentMaxFileVersion, hasContentError } =
+      this.getVersionStatus();
+    return newFileVersion > currentMaxFileVersion && !hasContentError;
   }
 
   // 检查审核状态并显示错误信息
   checkReviewStatusAndShowError(): boolean {
-    const newFileVersion: number = this.document.newFileVersion || 0;
-    const currentMaxFileVersion: number =
-      this.document.currentMaxFileVersion || 0;
-    const hasContentError = this.documentColumns.some(
-      (col) =>
-        col.content === "error" || col.content === "加载失败，请刷新页面重试"
-    );
+    const { newFileVersion, currentMaxFileVersion, hasContentError } =
+      this.getVersionStatus();
 
     if (hasContentError) {
       this.$message.error("文档内容加载失败，请刷新页面重试后再进行审核");
       return false;
-    } else if (newFileVersion > currentMaxFileVersion) {
-      this.$message.error("当前版本高于系统最高版本，不允许审核");
+    } else if (newFileVersion < currentMaxFileVersion) {
+      this.$message.error("当前版本落后系统最高版本，不允许审核");
       return false;
     } else if (!this.canReview) {
       this.$message.error("当前状态不允许审核");
@@ -297,18 +295,13 @@ export default class DocumentCompare extends Vue {
 
   // 获取审核警告信息
   getReviewWarningMessage(): string {
-    const newFileVersion: number = this.document.newFileVersion || 0;
-    const currentMaxFileVersion: number =
-      this.document.currentMaxFileVersion || 0;
-    const hasContentError = this.documentColumns.some(
-      (col) =>
-        col.content === "error" || col.content === "加载失败，请刷新页面重试"
-    );
+    const { newFileVersion, currentMaxFileVersion, hasContentError } =
+      this.getVersionStatus();
 
     if (hasContentError) {
       return "文档内容加载失败，请刷新页面重试";
-    } else if (newFileVersion > currentMaxFileVersion) {
-      return `当前版本(V${newFileVersion})高于系统最高版本(V${currentMaxFileVersion})，请先更新系统版本`;
+    } else if (newFileVersion < currentMaxFileVersion) {
+      return `当前版本(V${newFileVersion})落后系统最高版本(V${currentMaxFileVersion})，请先更新系统版本`;
     }
     return "当前状态不允许审核";
   }
@@ -440,9 +433,11 @@ export default class DocumentCompare extends Vue {
       tagDisplay = `${this.tempSelectedTagPath[0]}/${this.tempSelectedTagPath[1]}`;
     }
 
-    // 更新标签和施行日期
-    this.document.tags = [...this.tempSelectedTagPath];
-    this.document.effectDate = this.tempEffectDate;
+    // 通过事件通知父组件更新文档数据
+    this.emitUpdateDocument({
+      tags: [...this.tempSelectedTagPath],
+      effectDate: this.tempEffectDate,
+    });
 
     if (tagDisplay) {
       this.$message.success(`已设置标签为: ${tagDisplay}`);
@@ -485,6 +480,14 @@ export default class DocumentCompare extends Vue {
       categorySub,
       effectDateStr,
     };
+  }
+
+  @Emit("update-document")
+  emitUpdateDocument(updateData: {
+    tags: string[];
+    effectDate: string | null;
+  }): { tags: string[]; effectDate: string | null } {
+    return updateData;
   }
 }
 </script>
