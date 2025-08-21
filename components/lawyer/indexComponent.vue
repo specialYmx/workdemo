@@ -144,7 +144,6 @@ export default class IndexComponent extends Vue {
         await this.$roadLawyerService.getUpdateTimeLinessCount({
           condition: this.trendChartPeriod,
         });
-      console.log("趋势图数据:", updateTimelinessData);
 
       // 根据真实API返回的数据结构来解析
       if (updateTimelinessData && typeof updateTimelinessData === "object") {
@@ -176,8 +175,9 @@ export default class IndexComponent extends Vue {
             xAxisData.push(quarterLabels[i]);
           }
         } else if (this.trendChartPeriod === "year") {
-          // 按月显示
-          for (let i = 1; i <= dataLength; i++) {
+          // 按月显示，最多12个月
+          const months = Math.min(dataLength, 12);
+          for (let i = 1; i <= months; i++) {
             xAxisData.push(`${i}月`);
           }
         }
@@ -221,8 +221,6 @@ export default class IndexComponent extends Vue {
     try {
       // 调用真实API获取数据
       const websiteRatioData = await this.$roadLawyerService.getWebSiteRatio();
-      console.log("网站比例数据:", websiteRatioData);
-
       // 定义颜色映射
       const colorMap: SourceColorMap = {
         国家金融监督管理总局: "#1890ff",
@@ -264,8 +262,6 @@ export default class IndexComponent extends Vue {
 
         // 更新图例数据
         this.sourceLegendItems = legendItems;
-
-        console.log("饼图数据处理完成:", { pieData, legendItems });
       } else {
         // 如果API没有返回有效数据，设置空数据
         this.chartData[loadingKey] = {
