@@ -38,6 +38,9 @@ export default class LawyerManualReviewDetailComponent extends Vue {
 
   loading: boolean = false;
 
+  // 组件销毁标志
+  private isDestroyed: boolean = false;
+
   // 返回上一页
   goBack(): void {
     this.$router.back();
@@ -54,46 +57,43 @@ export default class LawyerManualReviewDetailComponent extends Vue {
   }
 
   // 处理审核提交
-  handleReviewSubmit(
+  async handleReviewSubmit(
     reviewData: ReviewSubmitData & {
       categoryMain?: string;
       categorySub?: string;
       effectDateStr?: string | null;
     }
-  ): void {
+  ): Promise<void> {
     const { action, categoryMain, categorySub, effectDateStr } = reviewData;
 
-    // 检查必要的分类信息
-    if (!categoryMain) {
-      this.$message.error("请先在文档对比页面设置分类信息");
-      return;
-    }
-
-    // 处理审核逻辑
-    // 调用API
-    this.$roadLawyerService
-      .approveToDoRule({
+    try {
+      // 调用API
+      await this.$roadLawyerService.approveToDoRule({
         id: this.documentData.id,
         approvalComment: action === "approve" ? "已通过" : "已驳回",
-        effectDateStr: effectDateStr || this.documentData.effectDate, // 优先使用弹窗设置的施行日期
-        categoryMain: categoryMain,
-        categorySub: categorySub,
-      })
-      .then(() => {
-        this.documentData.status =
-          action === "approve" ? "approved" : "rejected";
-
-        this.$message.success(
-          `${action === "approve" ? "通过" : "驳回"}操作成功！`
-        );
-
-        // 审核后返回列表页
-        this.$router.push("/manualReview");
-      })
-      .catch((error) => {
-        console.error("审核操作失败:", error);
-        this.$message.error("审核操作失败，请重试");
+        effectDateStr: effectDateStr || this.documentData.effectDate, // 优先使用弹窗设置的施行日期，允许为空
+        categoryMain: categoryMain, // 允许为空
+        categorySub: categorySub, // 允许为空
       });
+
+      // 检查组件是否已销毁
+      if (this.isDestroyed) return;
+
+      this.documentData.status = action === "approve" ? "approved" : "rejected";
+
+      this.$message.success(
+        `${action === "approve" ? "通过" : "驳回"}操作成功！`
+      );
+
+      // 审核后返回列表页
+      this.$router.push("/manualReview");
+    } catch (error) {
+      // 检查组件是否已销毁
+      if (this.isDestroyed) return;
+
+      console.error("审核操作失败:", error);
+      this.$message.error("审核操作失败，请重试");
+    }
   }
 
   // 字符串清理工具函数
@@ -298,6 +298,9 @@ export default class LawyerManualReviewDetailComponent extends Vue {
           currentMaxFileVersion: result.currentMaxFileVersion || 0,
         };
       } else {
+        // 检查组件是否已销毁
+        if (this.isDestroyed) return;
+
         // 数据为空
         this.documentData = {
           id: docId as string,
@@ -314,6 +317,9 @@ export default class LawyerManualReviewDetailComponent extends Vue {
         this.$message.error("获取的文档数据为空，请检查文档ID是否正确");
       }
     } catch (error) {
+      // 检查组件是否已销毁
+      if (this.isDestroyed) return;
+
       console.error("获取文档对比数据失败:", error);
       this.$message.error("获取文档对比数据失败，请重试");
 
@@ -337,7 +343,10 @@ export default class LawyerManualReviewDetailComponent extends Vue {
         currentMaxFileVersion: 0,
       };
     } finally {
-      this.loading = false;
+      // 检查组件是否已销毁
+      if (!this.isDestroyed) {
+        this.loading = false;
+      }
     }
   }
 
@@ -345,6 +354,11 @@ export default class LawyerManualReviewDetailComponent extends Vue {
   created(): void {
     // 在created钩子中获取数据
     this.fetchDocumentData();
+  }
+
+  // 组件销毁前清理
+  beforeDestroy(): void {
+    this.isDestroyed = true;
   }
 }
 </script>
