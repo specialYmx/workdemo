@@ -93,7 +93,7 @@
             <!-- 状态列插槽 -->
             <span slot="status" slot-scope="text">
               <span :class="getCheckStatusClass(text)">
-                {{ getCheckStatusText(text) }}
+                {{ text || "未知状态" }}
               </span>
             </span>
 
@@ -243,7 +243,6 @@ export default class LawyerManualReviewIndexComponent extends Vue {
       `共 ${total} 条数据，显示第 ${range[0]}-${range[1]} 条`,
     pageSizeOptions: ["10", "20", "50", "100"],
   };
-  currentDocument: ToDoRuleItem | null = null;
 
   // 状态选项
   statusOptions: FilterOption[] = [
@@ -474,30 +473,14 @@ export default class LawyerManualReviewIndexComponent extends Vue {
     this.$message.success("数据已刷新");
   }
 
-  // 获取审核状态文本
-  getCheckStatusText(status: string | null): string {
-    // 如果状态已经是汉字，直接返回
-    if (status === "待审核" || status === "已通过" || status === "已驳回") {
-      return status;
-    }
-    // 兼容数字格式的状态
-    const textMap: StatusMap = {
-      "0": "待审核",
-      "1": "已通过",
-      "2": "已驳回",
-    };
-    return textMap[status || ""] || "未知状态";
-  }
-
   // 获取审核状态样式类（使用全局样式）
   getCheckStatusClass(status: string | null): string {
-    const statusText = this.getCheckStatusText(status);
     const classMap: StatusMap = {
       待审核: "lawyer-status-pending",
       已通过: "lawyer-status-approved",
       已驳回: "lawyer-status-rejected",
     };
-    return classMap[statusText] || "lawyer-status-pending";
+    return classMap[status || ""] || "lawyer-status-pending";
   }
 
   // 格式化时间显示
@@ -544,15 +527,13 @@ export default class LawyerManualReviewIndexComponent extends Vue {
       return;
     }
 
-    this.currentDocument = document;
-
     this.$confirm({
       title: "确认通过",
       content: `确定要通过文档"${document.ruleName}"的审核吗？`,
       okText: "确认通过",
       cancelText: "取消",
       onOk: () => {
-        this.submitReview("approve");
+        this.submitReview("approve", document);
       },
     });
   }
@@ -565,8 +546,6 @@ export default class LawyerManualReviewIndexComponent extends Vue {
       return;
     }
 
-    this.currentDocument = document;
-
     this.$confirm({
       title: "确认驳回",
       content: `确定要驳回文档"${document.ruleName}"吗？`,
@@ -574,17 +553,17 @@ export default class LawyerManualReviewIndexComponent extends Vue {
       okType: "danger",
       cancelText: "取消",
       onOk: () => {
-        this.submitReview("reject");
+        this.submitReview("reject", document);
       },
     });
   }
 
   // 提交审核
-  async submitReview(action: string): Promise<void> {
+  async submitReview(action: string, document: ToDoRuleItem): Promise<void> {
     try {
       // 调用统一的审核接口，通过approvalComment传递状态
       await this.$roadLawyerService.approveToDoRule({
-        id: this.currentDocument?.id || "",
+        id: document.id,
         approvalComment: action === "approve" ? "已通过" : "已驳回",
       });
 
