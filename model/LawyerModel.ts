@@ -119,17 +119,6 @@ export interface UploadErrorData {
   error: Error | unknown;
 }
 
-// ==================== 通用类型定义 ====================
-
-// 搜索匹配位置信息
-export interface MatchPosition {
-  start: number; // 匹配开始位置
-  length: number; // 匹配长度
-}
-
-// 搜索匹配位置集合
-export type MatchesPosition = Record<string, MatchPosition[]>;
-
 // ==================== 基础参数接口 ====================
 
 // 通用字符串映射接口
@@ -248,7 +237,6 @@ export interface BaseRuleItem {
   diffResultId: string | null;
   initDataFlag: number;
   deleted: number;
-  _matchesPosition: MatchesPosition;
 }
 
 // 法规文档信息（基于真实API数据结构）
@@ -267,8 +255,8 @@ export interface RuleUpdateItem extends BaseRuleItem {
 
 // ==================== 人工审核相关数据模型 ====================
 
-// 人工审核列表项接口（基于真实数据结构）
-export interface ToDoRuleItem {
+// 审核相关基础接口（包含共同属性）
+export interface BaseAuditRuleItem {
   id: string;
   diffResultId: string | null;
   ruleName: string;
@@ -285,8 +273,7 @@ export interface ToDoRuleItem {
   filePathOther: string | null; // 其他文件路径，如docx
   fileVersion: number; // 文件版本号
   updateTime: string | null; // 更新时间
-  checkTime: string | null; // 审核时间
-  checkStatus: string; // 审核状态，如："待审核"
+  checkStatus: string; // 审核状态，如："待审核"、"已通过"、"已驳回"
   deleted: number; // 删除标记，0表示未删除
   createdTime: string; // 创建时间，如："2025-08-13T19:14:27"
   currentMaxFileVersion: number; // 当前最大文件版本
@@ -296,33 +283,14 @@ export interface ToDoRuleItem {
   noticeContent: string | null; // 通知内容，JSON字符串格式
 }
 
+// 人工审核列表项接口（基于真实数据结构）
+export interface ToDoRuleItem extends BaseAuditRuleItem {
+  checkTime: string | null; // 审核时间（待审核时可能为null）
+}
+
 // 已完成审核列表项接口（基于真实数据结构）
-export interface CompletedRuleItem {
-  id: string;
-  diffResultId: string | null;
-  ruleName: string;
-  documentNo: string | null; // 文号
-  websiteName: string; // 网站名称
-  legalSource: string | null; // 发布机构
-  url: string;
-  publishTime: string | null; // 发布时间
-  effectDate: string | null; // 生效日期
-  categoryMain: string | null; // 主分类
-  categorySub: string | null; // 子分类
-  effectivenessLevel: string | null; // 效力层级
-  filePathTxt: string | null; // txt文件路径
-  filePathOther: string | null; // 其他文件路径
-  fileVersion: number; // 文件版本号
-  updateTime: string | null; // 更新时间
-  checkTime: string; // 审核时间
-  checkStatus: string; // 审核状态："已通过" | "已驳回"
-  noticeContent: string | null; // 通知内容，JSON字符串格式
-  invokeContent: string | null; // 调用内容
-  deleted: number; // 删除标记
-  createdTime: string; // 创建时间
-  ruleType: string | null; // 规则类型
-  currentMaxFileVersion: number; // 当前最大文件版本
-  parentId: string | null; // 父级ID（统一字段名）
+export interface CompletedRuleItem extends BaseAuditRuleItem {
+  checkTime: string; // 审核时间（已完成审核必然有审核时间）
 }
 
 // ==================== 通用数据模型 ====================
@@ -633,6 +601,7 @@ export interface UpdateItem {
   description: string;
   fileContent?: string;
   summary?: string;
+  summaryArray: string[]; // 预处理的摘要数组
   date: string;
   source: string;
   category: string;

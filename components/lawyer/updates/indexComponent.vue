@@ -42,15 +42,12 @@
 
               <!-- AI智能解读 -->
               <div
-                v-if="item.summary && parseSummaryArray(item.summary).length"
+                v-if="item.summary && item.summaryArray.length"
                 class="lawyer-ai-summary"
               >
                 <h4>AI智能解读主要变更点：</h4>
                 <ul>
-                  <li
-                    v-for="(point, index) in parseSummaryArray(item.summary)"
-                    :key="index"
-                  >
+                  <li v-for="(point, index) in item.summaryArray" :key="index">
                     <span>
                       <strong v-if="getSummaryTitle(point)"
                         >{{ getSummaryTitle(point) }}：</strong
@@ -205,12 +202,16 @@ export default class LawyerUpdatesIndexComponent extends Vue {
       // 生成描述 - 优先使用fileContent并进行字数省略
       const description: string = this.getUpdateDescription(item.fileContent);
 
+      // 预处理摘要数组，避免模板中重复计算
+      const summaryArray: string[] = this.parseSummaryArray(item.summary || "");
+
       return {
         id: item.id,
         title: item.ruleName || "未知标题",
         description,
         fileContent: item.fileContent || "",
         summary: item.summary || "",
+        summaryArray,
         date: item.createdTimeStr || item.publishDateStr || "未知时间",
         source: item.legalSource || "未知来源",
         category: item.categoryMain || "其他",
