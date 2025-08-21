@@ -29,5 +29,5 @@ export default {
 
   // ==================== 爬取统计相关接口 (rule-crawl-controller) ====================
   getCrawlHtmlList: "/legal/crawl/getHtmlList", // 获取爬取HTML列表
-  executeCrawlTask: "/legal/crawl/grabThisPage", // 执行爬取任务
+  executeCrawlTask: "/legal/crawl/runTask", // 执行爬取任务
 } as Record<string, string>;

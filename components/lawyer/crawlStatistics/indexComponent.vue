@@ -23,13 +23,15 @@
               />
             </a-col>
             <a-col :span="5">
-              <a-date-picker
-                v-model="searchParams.publishDate"
-                placeholder="发布日期"
-                format="YYYY-MM-DD"
-                value-format="YYYY-MM-DD"
-                style="width: 100%"
-              />
+              <div>
+                <a-date-picker
+                  v-model="searchParams.publishDate"
+                  placeholder="发布日期"
+                  format="YYYY-MM-DD"
+                  value-format="YYYY-MM-DD"
+                  style="width: 100%"
+                />
+              </div>
             </a-col>
             <a-col :span="9" class="lawyer-search-buttons">
               <div class="lawyer-button-group">

@@ -67,6 +67,9 @@
               >
                 {{ tag }}
               </span>
+              <span class="lawyer-tag lawyer-tag-source">
+                {{ item.legalSource || "未知来源" }}
+              </span>
             </div>
           </div>
         </div>
@@ -346,6 +349,11 @@ export default class LatestUpdates extends Vue {
     color: #1890ff;
     background-color: rgba(24, 144, 255, 0.1);
   }
+}
+.lawyer-tag-source {
+  border-color: #52c41a;
+  color: #52c41a;
+  background-color: rgba(82, 196, 26, 0.1);
 }
 
 /* 空状态样式 */

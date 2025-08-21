@@ -68,6 +68,9 @@
                   >
                     {{ tag }}
                   </span>
+                  <span class="lawyer-tag lawyer-tag-source">
+                    {{ item.source }}
+                  </span>
                 </div>
                 <div class="lawyer-flex lawyer-gap-sm">
                   <a
@@ -518,6 +521,13 @@ export default class LawyerUpdatesIndexComponent extends Vue {
       border-color: #1890ff;
       color: #1890ff;
       background-color: rgba(24, 144, 255, 0.1);
+    }
+
+    // 来源标签 - 绿色
+    &.lawyer-tag-source {
+      border-color: #52c41a;
+      color: #52c41a;
+      background-color: rgba(82, 196, 26, 0.1);
     }
 
     // 默认样式

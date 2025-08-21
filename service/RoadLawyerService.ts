@@ -456,10 +456,7 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
     };
 
     try {
-      const res = await $axios.post(
-        api.lawyer.getCrawlHtmlList,
-        toFormData(params)
-      );
+      const res = await $axios.post(api.lawyer.getCrawlHtmlList, params);
       return (
         res.data || {
           status: "error",
