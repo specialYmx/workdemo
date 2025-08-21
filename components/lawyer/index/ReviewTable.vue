@@ -6,7 +6,7 @@
     title="Top 5 需要人工审核"
   >
     <template slot="extra">
-      <a-button type="primary" @click="$emit('view-all')"> 查看全部 </a-button>
+      <a-button type="primary" @click="viewAll()"> 查看全部 </a-button>
     </template>
 
     <a-spin :spinning="loading">
@@ -63,9 +63,7 @@
         <!-- 操作列插槽 -->
         <template slot="action" slot-scope="text, record">
           <div class="lawyer-action-links">
-            <a @click="$emit('view-detail', record)" class="lawyer-link-view">
-              查看
-            </a>
+            <a @click="viewDetail(record)" class="lawyer-link-view"> 查看 </a>
             <template
               v-if="
                 (record.checkStatus === '待审核' ||
@@ -73,10 +71,10 @@
                 canReviewItem(record)
               "
             >
-              <a @click="$emit('approve', record)" class="lawyer-link-approve">
+              <a @click="approveItem(record)" class="lawyer-link-approve">
                 通过
               </a>
-              <a @click="$emit('reject', record)" class="lawyer-link-reject">
+              <a @click="rejectItem(record)" class="lawyer-link-reject">
                 驳回
               </a>
             </template>
@@ -88,7 +86,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue, Prop } from "nuxt-property-decorator";
+import { Component, Vue, Prop, Emit } from "nuxt-property-decorator";
 import moment from "moment";
 import { ToDoRuleItem, ReviewStatusClassMap } from "~/model/LawyerModel";
 import { CustomColumn } from "~/model/CommonModel";
@@ -180,6 +178,19 @@ export default class ReviewTable extends Vue {
     if (!timeStr) return "-";
     return moment(timeStr).format("YYYY-MM-DD HH:mm:ss");
   }
+
+  // 组件事件定义
+  @Emit("view-all")
+  viewAll() {}
+
+  @Emit("view-detail")
+  viewDetail(record: ToDoRuleItem) {}
+
+  @Emit("approve")
+  approveItem(record: ToDoRuleItem) {}
+
+  @Emit("reject")
+  rejectItem(record: ToDoRuleItem) {}
 }
 </script>
 

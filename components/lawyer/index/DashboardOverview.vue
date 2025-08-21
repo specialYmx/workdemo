@@ -18,7 +18,7 @@
           {{ timeOption.label }}
         </a-button>
       </div>
-      <a-button type="primary" icon="file-pdf" @click="$emit('export-report')">
+      <a-button type="primary" icon="file-pdf" @click="exportReport()">
         导出报告
       </a-button>
     </div>
@@ -57,7 +57,7 @@
           <div class="lawyer-chart-header">
             <h3 class="lawyer-chart-title">近期完成审核</h3>
             <div class="lawyer-chart-actions">
-              <a-button type="primary" @click="$emit('view-reviews')">
+              <a-button type="primary" @click="viewReviews()">
                 查看历史记录
               </a-button>
             </div>
@@ -139,7 +139,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue, Prop } from "nuxt-property-decorator";
+import { Component, Vue, Prop, Emit } from "nuxt-property-decorator";
 
 import moment from "moment";
 import {
@@ -312,6 +312,13 @@ export default class DashboardOverview extends Vue {
     if (!timeStr) return "-";
     return moment(timeStr).format("YYYY-MM-DD HH:mm:ss");
   }
+
+  // 组件事件定义
+  @Emit("export-report")
+  exportReport() {}
+
+  @Emit("view-reviews")
+  viewReviews() {}
 }
 </script>
 

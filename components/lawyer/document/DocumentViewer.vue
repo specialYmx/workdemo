@@ -85,7 +85,7 @@
         :width="400"
         okText="确认"
         cancelText="取消"
-        :getContainer="() => $refs.documentViewerContainer"
+        :get-container="() => $refs.documentViewerContainer"
       >
         <div class="lawyer-revoke-status-content">
           <div class="lawyer-status-row">
@@ -220,41 +220,6 @@ export default class DocumentViewer extends Vue {
   handleRevokeStatusCancel(): void {
     this.revokeStatusVisible = false;
   }
-
-  // 使选中内容在视图中可见
-  makeSelectionVisible(): void {
-    const selection: Selection | null = window.getSelection();
-    if (selection && selection.rangeCount > 0) {
-      const range: Range = selection.getRangeAt(0);
-      if (range) {
-        // 获取选中范围的边界矩形
-        const rect: DOMRect = range.getBoundingClientRect();
-
-        // 获取文档容器
-        const contentDiv = this.$refs.documentContent as HTMLElement;
-        if (contentDiv) {
-          // 判断选中内容是否在可视区域内
-          const containerRect: DOMRect = contentDiv.getBoundingClientRect();
-
-          // 如果选中内容不在可视区域内，滚动到该位置
-          if (
-            rect.top < containerRect.top ||
-            rect.bottom > containerRect.bottom
-          ) {
-            // 使用scrollIntoView确保元素可见
-            const parentElement = range.startContainer.parentElement;
-            if (parentElement) {
-              parentElement.scrollIntoView({
-                behavior: "smooth",
-                block: "center",
-              });
-            }
-          }
-        }
-      }
-    }
-  }
-
   // 下载文档
   async downloadDocument(): Promise<void> {
     try {

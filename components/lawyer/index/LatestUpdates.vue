@@ -6,7 +6,7 @@
     title="最新法规更新"
   >
     <template slot="extra">
-      <a-button type="primary" @click="$emit('view-all')"> 查看全部 </a-button>
+      <a-button type="primary" @click="viewAll()"> 查看全部 </a-button>
     </template>
 
     <a-spin :spinning="loading">
@@ -16,7 +16,11 @@
       </div>
 
       <div class="lawyer-updates-list" v-else>
-        <div v-for="item in updates" :key="item.id" class="lawyer-update-item">
+        <div
+          v-for="item in processedUpdates"
+          :key="item.id"
+          class="lawyer-update-item"
+        >
           <div :class="['lawyer-update-icon', getUpdateType(item)]">
             <template v-if="getUpdateType(item) === 'law'">⚖️</template>
             <template v-else-if="getUpdateType(item) === 'policy'">📋</template>
@@ -28,7 +32,7 @@
           <div class="lawyer-update-content">
             <div class="lawyer-flex lawyer-justify-between">
               <h3 class="lawyer-update-title">
-                <a @click="$emit('view-detail', item)">{{ item.ruleName }}</a>
+                <a @click="viewDetail(item)">{{ item.ruleName }}</a>
               </h3>
               <span class="lawyer-text-light">{{
                 item.publishDateStr || item.createdTimeStr
@@ -40,15 +44,12 @@
 
             <!-- AI智能解读 -->
             <div
-              v-if="item.summary && parseSummaryArray(item.summary).length"
+              v-if="item.summary && item.parsedSummary.length"
               class="lawyer-ai-summary"
             >
               <h4>AI智能解读主要变更点：</h4>
               <ul>
-                <li
-                  v-for="(point, index) in parseSummaryArray(item.summary)"
-                  :key="index"
-                >
+                <li v-for="(point, index) in item.parsedSummary" :key="index">
                   <span>
                     <strong v-if="getSummaryTitle(point)"
                       >{{ getSummaryTitle(point) }}：</strong
@@ -75,13 +76,21 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue, Prop } from "nuxt-property-decorator";
+import { Component, Vue, Prop, Emit } from "nuxt-property-decorator";
 import { BaseRuleItem } from "~/model/LawyerModel";
 
 @Component({ name: "latest-updates" })
 export default class LatestUpdates extends Vue {
   @Prop({ type: Array, default: () => [] }) updates!: BaseRuleItem[];
   @Prop({ type: Boolean, default: false }) loading!: boolean;
+
+  // 预处理updates数据，避免在模板中重复解析
+  get processedUpdates() {
+    return this.updates.map((item) => ({
+      ...item,
+      parsedSummary: this.parseSummaryArray(item.summary),
+    }));
+  }
 
   // 获取更新类型
   getUpdateType(item: BaseRuleItem): string {
@@ -111,7 +120,7 @@ export default class LatestUpdates extends Vue {
     return [item.categoryMain, item.categorySub].filter(Boolean);
   }
 
-  getTagClass(index: number = 0): string {
+  getTagClass(index: number): string {
     // 第0个标签是主分类，使用橙色
     if (index === 0) {
       return "lawyer-tag-main";
@@ -203,6 +212,13 @@ export default class LatestUpdates extends Vue {
 
     return point.substring(colonIndex + 1).trim();
   }
+
+  // 组件事件定义
+  @Emit("view-all")
+  viewAll() {}
+
+  @Emit("view-detail")
+  viewDetail(item: BaseRuleItem) {}
 }
 </script>
 
