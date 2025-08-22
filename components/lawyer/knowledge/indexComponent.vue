@@ -16,7 +16,9 @@
               size="large"
               v-model="searchText"
               class="lawyer-search-input"
+              :allowClear="true"
               @keyup.enter="onSearch"
+              @change="onSearchInputChange"
             />
             <a-button
               v-for="(btn, index) in searchButtons"
@@ -37,10 +39,10 @@
             <!-- 时效性选择器 -->
             <div class="lawyer-filter-group">
               <a-select
-                v-model="timeLinessFilter"
+                v-model="timelinessFilter"
                 style="width: 100%"
                 placeholder="时效性"
-                @change="onSearch"
+                @change="onFilterChange"
               >
                 <a-select-option
                   v-for="option in timeLinessOptions"
@@ -57,7 +59,7 @@
                 v-model="effectivenessLevelFilter"
                 style="width: 100%"
                 placeholder="效力位阶"
-                @change="onSearch"
+                @change="onFilterChange"
               >
                 <a-select-option
                   v-for="option in effectivenessLevelOptions"
@@ -75,7 +77,7 @@
                 :options="topicCategoryOptions"
                 placeholder="专题分类"
                 style="width: 100%"
-                @change="onSearch"
+                @change="onFilterChange"
                 :show-search="true"
               />
             </div>
@@ -85,7 +87,7 @@
                 v-model="filterSource"
                 style="width: 100%"
                 placeholder="全部来源"
-                @change="onSearch"
+                @change="onFilterChange"
               >
                 <a-select-option value="all">全部来源</a-select-option>
                 <a-select-option
@@ -105,7 +107,7 @@
                 placeholder="发布时间"
                 format="YYYY-MM-DD"
                 value-format="YYYY-MM-DD"
-                @change="onSearch"
+                @change="onFilterChange"
                 :allowClear="true"
               />
             </div>
@@ -115,7 +117,7 @@
                 v-model="sortOrder"
                 style="width: 100%"
                 placeholder="排序方式"
-                @change="onSearch"
+                @change="onFilterChange"
               >
                 <a-select-option value="desc"
                   >按发布日期 (新→旧)</a-select-option
@@ -260,7 +262,7 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
   filterSource: string = "all";
   sortOrder: string = "desc";
   topicCategory: string[] = [];
-  timeLinessFilter: string = "all";
+  timelinessFilter: string = "all";
   effectivenessLevelFilter: string = "all";
   publishDate: string | null = null;
   isFavoritesMode: boolean = false;
@@ -296,6 +298,14 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
         loading: this.searchLoading,
         isActive: false,
         handler: this.onSearch,
+      },
+      {
+        text: "精确搜索",
+        icon: "search",
+        type: "default",
+        loading: this.searchLoading,
+        isActive: false,
+        handler: this.onExactSearch,
       },
       {
         text: "我的收藏",
@@ -355,11 +365,37 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
   async onSearch(): Promise<void> {
     this.searchLoading = true;
     try {
-      await this.loadDocuments();
+      await this.loadDocuments("normal");
     } catch (error) {
       console.error("搜索失败:", error);
     } finally {
       this.searchLoading = false;
+    }
+  }
+
+  async onExactSearch(): Promise<void> {
+    this.searchLoading = true;
+    try {
+      await this.loadDocuments("exact");
+    } catch (error) {
+      console.error("精确搜索失败:", error);
+    } finally {
+      this.searchLoading = false;
+    }
+  }
+
+  async onFilterChange(): Promise<void> {
+    // 筛选器变化时使用默认搜索（普通搜索）
+    await this.loadDocuments("default");
+  }
+
+  onSearchInputChange(e: Event): void {
+    const target = e.target as HTMLInputElement;
+    // 当输入框被清空时（用户点击清空按钮或手动删除所有内容）
+    if (!target.value || target.value.trim() === "") {
+      this.searchText = "";
+      // 自动执行搜索以显示所有结果
+      this.loadDocuments("default");
     }
   }
 
@@ -507,7 +543,7 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
     this.currentUploadDocTitle = "";
   }
 
-  handleUploadSuccess(data): void {
+  handleUploadSuccess(data: any): void {
     this.loadDocuments();
   }
 
@@ -571,17 +607,27 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
     }
   }
 
-  async loadDocuments(): Promise<void> {
+  async loadDocuments(
+    searchType: "normal" | "exact" | "default" = "default"
+  ): Promise<void> {
     this.listLoading = true;
     try {
       const params: RuleSourceQueryParams = {
         empId: this.$store.state.auth.id,
       };
+
+      // 根据搜索类型设置不同的参数
       if (this.searchText) {
-        params.query = this.searchText;
+        if (searchType === "exact") {
+          // 精确搜索：使用 keyWord 参数，不传 query
+          params.keyWord = this.searchText;
+        } else {
+          // 普通搜索或默认：使用 query 参数，不传 keyWord
+          params.query = this.searchText;
+        }
       }
-      if (this.timeLinessFilter && this.timeLinessFilter !== "all") {
-        params.timeLiness = this.timeLinessFilter;
+      if (this.timelinessFilter && this.timelinessFilter !== "all") {
+        params.timeLiness = this.timelinessFilter;
       }
       if (
         this.effectivenessLevelFilter &&

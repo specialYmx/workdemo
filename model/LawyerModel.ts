@@ -701,6 +701,7 @@ export interface RuleUpdateQueryParams extends BaseQueryParams {
 // 法规来源查询参数
 export interface RuleSourceQueryParams extends BaseQueryParams {
   query?: string;
+  keyWord?: string;
   timeLiness?: string;
   effectivenessLevel?: string;
   categoryMain?: string;
