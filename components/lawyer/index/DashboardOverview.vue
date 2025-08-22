@@ -64,7 +64,7 @@
           </div>
 
           <a-spin :spinning="recentReviewsLoading">
-            <div class="lawyer-review-list">
+            <div v-if="recentReviews.length" class="lawyer-review-list">
               <div
                 class="lawyer-review-item"
                 v-for="(item, index) in recentReviews"
@@ -92,6 +92,7 @@
                 </div>
               </div>
             </div>
+            <a-empty v-else></a-empty>
           </a-spin>
         </div>
       </div>
@@ -100,16 +101,32 @@
       <div class="lawyer-trend-chart">
         <div class="lawyer-chart-header">
           <h3 class="lawyer-chart-title">法规更新趋势</h3>
-          <div style="width: 100px">
+          <div class="lawyer-trend-selectors">
             <a-select
               :value="trendChartPeriod"
               size="small"
-              @change="handleTrendPeriodChange"
+              @change="handlePeriodTypeChange"
             >
               <a-select-option value="month">月度</a-select-option>
               <a-select-option value="quarter">季度</a-select-option>
-              <a-select-option value="year">全年</a-select-option>
+              <a-select-option value="year">年度</a-select-option>
             </a-select>
+            <div class="w-100 ml-8">
+              <a-select
+                :value="trendChartValue"
+                size="small"
+                style="width: 80px"
+                @change="handlePeriodValueChange"
+              >
+                <a-select-option
+                  v-for="option in periodValueOptions"
+                  :key="option.value"
+                  :value="option.value"
+                >
+                  {{ option.label }}
+                </a-select-option>
+              </a-select>
+            </div>
           </div>
         </div>
         <div class="lawyer-chart-legend">
@@ -161,6 +178,9 @@ export default class DashboardOverview extends Vue {
   @Prop({ type: Boolean, default: false }) trendChartLoading!: boolean;
   @Prop({ type: String, default: "month" }) activeTimeRange!: string;
   @Prop({ type: String, default: "month" }) trendChartPeriod!: string;
+  @Prop({ type: [String, Number], default: null }) trendChartValue!:
+    | string
+    | number;
 
   // 时间选项
   timeOptions: TimeOption[] = [
@@ -174,9 +194,61 @@ export default class DashboardOverview extends Vue {
     this.$emit("time-range-change", value);
   }
 
-  // 处理趋势图周期变更
-  handleTrendPeriodChange(value: string): void {
-    this.$emit("trend-period-change", value);
+  // 处理趋势图周期类型变更
+  handlePeriodTypeChange(value: string): void {
+    // 当周期类型改变时，重置为默认值
+    const defaultValue = this.getDefaultValueForPeriod(value);
+    this.$emit("trend-period-change", value, defaultValue);
+  }
+
+  // 处理趋势图周期值变更
+  handlePeriodValueChange(value: string | number): void {
+    this.$emit("trend-period-change", this.trendChartPeriod, value);
+  }
+
+  // 获取周期类型的默认值
+  getDefaultValueForPeriod(period: string): number {
+    const now = new Date();
+    switch (period) {
+      case "month":
+        return now.getMonth() + 1; // 当前月份
+      case "quarter":
+        return Math.ceil((now.getMonth() + 1) / 3); // 当前季度
+      case "year":
+        return now.getFullYear(); // 当前年份
+      default:
+        return 1;
+    }
+  }
+
+  // 计算第二个选择器的选项
+  get periodValueOptions(): Array<{ label: string; value: number }> {
+    switch (this.trendChartPeriod) {
+      case "month":
+        // 1-12月
+        return Array.from({ length: 12 }, (_, i) => ({
+          label: `${i + 1}月`,
+          value: i + 1,
+        }));
+      case "quarter":
+        // 1-4季度
+        return Array.from({ length: 4 }, (_, i) => ({
+          label: `第${i + 1}季度`,
+          value: i + 1,
+        }));
+      case "year":
+        // 近几年的年份选项
+        const currentYear = new Date().getFullYear();
+        return Array.from({ length: 11 }, (_, i) => {
+          const year = currentYear - 5 + i;
+          return {
+            label: `${year}年`,
+            value: year,
+          };
+        });
+      default:
+        return [];
+    }
   }
 
   // 将十六进制颜色转换为RGB格式
@@ -470,6 +542,14 @@ export default class DashboardOverview extends Vue {
   .lawyer-chart-title {
     font-weight: 500;
   }
+
+  .lawyer-trend-selectors {
+    display: flex;
+    align-items: center;
+  }
+}
+.w-100 {
+  width: 80px;
 }
 
 .lawyer-chart-container {

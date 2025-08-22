@@ -11,6 +11,7 @@
         :trend-chart-loading="chartLoading.trend"
         :active-time-range="activeTimeRange"
         :trend-chart-period="trendChartPeriod"
+        :trend-chart-value="trendChartValue"
         @time-range-change="handleTimeRangeChange"
         @trend-period-change="handleTrendPeriodChange"
         @export-report="exportStatisticReport"
@@ -91,6 +92,9 @@ export default class IndexComponent extends Vue {
   // 图表周期
   trendChartPeriod: string = "month";
 
+  // 图表周期具体值
+  trendChartValue: number = new Date().getMonth() + 1;
+
   // 列表数据
   recentReviews: CompletedRuleItem[] = [];
   topReviews: ToDoRuleItem[] = [];
@@ -130,8 +134,9 @@ export default class IndexComponent extends Vue {
     this.loadMonthlyUpdateCount();
   }
 
-  handleTrendPeriodChange(value: string): void {
-    this.trendChartPeriod = value;
+  handleTrendPeriodChange(period: string, value: number): void {
+    this.trendChartPeriod = period;
+    this.trendChartValue = value;
     this.loadTrendChartData();
   }
 
@@ -143,6 +148,7 @@ export default class IndexComponent extends Vue {
       const updateTimelinessData =
         await this.$roadLawyerService.getUpdateTimeLinessCount({
           condition: this.trendChartPeriod,
+          value: this.trendChartValue,
         });
 
       // 根据真实API返回的数据结构来解析
@@ -162,20 +168,32 @@ export default class IndexComponent extends Vue {
         );
         const xAxisData: string[] = [];
 
-        // 根据周期生成不同的X轴标签
+        // 根据周期和具体值生成不同的X轴标签
         if (this.trendChartPeriod === "month") {
-          // 按日显示
-          for (let i = 1; i <= dataLength; i++) {
+          // 选择了月度+具体月份：显示该月的每一天
+          const daysInMonth = new Date(
+            new Date().getFullYear(),
+            this.trendChartValue,
+            0
+          ).getDate();
+          const actualLength = Math.min(dataLength, daysInMonth);
+          for (let i = 1; i <= actualLength; i++) {
             xAxisData.push(`${i}日`);
           }
         } else if (this.trendChartPeriod === "quarter") {
-          // 按季度显示
-          const quarterLabels: string[] = ["Q1", "Q2", "Q3", "Q4"];
-          for (let i = 0; i < Math.min(dataLength, 4); i++) {
-            xAxisData.push(quarterLabels[i]);
+          // 选择了季度+具体季度：显示该季度的三个月
+          const quarterStartMonth = (this.trendChartValue - 1) * 3 + 1;
+          const monthLabels = [
+            `${quarterStartMonth}月`,
+            `${quarterStartMonth + 1}月`,
+            `${quarterStartMonth + 2}月`,
+          ];
+          const actualLength = Math.min(dataLength, 3);
+          for (let i = 0; i < actualLength; i++) {
+            xAxisData.push(monthLabels[i]);
           }
         } else if (this.trendChartPeriod === "year") {
-          // 按月显示，最多12个月
+          // 选择了年度+具体年份：显示该年的12个月
           const months = Math.min(dataLength, 12);
           for (let i = 1; i <= months; i++) {
             xAxisData.push(`${i}月`);
