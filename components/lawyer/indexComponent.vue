@@ -14,14 +14,14 @@
         @time-range-change="handleTimeRangeChange"
         @trend-period-change="handleTrendPeriodChange"
         @export-report="exportStatisticReport"
-        @view-reviews="goToReviewPage"
+        @view-reviews="goToReviewPageFromHistory"
       />
 
       <!-- Top 5 需要人工审核 -->
       <lawyer-index-review-table
         :reviews="topReviews"
         :loading="listLoading.topReviews"
-        @view-all="goToReviewPage"
+        @view-all="goToReviewPageFromPending"
         @view-detail="viewReviewDetail"
         @approve="approveReview"
         @reject="rejectReview"
@@ -351,9 +351,20 @@ export default class IndexComponent extends Vue {
     }
   }
 
-  // 页面跳转方法
-  goToReviewPage(): void {
-    this.$router.push("/manualReview");
+  // 从查看历史记录跳转到人工审核页面（显示已通过和已驳回）
+  goToReviewPageFromHistory(): void {
+    this.$router.push({
+      path: "/manualReview",
+      query: { filter: "completed" },
+    });
+  }
+
+  // 从待审核列表查看全部跳转到人工审核页面（显示待审核）
+  goToReviewPageFromPending(): void {
+    this.$router.push({
+      path: "/manualReview",
+      query: { filter: "pending" },
+    });
   }
 
   goToUpdatesPage(): void {

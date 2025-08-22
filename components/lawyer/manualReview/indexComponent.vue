@@ -205,7 +205,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "nuxt-property-decorator";
+import { Component, Vue, Watch } from "nuxt-property-decorator";
 import moment from "moment";
 import {
   ToDoRuleItem,
@@ -232,6 +232,12 @@ export default class LawyerManualReviewIndexComponent extends Vue {
   // 表格勾选相关
   selectedRowKeys: string[] = [];
   selectedRows: ToDoRuleItem[] = [];
+
+  // 表格筛选状态
+  tableFilters: { [key: string]: string[] } = {};
+
+  // 组件销毁标志
+  private isDestroyed: boolean = false;
 
   // 当前分页配置
   currentPagination: any = {
@@ -269,111 +275,181 @@ export default class LawyerManualReviewIndexComponent extends Vue {
   }
 
   // 表格列配置（使用 any 以避免对 CommonModel.ts 的依赖）
-  columns: CustomColumn[] = [
-    {
-      title: "标题/文号",
-      key: "ruleName",
-      scopedSlots: {
-        customRender: "ruleName",
-        filterDropdown: "filterDropdown",
-        filterIcon: "filterIcon",
+  get columns(): CustomColumn[] {
+    return [
+      {
+        title: "标题/文号",
+        key: "ruleName",
+        scopedSlots: {
+          customRender: "ruleName",
+          filterDropdown: "filterDropdown",
+          filterIcon: "filterIcon",
+        },
+        onFilter: (value: string, record: ToDoRuleItem) => {
+          const searchValue = String(value).toLowerCase();
+          const ruleName = String(record.ruleName || "").toLowerCase();
+          const categorySub = String(record.categorySub || "").toLowerCase();
+          return (
+            ruleName.includes(searchValue) || categorySub.includes(searchValue)
+          );
+        },
       },
-      onFilter: (value: string, record: ToDoRuleItem) => {
-        const searchValue = String(value).toLowerCase();
-        const ruleName = String(record.ruleName || "").toLowerCase();
-        const categorySub = String(record.categorySub || "").toLowerCase();
-        return (
-          ruleName.includes(searchValue) || categorySub.includes(searchValue)
-        );
+      {
+        title: "分类",
+        dataIndex: "categoryMain",
+        key: "categoryMain",
+        scopedSlots: {
+          customRender: "type",
+          filterDropdown: "filterDropdown",
+          filterIcon: "filterIcon",
+        },
+        width: 120,
+        onFilter: (value: string, record: ToDoRuleItem) => {
+          const searchValue = String(value).toLowerCase();
+          const categoryMain = String(record.categoryMain || "").toLowerCase();
+          return categoryMain.includes(searchValue);
+        },
       },
-    },
-    {
-      title: "分类",
-      dataIndex: "categoryMain",
-      key: "categoryMain",
-      scopedSlots: {
-        customRender: "type",
-        filterDropdown: "filterDropdown",
-        filterIcon: "filterIcon",
+      {
+        title: "来源",
+        dataIndex: "legalSource",
+        key: "legalSource",
+        width: 150,
+        scopedSlots: {
+          filterDropdown: "filterDropdown",
+          filterIcon: "filterIcon",
+        },
+        onFilter: (value: string, record: ToDoRuleItem) => {
+          const searchValue = String(value).toLowerCase();
+          const legalSource = String(record.legalSource || "").toLowerCase();
+          return legalSource.includes(searchValue);
+        },
       },
-      width: 120,
-      onFilter: (value: string, record: ToDoRuleItem) => {
-        const searchValue = String(value).toLowerCase();
-        const categoryMain = String(record.categoryMain || "").toLowerCase();
-        return categoryMain.includes(searchValue);
+      {
+        title: "提交时间",
+        dataIndex: "createdTime",
+        key: "createdTime",
+        width: 160,
+        scopedSlots: { customRender: "createdTime" },
+        sorter: (a: ToDoRuleItem, b: ToDoRuleItem) => {
+          const dateA = new Date(String(a.createdTime)).getTime();
+          const dateB = new Date(String(b.createdTime)).getTime();
+          return dateA - dateB;
+        },
       },
-    },
-    {
-      title: "来源",
-      dataIndex: "legalSource",
-      key: "legalSource",
-      width: 150,
-      scopedSlots: {
-        filterDropdown: "filterDropdown",
-        filterIcon: "filterIcon",
+      {
+        title: "施行日期",
+        dataIndex: "publishTime",
+        key: "publishTime",
+        width: 160,
+        scopedSlots: { customRender: "publishTime" },
+        sorter: (a: ToDoRuleItem, b: ToDoRuleItem) => {
+          const dateA = new Date(String(a.publishTime || 0)).getTime();
+          const dateB = new Date(String(b.publishTime || 0)).getTime();
+          return dateA - dateB;
+        },
       },
-      onFilter: (value: string, record: ToDoRuleItem) => {
-        const searchValue = String(value).toLowerCase();
-        const legalSource = String(record.legalSource || "").toLowerCase();
-        return legalSource.includes(searchValue);
+      {
+        title: "状态",
+        dataIndex: "checkStatus",
+        key: "checkStatus",
+        scopedSlots: { customRender: "status" },
+        width: 120,
+        filters: [
+          { text: "待审核", value: "待审核" },
+          { text: "已通过", value: "已通过" },
+          { text: "已驳回", value: "已驳回" },
+        ],
+        filteredValue: this.tableFilters.checkStatus || null,
+        onFilter: (value: string, record: ToDoRuleItem) =>
+          record.checkStatus === value,
       },
-    },
-    {
-      title: "提交时间",
-      dataIndex: "createdTime",
-      key: "createdTime",
-      width: 160,
-      scopedSlots: { customRender: "createdTime" },
-      sorter: (a: ToDoRuleItem, b: ToDoRuleItem) => {
-        const dateA = new Date(String(a.createdTime)).getTime();
-        const dateB = new Date(String(b.createdTime)).getTime();
-        return dateA - dateB;
+      {
+        key: "action",
+        scopedSlots: {
+          customRender: "action",
+          title: "actionTitle",
+        },
+        fixed: "right",
+        width: 180,
       },
-    },
-    {
-      title: "施行日期",
-      dataIndex: "publishTime",
-      key: "publishTime",
-      width: 160,
-      scopedSlots: { customRender: "publishTime" },
-      sorter: (a: ToDoRuleItem, b: ToDoRuleItem) => {
-        const dateA = new Date(String(a.publishTime || 0)).getTime();
-        const dateB = new Date(String(b.publishTime || 0)).getTime();
-        return dateA - dateB;
-      },
-    },
-    {
-      title: "状态",
-      dataIndex: "checkStatus",
-      key: "checkStatus",
-      scopedSlots: { customRender: "status" },
-      width: 120,
-      filters: [
-        { text: "待审核", value: "待审核" },
-        { text: "已通过", value: "已通过" },
-        { text: "已驳回", value: "已驳回" },
-      ],
-      onFilter: (value: string, record: ToDoRuleItem) =>
-        record.checkStatus === value,
-    },
-    {
-      key: "action",
-      scopedSlots: {
-        customRender: "action",
-        title: "actionTitle",
-      },
-      fixed: "right",
-      width: 180,
-    },
-  ];
+    ];
+  }
 
   // 文档数据
   documents: ToDoRuleItem[] = [];
 
   // 生命周期钩子
   async mounted(): Promise<void> {
-    // 加载文档数据
+    // 先加载文档数据
     await this.loadDocuments();
+
+    // 设置初始筛选状态
+    this.setInitialFilters();
+  }
+
+  // 监听路由变化
+  @Watch("$route", { immediate: false, deep: false })
+  onRouteChange(to: any, from: any): void {
+    // 防护：确保路由对象存在
+    if (!to || !from) return;
+
+    // 只有当筛选参数发生变化时才重新设置
+    if (to.query.filter !== from.query.filter) {
+      console.log(
+        "路由筛选参数变化:",
+        from.query.filter,
+        "->",
+        to.query.filter
+      );
+      this.setInitialFilters();
+    }
+  }
+
+  // 设置初始筛选状态
+  setInitialFilters(): void {
+    // 防护：如果组件已销毁，不执行操作
+    if (this.isDestroyed) return;
+
+    const filterParam = this.$route.query.filter as string;
+
+    // 先清空之前的筛选状态，避免状态残留
+    this.tableFilters = {};
+
+    if (filterParam) {
+      // 使用 $nextTick 确保DOM更新完成后再设置筛选
+      this.$nextTick(() => {
+        // 再次检查组件是否已销毁
+        if (this.isDestroyed) return;
+
+        if (filterParam === "completed") {
+          // 从首页"查看历史记录"跳转过来，显示已通过和已驳回
+          this.tableFilters = {
+            checkStatus: ["已通过", "已驳回"],
+          };
+          // 由于是多选，顶部状态标签设置为全部
+          this.filterStatus = "all";
+          console.log("设置筛选条件 - 已完成:", this.tableFilters);
+        } else if (filterParam === "pending") {
+          // 从首页"查看全部"跳转过来，显示待审核
+          this.tableFilters = {
+            checkStatus: ["待审核"],
+          };
+          // 同步更新顶部状态标签
+          this.filterStatus = "pending";
+          console.log("设置筛选条件 - 待审核:", this.tableFilters);
+        } else {
+          console.log("未知的筛选参数:", filterParam);
+        }
+      });
+    } else {
+      console.log("清空筛选条件");
+    }
+  }
+
+  // 组件销毁时的清理
+  beforeDestroy(): void {
+    this.isDestroyed = true;
   }
 
   // 加载文档数据
@@ -428,6 +504,18 @@ export default class LawyerManualReviewIndexComponent extends Vue {
   // 状态标签点击
   async onStatusTagClick(value: string): Promise<void> {
     this.filterStatus = this.filterStatus === value ? "all" : value;
+
+    // 同步更新表格筛选状态
+    if (this.filterStatus === "all") {
+      this.tableFilters = {};
+    } else if (this.filterStatus === "pending") {
+      this.tableFilters = { checkStatus: ["待审核"] };
+    } else if (this.filterStatus === "approved") {
+      this.tableFilters = { checkStatus: ["已通过"] };
+    } else if (this.filterStatus === "rejected") {
+      this.tableFilters = { checkStatus: ["已驳回"] };
+    }
+
     await this.loadDocuments();
   }
 
@@ -443,14 +531,44 @@ export default class LawyerManualReviewIndexComponent extends Vue {
   }
 
   // 表格变化事件
-  handleTableChange(pagination): void {
-    console.log("🚀 ~  ~ = ~ pagination:", pagination);
-    // 计算筛选后的数据数量
+  handleTableChange(pagination: any, filters: any): void {
+    console.log("🚀 ~ handleTableChange ~ pagination:", pagination);
+    console.log("🚀 ~ handleTableChange ~ filters:", filters);
+
+    // 更新分页信息
     this.currentPagination = {
       ...this.currentPagination,
       current: pagination.current,
       pageSize: pagination.pageSize,
     };
+
+    // 更新筛选状态
+    this.tableFilters = filters || {};
+
+    // 同步更新顶部状态标签
+    this.syncFilterStatusFromTable();
+  }
+
+  // 根据表格筛选状态同步顶部状态标签
+  syncFilterStatusFromTable(): void {
+    const checkStatusFilter = this.tableFilters.checkStatus;
+
+    if (!checkStatusFilter || checkStatusFilter.length === 0) {
+      this.filterStatus = "all";
+    } else if (checkStatusFilter.length === 1) {
+      if (checkStatusFilter[0] === "待审核") {
+        this.filterStatus = "pending";
+      } else if (checkStatusFilter[0] === "已通过") {
+        this.filterStatus = "approved";
+      } else if (checkStatusFilter[0] === "已驳回") {
+        this.filterStatus = "rejected";
+      } else {
+        this.filterStatus = "all";
+      }
+    } else {
+      // 多选情况，设置为全部
+      this.filterStatus = "all";
+    }
   }
   // 处理搜索
   handleSearch(
