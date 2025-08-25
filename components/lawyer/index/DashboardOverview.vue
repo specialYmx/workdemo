@@ -157,13 +157,12 @@
 
 <script lang="ts">
 import { Component, Vue, Prop, Emit } from "nuxt-property-decorator";
-
+import { EChartOption } from "echarts";
 import moment from "moment";
 import {
   CompletedRuleItem,
   TimeOption,
   TrendChartData,
-  LineChartOptions,
   ReviewStatusClassMap,
   IconTypeMap,
 } from "~/model/LawyerModel";
@@ -305,7 +304,7 @@ export default class DashboardOverview extends Vue {
   }
 
   // 趋势图配置
-  get trendChartOptions(): LineChartOptions {
+  get trendChartOptions(): EChartOption {
     const seriesNames = ["新发布", "修订", "废止"];
 
     return {

@@ -1,7 +1,5 @@
 // 法律合规智能系统数据模型
 
-// ==================== 核心类型定义（优先导出）====================
-
 // 饼图系列数据
 export interface PieChartSeries {
   data: PieChartDataItem[];
@@ -119,7 +117,6 @@ export interface UploadErrorData {
   error: Error | unknown;
 }
 
-// ==================== 基础参数接口 ====================
 
 // 通用字符串映射接口
 export interface StringMap {
@@ -373,62 +370,6 @@ export interface LegendItem {
   color: string;
 }
 
-// ECharts 饼图配置选项
-export interface PieChartOptions {
-  color: string[];
-  tooltip: {
-    trigger: string;
-    formatter: (params: EChartsFormatterParams) => string;
-    backgroundColor: string;
-    borderColor: string;
-    textStyle: {
-      color: string;
-      fontSize: number;
-    };
-    extraCssText: string;
-  };
-  legend: {
-    show: boolean;
-  };
-  series: Array<{
-    name: string;
-    type: string;
-    radius: string[];
-    center: string[];
-    avoidLabelOverlap: boolean;
-    label: {
-      show: boolean;
-      position: string;
-      formatter: (params: EChartsFormatterParams) => string;
-      fontSize: number;
-      color: string;
-      lineHeight: number;
-    };
-    emphasis: {
-      label: {
-        show: boolean;
-        fontSize: string;
-        fontWeight: string;
-        color: string;
-      };
-      itemStyle: {
-        shadowBlur: number;
-        shadowOffsetX: number;
-        shadowColor: string;
-      };
-    };
-    labelLine: {
-      show: boolean;
-      length: number;
-      length2: number;
-      lineStyle: {
-        color: string;
-        width: number;
-      };
-    };
-    data: PieChartDataItem[];
-  }>;
-}
 
 // 审核状态样式映射
 export interface ReviewStatusClassMap extends StringMap {
@@ -443,82 +384,6 @@ export interface TimeOption {
   value: string;
 }
 
-// ECharts 线图配置选项
-export interface LineChartOptions {
-  grid: {
-    top: string;
-    left: string;
-    right: string;
-    bottom: string;
-    containLabel: boolean;
-  };
-  tooltip: {
-    trigger: string;
-    axisPointer: {
-      type: string;
-    };
-  };
-  xAxis: {
-    type: string;
-    data: string[] | number[];
-    axisTick: {
-      alignWithLabel: boolean;
-    };
-    axisLine: {
-      lineStyle: {
-        color: string;
-      };
-    };
-    axisLabel: {
-      color: string;
-    };
-  };
-  yAxis: {
-    type: string;
-    axisLine: {
-      show: boolean;
-    };
-    axisTick: {
-      show: boolean;
-    };
-    splitLine: {
-      lineStyle: {
-        color: string;
-      };
-    };
-    axisLabel: {
-      color: string;
-    };
-  };
-  series: Array<{
-    name: string;
-    type: string;
-    smooth: boolean;
-    data: number[];
-    itemStyle: {
-      color: string;
-    };
-    lineStyle: {
-      width: number;
-      color: string;
-    };
-    symbol: string;
-    symbolSize: number;
-    areaStyle: {
-      color: {
-        type: string;
-        x: number;
-        y: number;
-        x2: number;
-        y2: number;
-        colorStops: Array<{
-          offset: number;
-          color: string;
-        }>;
-      };
-    };
-  }>;
-}
 
 // 图标类型映射
 export interface IconTypeMap extends StringMap {
@@ -742,15 +607,7 @@ export interface RowSelectionConfig<T = unknown> {
   getCheckboxProps: (record: T) => { disabled: boolean; name: string };
 }
 
-// ECharts 格式化器参数
-export interface EChartsFormatterParams {
-  name: string;
-  value: number;
-  percent: number;
-  data?: unknown;
-  seriesName?: string;
-  color?: string;
-}
+
 
 // 调度状态数据
 export interface ScheduleStatusData {
@@ -787,8 +644,7 @@ export interface CrawlStatisticsQueryParams extends BaseQueryParams {
   detailUrl?: string;
   attachments?: string;
   publishDate?: string;
-  publishDateStart?: string;
-  publishDateEnd?: string;
+  processStatus?: string; // 处理状态过滤
   orderBy?: string;
   sortRules?: string;
   current?: number;

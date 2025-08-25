@@ -6,7 +6,7 @@
         <!-- 搜索和筛选区域 -->
         <div class="lawyer-search-form">
           <a-row :gutter="16">
-            <a-col :span="5">
+            <a-col :span="4">
               <a-input
                 v-model="searchParams.websiteName"
                 placeholder="网站名称"
@@ -14,7 +14,7 @@
                 @keyup.enter="onSearch"
               />
             </a-col>
-            <a-col :span="5">
+            <a-col :span="4">
               <a-input
                 v-model="searchParams.articleTitle"
                 placeholder="文章标题"
@@ -22,7 +22,20 @@
                 @keyup.enter="onSearch"
               />
             </a-col>
-            <a-col :span="5">
+            <a-col :span="4">
+              <div class="lawyer-width-100">
+                <a-select
+                  v-model="searchParams.processStatus"
+                  placeholder="处理状态"
+                  allowClear
+                >
+                  <a-select-option value="处理成功">处理成功</a-select-option>
+                  <a-select-option value="处理失败">处理失败</a-select-option>
+                  <a-select-option value="处理中">处理中</a-select-option>
+                </a-select>
+              </div>
+            </a-col>
+            <a-col :span="4">
               <div>
                 <a-date-picker
                   v-model="searchParams.publishDate"
@@ -33,7 +46,7 @@
                 />
               </div>
             </a-col>
-            <a-col :span="9" class="lawyer-search-buttons">
+            <a-col :span="8" class="lawyer-search-buttons">
               <div class="lawyer-button-group">
                 <a-button
                   type="primary"
@@ -56,27 +69,13 @@
           :rowKey="(record) => record.id"
           @change="handleTableChange"
         >
-          <!-- 文章标题列 -->
-          <template slot="articleTitle" slot-scope="text, record">
-            <div class="lawyer-table-title">
-              {{ getRecordValue(record, "articleTitle") }}
-            </div>
-          </template>
-
-          <!-- 文章详情地址列 -->
-          <template slot="detailUrl" slot-scope="text, record">
-            <div class="lawyer-table-url">
-              {{ getRecordValue(record, "detailUrl") || "-" }}
-            </div>
-          </template>
-
           <!-- 处理状态列 -->
           <template slot="processStatus" slot-scope="text">
             <a-tag
               :color="getStatusColor(getStringValue(text))"
               class="lawyer-status-tag"
             >
-              {{ getStatusText(getStringValue(text)) }}
+              {{ getStringValue(text) || "未知" }}
             </a-tag>
           </template>
 
@@ -97,18 +96,16 @@
 
           <!-- 操作列 -->
           <template slot="action" slot-scope="text, record">
-            <div class="lawyer-action-links">
-              <a
+            <div>
+              <a-button
+                type="link"
                 @click="executeTask(record)"
                 class="lawyer-link-primary"
-                :class="{ 'lawyer-link-disabled': isProcessing(record) }"
+                :disabled="isProcessing(record)"
+                :icon="isProcessing(record) ? 'loading' : 'play-circle'"
               >
-                <a-icon
-                  :type="isProcessing(record) ? 'loading' : 'play-circle'"
-                  :spin="isProcessing(record)"
-                />
                 {{ isProcessing(record) ? "正在处理" : "执行" }}
-              </a>
+              </a-button>
             </div>
           </template>
         </a-table>
@@ -121,7 +118,6 @@
 import { Component, Vue } from "nuxt-property-decorator";
 import moment from "moment";
 import { CrawlDataItem, CrawlStatisticsQueryParams } from "~/model/LawyerModel";
-import { crawlStatisticsResponse } from "~/mock/craw.js";
 
 @Component({ name: "lawyer-crawl-statistics-index-component" })
 export default class CrawlStatisticsComponent extends Vue {
@@ -133,6 +129,7 @@ export default class CrawlStatisticsComponent extends Vue {
     detailUrl: "",
     attachments: "",
     publishDate: "", // 可以设置为 "" 或 "2025-05-09" 这样的默认值
+    processStatus: undefined, // 处理状态过滤
     current: 1,
     size: 10,
     orderBy: "created_time",
@@ -162,25 +159,24 @@ export default class CrawlStatisticsComponent extends Vue {
       title: "网站编码",
       dataIndex: "websiteCode",
       key: "websiteCode",
-      width: 120,
+      width: 100,
     },
     {
       title: "网站名称",
       dataIndex: "websiteName",
       key: "websiteName",
-      width: 150,
+      width: 200,
     },
     {
       title: "文章标题",
+      dataIndex: "articleTitle",
       key: "articleTitle",
-      scopedSlots: { customRender: "articleTitle" },
-      width: 250,
       ellipsis: true,
     },
     {
       title: "文章详情地址",
+      dataIndex: "detailUrl",
       key: "detailUrl",
-      scopedSlots: { customRender: "detailUrl" },
       width: 200,
       ellipsis: true,
     },
@@ -196,8 +192,8 @@ export default class CrawlStatisticsComponent extends Vue {
       dataIndex: "publishDate",
       key: "publishDate",
       scopedSlots: { customRender: "publishDate" },
-      width: 130,
       sorter: true,
+      width: 140,
     },
     {
       title: "创建时间",
@@ -243,6 +239,7 @@ export default class CrawlStatisticsComponent extends Vue {
       const apiParams: CrawlStatisticsQueryParams = {
         ...this.searchParams,
         publishDate: this.searchParams.publishDate || undefined,
+        processStatus: this.searchParams.processStatus || undefined,
       };
 
       // 调用真实API
@@ -255,34 +252,18 @@ export default class CrawlStatisticsComponent extends Vue {
         this.pagination.total = response.data.total;
         this.pagination.current = response.data.current;
       } else {
-        // 如果API失败，使用模拟数据作为后备
-        this.useMockData();
-        console.warn("API调用失败，使用模拟数据:", response.message);
+        this.dataList = [];
+        this.pagination.total = 0;
+        this.$message.error(response.message || "加载数据失败");
       }
     } catch (error) {
       console.error("加载数据失败:", error);
-      // 出错时使用模拟数据
-      this.useMockData();
-      this.$message.error("加载数据失败，使用模拟数据");
+      this.dataList = [];
+      this.pagination.total = 0;
+      this.$message.error("加载数据失败");
     } finally {
       this.tableLoading = false;
     }
-  }
-
-  // 使用真实模拟数据
-  useMockData(): void {
-    const mockResponse = crawlStatisticsResponse;
-    const allRecords = mockResponse.data.records;
-
-    // 计算分页
-    const startIndex = (this.searchParams.current - 1) * this.searchParams.size;
-    const endIndex = startIndex + this.searchParams.size;
-    const paginatedRecords = allRecords.slice(startIndex, endIndex);
-
-    // 设置数据
-    this.dataList = paginatedRecords;
-    this.pagination.total = allRecords.length;
-    this.pagination.current = this.searchParams.current;
   }
 
   // 搜索
@@ -301,6 +282,7 @@ export default class CrawlStatisticsComponent extends Vue {
       detailUrl: "",
       attachments: "",
       publishDate: "",
+      processStatus: undefined,
       current: 1,
       size: 10,
       orderBy: "created_time",
@@ -338,12 +320,6 @@ export default class CrawlStatisticsComponent extends Vue {
     return colorMap[status] || "default";
   }
 
-  // 获取状态文本
-  getStatusText(status: string): string {
-    // 直接返回状态文本，因为真实数据已经是中文
-    return status || "未知";
-  }
-
   // 格式化日期时间（统一方法）
   formatDateTime(
     datetime: string,
@@ -360,24 +336,24 @@ export default class CrawlStatisticsComponent extends Vue {
     }
   }
 
-  // 辅助方法：安全获取记录值
-  getRecordValue(record: unknown, key: string): string {
-    if (record && typeof record === "object" && key in record) {
-      const value = (record as Record<string, unknown>)[key];
-      return typeof value === "string" ? value : String(value || "");
-    }
-    return "";
-  }
+  // 辅助方法：安全获取字符串值（支持对象属性和直接值）
+  getStringValue(value: unknown, key?: string): string {
+    let targetValue = value;
 
-  // 辅助方法：安全获取字符串值
-  getStringValue(value: unknown): string {
-    return typeof value === "string" ? value : String(value || "");
+    // 如果指定了key，从对象中获取属性值
+    if (key && value && typeof value === "object" && key in value) {
+      targetValue = (value as Record<string, unknown>)[key];
+    }
+
+    return typeof targetValue === "string"
+      ? targetValue
+      : String(targetValue || "");
   }
 
   // 判断任务是否正在处理中
   isProcessing(record: CrawlDataItem): boolean {
-    const status = this.getRecordValue(record, "processStatus");
-    return status === "处理中" || status === "processing";
+    const status = this.getStringValue(record, "processStatus");
+    return status === "处理中";
   }
 
   // 开始自动刷新
@@ -403,7 +379,7 @@ export default class CrawlStatisticsComponent extends Vue {
   }
 
   // 执行任务
-  async executeTask(record: CrawlDataItem): Promise<void> {
+  executeTask(record: CrawlDataItem) {
     this.$confirm({
       title: "确认执行任务",
       content: `确定要执行网站"${record.websiteName}"的爬取任务吗？`,
@@ -411,33 +387,23 @@ export default class CrawlStatisticsComponent extends Vue {
       cancelText: "取消",
       onOk: async () => {
         try {
-          // 更新状态为处理中
-          record.processStatus = "处理中";
-          this.$message.loading("正在执行任务...", 0);
-
           // 调用真实API
           const response = await this.$roadLawyerService.executeCrawlTask({
             id: record.id,
           });
 
-          this.$message.destroy();
-
+          // 显示结果消息
           if (response.success) {
-            record.processStatus = "处理成功";
-            record.updateTime = moment().format("YYYY-MM-DD HH:mm:ss");
             this.$message.success("任务执行成功");
           } else {
-            record.processStatus = "处理失败";
             this.$message.error(response.message || "任务执行失败，请重试");
           }
 
-          // 刷新数据
+          // 刷新数据（获取最新状态）
           await this.loadData();
         } catch (error) {
-          this.$message.destroy();
           console.error("执行任务失败:", error);
           this.$message.error("执行任务失败，请重试");
-          record.processStatus = "处理失败";
         }
       },
     });
@@ -445,11 +411,13 @@ export default class CrawlStatisticsComponent extends Vue {
 }
 </script>
 
-<style lang="less">
+<style lang="less" scoped>
 .lawyer-search-form {
   margin-bottom: 16px;
 }
-
+.lawyer-width-100 {
+  width: 100%;
+}
 .lawyer-search-buttons {
   display: flex;
   justify-content: flex-end;
@@ -471,50 +439,6 @@ export default class CrawlStatisticsComponent extends Vue {
   .ant-table-wrapper {
     .ant-table-tbody > tr > td {
       padding: 12px 16px;
-    }
-  }
-}
-
-.lawyer-table-title {
-  font-weight: 500;
-  color: var(--lawyer-text);
-  margin-bottom: 4px;
-}
-
-.lawyer-table-url {
-  color: var(--lawyer-text);
-  word-break: break-all;
-}
-
-.lawyer-action-links {
-  display: flex;
-  gap: 8px;
-
-  a {
-    font-size: 14px;
-    display: inline-flex;
-    align-items: center;
-
-    &.lawyer-link-view {
-      color: var(--lawyer-primary);
-    }
-
-    &.lawyer-link-primary {
-      color: var(--lawyer-success);
-
-      &:hover:not(.lawyer-link-disabled) {
-        color: var(--lawyer-success-hover);
-      }
-    }
-
-    &.lawyer-link-disabled {
-      color: var(--lawyer-text-light);
-      cursor: not-allowed;
-      pointer-events: none;
-    }
-
-    .anticon {
-      margin-right: 4px;
     }
   }
 }

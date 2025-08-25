@@ -34,11 +34,10 @@
 
 <script lang="ts">
 import { Component, Vue, Prop } from "nuxt-property-decorator";
-
+import { EChartOption } from "echarts";
 import {
   ChartData,
   LegendItem,
-  PieChartOptions,
   PieChartDataItem,
 } from "~/model/LawyerModel";
 
@@ -71,7 +70,7 @@ export default class SourceDistribution extends Vue {
 
   // 静态饼图基础配置
   private static readonly BASE_PIE_OPTIONS: Omit<
-    PieChartOptions,
+    EChartOption,
     "color" | "series"
   > = {
     tooltip: {
@@ -140,7 +139,7 @@ export default class SourceDistribution extends Vue {
   }
 
   // 优化后的饼图配置 - 只合并动态部分
-  get pieChartOptions(): PieChartOptions {
+  get pieChartOptions(): EChartOption {
     return {
       ...SourceDistribution.BASE_PIE_OPTIONS,
       color: SourceDistribution.PIE_CHART_COLORS,
