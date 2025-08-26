@@ -8,7 +8,7 @@
       :maskClosable="false"
       @cancel="handleCancel"
       :closable="!uploading"
-      :getContainer="() => $refs.fileUploadModalContainer"
+      :getContainer="() => $refs.fileUploadModalContainer || document.body"
     >
       <div class="lawyer-upload-container">
         <!-- 文件选择 -->

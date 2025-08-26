@@ -104,17 +104,15 @@ export default class LawyerManualReviewDetailComponent extends Vue {
       .trim();
   }
 
-  // 格式化文档变更数据（内联完成分割与解析，减少冗余方法）
+  // 格式化文档变更数据（拆分解析逻辑，提高可维护性）
   formatChanges(checkResult: string): ChangeItem[] {
     if (!checkResult || typeof checkResult !== "string") return [];
-
     try {
       // 1) 去掉方括号
       let content: string = checkResult.trim();
       if (content.startsWith("[") && content.endsWith("]")) {
         content = content.slice(1, -1);
       }
-
       // 检查特殊情况：无旧版文件或无新版文件
       const trimmedContent = content.trim();
       if (trimmedContent === "无旧版文件" || trimmedContent === "无新版文件") {
@@ -129,9 +127,7 @@ export default class LawyerManualReviewDetailComponent extends Vue {
           },
         ];
       }
-
       if (!content.trim()) return [];
-
       // 2) 智能分割（处理引号内逗号）
       const items: string[] = [];
       let current = "";
@@ -148,74 +144,14 @@ export default class LawyerManualReviewDetailComponent extends Vue {
         current += ch;
       }
       if (current.trim()) items.push(current.trim());
-
-      // 3) 解析每一项
+      // 3) 解析每一项 - 调用提取的解析方法
       const changes: ChangeItem[] = [];
       for (const raw of items) {
-        const item = raw.trim();
-        if (!item) continue;
-
-        // 标题变更
-        let titleChangeMatch = item.match(
-          /^(.+?)\s+标题变更：由'(.+?)'变更为'(.+?)'$/
-        );
-        if (titleChangeMatch) {
-          const sectionText = titleChangeMatch[1].trim();
-          changes.push({
-            type: "modify",
-            position: "标题变更",
-            sectionDisplay: sectionText,
-            oldText: titleChangeMatch[2].trim(),
-            newText: titleChangeMatch[3].trim(),
-          });
-          continue;
+        const change = this.parseChangeItem(raw.trim());
+        if (change) {
+          changes.push(change);
         }
-
-        // 删除条款
-        titleChangeMatch = item.match(/^删除条款：(.+)$/);
-        if (titleChangeMatch) {
-          const contentText = titleChangeMatch[1].trim();
-          const displayMatch = contentText.match(/^(第.+?[章条])/);
-          changes.push({
-            type: "delete",
-            position: "删除内容",
-            sectionDisplay: displayMatch ? displayMatch[1] : "",
-            oldText: contentText,
-          });
-          continue;
-        }
-
-        // 内容变更：由'..'变更为'..'
-        titleChangeMatch = item.match(/^(.+?)：由'(.+?)'变更为'(.+?)'$/);
-        if (titleChangeMatch) {
-          const sectionText = titleChangeMatch[1].trim();
-          changes.push({
-            type: "modify",
-            position: "内容变更",
-            sectionDisplay: sectionText,
-            oldText: titleChangeMatch[2].trim(),
-            newText: titleChangeMatch[3].trim(),
-          });
-          continue;
-        }
-
-        // 新增条款
-        titleChangeMatch = item.match(/^(.+?)\s*新增条款：(.+)$/);
-        if (titleChangeMatch) {
-          const sectionText = titleChangeMatch[1].trim();
-          changes.push({
-            type: "add",
-            position: "新增内容",
-            sectionDisplay: sectionText,
-            newText: titleChangeMatch[2].trim(),
-          });
-          continue;
-        }
-
-        // 未匹配
-        console.warn("无法解析的变更项:", item);
       }
-
       // 4) 统一清理空白
       return changes.map((c) => {
         if (c.position) c.position = this.normalizeString(c.position);
@@ -227,6 +163,65 @@ export default class LawyerManualReviewDetailComponent extends Vue {
       console.error("解析变更数据失败:", error);
       return [];
     }
+  }
+
+  // 解析单个变更项（提取复杂的正则匹配逻辑）
+  private parseChangeItem(item: string): ChangeItem | null {
+    if (!item) return null;
+    // 标题变更
+    let changeMatch = item.match(/^(.+?)\s+标题变更：由'(.+?)'变更为'(.+?)'$/);
+    if (changeMatch) {
+      const sectionText = changeMatch[1].trim();
+      return {
+        type: "modify",
+        position: "标题变更",
+        sectionDisplay: sectionText,
+        oldText: changeMatch[2].trim(),
+        newText: changeMatch[3].trim(),
+      };
+    }
+
+    // 删除条款
+    changeMatch = item.match(/^删除条款：(.+)$/);
+    if (changeMatch) {
+      const contentText = changeMatch[1].trim();
+      const displayMatch = contentText.match(/^(第.+?[章条])/);
+      return {
+        type: "delete",
+        position: "删除内容",
+        sectionDisplay: displayMatch ? displayMatch[1] : "",
+        oldText: contentText,
+      };
+    }
+
+    // 内容变更：由'..'变更为'..'
+    changeMatch = item.match(/^(.+?)：由'(.+?)'变更为'(.+?)'$/);
+    if (changeMatch) {
+      const sectionText = changeMatch[1].trim();
+      return {
+        type: "modify",
+        position: "内容变更",
+        sectionDisplay: sectionText,
+        oldText: changeMatch[2].trim(),
+        newText: changeMatch[3].trim(),
+      };
+    }
+
+    // 新增条款
+    changeMatch = item.match(/^(.+?)\s*新增条款：(.+)$/);
+    if (changeMatch) {
+      const sectionText = changeMatch[1].trim();
+      return {
+        type: "add",
+        position: "新增内容",
+        sectionDisplay: sectionText,
+        newText: changeMatch[2].trim(),
+      };
+    }
+
+    // 未匹配的项
+    console.warn("无法解析的变更项:", item);
+    return null;
   }
 
   // 获取文档对比数据

@@ -466,14 +466,15 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
   }
 
   async downloadDocument(doc: KnowledgeDataItem): Promise<void> {
+    let hideLoading = null;
     try {
-      this.$message.loading(`正在准备下载: ${doc.ruleName}`, 0);
+      hideLoading = this.$message.loading(`正在准备下载: ${doc.ruleName}`, 0);
 
       const result = await this.$roadLawyerService.downloadRuleFile({
         searchId: doc.id,
       });
 
-      this.$message.destroy();
+      hideLoading();
 
       downloadFileWithMessage(result, {
         fileName: `${doc.ruleName}.docx`,
@@ -481,7 +482,9 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
         messageService: this.$message,
       });
     } catch (error) {
-      this.$message.destroy();
+      if (hideLoading) {
+        hideLoading();
+      }
       console.error("下载失败:", error);
       this.$message.error("下载失败，请检查网络连接后重试");
     }

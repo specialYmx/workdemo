@@ -472,8 +472,9 @@ export default class IndexComponent extends Vue {
 
   // 导出统计报告
   async exportStatisticReport(): Promise<void> {
+    let hideLoading = null;
     try {
-      this.$message.loading("正在生成统计报告，请稍候...", 0);
+      hideLoading = this.$message.loading("正在生成统计报告，请稍候...", 0);
 
       // 根据当前选择的时间范围导出
       const condition: string = this.activeTimeRange;
@@ -481,7 +482,7 @@ export default class IndexComponent extends Vue {
         condition,
       });
 
-      this.$message.destroy();
+      hideLoading();
 
       if (result) {
         if (
@@ -499,7 +500,9 @@ export default class IndexComponent extends Vue {
         this.$message.error("导出失败，请重试");
       }
     } catch (error) {
-      this.$message.destroy();
+      if (hideLoading) {
+        hideLoading();
+      }
       console.error("导出统计报告失败:", error);
       this.$message.error("导出失败，请重试");
     }

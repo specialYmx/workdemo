@@ -184,17 +184,20 @@ export default class DocumentViewer extends Vue {
 
   // 处理废止状态编辑确认
   async handleRevokeStatusConfirm(): Promise<void> {
+    let hideLoading = null;
     try {
       // 如果用户打开了已废止开关，才调用接口
       if (this.tempIsRevoke) {
-        this.$message.loading("正在更新文档状态...", 0);
+        hideLoading = this.$message.loading("正在更新文档状态...", 0);
 
         await this.$roadLawyerService.getRuleSourceDetail({
           searchId: this.document.id,
           isRevoke: true,
         });
 
-        this.$message.destroy();
+        if (hideLoading) {
+          hideLoading();
+        }
 
         // 通过事件通知父组件更新状态
         this.emitUpdateDocumentStatus({
@@ -210,7 +213,9 @@ export default class DocumentViewer extends Vue {
 
       this.revokeStatusVisible = false;
     } catch (error) {
-      this.$message.destroy();
+      if (hideLoading) {
+        hideLoading();
+      }
       console.error("更新文档状态失败:", error);
       this.$message.error("更新文档状态失败，请重试");
     }
@@ -222,14 +227,20 @@ export default class DocumentViewer extends Vue {
   }
   // 下载文档
   async downloadDocument(): Promise<void> {
+    let hideLoading = null;
     try {
-      this.$message.loading(`正在准备下载: ${this.document.title}`, 0);
+      hideLoading = this.$message.loading(
+        `正在准备下载: ${this.document.title}`,
+        0
+      );
 
       const result = await this.$roadLawyerService.downloadRuleFile({
         searchId: this.document.id,
       });
 
-      this.$message.destroy();
+      if (hideLoading) {
+        hideLoading();
+      }
 
       if (result) {
         downloadFileWithMessage(result, {
@@ -239,7 +250,9 @@ export default class DocumentViewer extends Vue {
         });
       }
     } catch (error) {
-      this.$message.destroy();
+      if (hideLoading) {
+        hideLoading();
+      }
       console.error("下载失败:", error);
       this.$message.error("下载失败，请检查网络连接后重试");
     }
