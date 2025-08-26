@@ -117,7 +117,10 @@
 <script lang="ts">
 import { Component, Vue } from "nuxt-property-decorator";
 import moment from "moment";
-import { CrawlDataItem, CrawlStatisticsQueryParams } from "~/model/LawyerModel";
+import {
+  CrawlDataItem,
+  CrawlStatisticsQueryParams,
+} from "~/model/LawyerConfig";
 
 @Component({ name: "lawyer-crawl-statistics-index-component" })
 export default class CrawlStatisticsComponent extends Vue {
