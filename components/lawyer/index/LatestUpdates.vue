@@ -142,8 +142,10 @@ export default class LatestUpdates extends Vue {
       if (Array.isArray(parsed)) {
         return parsed.filter(Boolean);
       }
+      // 解析成功但不是数组，抛出异常进入手动解析流程
+      throw new Error("Parsed result is not an array");
     } catch {
-      // JSON.parse 失败，使用手动解析逻辑作为回退方案
+      // JSON.parse 失败或结果不是数组，使用手动解析逻辑作为回退方案
       try {
         // 去掉首尾的方括号
         let cleanStr = summaryStr.trim();

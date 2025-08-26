@@ -74,12 +74,12 @@
                 </div>
                 <div class="lawyer-flex lawyer-gap-sm">
                   <a
-                    @click="viewUpdate(item.id)"
+                    @click.prevent="viewUpdate(item.id)"
                     class="lawyer-action-btn lawyer-btn-primary"
                     >查看详情</a
                   >
                   <a
-                    @click="downloadUpdate(item.id, item.title)"
+                    @click.prevent="downloadUpdate(item.id, item.title)"
                     class="lawyer-action-btn"
                     >下载文件</a
                   >
@@ -312,6 +312,7 @@ export default class LawyerUpdatesIndexComponent extends Vue {
       if (Array.isArray(parsed)) {
         return parsed.filter(Boolean);
       }
+      throw new Error("Parsed result is not an array");
     } catch {
       // JSON.parse 失败，使用手动解析逻辑作为回退方案
       try {

@@ -13,11 +13,13 @@ import {
   RuleUpdateQueryParams,
   RuleSourceQueryParams,
   CheckRuleQueryParams,
+} from "~/model/LawyerModel";
+import {
   CrawlStatisticsQueryParams,
   CrawlStatisticsResponse,
   ExecuteCrawlTaskParams,
   ExecuteCrawlTaskResponse,
-} from "~/model/LawyerModel";
+} from "~/model/lawyerConfig";
 import api from "~/api";
 
 // 将对象转换为FormData的辅助函数

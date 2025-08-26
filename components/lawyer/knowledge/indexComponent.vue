@@ -390,9 +390,12 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
   }
 
   onSearchInputChange(e: Event): void {
-    const target = e.target as HTMLInputElement;
+    // 类型安全检查
+    if (!(e.target instanceof HTMLInputElement)) return;
+
+    const target = e.target;
     // 当输入框被清空时（用户点击清空按钮或手动删除所有内容）
-    if (!target.value || target.value.trim() === "") {
+    if (!target.value.trim()) {
       this.searchText = "";
       // 自动执行搜索以显示所有结果
       this.loadDocuments("default");
