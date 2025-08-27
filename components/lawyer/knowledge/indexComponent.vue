@@ -146,7 +146,7 @@
                     <div v-if="allDocuments.length" class="lawyer-pagination">
                         <a-pagination :current="currentPage" :total="totalDocuments" :page-size="pageSize"
                             show-size-changer show-quick-jumper :show-total="(total, range) =>
-                                    `共 ${total} 条记录，显示第 ${range[0]}-${range[1]} 条`
+                                `共 ${total} 条记录，显示第 ${range[0]}-${range[1]} 条`
                                 " @change="onPageChange" @showSizeChange="onShowSizeChange" />
                     </div>
                 </div>
@@ -259,7 +259,7 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
         return [
             { value: 'all', label: '全部' },
             { value: '待生效', label: '待生效' },
-            { value: '已生效', label: '已生效' },
+            { value: '已施行', label: '已施行' },
             { value: '已修订', label: '已修订' },
             { value: '已废止', label: '已废止' }
         ]
