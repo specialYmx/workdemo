@@ -158,7 +158,7 @@ export default class ReviewTable extends Vue {
             record.fileVersion || record.fileVersion || 0
         )
         const maxVersion: number = Number(record.currentMaxFileVersion || 0)
-        return newVersion > maxVersion
+        return newVersion >= maxVersion
     }
 
     // 格式化时间显示

@@ -121,8 +121,8 @@
                                 @change="
                                     (e) => setSelectedKeys(e.target.value ? [e.target.value] : [])
                                 " style="width: 188px; margin-bottom: 8px; display: block" @pressEnter="
-                    () => handleSearch(selectedKeys, confirm, column.dataIndex)
-                " />
+                                    () => handleSearch(selectedKeys, confirm, column.dataIndex)
+                                " />
                             <a-button type="primary" icon="search" @click="
                                 () => handleSearch(selectedKeys, confirm, column.dataIndex)
                             " size="small" style="width: 90px; margin-right: 8px">
@@ -578,7 +578,7 @@ export default class LawyerManualReviewIndexComponent extends Vue {
         const newVersion: number = Number(record.fileVersion) || 0;
         const maxVersion: number = Number(record.currentMaxFileVersion) || 0;
 
-        return newVersion > maxVersion;
+        return newVersion >= maxVersion;
     }
 
     // 审核通过

@@ -90,7 +90,7 @@
                                     <div v-if="change.type === 'add'" class="change-text">
                                         新增内容：<span class="highlight-text">{{
                                             change.newText
-                                            }}</span>
+                                        }}</span>
                                     </div>
                                     <div v-else-if="change.type === 'delete'" class="change-text">
                                         删除了"<span class="deleted-text">{{ change.oldText }}</span>"
@@ -98,7 +98,7 @@
                                     <div v-else-if="change.type === 'modify'" class="change-text">
                                         修改内容：<span class="highlight-text">{{
                                             change.newText
-                                            }}</span>，原内容："{{ change.oldText }}"
+                                        }}</span>，原内容："{{ change.oldText }}"
                                     </div>
                                 </div>
                             </div>
@@ -130,8 +130,8 @@
                     <!-- 施行日期选择 -->
                     <div class="lawyer-tag-select-row">
                         <label>施行日期</label>
-                        <a-date-picker v-model="tempEffectDate" format="YYYY-MM-DD" placeholder="请选择施行日期"
-                            style="width: 300px" />
+                        <a-date-picker v-model="tempEffectDate" format="YYYY-MM-DD" value-format="YYYY-MM-DD"
+                            placeholder="请选择施行日期" style="width: 300px" />
                     </div>
                 </div>
             </a-modal>
@@ -230,7 +230,7 @@ export default class DocumentCompare extends Vue {
     get canReview(): boolean {
         const { newFileVersion, currentMaxFileVersion, hasContentError } =
             this.getVersionStatus()
-        return newFileVersion > currentMaxFileVersion && !hasContentError
+        return newFileVersion >= currentMaxFileVersion && !hasContentError
     }
 
     // 检查审核状态并显示错误信息

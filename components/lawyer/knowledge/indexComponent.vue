@@ -114,6 +114,9 @@
                                         <span class="lawyer-timeliness-tag">
                                             <a-icon type="clock-circle" /> {{ doc.timeLiness }}
                                         </span>
+                                        <span>
+                                            <a-icon type="schedule" /> {{ doc.effectivenessLevel }}
+                                        </span>
                                     </div>
                                 </div>
                                 <p class="lawyer-document-summary">
