@@ -55,7 +55,7 @@
             <span>操作</span>
             <a-tooltip placement="left">
               <template slot="title">
-                <span>版本规则：文件版本高于系统最高版本时，不允许审核操作</span>
+                <span>版本规则：文件版本落后系统最高版本时，不允许审核操作</span>
               </template>
               <a-icon type="info-circle" class="ml-8" />
             </a-tooltip>

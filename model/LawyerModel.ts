@@ -613,7 +613,7 @@ export type DateRange = (string | Date | number)[] | null;
 // 时间线统计数据
 export interface TimelinessCountData {
   modify: number[];
-  public: number[];
+  publish: number[];
   revoke: number[];
 }
 

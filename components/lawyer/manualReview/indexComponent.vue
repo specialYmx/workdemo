@@ -103,7 +103,7 @@
             </span>
 
             <!-- 施行日期列插槽 -->
-            <span slot="publishTime" slot-scope="text">
+            <span slot="effectDate" slot-scope="text">
               {{ formatTime(text) }}
             </span>
 
@@ -114,7 +114,7 @@
                 <a-tooltip placement="left">
                   <template slot="title">
                     <span
-                      >版本规则：文件版本高于系统最高版本时，不允许审核操作</span
+                      >版本规则：文件版本落后系统最高版本时，不允许审核操作</span
                     >
                   </template>
                   <a-icon type="info-circle" class="ml-8" />
@@ -340,13 +340,13 @@ export default class LawyerManualReviewIndexComponent extends Vue {
       },
       {
         title: "施行日期",
-        dataIndex: "publishTime",
-        key: "publishTime",
+        dataIndex: "effectDate",
+        key: "effectDate",
         width: 160,
-        scopedSlots: { customRender: "publishTime" },
+        scopedSlots: { customRender: "effectDate" },
         sorter: (a: ToDoRuleItem, b: ToDoRuleItem) => {
-          const dateA = new Date(String(a.publishTime || 0)).getTime();
-          const dateB = new Date(String(b.publishTime || 0)).getTime();
+          const dateA = new Date(String(a.effectDate || 0)).getTime();
+          const dateB = new Date(String(b.effectDate || 0)).getTime();
           return dateA - dateB;
         },
       },

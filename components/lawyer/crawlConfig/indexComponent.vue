@@ -86,14 +86,28 @@
 
           <!-- 关键词列 -->
           <template slot="keywords" slot-scope="text">
-            <div v-if="text && text.length > 0">
+            <div
+              v-if="text && text.length > 0"
+              class="lawyer-keywords-container"
+            >
               <a-tag
-                v-for="keyword in text"
-                :key="keyword"
+                v-for="(keyword, index) in getDisplayKeywords(text)"
+                :key="`${keyword}-${index}`"
                 color="blue"
-                style="margin-bottom: 4px"
+                class="lawyer-keyword-tag"
+                :title="keyword"
               >
-                {{ keyword }}
+                {{ truncateKeyword(keyword) }}
+              </a-tag>
+              <a-tag
+                v-if="text.length > 3"
+                color="blue"
+                class="lawyer-keyword-tag lawyer-keyword-more"
+                :title="`还有${text.length - 3}个关键词：${text
+                  .slice(3)
+                  .join('、')}`"
+              >
+                +{{ text.length - 3 }}个
               </a-tag>
             </div>
             <span v-else class="lawyer-text-muted">-</span>
@@ -132,7 +146,7 @@
     <a-modal
       :title="modalTitle"
       :visible="modalVisible"
-      :width="800"
+      width="90%"
       :confirm-loading="modalLoading"
       ok-text="确认"
       cancel-text="取消"
@@ -196,6 +210,9 @@
                 mode="tags"
                 placeholder="请输入关键词，按回车添加"
                 style="width: 100%"
+                :max-tag-count="3"
+                :max-tag-placeholder="getMaxTagPlaceholder"
+                :max-tag-text-length="8"
               />
             </a-form-model-item>
             <a-form-model-item label="备注" prop="remarks">
@@ -625,6 +642,24 @@ export default class CrawlConfigIndexComponent extends Vue {
     }
     return moment(timeStr).format("YYYY-MM-DD HH:mm:ss");
   }
+
+  // 多选标签超出时的占位符
+  getMaxTagPlaceholder(omittedValues: string[]): string {
+    return `+${omittedValues.length}个关键词`;
+  }
+
+  // 获取要显示的关键词（前3个）
+  getDisplayKeywords(keywords: string[]): string[] {
+    return keywords.slice(0, 3);
+  }
+
+  // 截断关键词文本
+  truncateKeyword(keyword: string): string {
+    const maxLength = 8;
+    return keyword.length > maxLength
+      ? keyword.substring(0, maxLength) + "..."
+      : keyword;
+  }
 }
 </script>
 
@@ -677,5 +712,22 @@ export default class CrawlConfigIndexComponent extends Vue {
 .lawyer-text-muted {
   color: #999;
   font-style: italic;
+}
+
+/* 关键词容器样式 */
+.lawyer-keywords-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.lawyer-keyword-tag {
+  margin: 0 !important;
+  cursor: default;
+
+  &.lawyer-keyword-more {
+    cursor: help;
+  }
 }
 </style>
