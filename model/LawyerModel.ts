@@ -3,6 +3,12 @@ import {
   CrawlStatisticsResponse,
   ExecuteCrawlTaskParams,
   ExecuteCrawlTaskResponse,
+  CrawlConfigQueryParams,
+  CrawlConfigResponse,
+  AddCrawlConfigParams,
+  UpdateCrawlConfigParams,
+  DeleteCrawlConfigParams,
+  CrawlConfigOperationResponse,
 } from "~/model/LawyerConfig";
 // 法律合规智能系统数据模型
 
@@ -364,6 +370,20 @@ export interface RoadLawyerService {
   executeCrawlTask: (
     params: ExecuteCrawlTaskParams
   ) => Promise<ExecuteCrawlTaskResponse>;
+
+  // ==================== 爬取配置相关方法 ====================
+  getCrawlConfigList: (
+    params: CrawlConfigQueryParams
+  ) => Promise<CrawlConfigResponse>;
+  addCrawlConfig: (
+    params: AddCrawlConfigParams
+  ) => Promise<CrawlConfigOperationResponse>;
+  updateCrawlConfig: (
+    params: UpdateCrawlConfigParams
+  ) => Promise<CrawlConfigOperationResponse>;
+  deleteCrawlConfig: (
+    params: DeleteCrawlConfigParams
+  ) => Promise<CrawlConfigOperationResponse>;
 }
 
 // ==================== 图表数据相关类型定义 ====================

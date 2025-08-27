@@ -3,17 +3,17 @@ export default function ({ $axios, redirect, store }) {
   $axios.onRequest((config) => {
     // 这里可以添加请求头等配置
     // 例如: config.headers.Authorization = `Bearer ${store.state.auth.token}`
-    return config;
-  });
+    return config
+  })
 
   // 响应拦截器
   $axios.onResponse((response) => {
-    return response;
-  });
+    return response
+  })
 
   // 错误拦截器
   $axios.onError((error) => {
-    const code = parseInt(error.response && error.response.status);
+    const code = parseInt(error.response && error.response.status)
 
     if (code === 401) {
       // 未授权处理
@@ -30,6 +30,6 @@ export default function ({ $axios, redirect, store }) {
       // redirect('/500')
     }
 
-    return Promise.reject(error);
-  });
+    return Promise.reject(error)
+  })
 }

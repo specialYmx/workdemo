@@ -31,6 +31,9 @@ declare module "vue/types/vue" {
     $store: any;
     $axios: any;
     $roadLawyerService: RoadLawyerService;
+    $form: {
+      createForm(component: any): any;
+    };
   }
 }
 
@@ -58,6 +61,9 @@ declare module "nuxt-property-decorator" {
     $store: any;
     $axios: any;
     $roadLawyerService: RoadLawyerService;
+    $form: {
+      createForm(component: any): any;
+    };
   }
 }
 

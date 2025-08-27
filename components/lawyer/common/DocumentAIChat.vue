@@ -8,7 +8,7 @@
     <div class="ai-content">
       <!-- AI对话区域 -->
       <div class="ai-chat">
-        <div class="ai-messages" ref="aiMessages">
+        <div ref="aiMessages" class="ai-messages">
           <div
             v-for="(msg, index) in aiMessages"
             :key="index"
@@ -47,8 +47,8 @@
                 placeholder="请输入您的问题..."
                 :auto-size="{ minRows: 3, maxRows: 6 }"
                 :disabled="aiLoading"
-                @pressEnter="handleEnterPress"
                 class="main-textarea"
+                @pressEnter="handleEnterPress"
               />
             </div>
 
@@ -63,11 +63,11 @@
                   <a-button
                     :type="enableNetworkQuery ? 'primary' : 'default'"
                     size="small"
-                    @click="toggleNetworkQuery"
                     :class="[
                       'network-btn',
                       { 'network-btn-active': enableNetworkQuery },
                     ]"
+                    @click="toggleNetworkQuery"
                   >
                     <a-icon type="global" />
                     联网搜索
@@ -81,9 +81,9 @@
                   v-if="!aiLoading"
                   type="primary"
                   size="small"
-                  @click="handleSend"
                   :disabled="!aiQuestion.trim()"
                   class="send-btn"
+                  @click="handleSend"
                 >
                   发送
                 </a-button>
@@ -91,8 +91,8 @@
                   v-else
                   type="danger"
                   size="small"
-                  @click="handleStop"
                   class="stop-btn"
+                  @click="handleStop"
                 >
                   <a-icon type="stop" />
                   停止
@@ -107,17 +107,17 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue, Prop } from "nuxt-property-decorator";
-import debounce from "lodash/debounce";
-import api from "~/api";
-import { DocumentViewerData, AiMessage } from "~/model/LawyerModel";
+import { Component, Vue, Prop } from 'nuxt-property-decorator'
+import debounce from 'lodash/debounce'
+import api from '~/api'
+import { DocumentViewerData, AiMessage } from '~/model/LawyerModel'
 
 @Component
 export default class DocumentAIChat extends Vue {
   @Prop({ required: true }) document!: DocumentViewerData;
 
   // AI助手相关状态
-  aiQuestion: string = "";
+  aiQuestion: string = '';
   aiLoading: boolean = false;
   aiMessages: AiMessage[] = [];
   enableNetworkQuery: boolean = false;
@@ -128,131 +128,131 @@ export default class DocumentAIChat extends Vue {
 
   // 防抖滚动函数
   private scrollToBottomDebounced = debounce(() => {
-    this.scrollToBottom();
+    this.scrollToBottom()
   }, 50); // 50ms防抖，保持响应性
 
   // 组件挂载时初始化欢迎消息
   mounted(): void {
     try {
-      this.initWelcomeMessage();
+      this.initWelcomeMessage()
     } catch (error) {
-      console.error("初始化欢迎消息时出错:", error);
+      console.error('初始化欢迎消息时出错:', error)
     }
   }
 
   // 组件销毁时清理资源
   beforeDestroy(): void {
     try {
-      this.cancelCurrentRequest();
+      this.cancelCurrentRequest()
       // 清理防抖函数
       if (
         this.scrollToBottomDebounced &&
-        typeof this.scrollToBottomDebounced.cancel === "function"
+        typeof this.scrollToBottomDebounced.cancel === 'function'
       ) {
-        this.scrollToBottomDebounced.cancel();
+        this.scrollToBottomDebounced.cancel()
       }
     } catch (error) {
-      console.error("清理资源时出错:", error);
+      console.error('清理资源时出错:', error)
     }
   }
 
   // 初始化欢迎消息
   initWelcomeMessage(): void {
-    const welcomeMessage: string = `您好！我是文档AI助手。您可以向我提问关于这个文档的任何问题，请随时向我提问！`;
+    const welcomeMessage: string = '您好！我是文档AI助手。您可以向我提问关于这个文档的任何问题，请随时向我提问！'
 
     this.aiMessages.push({
       content: welcomeMessage,
       isUser: false,
-      isWelcome: true, // 标识为欢迎消息
-    });
+      isWelcome: true // 标识为欢迎消息
+    })
   }
 
   // 取消当前请求
   cancelCurrentRequest(): void {
     if (this.abortController) {
-      this.abortController.abort();
-      this.abortController = null;
-      this.aiLoading = false;
-      this.showThinking = false;
+      this.abortController.abort()
+      this.abortController = null
+      this.aiLoading = false
+      this.showThinking = false
     }
   }
 
   // 向AI提问
   async askAi(question: string): Promise<void> {
-    if (!question.trim() || this.aiLoading) return;
+    if (!question.trim() || this.aiLoading) { return }
 
     try {
       // 取消之前的请求
-      this.cancelCurrentRequest();
+      this.cancelCurrentRequest()
 
       // 创建新的请求控制器
-      this.abortController = new AbortController();
+      this.abortController = new AbortController()
 
       // 添加用户问题到消息列表
-      this.addUserMessage(question);
+      this.addUserMessage(question)
 
       // 清空输入框
-      this.aiQuestion = "";
+      this.aiQuestion = ''
 
       // 设置加载状态
-      this.aiLoading = true;
-      this.showThinking = true;
+      this.aiLoading = true
+      this.showThinking = true
       // 准备请求参数 - 使用 FormData 格式
-      const formData: FormData = new FormData();
-      formData.append("searchId", this.document.id);
-      formData.append("userId", this.$store.state.auth.id);
-      formData.append("question", question);
-      formData.append("enableNetworkQuery", this.enableNetworkQuery.toString());
+      const formData: FormData = new FormData()
+      formData.append('searchId', this.document.id)
+      formData.append('userId', this.$store.state.auth.id)
+      formData.append('question', question)
+      formData.append('enableNetworkQuery', this.enableNetworkQuery.toString())
       // 获取基础URL和token
-      const baseURL: string = this.$axios.defaults.baseURL;
-      const token: string = this.$store.state.auth.token;
-      const userId: string = this.$store.state.auth.id;
+      const baseURL: string = this.$axios.defaults.baseURL
+      const token: string = this.$store.state.auth.token
+      const userId: string = this.$store.state.auth.id
 
       // 使用fetch进行流式请求
       const response: Response = await fetch(
         `${baseURL}${api.lawyer.getAIRobotAnswer}`,
         {
-          method: "POST",
+          method: 'POST',
           headers: {
-            userId: userId,
-            Authorization: "Bearer " + token,
+            userId,
+            Authorization: 'Bearer ' + token
             // 注意：使用 FormData 时不要设置 Content-Type，让浏览器自动设置
           },
           body: formData,
-          signal: this.abortController?.signal, // 添加取消信号
+          signal: this.abortController?.signal // 添加取消信号
         }
-      );
+      )
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(`HTTP error! status: ${response.status}`)
       }
 
       // 创建AI消息对象
-      const aiMessage: AiMessage = { content: "", isUser: false };
-      this.aiMessages.push(aiMessage);
+      const aiMessage: AiMessage = { content: '', isUser: false }
+      this.aiMessages.push(aiMessage)
 
       // 处理流式数据
-      await this.processStreamResponse(response, aiMessage);
+      await this.processStreamResponse(response, aiMessage)
     } catch (error) {
       // 检查是否是用户主动取消的请求
-      if (error.name === "AbortError") {
-        console.log("AI请求已被用户取消");
-        return; // 用户主动取消，不显示错误信息
+      if (error.name === 'AbortError') {
+        console.log('AI请求已被用户取消')
+        return // 用户主动取消，不显示错误信息
       }
 
-      console.error("AI问答请求失败:", error);
-      this.$message.error("AI问答服务暂时不可用，请稍后重试");
+      console.error('AI问答请求失败:', error)
+      this.$message.error('AI问答服务暂时不可用，请稍后重试')
 
       // 添加错误消息
       this.aiMessages.push({
-        content: "抱歉，AI服务暂时不可用，请稍后重试。",
-        isUser: false,
-      });
+        content: '抱歉，AI服务暂时不可用，请稍后重试。',
+        isUser: false
+      })
     } finally {
-      this.aiLoading = false;
-      this.showThinking = false;
-      this.abortController = null; // 清理控制器
-      this.scrollToBottom();
+      this.aiLoading = false
+      this.showThinking = false
+      this.abortController = null // 清理控制器
+      this.scrollToBottom()
     }
   }
 
@@ -262,56 +262,56 @@ export default class DocumentAIChat extends Vue {
     aiMessage: AiMessage
   ): Promise<void> {
     const reader: ReadableStreamDefaultReader<Uint8Array> | undefined =
-      response.body?.getReader();
+      response.body?.getReader()
     if (!reader) {
-      throw new Error("无法读取响应流");
+      throw new Error('无法读取响应流')
     }
 
-    const decoder: TextDecoder = new TextDecoder();
-    let buffer: string = "";
-    let isFirstContent: boolean = true; // 标记是否是第一次接收到内容
+    const decoder: TextDecoder = new TextDecoder()
+    let buffer: string = ''
+    let isFirstContent: boolean = true // 标记是否是第一次接收到内容
 
     try {
       while (true) {
         // 检查是否已被取消
         if (this.abortController?.signal.aborted) {
-          throw new DOMException("Request was aborted", "AbortError");
+          throw new DOMException('Request was aborted', 'AbortError')
         }
 
-        const { done, value } = await reader.read();
+        const { done, value } = await reader.read()
 
-        if (done) break;
+        if (done) { break }
 
         // 解码数据块
-        buffer += decoder.decode(value, { stream: true });
+        buffer += decoder.decode(value, { stream: true })
 
         // 按行分割数据
-        const lines: string[] = buffer.split("\n");
-        buffer = lines.pop() || ""; // 保留最后一个不完整的行
+        const lines: string[] = buffer.split('\n')
+        buffer = lines.pop() || '' // 保留最后一个不完整的行
 
         // 处理每一行数据
         for (const line of lines) {
-          if (line.trim().startsWith("data:")) {
-            const content: string = line.substring(5); // 移除 "data:" 前缀
+          if (line.trim().startsWith('data:')) {
+            const content: string = line.substring(5) // 移除 "data:" 前缀
 
             // 第一次接收到内容时，隐藏"AI正在思考中"提示
             if (isFirstContent && content.trim()) {
-              this.showThinking = false;
-              isFirstContent = false;
+              this.showThinking = false
+              isFirstContent = false
             }
 
-            aiMessage.content += this.formatTextWithNewlines(content);
+            aiMessage.content += this.formatTextWithNewlines(content)
 
             // 强制更新视图
-            this.$forceUpdate();
+            this.$forceUpdate()
 
             // 使用防抖滚动到底部，减少高频滚动操作
-            this.scrollToBottomDebounced();
+            this.scrollToBottomDebounced()
           }
         }
       }
     } finally {
-      reader.releaseLock();
+      reader.releaseLock()
     }
   }
 
@@ -320,11 +320,11 @@ export default class DocumentAIChat extends Vue {
     try {
       this.aiMessages.push({
         content: this.getMessageContent(content),
-        isUser: true,
-      });
-      this.scrollToBottom();
+        isUser: true
+      })
+      this.scrollToBottom()
     } catch (error) {
-      console.error("添加用户消息时出错:", error);
+      console.error('添加用户消息时出错:', error)
     }
   }
 
@@ -332,90 +332,91 @@ export default class DocumentAIChat extends Vue {
   scrollToBottom(): void {
     try {
       this.$nextTick(() => {
-        const aiMessagesEl = this.$refs.aiMessages as HTMLElement | null;
+        const aiMessagesEl = this.$refs.aiMessages as HTMLElement | null
         if (aiMessagesEl && aiMessagesEl.scrollTo) {
-          aiMessagesEl.scrollTop = aiMessagesEl.scrollHeight;
+          aiMessagesEl.scrollTop = aiMessagesEl.scrollHeight
         }
-      });
+      })
     } catch (error) {
-      console.error("滚动到底部时出错:", error);
+      console.error('滚动到底部时出错:', error)
     }
   }
 
   // 清空对话
   clearChat(): void {
     // 取消当前请求
-    this.cancelCurrentRequest();
+    this.cancelCurrentRequest()
 
-    this.aiMessages = [];
-    this.aiQuestion = "";
+    this.aiMessages = []
+    this.aiQuestion = ''
   }
 
   // 切换联网搜索
   toggleNetworkQuery(): void {
-    this.enableNetworkQuery = !this.enableNetworkQuery;
+    this.enableNetworkQuery = !this.enableNetworkQuery
   }
 
   // 处理发送按钮点击
   handleSend(): void {
     if (this.aiQuestion.trim() && !this.aiLoading) {
-      this.askAi(this.aiQuestion.trim());
+      this.askAi(this.aiQuestion.trim())
     }
   }
 
   // 处理停止按钮点击
   handleStop(): void {
-    this.cancelCurrentRequest();
-    this.$message.info("已停止AI回答");
+    this.cancelCurrentRequest()
+    this.$message.info('已停止AI回答')
   }
 
   // 处理回车键
   handleEnterPress(e: KeyboardEvent): void {
     // Ctrl+Enter 或 Shift+Enter 换行，单独 Enter 发送
     if (!e.ctrlKey && !e.shiftKey) {
-      e.preventDefault();
-      this.handleSend();
+      e.preventDefault()
+      this.handleSend()
     }
   }
+
   // 格式化文本换行（处理中文序号格式）
   formatTextWithNewlines(text: string): string {
-    if (!text) return "";
+    if (!text) { return '' }
 
     // 扩展正则，支持：一、二、... 1. 2. ... （一） （二） ... 1、 2、 ...
     const pattern =
-      /([一二三四五六七八九十]+、|（[一二三四五六七八九十]+）|\d+[.、])/g;
+      /([一二三四五六七八九十]+、|（[一二三四五六七八九十]+）|\d+[.、])/g
 
     // 替换并规范化换行
-    return text.replace(pattern, "\n$1").replace(/\n+/g, "\n\n"); // 合并多个换行
+    return text.replace(pattern, '\n$1').replace(/\n+/g, '\n\n') // 合并多个换行
   }
 
   // 安全获取消息内容，确保返回字符串类型
   getMessageContent(content: string | object): string {
     try {
       // 统一转换为字符串
-      let textContent = "";
+      let textContent = ''
 
       if (!content) {
-        textContent = "";
-      } else if (typeof content === "string") {
-        textContent = content;
-      } else if (typeof content === "object") {
+        textContent = ''
+      } else if (typeof content === 'string') {
+        textContent = content
+      } else if (typeof content === 'object') {
         try {
-          textContent = JSON.stringify(content, null, 2);
+          textContent = JSON.stringify(content, null, 2)
         } catch (e) {
           // 处理循环引用或其他 JSON.stringify 错误
-          textContent = "[无法序列化的对象]";
+          textContent = '[无法序列化的对象]'
         }
       } else {
         // 处理 number, boolean 等其他类型
-        textContent = String(content);
+        textContent = String(content)
       }
 
       // 应用换行格式化
-      return this.formatTextWithNewlines(textContent);
+      return this.formatTextWithNewlines(textContent)
     } catch (error) {
-      console.error("处理消息内容时出错:", error);
-      return "消息内容格式异常";
+      console.error('处理消息内容时出错:', error)
+      return '消息内容格式异常'
     }
   }
 }

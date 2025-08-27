@@ -5,7 +5,7 @@
         class="image_1"
         referrerpolicy="no-referrer"
         src="https://lanhu-oss-2537-2.lanhuapp.com/SketchPng34491aa4e38d8413064408679ca7f77ebd376afc62a9cc58634f027a3faccb49"
-      />
+      >
       <span class="text_1">首页概览</span>
       <div class="text-wrapper_1 flex-col">
         <span class="text_2">法规汇编</span>
@@ -18,13 +18,13 @@
         class="label_1"
         referrerpolicy="no-referrer"
         src="https://lanhu-oss-2537-2.lanhuapp.com/SketchPngec63a8d68ad14c8975d4fd9e77e63fd51c9f68276db598812061966f93aa50e3"
-      />
+      >
     </div>
     <div class="group_2 flex-col">
       <span class="text_10">法规与文件大家智库&nbsp;&gt;&nbsp;法规汇编</span>
-      <span class="text_11"
-        >搜索和浏览法律法规、政策文件、典型案例和解读材料，获取最新的合规信息和专业指导。</span
-      >
+      <span
+        class="text_11"
+      >搜索和浏览法律法规、政策文件、典型案例和解读材料，获取最新的合规信息和专业指导。</span>
       <div class="section_1 flex-row">
         <div class="group_3 flex-row justify-between">
           <span class="text_12">请输入关键词搜索法规、案例、解读...</span>
@@ -32,7 +32,7 @@
             class="thumbnail_1"
             referrerpolicy="no-referrer"
             src="https://lanhu-oss-2537-2.lanhuapp.com/SketchPnge24258268fa0b3821a65e881b367530d7e5319488159d22fe09e854002c11cfc"
-          />
+          >
         </div>
         <div class="group_4 flex-row justify-between">
           <div class="text-wrapper_2 flex-col">
@@ -49,21 +49,21 @@
           class="thumbnail_2"
           referrerpolicy="no-referrer"
           src="https://lanhu-oss-2537-2.lanhuapp.com/SketchPng0432647d4e81a9115392152cdd3679ca7fce45b48e71715aa66330513b72d822"
-        />
+        >
         <span class="text_16">收起筛选</span>
       </div>
       <div class="list_1 flex-row">
         <div
-          class="list-items_1 flex-row justify-between"
           v-for="(item, index) in loopData0"
           :key="index"
+          class="list-items_1 flex-row justify-between"
         >
-          <span class="text_17" v-html="item.lanhutext0"></span>
+          <span class="text_17" v-html="item.lanhutext0" />
           <img
             class="thumbnail_3"
             referrerpolicy="no-referrer"
             :src="item.lanhuimage0"
-          />
+          >
         </div>
       </div>
       <span class="text_18">共找到&nbsp;6&nbsp;条相关信息</span>
@@ -74,12 +74,12 @@
             class="thumbnail_4"
             referrerpolicy="no-referrer"
             src="https://lanhu-oss-2537-2.lanhuapp.com/SketchPng08ee2505b9de5328dad0da73f411c2a07fd6eee0cb0bbc807bda33daa6408ef2"
-          />
+          >
           <span class="text_20">3452&nbsp;阅读</span>
         </div>
-        <span class="text_21"
-          >为进一步规范保险资金股权投资行为，防范投资风险，保护被保险人利益，现就有关事项通知如下：一是明确投资决策程序，二是加强风险管控措施，三是强化信息披露要求...</span
-        >
+        <span
+          class="text_21"
+        >为进一步规范保险资金股权投资行为，防范投资风险，保护被保险人利益，现就有关事项通知如下：一是明确投资决策程序，二是加强风险管控措施，三是强化信息披露要求...</span>
         <div class="box_2 flex-row justify-between">
           <div class="text-wrapper_5 flex-col">
             <span class="text_22">机构监管</span>
@@ -91,7 +91,7 @@
             <span class="text_24">行业协会</span>
           </div>
         </div>
-        <div class="box_3 flex-col"></div>
+        <div class="box_3 flex-col" />
         <div class="box_4 flex-row">
           <div class="text-wrapper_8 flex-col">
             <span class="text_25">查看</span>
@@ -117,15 +117,15 @@
               class="label_2"
               referrerpolicy="no-referrer"
               src="https://lanhu-oss-2537-2.lanhuapp.com/SketchPngd2548194830a8d2aac5b343579208aab422335661bf516b973f89b7eef6c2fc0"
-            />
+            >
             <div class="text-group_1 flex-col justify-between">
-              <span class="text_30"
-                >偿付能力监管规则第1号：保险公司偿付能力充足率</span
-              >
+              <span
+                class="text_30"
+              >偿付能力监管规则第1号：保险公司偿付能力充足率</span>
               <div class="text-wrapper_13 flex-row justify-between">
-                <span class="text_31"
-                  >2024-01-15&nbsp;&nbsp;&nbsp;金融监管总局</span
-                >
+                <span
+                  class="text_31"
+                >2024-01-15&nbsp;&nbsp;&nbsp;金融监管总局</span>
                 <span class="text_32">3452&nbsp;阅读</span>
               </div>
             </div>
@@ -134,11 +134,11 @@
             class="thumbnail_5"
             referrerpolicy="no-referrer"
             src="https://lanhu-oss-2537-2.lanhuapp.com/SketchPng08ee2505b9de5328dad0da73f411c2a07fd6eee0cb0bbc807bda33daa6408ef2"
-          />
+          >
         </div>
-        <span class="text_33"
-          >建立健全偿付能力监管制度，规范保险公司偿付能力计算标准，确保保险公司具备与其风险相适应的资本水平...</span
-        >
+        <span
+          class="text_33"
+        >建立健全偿付能力监管制度，规范保险公司偿付能力计算标准，确保保险公司具备与其风险相适应的资本水平...</span>
         <div class="block_2 flex-row justify-between">
           <div class="text-wrapper_14 flex-col">
             <span class="text_34">机构监管</span>
@@ -150,7 +150,7 @@
             <span class="text_36">行业协会</span>
           </div>
         </div>
-        <div class="block_3 flex-col"></div>
+        <div class="block_3 flex-col" />
         <div class="block_4 flex-row">
           <div class="text-wrapper_17 flex-col">
             <span class="text_37">查看</span>
@@ -176,13 +176,13 @@
               class="label_3"
               referrerpolicy="no-referrer"
               src="https://lanhu-oss-2537-2.lanhuapp.com/SketchPng10db4b082bfc821ab30f8a18800b928c3a4878122cd9a6a1fa3138ef5fe0fb2b"
-            />
+            >
             <div class="text-group_2 flex-col justify-between">
               <span class="text_42">关联交易管理办法（2022年修订）</span>
               <div class="text-wrapper_22 flex-row justify-between">
-                <span class="text_43"
-                  >2024-01-15&nbsp;&nbsp;&nbsp;金融监管总局</span
-                >
+                <span
+                  class="text_43"
+                >2024-01-15&nbsp;&nbsp;&nbsp;金融监管总局</span>
                 <span class="text_44">3452&nbsp;阅读</span>
               </div>
             </div>
@@ -191,11 +191,11 @@
             class="thumbnail_6"
             referrerpolicy="no-referrer"
             src="https://lanhu-oss-2537-2.lanhuapp.com/SketchPng08ee2505b9de5328dad0da73f411c2a07fd6eee0cb0bbc807bda33daa6408ef2"
-          />
+          >
         </div>
-        <span class="text_45"
-          >加强保险公司关联交易监管，规范关联交易行为，防控关联交易风险，保护保险消费者合法权益和保险公司稳健经营...</span
-        >
+        <span
+          class="text_45"
+        >加强保险公司关联交易监管，规范关联交易行为，防控关联交易风险，保护保险消费者合法权益和保险公司稳健经营...</span>
         <div class="group_6 flex-row justify-between">
           <div class="text-wrapper_23 flex-col">
             <span class="text_46">风控合规</span>
@@ -207,7 +207,7 @@
             <span class="text_48">其他机构</span>
           </div>
         </div>
-        <div class="group_7 flex-col"></div>
+        <div class="group_7 flex-col" />
         <div class="group_8 flex-row">
           <div class="text-wrapper_26 flex-col">
             <span class="text_49">查看</span>
@@ -233,13 +233,13 @@
               class="label_4"
               referrerpolicy="no-referrer"
               src="https://lanhu-oss-2537-2.lanhuapp.com/SketchPng4baf3c7158aeeb908cddd587cea6f3a4eb260059f69d713aa9d807c44dbed6b0"
-            />
+            >
             <div class="text-group_3 flex-col justify-between">
               <span class="text_54">保险公司信息披露管理办法</span>
               <div class="text-wrapper_31 flex-row justify-between">
-                <span class="text_55"
-                  >2024-01-15&nbsp;&nbsp;&nbsp;金融监管总局</span
-                >
+                <span
+                  class="text_55"
+                >2024-01-15&nbsp;&nbsp;&nbsp;金融监管总局</span>
                 <span class="text_56">3452&nbsp;阅读</span>
               </div>
             </div>
@@ -248,11 +248,11 @@
             class="thumbnail_7"
             referrerpolicy="no-referrer"
             src="https://lanhu-oss-2537-2.lanhuapp.com/SketchPng08ee2505b9de5328dad0da73f411c2a07fd6eee0cb0bbc807bda33daa6408ef2"
-          />
+          >
         </div>
-        <span class="text_57"
-          >规范保险公司信息披露行为，保护投保人、被保险人和受益人的合法权益，促进保险市场健康发展...</span
-        >
+        <span
+          class="text_57"
+        >规范保险公司信息披露行为，保护投保人、被保险人和受益人的合法权益，促进保险市场健康发展...</span>
         <div class="box_6 flex-row justify-between">
           <div class="text-wrapper_32 flex-col">
             <span class="text_58">机构监管</span>
@@ -264,7 +264,7 @@
             <span class="text_60">行业协会</span>
           </div>
         </div>
-        <div class="box_7 flex-col"></div>
+        <div class="box_7 flex-col" />
         <div class="box_8 flex-row">
           <div class="text-wrapper_35 flex-col">
             <span class="text_61">查看</span>
@@ -290,15 +290,15 @@
               class="label_5"
               referrerpolicy="no-referrer"
               src="https://lanhu-oss-2537-2.lanhuapp.com/SketchPngd2548194830a8d2aac5b343579208aab422335661bf516b973f89b7eef6c2fc0"
-            />
+            >
             <div class="text-group_4 flex-col justify-between">
-              <span class="text_66"
-                >偿付能力监管规则第1号：保险公司偿付能力充足率</span
-              >
+              <span
+                class="text_66"
+              >偿付能力监管规则第1号：保险公司偿付能力充足率</span>
               <div class="text-wrapper_40 flex-row justify-between">
-                <span class="text_67"
-                  >2024-01-15&nbsp;&nbsp;&nbsp;金融监管总局</span
-                >
+                <span
+                  class="text_67"
+                >2024-01-15&nbsp;&nbsp;&nbsp;金融监管总局</span>
                 <span class="text_68">3452&nbsp;阅读</span>
               </div>
             </div>
@@ -307,11 +307,11 @@
             class="thumbnail_8"
             referrerpolicy="no-referrer"
             src="https://lanhu-oss-2537-2.lanhuapp.com/SketchPng08ee2505b9de5328dad0da73f411c2a07fd6eee0cb0bbc807bda33daa6408ef2"
-          />
+          >
         </div>
-        <span class="text_69"
-          >建立健全偿付能力监管制度，规范保险公司偿付能力计算标准，确保保险公司具备与其风险相适应的资本水平...</span
-        >
+        <span
+          class="text_69"
+        >建立健全偿付能力监管制度，规范保险公司偿付能力计算标准，确保保险公司具备与其风险相适应的资本水平...</span>
         <div class="box_10 flex-row justify-between">
           <div class="text-wrapper_41 flex-col">
             <span class="text_70">机构监管</span>
@@ -323,7 +323,7 @@
             <span class="text_72">行业协会</span>
           </div>
         </div>
-        <div class="box_11 flex-col"></div>
+        <div class="box_11 flex-col" />
         <div class="box_12 flex-row">
           <div class="text-wrapper_44 flex-col">
             <span class="text_73">查看</span>
@@ -349,13 +349,13 @@
               class="label_6"
               referrerpolicy="no-referrer"
               src="https://lanhu-oss-2537-2.lanhuapp.com/SketchPng10db4b082bfc821ab30f8a18800b928c3a4878122cd9a6a1fa3138ef5fe0fb2b"
-            />
+            >
             <div class="text-group_5 flex-col justify-between">
               <span class="text_78">关联交易管理办法（2022年修订）</span>
               <div class="text-wrapper_49 flex-row justify-between">
-                <span class="text_79"
-                  >2024-01-15&nbsp;&nbsp;&nbsp;金融监管总局</span
-                >
+                <span
+                  class="text_79"
+                >2024-01-15&nbsp;&nbsp;&nbsp;金融监管总局</span>
                 <span class="text_80">3452&nbsp;阅读</span>
               </div>
             </div>
@@ -364,11 +364,11 @@
             class="thumbnail_9"
             referrerpolicy="no-referrer"
             src="https://lanhu-oss-2537-2.lanhuapp.com/SketchPng08ee2505b9de5328dad0da73f411c2a07fd6eee0cb0bbc807bda33daa6408ef2"
-          />
+          >
         </div>
-        <span class="text_81"
-          >加强保险公司关联交易监管，规范关联交易行为，防控关联交易风险，保护保险消费者合法权益和保险公司稳健经营...</span
-        >
+        <span
+          class="text_81"
+        >加强保险公司关联交易监管，规范关联交易行为，防控关联交易风险，保护保险消费者合法权益和保险公司稳健经营...</span>
         <div class="group_10 flex-row justify-between">
           <div class="text-wrapper_50 flex-col">
             <span class="text_82">风控合规</span>
@@ -380,7 +380,7 @@
             <span class="text_84">其他机构</span>
           </div>
         </div>
-        <div class="group_11 flex-col"></div>
+        <div class="group_11 flex-col" />
         <div class="group_12 flex-row">
           <div class="text-wrapper_53 flex-col">
             <span class="text_85">查看</span>
@@ -445,7 +445,7 @@
             class="thumbnail_10"
             referrerpolicy="no-referrer"
             src="https://lanhu-oss-2537-2.lanhuapp.com/SketchPng78602344a3f329b55f506aade306f71b962559af731835620aabed4aed258e76"
-          />
+          >
         </div>
         <div class="group_14 flex-row justify-between">
           <span class="text_102">风控合规</span>
@@ -453,7 +453,7 @@
             class="thumbnail_11"
             referrerpolicy="no-referrer"
             src="https://lanhu-oss-2537-2.lanhuapp.com/SketchPngac7a0b43ee116ef3e04ee1c5cf052e0ad13227855997d1b99203f507b7cc055a"
-          />
+          >
         </div>
         <div class="group_15 flex-row justify-between">
           <span class="text_103">金融产品</span>
@@ -461,14 +461,14 @@
             class="thumbnail_12"
             referrerpolicy="no-referrer"
             src="https://lanhu-oss-2537-2.lanhuapp.com/SketchPngac7a0b43ee116ef3e04ee1c5cf052e0ad13227855997d1b99203f507b7cc055a"
-          />
+          >
         </div>
       </div>
     </div>
     <div class="text-wrapper_69 flex-col">
-      <span class="text_104"
-        >版本：1.0.0&nbsp;&nbsp;2022&nbsp;大家资产管理有限责任公司&nbsp;版权所有</span
-      >
+      <span
+        class="text_104"
+      >版本：1.0.0&nbsp;&nbsp;2022&nbsp;大家资产管理有限责任公司&nbsp;版权所有</span>
     </div>
   </div>
 </template>
@@ -478,41 +478,41 @@ export default {
     return {
       loopData0: [
         {
-          lanhutext0: "效力位阶",
+          lanhutext0: '效力位阶',
           lanhuimage0:
-            "https://lanhu-oss-2537-2.lanhuapp.com/SketchPng42675f714485ee96032f5f6d7b274eba3b6bbe63e54f417ee7596a1f7eee47ca",
+            'https://lanhu-oss-2537-2.lanhuapp.com/SketchPng42675f714485ee96032f5f6d7b274eba3b6bbe63e54f417ee7596a1f7eee47ca'
         },
         {
-          lanhutext0: "时效性",
+          lanhutext0: '时效性',
           lanhuimage0:
-            "https://lanhu-oss-2537-2.lanhuapp.com/SketchPng42675f714485ee96032f5f6d7b274eba3b6bbe63e54f417ee7596a1f7eee47ca",
+            'https://lanhu-oss-2537-2.lanhuapp.com/SketchPng42675f714485ee96032f5f6d7b274eba3b6bbe63e54f417ee7596a1f7eee47ca'
         },
         {
-          lanhutext0: "专题分类",
+          lanhutext0: '专题分类',
           lanhuimage0:
-            "https://lanhu-oss-2537-2.lanhuapp.com/SketchPng42675f714485ee96032f5f6d7b274eba3b6bbe63e54f417ee7596a1f7eee47ca",
+            'https://lanhu-oss-2537-2.lanhuapp.com/SketchPng42675f714485ee96032f5f6d7b274eba3b6bbe63e54f417ee7596a1f7eee47ca'
         },
         {
-          lanhutext0: "发布时间",
+          lanhutext0: '发布时间',
           lanhuimage0:
-            "https://lanhu-oss-2537-2.lanhuapp.com/SketchPng42675f714485ee96032f5f6d7b274eba3b6bbe63e54f417ee7596a1f7eee47ca",
+            'https://lanhu-oss-2537-2.lanhuapp.com/SketchPng42675f714485ee96032f5f6d7b274eba3b6bbe63e54f417ee7596a1f7eee47ca'
         },
         {
-          lanhutext0: "全部来源",
+          lanhutext0: '全部来源',
           lanhuimage0:
-            "https://lanhu-oss-2537-2.lanhuapp.com/SketchPng42675f714485ee96032f5f6d7b274eba3b6bbe63e54f417ee7596a1f7eee47ca",
+            'https://lanhu-oss-2537-2.lanhuapp.com/SketchPng42675f714485ee96032f5f6d7b274eba3b6bbe63e54f417ee7596a1f7eee47ca'
         },
         {
-          lanhutext0: "按发布日期（新-旧）",
+          lanhutext0: '按发布日期（新-旧）',
           lanhuimage0:
-            "https://lanhu-oss-2537-2.lanhuapp.com/SketchPng42675f714485ee96032f5f6d7b274eba3b6bbe63e54f417ee7596a1f7eee47ca",
-        },
+            'https://lanhu-oss-2537-2.lanhuapp.com/SketchPng42675f714485ee96032f5f6d7b274eba3b6bbe63e54f417ee7596a1f7eee47ca'
+        }
       ],
-      constants: {},
-    };
+      constants: {}
+    }
   },
-  methods: {},
-};
+  methods: {}
+}
 </script>
 <style src="../common.css" />
 <style src="../index.css" />

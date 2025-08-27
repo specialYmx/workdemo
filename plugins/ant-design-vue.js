@@ -7,10 +7,12 @@ import {
   Icon,
   Dropdown,
   Input,
+  InputNumber,
   Select,
   DatePicker,
   Modal,
   Form,
+  FormModel,
   Tabs,
   Tag,
   Badge,
@@ -44,10 +46,12 @@ Vue.use(Menu);
 Vue.use(Icon);
 Vue.use(Dropdown);
 Vue.use(Input);
+Vue.use(InputNumber);
 Vue.use(Select);
 Vue.use(DatePicker);
 Vue.use(Modal);
 Vue.use(Form);
+Vue.use(FormModel);
 Vue.use(Tabs);
 Vue.use(Tag);
 Vue.use(Badge);

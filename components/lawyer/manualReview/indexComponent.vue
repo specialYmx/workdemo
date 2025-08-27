@@ -9,10 +9,10 @@
         <!-- 搜索筛选和操作区域 -->
         <div class="lawyer-controls-row">
           <a-input-search
-            placeholder="搜索标题、文号、来源..."
             v-model="searchText"
-            @search="onSearch"
+            placeholder="搜索标题、文号、来源..."
             class="lawyer-search-input"
+            @search="onSearch"
           />
 
           <div class="lawyer-status-tags">
@@ -32,10 +32,10 @@
             <a-select
               v-model="filterType"
               placeholder="请选择分类"
-              @change="onFilterChange"
               allowClear
+              @change="onFilterChange"
             >
-              <a-select-option value="">全部分类</a-select-option>
+              <a-select-option value=""> 全部分类 </a-select-option>
               <a-select-option
                 v-for="option in typeOptions"
                 :key="option.value"
@@ -47,8 +47,8 @@
           </div>
 
           <a-button
-            @click="exportData"
             class="lawyer-btn-export"
+            @click="exportData"
             :disabled="selectedRowKeys.length === 0"
           >
             导出选中数据 ({{ selectedRowKeys.length }})
@@ -71,7 +71,7 @@
             :data-source="documents"
             :pagination="currentPagination"
             :loading="tableLoading"
-            :rowKey="(record) => record.id"
+            :row-key="(record) => record.id"
             :row-selection="rowSelection"
             @change="handleTableChange"
           >
@@ -125,7 +125,7 @@
             <!-- 操作列插槽 -->
             <span slot="action" slot-scope="text, record">
               <div class="lawyer-action-links">
-                <a @click="viewDocument(record)" class="lawyer-link-view">
+                <a class="lawyer-link-view" @click="viewDocument(record)">
                   查看
                 </a>
                 <template
@@ -136,12 +136,12 @@
                   "
                 >
                   <a
-                    @click="approveDocument(record)"
                     class="lawyer-link-approve"
+                    @click="approveDocument(record)"
                   >
                     通过
                   </a>
-                  <a @click="rejectDocument(record)" class="lawyer-link-reject">
+                  <a class="lawyer-link-reject" @click="rejectDocument(record)">
                     驳回
                   </a>
                 </template>
@@ -167,25 +167,25 @@
                 @change="
                   (e) => setSelectedKeys(e.target.value ? [e.target.value] : [])
                 "
+                style="width: 188px; margin-bottom: 8px; display: block"
                 @pressEnter="
                   () => handleSearch(selectedKeys, confirm, column.dataIndex)
                 "
-                style="width: 188px; margin-bottom: 8px; display: block"
               />
               <a-button
                 type="primary"
+                icon="search"
                 @click="
                   () => handleSearch(selectedKeys, confirm, column.dataIndex)
                 "
-                icon="search"
                 size="small"
                 style="width: 90px; margin-right: 8px"
               >
                 搜索
               </a-button>
               <a-button
-                @click="() => handleReset(clearFilters)"
                 size="small"
+                @click="() => handleReset(clearFilters)"
                 style="width: 90px"
               >
                 重置
@@ -212,10 +212,11 @@ import {
   FilterOption,
   StatusMap,
   DateRange,
+  RowSelectionConfig,
 } from "~/model/LawyerModel";
 import { categoryOptions } from "~/enum/Lawyer";
 import { downloadFileWithMessage } from "~/utils/personal";
-import { RowSelectionConfig } from "~/model/LawyerModel";
+
 import { CustomColumn } from "~/model/CommonModel";
 import { userCheckList } from "~/mock/userCheck";
 
@@ -392,7 +393,9 @@ export default class LawyerManualReviewIndexComponent extends Vue {
   @Watch("$route", { immediate: false, deep: false })
   onRouteChange(to: any, from: any): void {
     // 防护：确保路由对象存在
-    if (!to || !from) return;
+    if (!to || !from) {
+      return;
+    }
 
     // 只有当筛选参数发生变化时才重新设置
     if (to.query.filter !== from.query.filter) {
@@ -409,7 +412,9 @@ export default class LawyerManualReviewIndexComponent extends Vue {
   // 设置初始筛选状态
   setInitialFilters(): void {
     // 防护：如果组件已销毁，不执行操作
-    if (this.isDestroyed) return;
+    if (this.isDestroyed) {
+      return;
+    }
 
     const filterParam = this.$route.query.filter as string;
 
@@ -420,7 +425,9 @@ export default class LawyerManualReviewIndexComponent extends Vue {
       // 使用 $nextTick 确保DOM更新完成后再设置筛选
       this.$nextTick(() => {
         // 再次检查组件是否已销毁
-        if (this.isDestroyed) return;
+        if (this.isDestroyed) {
+          return;
+        }
 
         if (filterParam === "completed") {
           // 从首页"查看历史记录"跳转过来，显示已通过和已驳回
@@ -532,9 +539,6 @@ export default class LawyerManualReviewIndexComponent extends Vue {
 
   // 表格变化事件
   handleTableChange(pagination: any, filters: any): void {
-    console.log("🚀 ~ handleTableChange ~ pagination:", pagination);
-    console.log("🚀 ~ handleTableChange ~ filters:", filters);
-
     // 更新分页信息
     this.currentPagination = {
       ...this.currentPagination,
@@ -570,6 +574,7 @@ export default class LawyerManualReviewIndexComponent extends Vue {
       this.filterStatus = "all";
     }
   }
+
   // 处理搜索
   handleSearch(
     selectedKeys: string[],
@@ -603,7 +608,9 @@ export default class LawyerManualReviewIndexComponent extends Vue {
 
   // 格式化时间显示
   formatTime(timeStr: string): string {
-    if (!timeStr) return "-";
+    if (!timeStr) {
+      return "-";
+    }
     return moment(timeStr).format("YYYY-MM-DD HH:mm");
   }
 

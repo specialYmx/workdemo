@@ -1,5 +1,5 @@
 <template>
-  <div class="document-viewer-wrapper" ref="documentViewerContainer">
+  <div ref="documentViewerContainer" class="document-viewer-wrapper">
     <div class="lawyer-document-page">
       <!-- 主要内容区 -->
       <div class="lawyer-main-layout">
@@ -18,12 +18,12 @@
                     <h1>{{ document.title }}</h1>
                     <a-tag
                       :color="document.isRevoke ? 'red' : 'green'"
-                      @click="handleStatusTagClick"
                       :class="[
                         'lawyer-editable-status',
                         'lawyer-inline-status',
                         { 'lawyer-status-disabled': document.isRevoke },
                       ]"
+                      @click="handleStatusTagClick"
                     >
                       {{ document.timeLiness || "未知" }}
                       <a-icon
@@ -60,8 +60,8 @@
             <!-- 文档内容 -->
             <lawyer-common-div-text-search>
               <div
-                class="lawyer-document-content lawyer-scrollable lawyer-markdown-content"
                 ref="documentContent"
+                class="lawyer-document-content lawyer-scrollable lawyer-markdown-content"
                 tabindex="0"
               >
                 <v-md-preview :text="document.content" />
@@ -80,12 +80,12 @@
       <a-modal
         title="编辑文档状态"
         :visible="revokeStatusVisible"
+        :width="400"
+        ok-text="确认"
+        cancel-text="取消"
+        :get-container="() => $refs.documentViewerContainer"
         @ok="handleRevokeStatusConfirm"
         @cancel="handleRevokeStatusCancel"
-        :width="400"
-        okText="确认"
-        cancelText="取消"
-        :get-container="() => $refs.documentViewerContainer"
       >
         <div class="lawyer-revoke-status-content">
           <div class="lawyer-status-row">
@@ -127,10 +127,10 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue, Prop, Emit } from "nuxt-property-decorator";
+import { Component, Vue, Prop, Emit } from 'nuxt-property-decorator'
 
-import { downloadFileWithMessage } from "~/utils/personal";
-import { DocumentViewerData, DocumentMetaItem } from "~/model/LawyerModel";
+import { downloadFileWithMessage } from '~/utils/personal'
+import { DocumentViewerData, DocumentMetaItem } from '~/model/LawyerModel'
 
 @Component({})
 export default class DocumentViewer extends Vue {
@@ -144,132 +144,133 @@ export default class DocumentViewer extends Vue {
   get documentMetaItems(): DocumentMetaItem[] {
     return [
       {
-        icon: "number",
-        content: `文号：${this.document.fileNumber || "暂无"}`,
+        icon: 'number',
+        content: `文号：${this.document.fileNumber || '暂无'}`
       },
       {
-        icon: "bank",
-        content: `发布机构：${this.document.publisher || "暂无"}`,
+        icon: 'bank',
+        content: `发布机构：${this.document.publisher || '暂无'}`
       },
       {
-        icon: "calendar",
-        content: `发布日期：${this.document.date || "暂无"}`,
+        icon: 'calendar',
+        content: `发布日期：${this.document.date || '暂无'}`
       },
       {
-        icon: "clock-circle",
-        content: `生效日期：${this.document.effectiveDate || "暂无"}`,
-      },
-    ];
+        icon: 'clock-circle',
+        content: `生效日期：${this.document.effectiveDate || '暂无'}`
+      }
+    ]
   }
 
   // 返回上一页
   goBack(): void {
-    this.emitGoBack();
+    this.emitGoBack()
   }
 
   // 处理状态标签点击
   handleStatusTagClick(): void {
     // 只有非已废止状态的文档才能点击
     if (!this.document.isRevoke) {
-      this.showRevokeStatusModal();
+      this.showRevokeStatusModal()
     }
   }
 
   // 显示废止状态编辑模态框
   showRevokeStatusModal(): void {
     // 初始状态为false，让用户选择是否要将状态改为已废止
-    this.tempIsRevoke = false;
-    this.revokeStatusVisible = true;
+    this.tempIsRevoke = false
+    this.revokeStatusVisible = true
   }
 
   // 处理废止状态编辑确认
   async handleRevokeStatusConfirm(): Promise<void> {
-    let hideLoading = null;
+    let hideLoading = null
     try {
       // 如果用户打开了已废止开关，才调用接口
       if (this.tempIsRevoke) {
-        hideLoading = this.$message.loading("正在更新文档状态...", 0);
+        hideLoading = this.$message.loading('正在更新文档状态...', 0)
 
         await this.$roadLawyerService.getRuleSourceDetail({
           searchId: this.document.id,
-          isRevoke: true,
-        });
+          isRevoke: true
+        })
 
         if (hideLoading) {
-          hideLoading();
+          hideLoading()
         }
 
         // 通过事件通知父组件更新状态
         this.emitUpdateDocumentStatus({
           isRevoke: true,
-          timeLiness: "已废止",
-        });
+          timeLiness: '已废止'
+        })
 
-        this.$message.success(`文档状态已更新为：已废止`);
+        this.$message.success('文档状态已更新为：已废止')
       } else {
         // 用户关闭了开关，不调用接口，保持原状态
-        this.$message.success("已取消状态修改");
+        this.$message.success('已取消状态修改')
       }
 
-      this.revokeStatusVisible = false;
+      this.revokeStatusVisible = false
     } catch (error) {
       if (hideLoading) {
-        hideLoading();
+        hideLoading()
       }
-      console.error("更新文档状态失败:", error);
-      this.$message.error("更新文档状态失败，请重试");
+      console.error('更新文档状态失败:', error)
+      this.$message.error('更新文档状态失败，请重试')
     }
   }
 
   // 处理废止状态编辑取消
   handleRevokeStatusCancel(): void {
-    this.revokeStatusVisible = false;
+    this.revokeStatusVisible = false
   }
+
   // 下载文档
   async downloadDocument(): Promise<void> {
-    let hideLoading = null;
+    let hideLoading = null
     try {
       hideLoading = this.$message.loading(
         `正在准备下载: ${this.document.title}`,
         0
-      );
+      )
 
       const result = await this.$roadLawyerService.downloadRuleFile({
-        searchId: this.document.id,
-      });
+        searchId: this.document.id
+      })
 
       if (hideLoading) {
-        hideLoading();
+        hideLoading()
       }
 
       if (result) {
         downloadFileWithMessage(result, {
           fileName: `${this.document.title}.docx`,
           showMessage: true,
-          messageService: this.$message,
-        });
+          messageService: this.$message
+        })
       }
     } catch (error) {
       if (hideLoading) {
-        hideLoading();
+        hideLoading()
       }
-      console.error("下载失败:", error);
-      this.$message.error("下载失败，请检查网络连接后重试");
+      console.error('下载失败:', error)
+      this.$message.error('下载失败，请检查网络连接后重试')
     }
   }
 
   // Emit 装饰器方法
-  @Emit("go-back")
+  @Emit('go-back')
   emitGoBack(): void {
     // 无需返回值
   }
 
-  @Emit("update-document-status")
+  @Emit('update-document-status')
   emitUpdateDocumentStatus(statusData: {
     isRevoke: boolean;
     timeLiness: string;
   }): { isRevoke: boolean; timeLiness: string } {
-    return statusData;
+    return statusData
   }
 }
 </script>

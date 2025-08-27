@@ -9,25 +9,25 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "nuxt-property-decorator";
+import { Component, Vue } from 'nuxt-property-decorator'
 
-import { KnowledgeDataItem, DocumentViewerData } from "~/model/LawyerModel";
+import { KnowledgeDataItem, DocumentViewerData } from '~/model/LawyerModel'
 
-@Component({ name: "lawyer-knowledge-detail-component" })
+@Component({ name: 'lawyer-knowledge-detail-component' })
 export default class LawyerKnowledgeDetailComponent extends Vue {
   // 文档数据
   document: DocumentViewerData = {
-    id: "",
-    title: "正在加载...",
-    date: "",
-    effectiveDate: "",
-    publisher: "",
-    fileNumber: "",
-    status: "",
+    id: '',
+    title: '正在加载...',
+    date: '',
+    effectiveDate: '',
+    publisher: '',
+    fileNumber: '',
+    status: '',
     views: 0,
-    content: "正在加载文档内容...",
+    content: '正在加载文档内容...',
     isRevoke: false,
-    timeLiness: "",
+    timeLiness: ''
   };
 
   loading: boolean = false;
@@ -37,7 +37,7 @@ export default class LawyerKnowledgeDetailComponent extends Vue {
 
   // 返回上一页
   goBack(): void {
-    this.$router.back();
+    this.$router.back()
   }
 
   // 处理文档状态更新
@@ -45,76 +45,76 @@ export default class LawyerKnowledgeDetailComponent extends Vue {
     isRevoke: boolean;
     timeLiness: string;
   }): void {
-    this.document.isRevoke = statusData.isRevoke;
-    this.document.timeLiness = statusData.timeLiness;
+    this.document.isRevoke = statusData.isRevoke
+    this.document.timeLiness = statusData.timeLiness
   }
 
   // 获取文档详情数据
   async fetchDocument(docId: string): Promise<void> {
-    if (!docId) return;
+    if (!docId) { return }
 
-    this.loading = true;
+    this.loading = true
     try {
       const result: KnowledgeDataItem | null =
         await this.$roadLawyerService.getRuleSourceDetail({
           searchId: docId,
-          isRevoke: this.isRevoke,
-        });
+          isRevoke: this.isRevoke
+        })
 
       if (result) {
         // 转换KnowledgeDataItem数据为DocumentViewer需要的格式
-        const formattedContent: string = result.fileContent || "暂无内容";
+        const formattedContent: string = result.fileContent || '暂无内容'
         this.document = {
           id: result.id,
           title: result.ruleName,
           date: result.publishDateStr || result.createdTimeStr,
-          effectiveDate: result.effectDateStr || "暂无",
+          effectiveDate: result.effectDateStr || '暂无',
           publisher: result.legalSource || result.websiteName,
-          fileNumber: result.documentNo || "暂无",
-          status: result.timeLiness || "未知",
+          fileNumber: result.documentNo || '暂无',
+          status: result.timeLiness || '未知',
           views: result.readCount,
           content: formattedContent,
-          isRevoke: result.timeLiness === "已废止",
-          timeLiness: result.timeLiness || "未知",
-        };
+          isRevoke: result.timeLiness === '已废止',
+          timeLiness: result.timeLiness || '未知'
+        }
       } else {
         // 如果没有获取到数据，显示错误信息
-        this.$message.error("未找到文档数据");
-        this.$router.push("/lawyerKnowledge");
+        this.$message.error('未找到文档数据')
+        this.$router.push('/lawyerKnowledge')
       }
     } catch (error) {
-      console.error("获取文档详情失败:", error);
-      this.$message.error("获取文档详情失败，请重试");
-      this.$router.push("/lawyerKnowledge");
+      console.error('获取文档详情失败:', error)
+      this.$message.error('获取文档详情失败，请重试')
+      this.$router.push('/lawyerKnowledge')
     } finally {
-      this.loading = false;
+      this.loading = false
     }
   }
 
   // 生命周期钩子
   async mounted(): Promise<void> {
-    const docId = this.$route.query.id;
-    const pageTitle = this.$route.query.pageTitle;
-    console.log("文档ID:", docId);
-    console.log("页面标题:", pageTitle);
+    const docId = this.$route.query.id
+    const pageTitle = this.$route.query.pageTitle
+    console.log('文档ID:', docId)
+    console.log('页面标题:', pageTitle)
 
     // 如果有 pageTitle 参数，先设置标题
-    if (pageTitle && typeof pageTitle === "string") {
-      this.document.title = pageTitle;
+    if (pageTitle && typeof pageTitle === 'string') {
+      this.document.title = pageTitle
     }
 
     // 从路由查询参数中获取isRevoke状态
-    const isRevokeParam = this.$route.query.isRevoke;
+    const isRevokeParam = this.$route.query.isRevoke
     if (isRevokeParam !== undefined && isRevokeParam !== null) {
-      this.isRevoke = String(isRevokeParam) === "true";
+      this.isRevoke = String(isRevokeParam) === 'true'
     }
-    console.log("废止状态:", this.isRevoke);
+    console.log('废止状态:', this.isRevoke)
 
-    if (docId && typeof docId === "string") {
-      await this.fetchDocument(docId);
+    if (docId && typeof docId === 'string') {
+      await this.fetchDocument(docId)
     } else {
-      this.$message.error("缺少文档ID参数");
-      this.$router.push("/lawyerKnowledge");
+      this.$message.error('缺少文档ID参数')
+      this.$router.push('/lawyerKnowledge')
     }
   }
 }

@@ -60,3 +60,102 @@ export interface ExecuteCrawlTaskResponse {
   timestamp: number;
   data: string;
 }
+
+// ==================== 爬取配置相关数据模型 ====================
+
+// 爬取配置项
+export interface CrawlConfigItem {
+  id: number;
+  websiteCode: string;
+  websiteName: string;
+  websiteUrl: string;
+  maxPageLimit: number;
+  searchTemplate?: string;
+  keywords?: string[];
+  remarks?: string;
+  enabled: number; // 0-禁用, 1-启用
+  createdBy?: string;
+  createdTime?: string;
+  updateTime?: string;
+  switchLoading?: boolean; // 开关加载状态（前端使用）
+}
+
+// 爬取配置查询参数
+export interface CrawlConfigQueryParams extends BaseQueryParams {
+  websiteCode?: string;
+  websiteName?: string;
+  websiteUrl?: string;
+  enabled?: number;
+  createdBy?: string;
+  maxPageLimit?: number;
+  remarks?: string;
+  searchTemplate?: string;
+  keywords?: string; // 关键词搜索
+  current?: number;
+  size?: number;
+  sortRules?: string;
+}
+
+// 爬取配置响应数据
+export interface CrawlConfigResponse {
+  status: number;
+  message: string;
+  success: boolean;
+  timestamp: number;
+  data: {
+    total: number;
+    size: number;
+    current: number;
+    records: CrawlConfigItem[];
+    orders: any[];
+    optimizeCountSql: boolean;
+    hitCount: boolean;
+    countId: string | null;
+    maxLimit: string | null;
+    searchCount: boolean;
+    pages: number;
+  };
+}
+
+// 新增爬取配置参数
+export interface AddCrawlConfigParams {
+  websiteCode: string;
+  websiteName: string;
+  websiteUrl: string;
+  maxPageLimit: number;
+  searchTemplate?: string;
+  keywords?: string[];
+  remarks?: string;
+  enabled: number;
+  createdBy?: string;
+}
+
+// 更新爬取配置参数
+export interface UpdateCrawlConfigParams {
+  id: number;
+  websiteCode: string;
+  websiteName: string;
+  websiteUrl: string;
+  maxPageLimit: number;
+  searchTemplate?: string;
+  keywords?: string[];
+  remarks?: string;
+  enabled: number;
+  createdBy?: string;
+  createdTime?: string;
+  updateTime?: string;
+}
+
+// 删除爬取配置参数
+export interface DeleteCrawlConfigParams {
+  id: string;
+}
+
+// 通用操作响应
+export interface CrawlConfigOperationResponse {
+  status: number;
+  message: string;
+  success: boolean;
+  timestamp: number;
+  data: string;
+}

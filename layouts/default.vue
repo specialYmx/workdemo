@@ -61,8 +61,8 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "nuxt-property-decorator";
-import zhCN from "ant-design-vue/lib/locale-provider/zh_CN";
+import { Component, Vue } from 'nuxt-property-decorator'
+import zhCN from 'ant-design-vue/lib/locale-provider/zh_CN'
 
 @Component
 export default class DefaultLayout extends Vue {

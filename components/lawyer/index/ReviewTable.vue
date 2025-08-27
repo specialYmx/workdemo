@@ -6,7 +6,9 @@
     title="Top 5 需要人工审核"
   >
     <template slot="extra">
-      <a-button type="primary" @click="viewAll()"> 查看全部 </a-button>
+      <a-button type="primary" @click="viewAll()">
+        查看全部
+      </a-button>
     </template>
 
     <a-spin :spinning="loading">
@@ -18,14 +20,16 @@
       <a-table
         v-else
         :columns="reviewColumns"
-        :dataSource="reviews"
+        :data-source="reviews"
         :pagination="false"
         size="middle"
         class="lawyer-review-table"
-        rowKey="id"
+        row-key="id"
       >
         <template slot="titleColumn" slot-scope="text, record">
-          <div class="lawyer-table-title">{{ record.ruleName }}</div>
+          <div class="lawyer-table-title">
+            {{ record.ruleName }}
+          </div>
           <div class="lawyer-table-subtitle">
             文号：{{ record.documentNo || "无" }}
           </div>
@@ -51,9 +55,7 @@
             <span>操作</span>
             <a-tooltip placement="left">
               <template slot="title">
-                <span
-                  >版本规则：文件版本高于系统最高版本时，不允许审核操作</span
-                >
+                <span>版本规则：文件版本高于系统最高版本时，不允许审核操作</span>
               </template>
               <a-icon type="info-circle" class="ml-8" />
             </a-tooltip>
@@ -63,18 +65,18 @@
         <!-- 操作列插槽 -->
         <template slot="action" slot-scope="text, record">
           <div class="lawyer-action-links">
-            <a @click="viewDetail(record)" class="lawyer-link-view"> 查看 </a>
+            <a class="lawyer-link-view" @click="viewDetail(record)"> 查看 </a>
             <template
               v-if="
                 (record.checkStatus === '待审核' ||
                   record.checkStatus === null) &&
-                canReviewItem(record)
+                  canReviewItem(record)
               "
             >
-              <a @click="approveItem(record)" class="lawyer-link-approve">
+              <a class="lawyer-link-approve" @click="approveItem(record)">
                 通过
               </a>
-              <a @click="rejectItem(record)" class="lawyer-link-reject">
+              <a class="lawyer-link-reject" @click="rejectItem(record)">
                 驳回
               </a>
             </template>
@@ -86,10 +88,10 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue, Prop, Emit } from "nuxt-property-decorator";
-import moment from "moment";
-import { ToDoRuleItem, ReviewStatusClassMap } from "~/model/LawyerModel";
-import { CustomColumn } from "~/model/CommonModel";
+import { Component, Vue, Prop, Emit } from 'nuxt-property-decorator'
+import moment from 'moment'
+import { ToDoRuleItem, ReviewStatusClassMap } from '~/model/LawyerModel'
+import { CustomColumn } from '~/model/CommonModel'
 
 @Component
 export default class ReviewTable extends Vue {
@@ -99,63 +101,63 @@ export default class ReviewTable extends Vue {
   // 表格列定义（优先使用 CommonModel 的 CustomColumn 类型）
   reviewColumns: CustomColumn[] = [
     {
-      title: "标题/文号",
-      dataIndex: "ruleName",
-      key: "ruleName",
-      scopedSlots: { customRender: "titleColumn" },
-      width: "30%",
+      title: '标题/文号',
+      dataIndex: 'ruleName',
+      key: 'ruleName',
+      scopedSlots: { customRender: 'titleColumn' },
+      width: '30%'
     },
     {
-      title: "分类",
-      dataIndex: "categoryMain",
-      key: "categoryMain",
-      scopedSlots: { customRender: "category" },
-      width: "15%",
+      title: '分类',
+      dataIndex: 'categoryMain',
+      key: 'categoryMain',
+      scopedSlots: { customRender: 'category' },
+      width: '15%'
     },
     {
-      title: "来源",
-      dataIndex: "legalSource",
-      key: "legalSource",
-      width: "15%",
+      title: '来源',
+      dataIndex: 'legalSource',
+      key: 'legalSource',
+      width: '15%'
     },
     {
-      title: "提交时间",
-      dataIndex: "createdTime",
-      key: "createdTime",
-      width: "15%",
-      scopedSlots: { customRender: "createdTime" },
+      title: '提交时间',
+      dataIndex: 'createdTime',
+      key: 'createdTime',
+      width: '15%',
+      scopedSlots: { customRender: 'createdTime' }
     },
     {
-      title: "状态",
-      dataIndex: "checkStatus",
-      key: "checkStatus",
-      scopedSlots: { customRender: "status" },
-      width: "10%",
+      title: '状态',
+      dataIndex: 'checkStatus',
+      key: 'checkStatus',
+      scopedSlots: { customRender: 'status' },
+      width: '10%'
     },
     {
-      key: "action",
+      key: 'action',
       scopedSlots: {
-        customRender: "action",
-        title: "actionTitle",
+        customRender: 'action',
+        title: 'actionTitle'
       },
-      width: "15%",
-      align: "center",
-    },
+      width: '15%',
+      align: 'center'
+    }
   ];
 
   // 获取待办审核状态样式类
   getToDoReviewStatusClass(status: string | null): string {
     const classMap: ReviewStatusClassMap = {
-      已通过: "lawyer-status-approved",
-      已驳回: "lawyer-status-rejected",
-      pending: "lawyer-status-pending",
-    };
-    return classMap[status || ""] || "lawyer-status-pending";
+      已通过: 'lawyer-status-approved',
+      已驳回: 'lawyer-status-rejected',
+      pending: 'lawyer-status-pending'
+    }
+    return classMap[status || ''] || 'lawyer-status-pending'
   }
 
   // 获取待办审核状态文本
   getToDoReviewStatusText(status: string | null): string {
-    return status || "待审核";
+    return status || '待审核'
   }
 
   // 检查是否可以审核（版本检查）
@@ -164,32 +166,32 @@ export default class ReviewTable extends Vue {
       record.fileVersion === undefined ||
       record.currentMaxFileVersion === undefined
     ) {
-      return true;
+      return true
     }
     const newVersion: number = Number(
       record.fileVersion || record.fileVersion || 0
-    );
-    const maxVersion: number = Number(record.currentMaxFileVersion || 0);
-    return newVersion > maxVersion;
+    )
+    const maxVersion: number = Number(record.currentMaxFileVersion || 0)
+    return newVersion > maxVersion
   }
 
   // 格式化时间显示
   formatTime(timeStr: string): string {
-    if (!timeStr) return "-";
-    return moment(timeStr).format("YYYY-MM-DD HH:mm:ss");
+    if (!timeStr) { return '-' }
+    return moment(timeStr).format('YYYY-MM-DD HH:mm:ss')
   }
 
   // 组件事件定义
-  @Emit("view-all")
+  @Emit('view-all')
   viewAll() {}
 
-  @Emit("view-detail")
+  @Emit('view-detail')
   viewDetail(record: ToDoRuleItem) {}
 
-  @Emit("approve")
+  @Emit('approve')
   approveItem(record: ToDoRuleItem) {}
 
-  @Emit("reject")
+  @Emit('reject')
   rejectItem(record: ToDoRuleItem) {}
 }
 </script>

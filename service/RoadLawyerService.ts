@@ -19,7 +19,13 @@ import {
   CrawlStatisticsResponse,
   ExecuteCrawlTaskParams,
   ExecuteCrawlTaskResponse,
-} from "~/model/lawyerConfig";
+  CrawlConfigQueryParams,
+  CrawlConfigResponse,
+  AddCrawlConfigParams,
+  UpdateCrawlConfigParams,
+  DeleteCrawlConfigParams,
+  CrawlConfigOperationResponse,
+} from "~/model/LawyerConfig";
 import api from "~/api";
 
 // 将对象转换为FormData的辅助函数
@@ -499,6 +505,118 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
       return res.data || defaultResponse;
     } catch (error) {
       console.error("Error executing crawl task:", error);
+      return {
+        ...defaultResponse,
+        message: error instanceof Error ? error.message : "Unknown error",
+      };
+    }
+  },
+
+  // ==================== 爬取配置相关方法 ====================
+  async getCrawlConfigList(
+    params: CrawlConfigQueryParams
+  ): Promise<CrawlConfigResponse> {
+    const defaultData = {
+      total: 0,
+      size: params.size || 10,
+      current: params.current || 1,
+      records: [],
+      orders: [],
+      optimizeCountSql: true,
+      hitCount: false,
+      countId: null,
+      maxLimit: null,
+      searchCount: true,
+      pages: 0,
+    };
+
+    try {
+      const res = await $axios.post(api.lawyer.getCrawlConfigList, params);
+      return (
+        res.data || {
+          status: 500,
+          message: "No data received",
+          success: false,
+          timestamp: Date.now(),
+          data: defaultData,
+        }
+      );
+    } catch (error) {
+      console.error("Error fetching crawl config list:", error);
+      return {
+        status: 500,
+        message: error instanceof Error ? error.message : "Unknown error",
+        success: false,
+        timestamp: Date.now(),
+        data: defaultData,
+      };
+    }
+  },
+
+  async addCrawlConfig(
+    params: AddCrawlConfigParams
+  ): Promise<CrawlConfigOperationResponse> {
+    const defaultResponse = {
+      status: 500,
+      message: "No response received",
+      success: false,
+      timestamp: Date.now(),
+      data: "",
+    };
+
+    try {
+      const res = await $axios.post(api.lawyer.addCrawlConfig, params);
+      return res.data || defaultResponse;
+    } catch (error) {
+      console.error("Error adding crawl config:", error);
+      return {
+        ...defaultResponse,
+        message: error instanceof Error ? error.message : "Unknown error",
+      };
+    }
+  },
+
+  async updateCrawlConfig(
+    params: UpdateCrawlConfigParams
+  ): Promise<CrawlConfigOperationResponse> {
+    const defaultResponse = {
+      status: 500,
+      message: "No response received",
+      success: false,
+      timestamp: Date.now(),
+      data: "",
+    };
+
+    try {
+      const res = await $axios.post(api.lawyer.updateCrawlConfig, params);
+      return res.data || defaultResponse;
+    } catch (error) {
+      console.error("Error updating crawl config:", error);
+      return {
+        ...defaultResponse,
+        message: error instanceof Error ? error.message : "Unknown error",
+      };
+    }
+  },
+
+  async deleteCrawlConfig(
+    params: DeleteCrawlConfigParams
+  ): Promise<CrawlConfigOperationResponse> {
+    const defaultResponse = {
+      status: 500,
+      message: "No response received",
+      success: false,
+      timestamp: Date.now(),
+      data: "",
+    };
+
+    try {
+      const res = await $axios.post(
+        `${api.lawyer.deleteCrawlConfig}?id=${params.id}`
+      );
+      return res.data || defaultResponse;
+    } catch (error) {
+      console.error("Error deleting crawl config:", error);
       return {
         ...defaultResponse,
         message: error instanceof Error ? error.message : "Unknown error",

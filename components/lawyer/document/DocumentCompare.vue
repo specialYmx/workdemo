@@ -1,5 +1,5 @@
 <template>
-  <div class="document-compare-wrapper" ref="documentCompareContainer">
+  <div ref="documentCompareContainer" class="document-compare-wrapper">
     <div class="lawyer-compare-page">
       <header class="lawyer-compare-header">
         <div class="lawyer-header-content">
@@ -10,8 +10,8 @@
               <a-tag
                 v-if="displayTag"
                 color="orange"
-                @click="showTagEditModal"
                 class="lawyer-editable-tag"
+                @click="showTagEditModal"
               >
                 {{ displayTag }}
                 <a-icon type="edit" class="lawyer-tag-edit-icon" />
@@ -19,8 +19,8 @@
               <a-tag
                 v-else
                 color="orange"
-                @click="showTagEditModal"
                 class="lawyer-editable-tag lawyer-empty-tag"
+                @click="showTagEditModal"
               >
                 点击设置分类
                 <a-icon type="plus" class="lawyer-tag-edit-icon" />
@@ -48,10 +48,7 @@
         >
           <div class="lawyer-column-header">
             {{ col.title }}
-            （<span v-if="col.version">{{ col.version }}</span
-            ><span v-if="col.version && col.date"> - </span
-            ><span v-if="col.date">{{ col.date }}</span
-            >）
+            （<span v-if="col.version">{{ col.version }}</span><span v-if="col.version && col.date"> - </span><span v-if="col.date">{{ col.date }}</span>）
           </div>
           <div class="lawyer-column-content">
             <v-md-preview :text="col.content || '暂无数据'" />
@@ -111,14 +108,12 @@
                     }}</span>
                   </div>
                   <div v-else-if="change.type === 'delete'" class="change-text">
-                    删除了"<span class="deleted-text">{{ change.oldText }}</span
-                    >"
+                    删除了"<span class="deleted-text">{{ change.oldText }}</span>"
                   </div>
                   <div v-else-if="change.type === 'modify'" class="change-text">
                     修改内容：<span class="highlight-text">{{
                       change.newText
-                    }}</span
-                    >，原内容："{{ change.oldText }}"
+                    }}</span>，原内容："{{ change.oldText }}"
                   </div>
                 </div>
               </div>
@@ -130,9 +125,9 @@
       <!-- 审核按钮固定在右下角 -->
       <div v-if="shouldShowReviewButtons" class="tx-r">
         <a-button
-          class="ml-8"
           v-for="(action, index) in reviewActions"
           :key="index"
+          class="ml-8"
           :type="action.type"
           @click="action.handler"
         >
@@ -144,12 +139,12 @@
       <a-modal
         title="编辑文档分类和施行日期"
         :visible="tagEditVisible"
+        :width="600"
+        ok-text="确认"
+        cancel-text="取消"
+        :get-container="() => $refs.documentCompareContainer"
         @ok="handleTagEditConfirm"
         @cancel="handleTagEditCancel"
-        :width="600"
-        okText="确认"
-        cancelText="取消"
-        :getContainer="() => $refs.documentCompareContainer"
       >
         <div class="lawyer-tag-edit-content">
           <!-- 标签分类选择 -->
@@ -182,17 +177,17 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue, Prop, Emit } from "nuxt-property-decorator";
-import { cascaderOptions } from "~/enum/Lawyer";
+import { Component, Vue, Prop, Emit } from 'nuxt-property-decorator'
+import { cascaderOptions } from '~/enum/Lawyer'
 import {
   DocumentCompareData,
   ReviewAction,
   DocumentColumn,
   CascaderOption,
-  ReviewSubmitData,
-} from "~/model/LawyerModel";
+  ReviewSubmitData
+} from '~/model/LawyerModel'
 
-@Component({ name: "document-compare" })
+@Component({ name: 'document-compare' })
 export default class DocumentCompare extends Vue {
   @Prop({ required: true }) document!: DocumentCompareData;
 
@@ -206,54 +201,54 @@ export default class DocumentCompare extends Vue {
 
   // 显示标签（合并为单个标签）
   get displayTag(): string {
-    const tags: string[] = this.document.tags || [];
-    if (tags.length === 0) return "";
-    if (tags.length === 1) return tags[0];
-    return `${tags[0]}/${tags[1]}`;
+    const tags: string[] = this.document.tags || []
+    if (tags.length === 0) { return '' }
+    if (tags.length === 1) { return tags[0] }
+    return `${tags[0]}/${tags[1]}`
   }
 
   // 审核操作按钮
   get reviewActions(): ReviewAction[] {
     return [
       {
-        text: "通过",
-        type: "primary",
-        handler: this.handleApprove,
+        text: '通过',
+        type: 'primary',
+        handler: this.handleApprove
       },
       {
-        text: "驳回",
-        type: "danger",
-        handler: this.handleReject,
-      },
-    ];
+        text: '驳回',
+        type: 'danger',
+        handler: this.handleReject
+      }
+    ]
   }
 
   // 是否显示审核按钮
   get shouldShowReviewButtons(): boolean {
     // 首先检查文档的审核状态是否为'待审核'
     const isPendingStatus =
-      this.document.checkStatus === "待审核" ||
+      this.document.checkStatus === '待审核' ||
       (this.document.checkStatus === undefined &&
-        this.document.status === "pending");
+        this.document.status === 'pending')
     // 只有在待审核状态下才进一步检查其他条件
-    return isPendingStatus && this.canReview;
+    return isPendingStatus && this.canReview
   }
 
   // 是否显示警告信息
   get shouldShowWarning(): boolean {
     // 首先检查文档的审核状态是否为'待审核'
     const isPendingStatus =
-      this.document.checkStatus === "待审核" ||
+      this.document.checkStatus === '待审核' ||
       (this.document.checkStatus === undefined &&
-        this.document.status === "pending");
+        this.document.status === 'pending')
 
     // 只有在待审核状态下且不能审核时才显示警告
-    return isPendingStatus && !this.canReview;
+    return isPendingStatus && !this.canReview
   }
 
   // 是否有特殊信息（无旧版文件或无新版文件）
   get hasSpecialInfo(): boolean {
-    return this.document.changes.some((change) => change.type === "info");
+    return this.document.changes.some(change => change.type === 'info')
   }
 
   // 获取版本和内容状态信息
@@ -262,132 +257,132 @@ export default class DocumentCompare extends Vue {
       newFileVersion: this.document.newFileVersion || 0,
       currentMaxFileVersion: this.document.currentMaxFileVersion || 0,
       hasContentError: this.documentColumns.some(
-        (col) =>
-          col.content === "error" || col.content === "加载失败，请刷新页面重试"
-      ),
-    };
+        col =>
+          col.content === 'error' || col.content === '加载失败，请刷新页面重试'
+      )
+    }
   }
 
   // 是否允许审核操作
   get canReview(): boolean {
     const { newFileVersion, currentMaxFileVersion, hasContentError } =
-      this.getVersionStatus();
-    return newFileVersion > currentMaxFileVersion && !hasContentError;
+      this.getVersionStatus()
+    return newFileVersion > currentMaxFileVersion && !hasContentError
   }
 
   // 检查审核状态并显示错误信息
   checkReviewStatusAndShowError(): boolean {
     const { newFileVersion, currentMaxFileVersion, hasContentError } =
-      this.getVersionStatus();
+      this.getVersionStatus()
 
     if (hasContentError) {
-      this.$message.error("文档内容加载失败，请刷新页面重试后再进行审核");
-      return false;
+      this.$message.error('文档内容加载失败，请刷新页面重试后再进行审核')
+      return false
     } else if (newFileVersion < currentMaxFileVersion) {
-      this.$message.error("当前版本落后系统最高版本，不允许审核");
-      return false;
+      this.$message.error('当前版本落后系统最高版本，不允许审核')
+      return false
     } else if (!this.canReview) {
-      this.$message.error("当前状态不允许审核");
-      return false;
+      this.$message.error('当前状态不允许审核')
+      return false
     }
-    return true;
+    return true
   }
 
   // 获取审核警告信息
   getReviewWarningMessage(): string {
     const { newFileVersion, currentMaxFileVersion, hasContentError } =
-      this.getVersionStatus();
+      this.getVersionStatus()
 
     if (hasContentError) {
-      return "文档内容加载失败，请刷新页面重试";
+      return '文档内容加载失败，请刷新页面重试'
     } else if (newFileVersion < currentMaxFileVersion) {
-      return `当前版本(V${newFileVersion})落后系统最高版本(V${currentMaxFileVersion})，请先更新系统版本`;
+      return `当前版本(V${newFileVersion})落后系统最高版本(V${currentMaxFileVersion})，请先更新系统版本`
     }
-    return "当前状态不允许审核";
+    return '当前状态不允许审核'
   }
 
   // 文档列数据
   get documentColumns(): DocumentColumn[] {
     return [
       {
-        title: "修改前文档",
+        title: '修改前文档',
         version: this.document.oldFileVersion
           ? `V${this.document.oldFileVersion}`
           : undefined,
-        date: this.document.oldPublishTime || "",
-        content: this.document.originalContent || "暂无数据",
+        date: this.document.oldPublishTime || '',
+        content: this.document.originalContent || '暂无数据'
       },
       {
-        title: "修改后文档",
+        title: '修改后文档',
         version: this.document.newFileVersion
           ? `V${this.document.newFileVersion}`
           : undefined,
-        date: this.document.modifiedDate || this.document.newPublishTime || "",
-        content: this.document.newContent || "暂无数据",
-      },
-    ];
+        date: this.document.modifiedDate || this.document.newPublishTime || '',
+        content: this.document.newContent || '暂无数据'
+      }
+    ]
   }
 
   // 返回上一页
   goBack(): void {
-    this.emitGoBack();
+    this.emitGoBack()
   }
 
   // 处理通过审核
   handleApprove(): void {
     // 检查是否允许审核
     if (!this.checkReviewStatusAndShowError()) {
-      return;
+      return
     }
 
     this.$confirm({
-      title: "确认通过",
-      content: "确定要通过此文档的审核吗？",
-      okText: "确认通过",
-      cancelText: "取消",
+      title: '确认通过',
+      content: '确定要通过此文档的审核吗？',
+      okText: '确认通过',
+      cancelText: '取消',
       onOk: () => {
         this.emitSubmitReview({
-          action: "approve",
-          comment: "",
-        });
-      },
-    });
+          action: 'approve',
+          comment: ''
+        })
+      }
+    })
   }
 
   // 处理驳回审核
   handleReject(): void {
     // 检查是否允许审核
     if (!this.checkReviewStatusAndShowError()) {
-      return;
+      return
     }
 
     this.$confirm({
-      title: "确认驳回",
-      content: "确定要驳回此文档吗？",
-      okText: "确认驳回",
-      okType: "danger",
-      cancelText: "取消",
+      title: '确认驳回',
+      content: '确定要驳回此文档吗？',
+      okText: '确认驳回',
+      okType: 'danger',
+      cancelText: '取消',
       onOk: () => {
         this.emitSubmitReview({
-          action: "reject",
-          comment: "",
-        });
-      },
-    });
+          action: 'reject',
+          comment: ''
+        })
+      }
+    })
   }
 
   // 查找标签在级联选项中的路径
   findTagPath(tags: string[]): string[] {
-    if (!tags || tags.length === 0) return [];
+    if (!tags || tags.length === 0) { return [] }
 
     // 如果有两个标签，尝试匹配父子关系
     if (tags.length >= 2) {
-      const [firstTag, secondTag]: [string, string] = [tags[0], tags[1]];
+      const [firstTag, secondTag]: [string, string] = [tags[0], tags[1]]
       for (const option of this.tagOptions) {
         if (option.value === firstTag && option.children) {
           for (const child of option.children) {
             if (child.value === secondTag) {
-              return [firstTag, secondTag];
+              return [firstTag, secondTag]
             }
           }
         }
@@ -395,69 +390,69 @@ export default class DocumentCompare extends Vue {
     }
 
     // 如果只有一个标签或者没有找到匹配的父子关系
-    const currentTag: string = tags[0];
+    const currentTag: string = tags[0]
 
     // 先检查是否为一级标签
     for (const option of this.tagOptions) {
       if (option.value === currentTag) {
-        return [currentTag];
+        return [currentTag]
       }
 
       // 检查是否为二级标签
       if (option.children) {
         for (const child of option.children) {
           if (child.value === currentTag) {
-            return [option.value, currentTag];
+            return [option.value, currentTag]
           }
         }
       }
     }
 
-    return [];
+    return []
   }
 
   // 显示标签编辑模态框
   showTagEditModal(): void {
-    this.tempSelectedTagPath = this.findTagPath(this.document.tags || []);
-    this.tempEffectDate = this.document.effectDate || null;
-    this.tagEditVisible = true;
+    this.tempSelectedTagPath = this.findTagPath(this.document.tags || [])
+    this.tempEffectDate = this.document.effectDate || null
+    this.tagEditVisible = true
   }
 
   // 处理标签编辑确认
   handleTagEditConfirm(): void {
     // 生成显示标签
-    let tagDisplay: string = "";
+    let tagDisplay: string = ''
     if (this.tempSelectedTagPath.length === 1) {
-      tagDisplay = this.tempSelectedTagPath[0];
+      tagDisplay = this.tempSelectedTagPath[0]
     } else if (this.tempSelectedTagPath.length >= 2) {
-      tagDisplay = `${this.tempSelectedTagPath[0]}/${this.tempSelectedTagPath[1]}`;
+      tagDisplay = `${this.tempSelectedTagPath[0]}/${this.tempSelectedTagPath[1]}`
     }
 
     // 通过事件通知父组件更新文档数据
     this.emitUpdateDocument({
       tags: [...this.tempSelectedTagPath],
-      effectDate: this.tempEffectDate,
-    });
+      effectDate: this.tempEffectDate
+    })
 
     if (tagDisplay) {
-      this.$message.success(`已设置标签为: ${tagDisplay}`);
+      this.$message.success(`已设置标签为: ${tagDisplay}`)
     }
 
-    this.tagEditVisible = false;
+    this.tagEditVisible = false
   }
 
   // 处理标签编辑取消
   handleTagEditCancel(): void {
-    this.tagEditVisible = false;
+    this.tagEditVisible = false
   }
 
   // Emit 装饰器方法
-  @Emit("go-back")
+  @Emit('go-back')
   emitGoBack(): void {
     // 无需返回值
   }
 
-  @Emit("submit-review")
+  @Emit('submit-review')
   emitSubmitReview(data: ReviewSubmitData): ReviewSubmitData & {
     categoryMain?: string;
     categorySub?: string;
@@ -467,27 +462,27 @@ export default class DocumentCompare extends Vue {
     const categoryMain =
       this.document.tags && this.document.tags.length > 0
         ? this.document.tags[0]
-        : undefined;
+        : undefined
     const categorySub =
       this.document.tags && this.document.tags.length > 1
         ? this.document.tags[1]
-        : undefined;
-    const effectDateStr = this.document.effectDate;
+        : undefined
+    const effectDateStr = this.document.effectDate
 
     return {
       ...data,
       categoryMain,
       categorySub,
-      effectDateStr,
-    };
+      effectDateStr
+    }
   }
 
-  @Emit("update-document")
+  @Emit('update-document')
   emitUpdateDocument(updateData: {
     tags: string[];
     effectDate: string | null;
   }): { tags: string[]; effectDate: string | null } {
-    return updateData;
+    return updateData
   }
 }
 </script>

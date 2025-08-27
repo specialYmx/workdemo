@@ -1,5 +1,12 @@
 [
   {
+    "name": "crawlConfig",
+    "path": "/crawlConfig",
+    "component": "D:\\\\temp_demo\\\\report-html\\\\law\\\\pages\\\\crawlConfig\\\\index.vue",
+    "chunkName": "pages/crawlConfig/index",
+    "_name": "_486f1f76"
+  },
+  {
     "name": "crawlStatistics",
     "path": "/crawlStatistics",
     "component": "D:\\\\temp_demo\\\\report-html\\\\law\\\\pages\\\\crawlStatistics\\\\index.vue",

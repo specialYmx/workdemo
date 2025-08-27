@@ -30,4 +30,10 @@ export default {
   // ==================== 爬取统计相关接口 (rule-crawl-controller) ====================
   getCrawlHtmlList: "/legal/crawl/getHtmlList", // 获取爬取HTML列表
   executeCrawlTask: "/legal/crawl/runTask", // 执行爬取任务
+
+  // ==================== 爬取配置相关接口 (crawl-config-controller) ====================
+  getCrawlConfigList: "/legal/crawl/getConfigList", // 获取爬取配置列表
+  addCrawlConfig: "/legal/crawl/addConfig", // 新增爬取配置
+  updateCrawlConfig: "/legal/crawl/updateConfig", // 更新爬取配置
+  deleteCrawlConfig: "/legal/crawl/deleteConfigList", // 删除爬取配置
 } as Record<string, string>;

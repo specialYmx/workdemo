@@ -50,6 +50,14 @@
               <a-icon type="bar-chart" />
               爬取统计
             </nuxt-link>
+            <nuxt-link
+              to="/crawlConfig"
+              class="lawyer-nav-link"
+              exact-active-class="active"
+            >
+              <a-icon type="setting" />
+              爬取配置
+            </nuxt-link>
           </nav>
         </div>
       </header>
@@ -61,8 +69,8 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "nuxt-property-decorator";
-import zhCN from "ant-design-vue/lib/locale-provider/zh_CN";
+import { Component, Vue } from 'nuxt-property-decorator'
+import zhCN from 'ant-design-vue/lib/locale-provider/zh_CN'
 
 @Component
 export default class PageLayout extends Vue {

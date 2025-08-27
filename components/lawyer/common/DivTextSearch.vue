@@ -3,35 +3,35 @@
     <div class="lawyer-search-bar">
       <div class="lawyer-search-box">
         <input
-          type="text"
           v-model="searchTerm"
+          type="text"
           placeholder="搜索..."
-          @keyup.enter="onSearch"
           class="lawyer-detail-search-input"
-        />
+          @keyup.enter="onSearch"
+        >
         <a-button
           v-if="searchTerm"
-          @click="clearSearch"
           type="link"
           class="lawyer-clear-button"
           icon="close"
           size="small"
+          @click="clearSearch"
         />
         <a-button
-          @click="onSearch"
           type="primary"
           icon="search"
           class="lawyer-search-button"
+          @click="onSearch"
         />
       </div>
       <div class="lawyer-match-count">
         <span v-if="highlightCount === 0">0 个匹配项</span>
-        <span v-else
-          >{{ currentIndex + 1 }} / {{ highlightCount }} 个匹配项</span
-        >
+        <span
+          v-else
+        >{{ currentIndex + 1 }} / {{ highlightCount }} 个匹配项</span>
       </div>
     </div>
-    <div class="lawyer-content-area" ref="contentArea">
+    <div ref="contentArea" class="lawyer-content-area">
       <div ref="searchableContent">
         <slot />
       </div>
@@ -40,14 +40,14 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue, Watch } from "vue-property-decorator";
-import debounce from "lodash/debounce";
+import { Component, Vue, Watch } from 'vue-property-decorator'
+import debounce from 'lodash/debounce'
 @Component({
-  name: "DivTextSearch",
+  name: 'DivTextSearch'
 })
 export default class DivTextSearch extends Vue {
-  searchTerm: string = "";
-  lastSearchTerm: string = "";
+  searchTerm: string = '';
+  lastSearchTerm: string = '';
   highlightCount: number = 0;
   currentIndex: number = -1;
   highlightSpans: HTMLSpanElement[] = [];
@@ -56,204 +56,204 @@ export default class DivTextSearch extends Vue {
 
   mounted() {
     // 初始化防抖函数
-    this.debouncedHighlight = debounce(this.performHighlight, 200);
-    this.initMutationObserver();
+    this.debouncedHighlight = debounce(this.performHighlight, 200)
+    this.initMutationObserver()
   }
 
   beforeDestroy() {
     // 取消防抖函数
     if (
       this.debouncedHighlight &&
-      typeof this.debouncedHighlight.cancel === "function"
+      typeof this.debouncedHighlight.cancel === 'function'
     ) {
-      this.debouncedHighlight.cancel();
+      this.debouncedHighlight.cancel()
     }
 
     // 清理观察器
     if (this.observer) {
-      this.observer.disconnect();
-      this.observer = null;
+      this.observer.disconnect()
+      this.observer = null
     }
   }
 
   // 执行高亮操作的方法
   performHighlight() {
-    const content = this.$refs.searchableContent as HTMLElement;
+    const content = this.$refs.searchableContent as HTMLElement
 
     // 暂时断开观察器，避免高亮操作触发无限循环
-    if (this.observer) this.observer.disconnect();
+    if (this.observer) { this.observer.disconnect() }
 
     // 重新高亮当前搜索词
-    this.clearHighlights();
-    this.highlightAll();
+    this.clearHighlights()
+    this.highlightAll()
 
     // 尝试保持当前搜索位置
     if (this.highlightSpans.length > 0) {
       // 确保当前索引在有效范围内
       if (this.currentIndex >= this.highlightSpans.length) {
-        this.currentIndex = 0;
+        this.currentIndex = 0
       }
-      this.updateCurrentHighlight();
+      this.updateCurrentHighlight()
     } else {
-      this.currentIndex = -1;
+      this.currentIndex = -1
     }
 
     // 重新启动观察器
     if (this.observer) {
-      this.observer.observe(content, { childList: true, subtree: true });
+      this.observer.observe(content, { childList: true, subtree: true })
     }
   }
 
   // 初始化 DOM 变化监听器
   initMutationObserver() {
-    const content = this.$refs.searchableContent as HTMLElement;
+    const content = this.$refs.searchableContent as HTMLElement
     this.observer = new MutationObserver(() => {
       // 如果用户正在搜索，使用防抖函数重新高亮
       if (this.searchTerm && this.lastSearchTerm) {
-        this.debouncedHighlight();
+        this.debouncedHighlight()
       }
-    });
+    })
 
     // 开始观察 DOM 变化
-    this.observer.observe(content, { childList: true, subtree: true });
+    this.observer.observe(content, { childList: true, subtree: true })
   }
 
   // 转义正则特殊字符
   escapeRegExp(str: string): string {
-    return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
   }
 
   // 清除所有高亮
   clearHighlights() {
-    const content = this.$refs.searchableContent as HTMLElement;
+    const content = this.$refs.searchableContent as HTMLElement
     const highlights = content.querySelectorAll(
-      ".lawyer-highlight, .lawyer-current-highlight"
-    );
+      '.lawyer-highlight, .lawyer-current-highlight'
+    )
     highlights.forEach((span) => {
-      const parent = span.parentNode;
+      const parent = span.parentNode
       if (parent) {
-        const textNode = document.createTextNode(span.textContent || "");
-        parent.replaceChild(textNode, span);
+        const textNode = document.createTextNode(span.textContent || '')
+        parent.replaceChild(textNode, span)
       }
-    });
-    content.normalize();
+    })
+    content.normalize()
   }
 
   // 高亮所有匹配项
   highlightAll() {
-    this.highlightSpans = [];
-    if (!this.searchTerm) return;
+    this.highlightSpans = []
+    if (!this.searchTerm) { return }
 
-    const regex = new RegExp(this.escapeRegExp(this.searchTerm), "gi");
-    const content = this.$refs.searchableContent as HTMLElement;
-    const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT);
-    const nodesToProcess: Text[] = [];
+    const regex = new RegExp(this.escapeRegExp(this.searchTerm), 'gi')
+    const content = this.$refs.searchableContent as HTMLElement
+    const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT)
+    const nodesToProcess: Text[] = []
 
-    let node: Text | null;
+    let node: Text | null
     while ((node = walker.nextNode() as Text | null)) {
-      regex.lastIndex = 0;
-      if (regex.test(node.nodeValue || "")) {
-        nodesToProcess.push(node);
+      regex.lastIndex = 0
+      if (regex.test(node.nodeValue || '')) {
+        nodesToProcess.push(node)
       }
     }
 
     nodesToProcess.forEach((textNode) => {
-      const text = textNode.nodeValue || "";
-      const fragment = document.createDocumentFragment();
-      let lastIndex = 0;
-      let match: RegExpExecArray | null;
+      const text = textNode.nodeValue || ''
+      const fragment = document.createDocumentFragment()
+      let lastIndex = 0
+      let match: RegExpExecArray | null
 
-      regex.lastIndex = 0;
+      regex.lastIndex = 0
       while ((match = regex.exec(text)) !== null) {
         if (match.index > lastIndex) {
           fragment.appendChild(
             document.createTextNode(text.slice(lastIndex, match.index))
-          );
+          )
         }
 
-        const span = document.createElement("span");
-        span.className = "lawyer-highlight";
-        span.textContent = match[0];
-        fragment.appendChild(span);
-        this.highlightSpans.push(span);
-        lastIndex = regex.lastIndex;
+        const span = document.createElement('span')
+        span.className = 'lawyer-highlight'
+        span.textContent = match[0]
+        fragment.appendChild(span)
+        this.highlightSpans.push(span)
+        lastIndex = regex.lastIndex
       }
 
       if (lastIndex < text.length) {
-        fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
+        fragment.appendChild(document.createTextNode(text.slice(lastIndex)))
       }
 
-      const parent = textNode.parentNode;
+      const parent = textNode.parentNode
       if (parent) {
-        parent.replaceChild(fragment, textNode);
+        parent.replaceChild(fragment, textNode)
       }
-    });
+    })
 
-    this.highlightCount = this.highlightSpans.length;
+    this.highlightCount = this.highlightSpans.length
   }
 
   // 更新当前高亮项
   updateCurrentHighlight() {
-    this.highlightSpans.forEach((span) =>
-      span.classList.remove("lawyer-current-highlight")
-    );
+    this.highlightSpans.forEach(span =>
+      span.classList.remove('lawyer-current-highlight')
+    )
 
-    if (this.highlightSpans.length === 0) return;
+    if (this.highlightSpans.length === 0) { return }
 
     if (
       this.currentIndex < 0 ||
       this.currentIndex >= this.highlightSpans.length
     ) {
-      this.currentIndex = 0;
+      this.currentIndex = 0
     }
 
-    const currentSpan = this.highlightSpans[this.currentIndex];
-    currentSpan.classList.add("lawyer-current-highlight");
-    currentSpan.scrollIntoView({ behavior: "smooth", block: "center" });
+    const currentSpan = this.highlightSpans[this.currentIndex]
+    currentSpan.classList.add('lawyer-current-highlight')
+    currentSpan.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
 
   // 搜索/循环跳转
   onSearch() {
     if (!this.searchTerm) {
-      this.resetSearch();
-      return;
+      this.resetSearch()
+      return
     }
 
     if (this.searchTerm !== this.lastSearchTerm) {
-      this.clearHighlights();
-      this.highlightAll();
-      this.currentIndex = 0;
-      this.lastSearchTerm = this.searchTerm;
+      this.clearHighlights()
+      this.highlightAll()
+      this.currentIndex = 0
+      this.lastSearchTerm = this.searchTerm
     } else if (this.highlightSpans.length > 0) {
-      this.currentIndex = (this.currentIndex + 1) % this.highlightSpans.length;
+      this.currentIndex = (this.currentIndex + 1) % this.highlightSpans.length
     }
 
     if (this.highlightSpans.length > 0) {
-      this.updateCurrentHighlight();
+      this.updateCurrentHighlight()
     } else {
-      this.currentIndex = -1;
+      this.currentIndex = -1
     }
   }
 
   // 重置搜索状态
   resetSearch() {
-    this.clearHighlights();
-    this.highlightSpans = [];
-    this.highlightCount = 0;
-    this.currentIndex = -1;
-    this.lastSearchTerm = "";
+    this.clearHighlights()
+    this.highlightSpans = []
+    this.highlightCount = 0
+    this.currentIndex = -1
+    this.lastSearchTerm = ''
   }
 
   // 清空搜索
   clearSearch() {
-    this.searchTerm = "";
+    this.searchTerm = ''
   }
 
   // 清空时自动清除高亮
-  @Watch("searchTerm")
+  @Watch('searchTerm')
   onSearchTermChange(newVal: string) {
     if (!newVal) {
-      this.resetSearch();
+      this.resetSearch()
     }
   }
 }

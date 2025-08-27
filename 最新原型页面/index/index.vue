@@ -5,7 +5,7 @@
         class="image_1"
         referrerpolicy="no-referrer"
         src="https://lanhu-oss-2537-2.lanhuapp.com/SketchPng34491aa4e38d8413064408679ca7f77ebd376afc62a9cc58634f027a3faccb49"
-      />
+      >
       <div class="text-wrapper_1 flex-col">
         <span class="text_1">首页概览</span>
       </div>
@@ -18,7 +18,7 @@
         class="label_1"
         referrerpolicy="no-referrer"
         src="https://lanhu-oss-2537-2.lanhuapp.com/SketchPngec63a8d68ad14c8975d4fd9e77e63fd51c9f68276db598812061966f93aa50e3"
-      />
+      >
     </div>
     <div class="box_2 flex-col">
       <div class="box_3 flex-col">
@@ -49,7 +49,7 @@
               class="image_2"
               referrerpolicy="no-referrer"
               src="https://lanhu-oss-2537-2.lanhuapp.com/SketchPngc50fb1ff86649ce931a73e90820fe3983af248ce4229dc88286afa284dad8c53"
-            />
+            >
           </div>
           <div class="box_5 flex-row">
             <div class="text-wrapper_8 flex-col justify-between">
@@ -60,7 +60,7 @@
               class="image_3"
               referrerpolicy="no-referrer"
               src="https://lanhu-oss-2537-2.lanhuapp.com/SketchPng6aa13590c682917161f212d8ce1900b1c4bc57c61e63b1a45ae9d2bffa0fab1b"
-            />
+            >
           </div>
           <div class="box_6 flex-col">
             <div class="box_7 flex-row justify-between">
@@ -71,26 +71,26 @@
                   class="thumbnail_1"
                   referrerpolicy="no-referrer"
                   src="https://lanhu-oss-2537-2.lanhuapp.com/SketchPng42675f714485ee96032f5f6d7b274eba3b6bbe63e54f417ee7596a1f7eee47ca"
-                />
+                >
               </div>
             </div>
             <div class="box_8 flex-row">
               <div class="group_3 flex-col">
-                <div class="box_9 flex-col"></div>
+                <div class="box_9 flex-col" />
               </div>
               <span class="text_21">新发布</span>
               <div class="group_4 flex-col">
-                <div class="section_1 flex-col"></div>
+                <div class="section_1 flex-col" />
               </div>
               <span class="text_22">修订</span>
               <div class="group_5 flex-col">
-                <div class="section_2 flex-col"></div>
+                <div class="section_2 flex-col" />
               </div>
               <span class="text_23">废止</span>
             </div>
             <div class="box_10 flex-row justify-between">
               <span class="text_24">12</span>
-              <div class="box_11 flex-col"></div>
+              <div class="box_11 flex-col" />
             </div>
           </div>
         </div>
@@ -100,7 +100,7 @@
             <span class="text_26">查看历史记录</span>
           </div>
           <span class="text_27">10</span>
-          <div class="group_7 flex-col"></div>
+          <div class="group_7 flex-col" />
         </div>
         <div class="group_8 flex-row">
           <div class="image-text_1 flex-row justify-between">
@@ -108,7 +108,7 @@
               class="label_2"
               referrerpolicy="no-referrer"
               src="https://lanhu-oss-2537-2.lanhuapp.com/SketchPnga6c63d37e4376614f1f4f19cf79cd77569dcd4f1584b0b1be174d0f74cf38c9c"
-            />
+            >
             <div class="text-group_1 flex-col justify-between">
               <span class="text_28">新版数据跨境传输安全管理办法解读</span>
               <div class="text-wrapper_10 flex-row">
@@ -119,12 +119,12 @@
             </div>
           </div>
           <span class="text_32">8</span>
-          <div class="block_2 flex-col"></div>
+          <div class="block_2 flex-col" />
         </div>
         <div class="group_9 flex-row">
-          <div class="block_3 flex-col"></div>
+          <div class="block_3 flex-col" />
           <span class="text_33">6</span>
-          <div class="block_4 flex-col"></div>
+          <div class="block_4 flex-col" />
         </div>
         <div class="group_10 flex-row">
           <div class="image-text_2 flex-row justify-between">
@@ -132,7 +132,7 @@
               class="label_3"
               referrerpolicy="no-referrer"
               src="https://lanhu-oss-2537-2.lanhuapp.com/SketchPnga21baa66975b0f13d9ec1d64c1bf94229f0acf4421180c383070347b786b13ba"
-            />
+            >
             <div class="text-group_2 flex-col justify-between">
               <span class="text_34">关于调整部分理财产品风险等级的建议</span>
               <div class="text-wrapper_11 flex-row">
@@ -143,10 +143,10 @@
             </div>
           </div>
           <span class="text_38">4</span>
-          <div class="block_5 flex-col"></div>
+          <div class="block_5 flex-col" />
         </div>
         <div class="group_11 flex-row">
-          <div class="section_3 flex-col"></div>
+          <div class="section_3 flex-col" />
         </div>
         <div class="group_12 flex-row">
           <div class="group_13 flex-col justify-between">
@@ -155,7 +155,7 @@
                 class="label_4"
                 referrerpolicy="no-referrer"
                 src="https://lanhu-oss-2537-2.lanhuapp.com/SketchPnga6c63d37e4376614f1f4f19cf79cd77569dcd4f1584b0b1be174d0f74cf38c9c"
-              />
+              >
               <div class="text-group_3 flex-col justify-between">
                 <span class="text_39">内部审计发现问题整改跟踪报告</span>
                 <div class="text-wrapper_12 flex-row">
@@ -165,14 +165,14 @@
                 </div>
               </div>
             </div>
-            <div class="group_14 flex-col"></div>
+            <div class="group_14 flex-col" />
           </div>
           <div class="text-wrapper_13 flex-col justify-between">
             <span class="text_43">2</span> <span class="text_44">0</span>
           </div>
           <div class="group_15 flex-col">
-            <div class="group_16 flex-col"></div>
-            <div class="group_17 flex-col"></div>
+            <div class="group_16 flex-col" />
+            <div class="group_17 flex-col" />
             <div class="text-wrapper_14 flex-row justify-between">
               <span class="text_45">1日</span> <span class="text_46">2日</span>
               <span class="text_47">3日</span> <span class="text_48">4日</span>
@@ -187,54 +187,54 @@
               class="image_4"
               referrerpolicy="no-referrer"
               src="https://lanhu-oss-2537-2.lanhuapp.com/SketchPng94d3aea91bfb7cf931a2c209528b9b4fb2108370b49093f590292a74055e4c70"
-            />
+            >
           </div>
         </div>
         <div class="group_19 flex-col">
           <div class="block_6 flex-col">
             <div class="box_12 flex-row justify-between">
-              <div class="section_4 flex-col"></div>
-              <div class="section_5 flex-col"></div>
+              <div class="section_4 flex-col" />
+              <div class="section_5 flex-col" />
             </div>
             <div class="box_13 flex-row">
-              <div class="group_20 flex-col"></div>
+              <div class="group_20 flex-col" />
             </div>
             <div class="box_14 flex-col">
               <div class="group_21 flex-row">
-                <div class="box_15 flex-col"></div>
+                <div class="box_15 flex-col" />
               </div>
               <div class="group_22 flex-row">
-                <div class="group_23 flex-col"></div>
-                <div class="group_24 flex-col"></div>
-                <div class="group_25 flex-col"></div>
+                <div class="group_23 flex-col" />
+                <div class="group_24 flex-col" />
+                <div class="group_25 flex-col" />
               </div>
               <div class="group_26 flex-row">
-                <div class="box_16 flex-col"></div>
+                <div class="box_16 flex-col" />
               </div>
               <div class="group_27 flex-row justify-between">
-                <div class="box_17 flex-col"></div>
-                <div class="box_18 flex-col"></div>
+                <div class="box_17 flex-col" />
+                <div class="box_18 flex-col" />
               </div>
               <div class="group_28 flex-row justify-between">
-                <div class="section_6 flex-col"></div>
-                <div class="section_7 flex-col"></div>
+                <div class="section_6 flex-col" />
+                <div class="section_7 flex-col" />
               </div>
               <div class="group_29 flex-row">
-                <div class="section_8 flex-col"></div>
+                <div class="section_8 flex-col" />
               </div>
               <div class="group_30 flex-row">
-                <div class="section_9 flex-col"></div>
+                <div class="section_9 flex-col" />
               </div>
               <div class="group_31 flex-row justify-between">
-                <div class="group_32 flex-col"></div>
-                <div class="group_33 flex-col"></div>
+                <div class="group_32 flex-col" />
+                <div class="group_33 flex-col" />
               </div>
-              <div class="group_34 flex-col"></div>
-              <div class="group_35 flex-col"></div>
-              <div class="group_36 flex-col"></div>
+              <div class="group_34 flex-col" />
+              <div class="group_35 flex-col" />
+              <div class="group_36 flex-col" />
             </div>
-            <div class="box_19 flex-col"></div>
-            <div class="box_20 flex-col"></div>
+            <div class="box_19 flex-col" />
+            <div class="box_20 flex-col" />
           </div>
         </div>
       </div>
@@ -246,17 +246,17 @@
           </div>
         </div>
         <div class="box_23 flex-row">
-          <div class="section_10 flex-col"></div>
+          <div class="section_10 flex-col" />
           <span class="text_54">标题/文号</span>
-          <div class="section_11 flex-col"></div>
+          <div class="section_11 flex-col" />
           <span class="text_55">分类</span>
-          <div class="section_12 flex-col"></div>
+          <div class="section_12 flex-col" />
           <span class="text_56">来源</span>
-          <div class="section_13 flex-col"></div>
+          <div class="section_13 flex-col" />
           <span class="text_57">提交时间</span>
-          <div class="section_14 flex-col"></div>
+          <div class="section_14 flex-col" />
           <span class="text_58">状态</span>
-          <div class="section_15 flex-col"></div>
+          <div class="section_15 flex-col" />
           <span class="text_59">操作</span>
         </div>
         <div class="box_24 flex-row">
@@ -271,7 +271,7 @@
           <span class="text_67">批准</span> <span class="text_68">驳回</span>
           <span class="text_69">移除</span>
         </div>
-        <div class="box_25 flex-col"></div>
+        <div class="box_25 flex-col" />
         <div class="box_26 flex-row">
           <div class="text-wrapper_17">
             <span class="text_70">偿付能力充足率计算方法修订草案</span>
@@ -284,7 +284,7 @@
           <span class="text_77">批准</span> <span class="text_78">驳回</span>
           <span class="text_79">移除</span>
         </div>
-        <div class="box_27 flex-col"></div>
+        <div class="box_27 flex-col" />
         <div class="box_28 flex-row">
           <div class="text-wrapper_18">
             <span class="text_80">信息披露管理办法执行情况检查</span>
@@ -297,7 +297,7 @@
           <span class="text_87">批准</span> <span class="text_88">驳回</span>
           <span class="text_89">移除</span>
         </div>
-        <div class="box_29 flex-col"></div>
+        <div class="box_29 flex-col" />
         <div class="box_30 flex-row">
           <div class="text-wrapper_19">
             <span class="text_90">反洗钱工作年度总结及改进计划</span>
@@ -310,7 +310,7 @@
           <span class="text_97">批准</span> <span class="text_98">驳回</span>
           <span class="text_99">移除</span>
         </div>
-        <div class="box_31 flex-col"></div>
+        <div class="box_31 flex-col" />
         <div class="box_32 flex-row">
           <div class="text-wrapper_20">
             <span class="text_100">数据安全管理制度完善建议书</span>
@@ -323,7 +323,7 @@
           <span class="text_106">查看</span> <span class="text_107">批准</span>
           <span class="text_108">驳回</span> <span class="text_109">移除</span>
         </div>
-        <div class="box_33 flex-col"></div>
+        <div class="box_33 flex-col" />
       </div>
       <div class="box_34 flex-col">
         <div class="text-wrapper_21 flex-row">
@@ -336,36 +336,36 @@
                 class="image_5"
                 referrerpolicy="no-referrer"
                 src="https://lanhu-oss-2537-2.lanhuapp.com/SketchPng5638483c8cbfa2607ea3b0f755bd2629fa4f557e6ab5d4090134a23192ac16fc"
-              />
+              >
               <div class="box_35 flex-row">
                 <span class="text_111">交易所规则</span>
                 <img
                   class="thumbnail_2"
                   referrerpolicy="no-referrer"
                   src="https://lanhu-oss-2537-2.lanhuapp.com/SketchPng8a248079747cf3f89a297e1c1725996ab539d45899fd6aa66044bc5549f74172"
-                />
+                >
                 <span class="text_112">30%</span>
               </div>
             </div>
             <div class="section_17 flex-row justify-between">
               <div class="box_36 flex-col">
                 <div class="group_39 flex-row">
-                  <div class="block_7 flex-col"></div>
+                  <div class="block_7 flex-col" />
                 </div>
                 <div class="group_40 flex-row">
-                  <div class="section_18 flex-col"></div>
+                  <div class="section_18 flex-col" />
                 </div>
                 <div class="image-wrapper_2 flex-row justify-between">
                   <img
                     class="image_6"
                     referrerpolicy="no-referrer"
                     src="https://lanhu-oss-2537-2.lanhuapp.com/SketchPng69218f1647902893d65ff85ef253dcb79a47518e6e37bfea31ce2c6acf9c971a"
-                  />
+                  >
                   <img
                     class="image_7"
                     referrerpolicy="no-referrer"
                     src="https://lanhu-oss-2537-2.lanhuapp.com/SketchPngf4c601c340f4d4c2f71ffef959f6b774916495595decd431e4efd0060bf44a02"
-                  />
+                  >
                 </div>
               </div>
               <div class="box_37 flex-col">
@@ -375,7 +375,7 @@
                     class="thumbnail_3"
                     referrerpolicy="no-referrer"
                     src="https://lanhu-oss-2537-2.lanhuapp.com/SketchPng54a0ad01c905d65149bbef8686a38fe7b0d823970cd2c46ed3ef20bf218ed58a"
-                  />
+                  >
                   <span class="text_114">30%</span>
                 </div>
                 <div class="block_9 flex-row">
@@ -384,7 +384,7 @@
                     class="thumbnail_4"
                     referrerpolicy="no-referrer"
                     src="https://lanhu-oss-2537-2.lanhuapp.com/SketchPng54a0ad01c905d65149bbef8686a38fe7b0d823970cd2c46ed3ef20bf218ed58a"
-                  />
+                  >
                   <span class="text_116">30%</span>
                 </div>
                 <div class="block_10 flex-row">
@@ -393,7 +393,7 @@
                     class="thumbnail_5"
                     referrerpolicy="no-referrer"
                     src="https://lanhu-oss-2537-2.lanhuapp.com/SketchPng8a248079747cf3f89a297e1c1725996ab539d45899fd6aa66044bc5549f74172"
-                  />
+                  >
                   <span class="text_118">30%</span>
                 </div>
               </div>
@@ -401,31 +401,31 @@
           </div>
           <div class="group_41 flex-col">
             <div class="image-text_4 flex-row justify-between">
-              <div class="group_42 flex-col"></div>
+              <div class="group_42 flex-col" />
               <span class="text-group_4">国家金融监督管理总局</span>
             </div>
             <div class="image-text_5 flex-row justify-between">
-              <div class="section_19 flex-col"></div>
+              <div class="section_19 flex-col" />
               <span class="text-group_5">人民银行网站</span>
             </div>
             <div class="image-text_6 flex-row justify-between">
-              <div class="group_43 flex-col"></div>
+              <div class="group_43 flex-col" />
               <span class="text-group_6">证监会公告</span>
             </div>
             <div class="image-text_7 flex-row justify-between">
-              <div class="block_11 flex-col"></div>
+              <div class="block_11 flex-col" />
               <span class="text-group_7">财政部通知</span>
             </div>
             <div class="image-text_8 flex-row justify-between">
-              <div class="section_20 flex-col"></div>
+              <div class="section_20 flex-col" />
               <span class="text-group_8">交易所规则</span>
             </div>
             <div class="image-text_9 flex-row justify-between">
-              <div class="section_21 flex-col"></div>
+              <div class="section_21 flex-col" />
               <span class="text-group_9">行业协会</span>
             </div>
             <div class="image-text_10 flex-row justify-between">
-              <div class="box_38 flex-col"></div>
+              <div class="box_38 flex-col" />
               <span class="text-group_10">其他机构</span>
             </div>
           </div>
@@ -437,14 +437,14 @@
                   class="thumbnail_6"
                   referrerpolicy="no-referrer"
                   src="https://lanhu-oss-2537-2.lanhuapp.com/SketchPng8a248079747cf3f89a297e1c1725996ab539d45899fd6aa66044bc5549f74172"
-                />
+                >
                 <span class="text_120">30%</span>
               </div>
               <img
                 class="image_8"
                 referrerpolicy="no-referrer"
                 src="https://lanhu-oss-2537-2.lanhuapp.com/SketchPng69218f1647902893d65ff85ef253dcb79a47518e6e37bfea31ce2c6acf9c971a"
-              />
+              >
             </div>
             <div class="section_23 flex-row justify-end">
               <div class="block_12 flex-row">
@@ -453,14 +453,14 @@
                   class="thumbnail_7"
                   referrerpolicy="no-referrer"
                   src="https://lanhu-oss-2537-2.lanhuapp.com/SketchPng8a248079747cf3f89a297e1c1725996ab539d45899fd6aa66044bc5549f74172"
-                />
+                >
                 <span class="text_122">30%</span>
               </div>
               <img
                 class="image_9"
                 referrerpolicy="no-referrer"
                 src="https://lanhu-oss-2537-2.lanhuapp.com/SketchPng69218f1647902893d65ff85ef253dcb79a47518e6e37bfea31ce2c6acf9c971a"
-              />
+              >
             </div>
             <div class="section_24 flex-row">
               <span class="text_123">行业协会</span>
@@ -468,7 +468,7 @@
                 class="thumbnail_8"
                 referrerpolicy="no-referrer"
                 src="https://lanhu-oss-2537-2.lanhuapp.com/SketchPng8a248079747cf3f89a297e1c1725996ab539d45899fd6aa66044bc5549f74172"
-              />
+              >
               <span class="text_124">30%</span>
             </div>
           </div>
@@ -477,12 +477,12 @@
           class="image_10"
           referrerpolicy="no-referrer"
           src="https://lanhu-oss-2537-2.lanhuapp.com/SketchPng35e685ac4307c69767124d104cd504823d0ca1ca79760c59871cb5a810e3d6cd"
-        />
+        >
         <img
           class="image_11"
           referrerpolicy="no-referrer"
           src="https://lanhu-oss-2537-2.lanhuapp.com/SketchPng35e685ac4307c69767124d104cd504823d0ca1ca79760c59871cb5a810e3d6cd"
-        />
+        >
       </div>
     </div>
     <div class="box_40 flex-col">
@@ -494,32 +494,32 @@
       </div>
       <div class="list_1 flex-col">
         <div
-          class="list-items_1 flex-col"
           v-for="(item, index) in loopData0"
           :key="index"
+          class="list-items_1 flex-col"
         >
           <div class="image-text_11 flex-row justify-between">
             <img
               class="label_5"
               referrerpolicy="no-referrer"
               :src="item.lanhuimage0"
-            />
+            >
             <div class="text-group_11 flex-col justify-between">
-              <span class="text_127" v-html="item.lanhutext0"></span>
-              <span class="text_128" v-html="item.lanhutext1"></span>
+              <span class="text_127" v-html="item.lanhutext0" />
+              <span class="text_128" v-html="item.lanhutext1" />
             </div>
           </div>
-          <span class="text_129" v-html="item.lanhutext2"></span>
+          <span class="text_129" v-html="item.lanhutext2" />
           <div class="group_45 flex-row">
             <div class="text-group_12 flex-col justify-between">
-              <span class="text_130" v-html="item.lanhutext3"></span>
+              <span class="text_130" v-html="item.lanhutext3" />
               <div class="text-wrapper_23">
-                <span class="text_131" v-html="item.lanhutext4"></span>
-                <span class="text_132" v-html="item.lanhutext5"></span>
-                <span class="text_133" v-html="item.lanhutext6"></span>
-                <span class="text_134" v-html="item.lanhutext7"></span>
-                <span class="text_135" v-html="item.lanhutext8"></span>
-                <span class="text_136" v-html="item.lanhutext9"></span>
+                <span class="text_131" v-html="item.lanhutext4" />
+                <span class="text_132" v-html="item.lanhutext5" />
+                <span class="text_133" v-html="item.lanhutext6" />
+                <span class="text_134" v-html="item.lanhutext7" />
+                <span class="text_135" v-html="item.lanhutext8" />
+                <span class="text_136" v-html="item.lanhutext9" />
               </div>
             </div>
           </div>
@@ -529,13 +529,13 @@
                 class="text_137"
                 :style="{ color: item.lanhufontColor10 }"
                 v-html="item.lanhutext10"
-              ></span>
+              />
             </div>
             <div class="text-wrapper_25 flex-col">
-              <span class="text_138" v-html="item.lanhutext11"></span>
+              <span class="text_138" v-html="item.lanhutext11" />
             </div>
             <div class="text-wrapper_26 flex-col">
-              <span class="text_139" v-html="item.lanhutext12"></span>
+              <span class="text_139" v-html="item.lanhutext12" />
             </div>
           </div>
         </div>
@@ -547,7 +547,7 @@
               class="label_6"
               referrerpolicy="no-referrer"
               src="https://lanhu-oss-2537-2.lanhuapp.com/SketchPng4baf3c7158aeeb908cddd587cea6f3a4eb260059f69d713aa9d807c44dbed6b0"
-            />
+            >
             <div class="text-group_13 flex-col justify-between">
               <span class="text_140">关联交易管理制度修订及执行指引</span>
               <span class="text_141">2024-01-15&nbsp;14:30</span>
@@ -558,49 +558,49 @@
               class="label_6"
               referrerpolicy="no-referrer"
               src="https://lanhu-oss-2537-2.lanhuapp.com/SketchPng4baf3c7158aeeb908cddd587cea6f3a4eb260059f69d713aa9d807c44dbed6b0"
-            />
+            >
             <div class="text-group_14 flex-col justify-between">
               <span class="text_140">关联交易管理制度修订及执行指引</span>
               <span class="text_141">2024-01-15&nbsp;14:30</span>
             </div>
           </div>
         </div>
-        <span class="text_142"
-          >根据最新监管要求，公司修订关联交易管理制度，制定详细执行指引。修订要点：扩大关联方认定范围、完善审批流程、加强持续监管、明确责任追究机制...</span
-        >
+        <span
+          class="text_142"
+        >根据最新监管要求，公司修订关联交易管理制度，制定详细执行指引。修订要点：扩大关联方认定范围、完善审批流程、加强持续监管、明确责任追究机制...</span>
         <div class="section_26 flex-row">
           <div class="text-group_15 flex-col justify-between">
             <span class="text_143">AI智能解读主要变更点：</span>
             <div class="text-wrapper_27">
               <span class="text_144">投资决策程序优化:</span>
-              <span class="paragraph_1"
-                >&nbsp;强调董事会在重大股权投资中的核心决策地位。<br
-              /></span>
+              <span
+                class="paragraph_1"
+              >&nbsp;强调董事会在重大股权投资中的核心决策地位。<br></span>
               <span class="text_145">风险管控体系强化:</span>
-              <span class="paragraph_2"
-                >新增对股权投资集中度风险的量化指标。<br
-              /></span>
+              <span
+                class="paragraph_2"
+              >新增对股权投资集中度风险的量化指标。<br></span>
               <span class="text_146">信息披露标准提升:</span>
-              <span class="text_147"
-                >&nbsp;扩大了信息披露范围，增强透明度。</span
-              >
+              <span
+                class="text_147"
+              >&nbsp;扩大了信息披露范围，增强透明度。</span>
             </div>
           </div>
           <div class="text-group_16 flex-col justify-between">
             <span class="text_143">AI智能解读主要变更点：</span>
             <div class="text-wrapper_27">
               <span class="text_144">投资决策程序优化:</span>
-              <span class="paragraph_1"
-                >&nbsp;强调董事会在重大股权投资中的核心决策地位。<br
-              /></span>
+              <span
+                class="paragraph_1"
+              >&nbsp;强调董事会在重大股权投资中的核心决策地位。<br></span>
               <span class="text_145">风险管控体系强化:</span>
-              <span class="paragraph_2"
-                >新增对股权投资集中度风险的量化指标。<br
-              /></span>
+              <span
+                class="paragraph_2"
+              >新增对股权投资集中度风险的量化指标。<br></span>
               <span class="text_146">信息披露标准提升:</span>
-              <span class="text_147"
-                >&nbsp;扩大了信息披露范围，增强透明度。</span
-              >
+              <span
+                class="text_147"
+              >&nbsp;扩大了信息披露范围，增强透明度。</span>
             </div>
           </div>
         </div>
@@ -610,16 +610,16 @@
           <span class="text_150">征求意见</span>
         </div>
         <div class="section_27 flex-row justify-between">
-          <div class="group_47 flex-col"></div>
-          <div class="group_48 flex-col"></div>
-          <div class="group_49 flex-col"></div>
+          <div class="group_47 flex-col" />
+          <div class="group_48 flex-col" />
+          <div class="group_49 flex-col" />
         </div>
       </div>
     </div>
     <div class="text-wrapper_29 flex-col">
-      <span class="text_151"
-        >版本：1.0.0&nbsp;&nbsp;2022&nbsp;大家资产管理有限责任公司&nbsp;版权所有</span
-      >
+      <span
+        class="text_151"
+      >版本：1.0.0&nbsp;&nbsp;2022&nbsp;大家资产管理有限责任公司&nbsp;版权所有</span>
     </div>
   </div>
 </template>
@@ -630,48 +630,48 @@ export default {
       loopData0: [
         {
           lanhuimage0:
-            "https://lanhu-oss-2537-2.lanhuapp.com/SketchPng10db4b082bfc821ab30f8a18800b928c3a4878122cd9a6a1fa3138ef5fe0fb2b",
-          lanhutext0: "关于进一步规范保险资金股权投资有关事项的通知",
-          lanhutext1: "2024-01-15&nbsp;14:30",
+            'https://lanhu-oss-2537-2.lanhuapp.com/SketchPng10db4b082bfc821ab30f8a18800b928c3a4878122cd9a6a1fa3138ef5fe0fb2b',
+          lanhutext0: '关于进一步规范保险资金股权投资有关事项的通知',
+          lanhutext1: '2024-01-15&nbsp;14:30',
           lanhutext2:
-            "为进一步规范保险资金股权投资行为，防范投资风险，保护被保险人利益，现就有关事项通知如下：一是明确投资决策程序，二是加强风险管控措施，三是强化信息披露要求...",
-          lanhutext3: "AI智能解读主要变更点：",
-          lanhutext4: "投资决策程序优化:",
-          lanhutext5: "&nbsp;强调董事会在重大股权投资中的核心决策地位。<br/>",
-          lanhutext6: "风险管控体系强化:",
-          lanhutext7: "新增对股权投资集中度风险的量化指标。<br/>",
-          lanhutext8: "信息披露标准提升:",
-          lanhutext9: "&nbsp;扩大了信息披露范围，增强透明度。",
-          lanhutext10: "机构监管",
-          lanhufontColor10: "rgba(243,109,120,1)",
-          lanhutext11: "公司治理",
-          lanhutext12: "行业协会",
+            '为进一步规范保险资金股权投资行为，防范投资风险，保护被保险人利益，现就有关事项通知如下：一是明确投资决策程序，二是加强风险管控措施，三是强化信息披露要求...',
+          lanhutext3: 'AI智能解读主要变更点：',
+          lanhutext4: '投资决策程序优化:',
+          lanhutext5: '&nbsp;强调董事会在重大股权投资中的核心决策地位。<br/>',
+          lanhutext6: '风险管控体系强化:',
+          lanhutext7: '新增对股权投资集中度风险的量化指标。<br/>',
+          lanhutext8: '信息披露标准提升:',
+          lanhutext9: '&nbsp;扩大了信息披露范围，增强透明度。',
+          lanhutext10: '机构监管',
+          lanhufontColor10: 'rgba(243,109,120,1)',
+          lanhutext11: '公司治理',
+          lanhutext12: '行业协会'
         },
         {
           lanhuimage0:
-            "https://lanhu-oss-2537-2.lanhuapp.com/SketchPngd2548194830a8d2aac5b343579208aab422335661bf516b973f89b7eef6c2fc0",
-          lanhutext0: "偿付能力监管规则修订征求意见稿发布",
-          lanhutext1: "2024-01-15&nbsp;14:30",
+            'https://lanhu-oss-2537-2.lanhuapp.com/SketchPngd2548194830a8d2aac5b343579208aab422335661bf516b973f89b7eef6c2fc0',
+          lanhutext0: '偿付能力监管规则修订征求意见稿发布',
+          lanhutext1: '2024-01-15&nbsp;14:30',
           lanhutext2:
-            "为完善偿付能力监管制度，提高监管有效性，金融监管总局发布偿付能力监管规则修订征求意见稿，主要修订内容包括：风险因子调整、资本要求优化、监管指标完善等...",
-          lanhutext3: "AI智能解读主要变更点：",
-          lanhutext4: "投资决策程序优化:",
-          lanhutext5: "&nbsp;强调董事会在重大股权投资中的核心决策地位。<br/>",
-          lanhutext6: "风险管控体系强化:",
-          lanhutext7: "新增对股权投资集中度风险的量化指标。<br/>",
-          lanhutext8: "信息披露标准提升:",
-          lanhutext9: "&nbsp;扩大了信息披露范围，增强透明度。",
-          lanhutext10: "风控合规",
-          lanhufontColor10: "rgba(50,192,185,1)",
-          lanhutext11: "关联交易",
-          lanhutext12: "其他机构",
-        },
+            '为完善偿付能力监管制度，提高监管有效性，金融监管总局发布偿付能力监管规则修订征求意见稿，主要修订内容包括：风险因子调整、资本要求优化、监管指标完善等...',
+          lanhutext3: 'AI智能解读主要变更点：',
+          lanhutext4: '投资决策程序优化:',
+          lanhutext5: '&nbsp;强调董事会在重大股权投资中的核心决策地位。<br/>',
+          lanhutext6: '风险管控体系强化:',
+          lanhutext7: '新增对股权投资集中度风险的量化指标。<br/>',
+          lanhutext8: '信息披露标准提升:',
+          lanhutext9: '&nbsp;扩大了信息披露范围，增强透明度。',
+          lanhutext10: '风控合规',
+          lanhufontColor10: 'rgba(50,192,185,1)',
+          lanhutext11: '关联交易',
+          lanhutext12: '其他机构'
+        }
       ],
-      constants: {},
-    };
+      constants: {}
+    }
   },
-  methods: {},
-};
+  methods: {}
+}
 </script>
 <style src="../common.css" />
 <style src="../index.css" />

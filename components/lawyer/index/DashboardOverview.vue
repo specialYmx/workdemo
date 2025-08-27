@@ -30,7 +30,9 @@
         <div class="lawyer-top-stat-cards-container">
           <div class="lawyer-stat-card lawyer-card">
             <div class="lawyer-stat-info">
-              <div class="lawyer-stat-label">本月法规更新</div>
+              <div class="lawyer-stat-label">
+                本月法规更新
+              </div>
               <div class="lawyer-stat-value blue">
                 {{ monthlyUpdateCount }}
               </div>
@@ -41,7 +43,9 @@
           </div>
           <div class="lawyer-stat-card lawyer-card">
             <div class="lawyer-stat-info">
-              <div class="lawyer-stat-label">待人工审核</div>
+              <div class="lawyer-stat-label">
+                待人工审核
+              </div>
               <div class="lawyer-stat-value orange">
                 {{ pendingReviewCount }}
               </div>
@@ -55,7 +59,9 @@
         <!-- 最近完成审核列表 -->
         <div class="lawyer-chart-section">
           <div class="lawyer-chart-header">
-            <h3 class="lawyer-chart-title">近期完成审核</h3>
+            <h3 class="lawyer-chart-title">
+              近期完成审核
+            </h3>
             <div class="lawyer-chart-actions">
               <a-button type="primary" @click="viewReviews()">
                 查看历史记录
@@ -66,9 +72,9 @@
           <a-spin :spinning="recentReviewsLoading">
             <div v-if="recentReviews.length" class="lawyer-review-list">
               <div
-                class="lawyer-review-item"
                 v-for="(item, index) in recentReviews"
                 :key="index"
+                class="lawyer-review-item"
               >
                 <div
                   class="lawyer-review-icon"
@@ -79,20 +85,21 @@
                   />
                 </div>
                 <div class="lawyer-review-content">
-                  <div class="lawyer-review-title">{{ item.ruleName }}</div>
+                  <div class="lawyer-review-title">
+                    {{ item.ruleName }}
+                  </div>
                   <div class="lawyer-review-subtitle">
                     <span>完成日期: {{ formatTime(item.checkTime) }}</span>
                     <a-divider type="vertical" />
                     <span>状态：</span>
                     <span
                       :class="getCompletedReviewStatusClass(item.checkStatus)"
-                      >{{ item.checkStatus }}</span
-                    >
+                    >{{ item.checkStatus }}</span>
                   </div>
                 </div>
               </div>
             </div>
-            <a-empty v-else></a-empty>
+            <a-empty v-else />
           </a-spin>
         </div>
       </div>
@@ -100,16 +107,24 @@
       <!-- 右侧趋势图 -->
       <div class="lawyer-trend-chart">
         <div class="lawyer-chart-header">
-          <h3 class="lawyer-chart-title">法规更新趋势</h3>
+          <h3 class="lawyer-chart-title">
+            法规更新趋势
+          </h3>
           <div class="lawyer-trend-selectors">
             <a-select
               :value="trendChartPeriod"
               size="small"
               @change="handlePeriodTypeChange"
             >
-              <a-select-option value="month">月度</a-select-option>
-              <a-select-option value="quarter">季度</a-select-option>
-              <a-select-option value="year">年度</a-select-option>
+              <a-select-option value="month">
+                月度
+              </a-select-option>
+              <a-select-option value="quarter">
+                季度
+              </a-select-option>
+              <a-select-option value="year">
+                年度
+              </a-select-option>
             </a-select>
             <div class="w-100 ml-8">
               <a-select
@@ -131,15 +146,15 @@
         </div>
         <div class="lawyer-chart-legend">
           <div class="legend-item">
-            <span class="legend-color new"></span>
+            <span class="legend-color new" />
             <span>新发布</span>
           </div>
           <div class="legend-item">
-            <span class="legend-color updated"></span>
+            <span class="legend-color updated" />
             <span>修订</span>
           </div>
           <div class="legend-item">
-            <span class="legend-color deprecated"></span>
+            <span class="legend-color deprecated" />
             <span>废止</span>
           </div>
         </div>
@@ -156,16 +171,16 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue, Prop, Emit } from "nuxt-property-decorator";
-import { EChartOption } from "echarts";
-import moment from "moment";
+import { Component, Vue, Prop, Emit } from 'nuxt-property-decorator'
+import { EChartOption } from 'echarts'
+import moment from 'moment'
 import {
   CompletedRuleItem,
   TimeOption,
   TrendChartData,
   ReviewStatusClassMap,
-  IconTypeMap,
-} from "~/model/LawyerModel";
+  IconTypeMap
+} from '~/model/LawyerModel'
 
 @Component({})
 export default class DashboardOverview extends Vue {
@@ -175,115 +190,115 @@ export default class DashboardOverview extends Vue {
   @Prop({ type: Boolean, default: false }) recentReviewsLoading!: boolean;
   @Prop({ type: Object, default: () => ({}) }) trendChartData!: TrendChartData;
   @Prop({ type: Boolean, default: false }) trendChartLoading!: boolean;
-  @Prop({ type: String, default: "month" }) activeTimeRange!: string;
-  @Prop({ type: String, default: "month" }) trendChartPeriod!: string;
+  @Prop({ type: String, default: 'month' }) activeTimeRange!: string;
+  @Prop({ type: String, default: 'month' }) trendChartPeriod!: string;
   @Prop({ type: [String, Number], default: null }) trendChartValue!:
     | string
     | number;
 
   // 时间选项
   timeOptions: TimeOption[] = [
-    { label: "本月", value: "month" },
-    { label: "本季", value: "quarter" },
-    { label: "本年", value: "year" },
+    { label: '本月', value: 'month' },
+    { label: '本季', value: 'quarter' },
+    { label: '本年', value: 'year' }
   ];
 
   // 处理时间范围变更
   handleTimeRangeChange(value: string): void {
-    this.$emit("time-range-change", value);
+    this.$emit('time-range-change', value)
   }
 
   // 处理趋势图周期类型变更
   handlePeriodTypeChange(value: string): void {
     // 当周期类型改变时，重置为默认值
-    const defaultValue = this.getDefaultValueForPeriod(value);
-    this.$emit("trend-period-change", value, defaultValue);
+    const defaultValue = this.getDefaultValueForPeriod(value)
+    this.$emit('trend-period-change', value, defaultValue)
   }
 
   // 处理趋势图周期值变更
   handlePeriodValueChange(value: string | number): void {
-    this.$emit("trend-period-change", this.trendChartPeriod, value);
+    this.$emit('trend-period-change', this.trendChartPeriod, value)
   }
 
   // 获取周期类型的默认值
   getDefaultValueForPeriod(period: string): number {
-    const now = new Date();
+    const now = new Date()
     switch (period) {
-      case "month":
-        return now.getMonth() + 1; // 当前月份
-      case "quarter":
-        return Math.ceil((now.getMonth() + 1) / 3); // 当前季度
-      case "year":
-        return now.getFullYear(); // 当前年份
+      case 'month':
+        return now.getMonth() + 1 // 当前月份
+      case 'quarter':
+        return Math.ceil((now.getMonth() + 1) / 3) // 当前季度
+      case 'year':
+        return now.getFullYear() // 当前年份
       default:
-        return 1;
+        return 1
     }
   }
 
   // 计算第二个选择器的选项
   get periodValueOptions(): Array<{ label: string; value: number }> {
     switch (this.trendChartPeriod) {
-      case "month":
+      case 'month':
         // 1-12月
         return Array.from({ length: 12 }, (_, i) => ({
           label: `${i + 1}月`,
-          value: i + 1,
-        }));
-      case "quarter":
+          value: i + 1
+        }))
+      case 'quarter':
         // 1-4季度
         return Array.from({ length: 4 }, (_, i) => ({
           label: `第${i + 1}季度`,
-          value: i + 1,
-        }));
-      case "year":
+          value: i + 1
+        }))
+      case 'year':
         // 近几年的年份选项
-        const currentYear = new Date().getFullYear();
+        const currentYear = new Date().getFullYear()
         return Array.from({ length: 11 }, (_, i) => {
-          const year = currentYear - 5 + i;
+          const year = currentYear - 5 + i
           return {
             label: `${year}年`,
-            value: year,
-          };
-        });
+            value: year
+          }
+        })
       default:
-        return [];
+        return []
     }
   }
 
   // 将十六进制颜色转换为RGB格式
   hexToRgb(hex: string): string {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    if (!result) return "0, 0, 0";
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+    if (!result) { return '0, 0, 0' }
 
-    const r = parseInt(result[1], 16);
-    const g = parseInt(result[2], 16);
-    const b = parseInt(result[3], 16);
+    const r = parseInt(result[1], 16)
+    const g = parseInt(result[2], 16)
+    const b = parseInt(result[3], 16)
 
-    return `${r}, ${g}, ${b}`;
+    return `${r}, ${g}, ${b}`
   }
 
   // 生成系列配置
   generateSeriesConfig(name: string, dataIndex: number, colorIndex: number) {
-    const colors: string[] = ["#ffb74d", "#4caf50", "#f44336"];
-    const color = colors[colorIndex];
+    const colors: string[] = ['#ffb74d', '#4caf50', '#f44336']
+    const color = colors[colorIndex]
 
     return {
       name,
-      type: "line",
+      type: 'line',
       smooth: true,
       data: this.trendChartData.series?.[dataIndex]?.data || [],
       itemStyle: {
-        color,
+        color
       },
       lineStyle: {
         width: 3,
-        color,
+        color
       },
-      symbol: "circle",
+      symbol: 'circle',
       symbolSize: 8,
       areaStyle: {
         color: {
-          type: "linear",
+          type: 'linear',
           x: 0,
           y: 0,
           x2: 0,
@@ -291,104 +306,104 @@ export default class DashboardOverview extends Vue {
           colorStops: [
             {
               offset: 0,
-              color: `rgba(${this.hexToRgb(color)}, 0.6)`,
+              color: `rgba(${this.hexToRgb(color)}, 0.6)`
             },
             {
               offset: 1,
-              color: `rgba(${this.hexToRgb(color)}, 0.1)`,
-            },
-          ],
-        },
-      },
-    };
+              color: `rgba(${this.hexToRgb(color)}, 0.1)`
+            }
+          ]
+        }
+      }
+    }
   }
 
   // 趋势图配置
   get trendChartOptions(): EChartOption {
-    const seriesNames = ["新发布", "修订", "废止"];
+    const seriesNames = ['新发布', '修订', '废止']
 
     return {
       grid: {
-        top: "15%",
-        left: "3%",
-        right: "4%",
-        bottom: "10%",
-        containLabel: true,
+        top: '15%',
+        left: '3%',
+        right: '4%',
+        bottom: '10%',
+        containLabel: true
       },
       tooltip: {
-        trigger: "axis",
+        trigger: 'axis',
         axisPointer: {
-          type: "line",
-        },
+          type: 'line'
+        }
       },
       xAxis: {
-        type: "category",
+        type: 'category',
         data: this.trendChartData.xAxis?.data || [],
         axisTick: {
-          alignWithLabel: true,
+          alignWithLabel: true
         },
         axisLine: {
           lineStyle: {
-            color: "#f0f0f0",
-          },
+            color: '#f0f0f0'
+          }
         },
         axisLabel: {
-          color: "#666",
-        },
+          color: '#666'
+        }
       },
       yAxis: {
-        type: "value",
+        type: 'value',
         axisLine: {
-          show: false,
+          show: false
         },
         axisTick: {
-          show: false,
+          show: false
         },
         splitLine: {
           lineStyle: {
-            color: "#f0f0f0",
-          },
+            color: '#f0f0f0'
+          }
         },
         axisLabel: {
-          color: "#666",
-        },
+          color: '#666'
+        }
       },
       series: seriesNames.map((name, index) =>
         this.generateSeriesConfig(name, index, index)
-      ),
-    };
+      )
+    }
   }
 
   // 获取已完成审核状态样式类
   getCompletedReviewStatusClass(status: string): string {
     const classMap: ReviewStatusClassMap = {
-      已通过: "lawyer-status-approved",
-      已驳回: "lawyer-status-rejected",
-      pending: "lawyer-status-pending",
-    };
-    return classMap[status] || "lawyer-status-pending";
+      已通过: 'lawyer-status-approved',
+      已驳回: 'lawyer-status-rejected',
+      pending: 'lawyer-status-pending'
+    }
+    return classMap[status] || 'lawyer-status-pending'
   }
 
   // 获取已完成审核图标类型
   getCompletedReviewIconType(status: string): string {
     const iconMap: IconTypeMap = {
-      已通过: "file-done",
-      已驳回: "file-exclamation",
-    };
-    return iconMap[status] || "file-sync";
+      已通过: 'file-done',
+      已驳回: 'file-exclamation'
+    }
+    return iconMap[status] || 'file-sync'
   }
 
   // 格式化时间显示
   formatTime(timeStr: string): string {
-    if (!timeStr) return "-";
-    return moment(timeStr).format("YYYY-MM-DD HH:mm:ss");
+    if (!timeStr) { return '-' }
+    return moment(timeStr).format('YYYY-MM-DD HH:mm:ss')
   }
 
   // 组件事件定义
-  @Emit("export-report")
+  @Emit('export-report')
   exportReport() {}
 
-  @Emit("view-reviews")
+  @Emit('view-reviews')
   viewReviews() {}
 }
 </script>

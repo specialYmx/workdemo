@@ -49,7 +49,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "nuxt-property-decorator";
+import { Component, Vue } from 'nuxt-property-decorator'
 import {
   CompletedRuleItem,
   ToDoRuleItem,
@@ -61,36 +61,36 @@ import {
   SourceColorMap,
   TrendChartData,
   ChartData,
-  RouteQuery,
-} from "~/model/LawyerModel";
-import { downloadFileWithMessage } from "~/utils/personal";
+  RouteQuery
+} from '~/model/LawyerModel'
+import { downloadFileWithMessage } from '~/utils/personal'
 
-@Component({ name: "index-component" })
+@Component({ name: 'index-component' })
 export default class IndexComponent extends Vue {
   // 数据加载状态
   chartLoading: IndexPageChartLoading = {
     trend: true,
-    sources: true,
+    sources: true
   };
 
   // 图表数据
   chartData: IndexPageChartData = {
     trend: {} as TrendChartData,
-    sources: {} as ChartData,
+    sources: {} as ChartData
   };
 
   // 列表数据加载状态
   listLoading: IndexPageListLoading = {
     recentReviews: true,
     topReviews: true,
-    latestUpdates: true,
+    latestUpdates: true
   };
 
   // 当前选中的时间范围
-  activeTimeRange: string = "month";
+  activeTimeRange: string = 'month';
 
   // 图表周期
-  trendChartPeriod: string = "month";
+  trendChartPeriod: string = 'month';
 
   // 图表周期具体值
   trendChartValue: number = new Date().getMonth() + 1;
@@ -112,91 +112,91 @@ export default class IndexComponent extends Vue {
     // 按顺序加载所有数据
     try {
       // 加载图表数据
-      await this.loadTrendChartData();
-      await this.loadSourcesChartData();
+      await this.loadTrendChartData()
+      await this.loadSourcesChartData()
 
       // 加载列表数据
-      await this.loadRecentReviews();
-      await this.loadTopReviewsAndCount(); // 合并加载待审核数据和统计数据
-      await this.loadLatestUpdates();
+      await this.loadRecentReviews()
+      await this.loadTopReviewsAndCount() // 合并加载待审核数据和统计数据
+      await this.loadLatestUpdates()
 
       // 加载统计数据
-      await this.loadMonthlyUpdateCount();
+      await this.loadMonthlyUpdateCount()
     } catch (error) {
-      console.error("加载数据失败:", error);
+      console.error('加载数据失败:', error)
     }
   }
 
   // 事件处理方法
   handleTimeRangeChange(value: string): void {
-    this.activeTimeRange = value;
+    this.activeTimeRange = value
     // 重新加载基于时间条件的数据
-    this.loadMonthlyUpdateCount();
+    this.loadMonthlyUpdateCount()
   }
 
   handleTrendPeriodChange(period: string, value: number): void {
-    this.trendChartPeriod = period;
-    this.trendChartValue = value;
-    this.loadTrendChartData();
+    this.trendChartPeriod = period
+    this.trendChartValue = value
+    this.loadTrendChartData()
   }
 
   // 加载趋势图数据
   async loadTrendChartData(): Promise<void> {
-    this.chartLoading.trend = true;
+    this.chartLoading.trend = true
     try {
       // 调用真实API获取数据
       const updateTimelinessData =
         await this.$roadLawyerService.getUpdateTimeLinessCount({
           condition: this.trendChartPeriod,
-          value: this.trendChartValue,
-        });
+          value: this.trendChartValue
+        })
 
       // 根据真实API返回的数据结构来解析
-      if (updateTimelinessData && typeof updateTimelinessData === "object") {
+      if (updateTimelinessData && typeof updateTimelinessData === 'object') {
         // { modify: [数组], public: [数组], revoke: [数组] }
         const {
           modify = [],
           public: publicData = [],
-          revoke = [],
-        } = updateTimelinessData;
+          revoke = []
+        } = updateTimelinessData
 
         // 生成X轴数据（根据数组长度动态生成）
         const dataLength: number = Math.max(
           modify.length,
           publicData.length,
           revoke.length
-        );
-        const xAxisData: string[] = [];
+        )
+        const xAxisData: string[] = []
 
         // 根据周期和具体值生成不同的X轴标签
-        if (this.trendChartPeriod === "month") {
+        if (this.trendChartPeriod === 'month') {
           // 选择了月度+具体月份：显示该月的每一天
           const daysInMonth = new Date(
             new Date().getFullYear(),
             this.trendChartValue,
             0
-          ).getDate();
-          const actualLength = Math.min(dataLength, daysInMonth);
+          ).getDate()
+          const actualLength = Math.min(dataLength, daysInMonth)
           for (let i = 1; i <= actualLength; i++) {
-            xAxisData.push(`${i}日`);
+            xAxisData.push(`${i}日`)
           }
-        } else if (this.trendChartPeriod === "quarter") {
+        } else if (this.trendChartPeriod === 'quarter') {
           // 选择了季度+具体季度：显示该季度的三个月
-          const quarterStartMonth = (this.trendChartValue - 1) * 3 + 1;
+          const quarterStartMonth = (this.trendChartValue - 1) * 3 + 1
           const monthLabels = [
             `${quarterStartMonth}月`,
             `${quarterStartMonth + 1}月`,
-            `${quarterStartMonth + 2}月`,
-          ];
-          const actualLength = Math.min(dataLength, 3);
+            `${quarterStartMonth + 2}月`
+          ]
+          const actualLength = Math.min(dataLength, 3)
           for (let i = 0; i < actualLength; i++) {
-            xAxisData.push(monthLabels[i]);
+            xAxisData.push(monthLabels[i])
           }
-        } else if (this.trendChartPeriod === "year") {
+        } else if (this.trendChartPeriod === 'year') {
           // 选择了年度+具体年份：显示该年的12个月
-          const months = Math.min(dataLength, 12);
+          const months = Math.min(dataLength, 12)
           for (let i = 1; i <= months; i++) {
-            xAxisData.push(`${i}月`);
+            xAxisData.push(`${i}月`)
           }
         }
 
@@ -204,154 +204,154 @@ export default class IndexComponent extends Vue {
         const seriesData: number[][] = [
           publicData, // 新发布
           modify, // 修订
-          revoke, // 废止
-        ];
+          revoke // 废止
+        ]
 
         this.chartData.trend = {
           xAxis: { data: xAxisData },
-          series: seriesData.map((data: number[]) => ({ data })),
-        };
+          series: seriesData.map((data: number[]) => ({ data }))
+        }
       } else {
         // API返回数据无效时，设置空数据
-        console.warn("趋势图API返回数据无效，设置空数据");
+        console.warn('趋势图API返回数据无效，设置空数据')
         this.chartData.trend = {
           xAxis: { data: [] },
-          series: [{ data: [] }, { data: [] }, { data: [] }],
-        };
+          series: [{ data: [] }, { data: [] }, { data: [] }]
+        }
       }
     } catch (error) {
-      console.error("调用趋势图API失败:", error);
+      console.error('调用趋势图API失败:', error)
       // API调用失败时，设置空数据
       this.chartData.trend = {
         xAxis: { data: [] },
-        series: [{ data: [] }, { data: [] }, { data: [] }],
-      };
+        series: [{ data: [] }, { data: [] }, { data: [] }]
+      }
     } finally {
-      this.chartLoading.trend = false;
+      this.chartLoading.trend = false
     }
   }
 
   // 加载来源分布图表数据
   async loadPieChartData(): Promise<void> {
-    const loadingKey = "sources";
-    this.chartLoading[loadingKey] = true;
+    const loadingKey = 'sources'
+    this.chartLoading[loadingKey] = true
 
     try {
       // 调用真实API获取数据
-      const websiteRatioData = await this.$roadLawyerService.getWebSiteRatio();
+      const websiteRatioData = await this.$roadLawyerService.getWebSiteRatio()
       // 定义颜色映射
       const colorMap: SourceColorMap = {
-        国家金融监督管理总局: "#1890ff",
-        人民银行网站: "#13c2c2",
-        证监会公告: "#52c41a",
-        财政部通知: "#faad14",
-        交易所规则: "#722ed1",
-        行业协会: "#eb2f96",
-        其他机构: "#fadb14",
-      };
+        国家金融监督管理总局: '#1890ff',
+        人民银行网站: '#13c2c2',
+        证监会公告: '#52c41a',
+        财政部通知: '#faad14',
+        交易所规则: '#722ed1',
+        行业协会: '#eb2f96',
+        其他机构: '#fadb14'
+      }
 
       // 处理API返回的数据结构 - 兼容两种格式
-      const sourceData = websiteRatioData;
+      const sourceData = websiteRatioData
 
-      if (sourceData && typeof sourceData === "object") {
+      if (sourceData && typeof sourceData === 'object') {
         // 转换数据格式为饼图需要的格式
-        const pieData: Array<{ value: number; name: string }> = [];
-        const legendItems: LegendItem[] = [];
+        const pieData: Array<{ value: number; name: string }> = []
+        const legendItems: LegendItem[] = []
 
         Object.keys(sourceData).forEach((key: string) => {
-          const value: number = sourceData[key];
+          const value: number = sourceData[key]
 
           // 饼图只显示有数据的项目（避免0%扇形）
           if (value > 0) {
-            pieData.push({ value, name: key });
+            pieData.push({ value, name: key })
           }
 
           // 图例显示所有项目（包括0值，让用户了解完整的数据源）
           legendItems.push({
             name: key,
             value, // 保留value用于判断是否为空状态
-            color: colorMap[key] || "#999999",
-          });
-        });
+            color: colorMap[key] || '#999999'
+          })
+        })
 
         this.chartData[loadingKey] = {
-          series: [{ data: pieData }],
-        };
+          series: [{ data: pieData }]
+        }
 
         // 更新图例数据
-        this.sourceLegendItems = legendItems;
+        this.sourceLegendItems = legendItems
       } else {
         // 如果API没有返回有效数据，设置空数据
         this.chartData[loadingKey] = {
-          series: [{ data: [] }],
-        };
-        this.sourceLegendItems = [];
-        console.log("API返回数据无效，设置空数据");
+          series: [{ data: [] }]
+        }
+        this.sourceLegendItems = []
+        console.log('API返回数据无效，设置空数据')
       }
     } catch (error) {
-      console.error("调用网站比例API失败:", error);
+      console.error('调用网站比例API失败:', error)
       // API调用失败时设置空数据
       this.chartData[loadingKey] = {
-        series: [{ data: [] }],
-      };
-      this.sourceLegendItems = [];
+        series: [{ data: [] }]
+      }
+      this.sourceLegendItems = []
     } finally {
-      this.chartLoading[loadingKey] = false;
+      this.chartLoading[loadingKey] = false
     }
   }
 
   // 加载来源分布数据
   loadSourcesChartData(): Promise<void> {
-    return this.loadPieChartData();
+    return this.loadPieChartData()
   }
 
   // 加载近期完成审核数据
   async loadRecentReviews(): Promise<void> {
-    this.listLoading.recentReviews = true;
+    this.listLoading.recentReviews = true
     try {
-      const data = await this.$roadLawyerService.getCheckCompleteList({});
+      const data = await this.$roadLawyerService.getCheckCompleteList({})
       // 前端取前5条数据
-      this.recentReviews = Array.isArray(data) ? data.slice(0, 5) : [];
+      this.recentReviews = Array.isArray(data) ? data.slice(0, 5) : []
     } catch (error) {
-      console.error("加载近期完成审核数据失败:", error);
-      this.recentReviews = [];
+      console.error('加载近期完成审核数据失败:', error)
+      this.recentReviews = []
     } finally {
-      this.listLoading.recentReviews = false;
+      this.listLoading.recentReviews = false
     }
   }
 
   // 加载需要人工审核的数据和统计数据（合并优化，避免重复调用接口）
   async loadTopReviewsAndCount(): Promise<void> {
-    this.listLoading.topReviews = true;
+    this.listLoading.topReviews = true
     try {
       // 使用统一的 getRuleList 方法，指定为首页场景
-      const data = await this.$roadLawyerService.getRuleList({}, "homepage");
-      const reviewList = data || [];
+      const data = await this.$roadLawyerService.getRuleList({}, 'homepage')
+      const reviewList = data || []
 
       // 同时更新列表和统计数据
-      this.topReviews = reviewList.slice(0, 5);
-      this.pendingReviewCount = reviewList.length;
+      this.topReviews = reviewList.slice(0, 5)
+      this.pendingReviewCount = reviewList.length
     } catch (error) {
-      console.error("加载待审核数据失败:", error);
-      this.topReviews = [];
-      this.pendingReviewCount = 0;
+      console.error('加载待审核数据失败:', error)
+      this.topReviews = []
+      this.pendingReviewCount = 0
     } finally {
-      this.listLoading.topReviews = false;
+      this.listLoading.topReviews = false
     }
   }
 
   // 加载最新法规更新数据
   async loadLatestUpdates(): Promise<void> {
-    this.listLoading.latestUpdates = true;
+    this.listLoading.latestUpdates = true
     try {
-      const data = await this.$roadLawyerService.getRuleUpdateList({});
+      const data = await this.$roadLawyerService.getRuleUpdateList({})
       // 前端取前5条数据
-      this.latestUpdates = Array.isArray(data) ? data.slice(0, 5) : [];
+      this.latestUpdates = Array.isArray(data) ? data.slice(0, 5) : []
     } catch (error) {
-      console.error("加载最新法规更新数据失败:", error);
-      this.latestUpdates = [];
+      console.error('加载最新法规更新数据失败:', error)
+      this.latestUpdates = []
     } finally {
-      this.listLoading.latestUpdates = false;
+      this.listLoading.latestUpdates = false
     }
   }
 
@@ -359,34 +359,34 @@ export default class IndexComponent extends Vue {
   async loadMonthlyUpdateCount(): Promise<void> {
     try {
       const data = await this.$roadLawyerService.getUpdateCount({
-        condition: this.activeTimeRange, // 使用当前选中的时间范围
-      });
+        condition: this.activeTimeRange // 使用当前选中的时间范围
+      })
       // 根据您说的数据格式：res.data.data，类型是number
-      this.monthlyUpdateCount = data || 0;
+      this.monthlyUpdateCount = data || 0
     } catch (error) {
-      console.error("加载法规更新数量失败:", error);
-      this.monthlyUpdateCount = 0;
+      console.error('加载法规更新数量失败:', error)
+      this.monthlyUpdateCount = 0
     }
   }
 
   // 从查看历史记录跳转到人工审核页面（显示已通过和已驳回）
   goToReviewPageFromHistory(): void {
     this.$router.push({
-      path: "/manualReview",
-      query: { filter: "completed" },
-    });
+      path: '/manualReview',
+      query: { filter: 'completed' }
+    })
   }
 
   // 从待审核列表查看全部跳转到人工审核页面（显示待审核）
   goToReviewPageFromPending(): void {
     this.$router.push({
-      path: "/manualReview",
-      query: { filter: "pending" },
-    });
+      path: '/manualReview',
+      query: { filter: 'pending' }
+    })
   }
 
   goToUpdatesPage(): void {
-    this.$router.push("/lawyerUpdate");
+    this.$router.push('/lawyerUpdate')
   }
 
   // 查看法规更新详情
@@ -394,117 +394,117 @@ export default class IndexComponent extends Vue {
     // 检查废止状态
     const isRevoke: boolean = !!(
       item.revokeDateTimestamp || item.revokeDateStr
-    );
+    )
     const query: RouteQuery = {
       id: item.id,
       pageTitle: item.ruleName,
-      ...(isRevoke ? { isRevoke: "true" } : {}),
-    };
+      ...(isRevoke ? { isRevoke: 'true' } : {})
+    }
 
     this.$router.push({
-      path: "/lawyerUpdate/detail",
-      query,
-    });
+      path: '/lawyerUpdate/detail',
+      query
+    })
   }
 
   // 审核操作方法
   viewReviewDetail(record: ToDoRuleItem): void {
-    this.$message.info(`查看详情: ${record.ruleName}`);
+    this.$message.info(`查看详情: ${record.ruleName}`)
     // 跳转到文档比较页面
     this.$router.push({
-      path: "/manualReview/detail",
+      path: '/manualReview/detail',
       query: {
         id: record.id,
         pageTitle: record.ruleName,
-        checkStatus: record.checkStatus || "待审核", // 传递审核状态
-      },
-    });
+        checkStatus: record.checkStatus || '待审核' // 传递审核状态
+      }
+    })
   }
 
   // 审核通过
   approveReview(record: ToDoRuleItem): void {
     this.$confirm({
-      title: "确认通过",
+      title: '确认通过',
       content: `确定要通过文档"${record.ruleName}"的审核吗？`,
-      okText: "确认通过",
-      cancelText: "取消",
+      okText: '确认通过',
+      cancelText: '取消',
       onOk: () => {
-        this.submitReview(record, "approve");
-      },
-    });
+        this.submitReview(record, 'approve')
+      }
+    })
   }
 
   // 审核驳回
   rejectReview(record: ToDoRuleItem): void {
     this.$confirm({
-      title: "确认驳回",
+      title: '确认驳回',
       content: `确定要驳回文档"${record.ruleName}"吗？`,
-      okText: "确认驳回",
-      okType: "danger",
-      cancelText: "取消",
+      okText: '确认驳回',
+      okType: 'danger',
+      cancelText: '取消',
       onOk: () => {
-        this.submitReview(record, "reject");
-      },
-    });
+        this.submitReview(record, 'reject')
+      }
+    })
   }
 
   // 提交审核
   async submitReview(record: ToDoRuleItem, action: string): Promise<void> {
     try {
-      console.log("开始审核操作:", { recordId: record.id, action });
+      console.log('开始审核操作:', { recordId: record.id, action })
 
       // 调用统一的审核接口 - service层已处理所有错误情况
       await this.$roadLawyerService.approveToDoRule({
         id: record.id,
-        approvalComment: action === "approve" ? "已通过" : "已驳回",
-      });
+        approvalComment: action === 'approve' ? '已通过' : '已驳回'
+      })
 
       // 显示成功消息
-      this.$message.success(action === "approve" ? "审核已通过" : "文档已驳回");
+      this.$message.success(action === 'approve' ? '审核已通过' : '文档已驳回')
 
       // 重新加载数据
-      await this.loadTopReviewsAndCount();
+      await this.loadTopReviewsAndCount()
     } catch (error) {
-      console.error("审核操作失败:", error);
-      this.$message.error("审核操作失败，请重试");
+      console.error('审核操作失败:', error)
+      this.$message.error('审核操作失败，请重试')
     }
   }
 
   // 导出统计报告
   async exportStatisticReport(): Promise<void> {
-    let hideLoading = null;
+    let hideLoading = null
     try {
-      hideLoading = this.$message.loading("正在生成统计报告，请稍候...", 0);
+      hideLoading = this.$message.loading('正在生成统计报告，请稍候...', 0)
 
       // 根据当前选择的时间范围导出
-      const condition: string = this.activeTimeRange;
+      const condition: string = this.activeTimeRange
       const result = await this.$roadLawyerService.exportStatisticExcel({
-        condition,
-      });
+        condition
+      })
 
-      hideLoading();
+      hideLoading()
 
       if (result) {
         if (
           downloadFileWithMessage(result, {
-            fileName: "法规统计报告.xlsx",
+            fileName: '法规统计报告.xlsx',
             showMessage: true,
-            messageService: this.$message,
+            messageService: this.$message
           })
         ) {
           // 下载成功，消息已在 downloadFileWithMessage 中处理
         } else {
-          this.$message.error("导出失败，请重试");
+          this.$message.error('导出失败，请重试')
         }
       } else {
-        this.$message.error("导出失败，请重试");
+        this.$message.error('导出失败，请重试')
       }
     } catch (error) {
       if (hideLoading) {
-        hideLoading();
+        hideLoading()
       }
-      console.error("导出统计报告失败:", error);
-      this.$message.error("导出失败，请重试");
+      console.error('导出统计报告失败:', error)
+      this.$message.error('导出失败，请重试')
     }
   }
 }

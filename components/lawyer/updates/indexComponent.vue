@@ -5,7 +5,9 @@
       <div class="lawyer-card">
         <!-- 页面头部 -->
         <div class="lawyer-updates-header">
-          <h2 class="lawyer-title">智库更新与通知</h2>
+          <h2 class="lawyer-title">
+            智库更新与通知
+          </h2>
           <div class="lawyer-filter-tabs">
             <button class="lawyer-filter-btn lawyer-filter-btn-active">
               法规更新
@@ -26,10 +28,18 @@
             class="lawyer-update-item"
           >
             <div :class="['lawyer-update-icon', item.type]">
-              <template v-if="item.type === 'law'">⚖️</template>
-              <template v-else-if="item.type === 'policy'">📋</template>
-              <template v-else-if="item.type === 'internal'">🏢</template>
-              <template v-else>🔧</template>
+              <template v-if="item.type === 'law'">
+                ⚖️
+              </template>
+              <template v-else-if="item.type === 'policy'">
+                📋
+              </template>
+              <template v-else-if="item.type === 'internal'">
+                🏢
+              </template>
+              <template v-else>
+                🔧
+              </template>
             </div>
             <div class="lawyer-update-content">
               <div class="lawyer-flex lawyer-justify-between">
@@ -38,7 +48,9 @@
                 </h3>
                 <span class="lawyer-text-light">{{ item.date }}</span>
               </div>
-              <p class="lawyer-update-summary">{{ item.description }}</p>
+              <p class="lawyer-update-summary">
+                {{ item.description }}
+              </p>
 
               <!-- AI智能解读 -->
               <div
@@ -49,9 +61,9 @@
                 <ul>
                   <li v-for="(point, index) in item.summaryArray" :key="index">
                     <span>
-                      <strong v-if="getSummaryTitle(point)"
-                        >{{ getSummaryTitle(point) }}：</strong
-                      >{{ getSummaryContent(point) }}
+                      <strong
+                        v-if="getSummaryTitle(point)"
+                      >{{ getSummaryTitle(point) }}：</strong>{{ getSummaryContent(point) }}
                     </span>
                   </li>
                 </ul>
@@ -74,15 +86,13 @@
                 </div>
                 <div class="lawyer-flex lawyer-gap-sm">
                   <a
-                    @click.prevent="viewUpdate(item.id)"
                     class="lawyer-action-btn lawyer-btn-primary"
-                    >查看详情</a
-                  >
+                    @click.prevent="viewUpdate(item.id)"
+                  >查看详情</a>
                   <a
-                    @click.prevent="downloadUpdate(item.id, item.title)"
                     class="lawyer-action-btn"
-                    >下载文件</a
-                  >
+                    @click.prevent="downloadUpdate(item.id, item.title)"
+                  >下载文件</a>
                 </div>
               </div>
             </div>
@@ -95,7 +105,7 @@
         </div>
 
         <!-- 分页器 -->
-        <div class="lawyer-pagination" v-if="allUpdates.length">
+        <div v-if="allUpdates.length" class="lawyer-pagination">
           <a-pagination
             v-model="currentPage"
             :total="totalCount"
@@ -116,16 +126,16 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "nuxt-property-decorator";
+import { Component, Vue } from 'nuxt-property-decorator'
 import {
   RuleUpdateItem,
   UpdateItem,
   RuleUpdateQueryParams,
-  RouteQuery,
-} from "~/model/LawyerModel";
-import { downloadFileWithMessage } from "~/utils/personal";
+  RouteQuery
+} from '~/model/LawyerModel'
+import { downloadFileWithMessage } from '~/utils/personal'
 
-@Component({ name: "lawyer-updates-index-component" })
+@Component({ name: 'lawyer-updates-index-component' })
 export default class LawyerUpdatesIndexComponent extends Vue {
   currentPage: number = 1;
   pageSize: number = 10;
@@ -135,256 +145,257 @@ export default class LawyerUpdatesIndexComponent extends Vue {
   allUpdates: UpdateItem[] = []; // 存储所有数据用于前端分页
 
   async mounted(): Promise<void> {
-    await this.loadUpdates();
+    await this.loadUpdates()
   }
 
   async loadUpdates(): Promise<void> {
-    this.loading = true;
+    this.loading = true
     try {
       // 构建查询参数
-      const params: RuleUpdateQueryParams = {};
+      const params: RuleUpdateQueryParams = {}
 
-      console.log("查询参数:", params);
+      console.log('查询参数:', params)
 
       // 调用真实API获取数据
-      const result = await this.$roadLawyerService.getRuleUpdateList(params);
-      console.log("获取到的数据:", result);
+      const result = await this.$roadLawyerService.getRuleUpdateList(params)
+      console.log('获取到的数据:', result)
 
       if (result && Array.isArray(result)) {
-        this.rawUpdates = result;
+        this.rawUpdates = result
 
         // 将真实数据转换为页面显示格式
-        this.allUpdates = this.transformRawDataToDisplayFormat(result);
+        this.allUpdates = this.transformRawDataToDisplayFormat(result)
 
         // 重置到第一页
-        this.currentPage = 1;
+        this.currentPage = 1
       } else {
-        this.rawUpdates = [];
-        this.allUpdates = [];
+        this.rawUpdates = []
+        this.allUpdates = []
       }
     } catch (error) {
-      console.error("加载更新数据失败", error);
-      this.$message.error("加载数据失败，请刷新页面重试");
-      this.rawUpdates = [];
-      this.allUpdates = [];
+      console.error('加载更新数据失败', error)
+      this.$message.error('加载数据失败，请刷新页面重试')
+      this.rawUpdates = []
+      this.allUpdates = []
     } finally {
-      this.loading = false;
+      this.loading = false
     }
   }
+
   // 获取更新描述
   getUpdateDescription(fileContent: string): string {
     if (!fileContent) {
-      return "暂无详细描述";
+      return '暂无详细描述'
     }
 
     return fileContent.length > 200
-      ? fileContent.substring(0, 200) + "..."
-      : fileContent;
+      ? fileContent.substring(0, 200) + '...'
+      : fileContent
   }
 
   // 将真实API数据转换为页面显示格式
   transformRawDataToDisplayFormat(rawData: RuleUpdateItem[]): UpdateItem[] {
     return rawData.map((item: RuleUpdateItem): UpdateItem => {
       // 根据分类确定类型
-      const categoryMain: string = item.categoryMain || "";
-      let type: string = "law";
-      if (categoryMain.includes("政策") || categoryMain.includes("监管")) {
-        type = "policy";
+      const categoryMain: string = item.categoryMain || ''
+      let type: string = 'law'
+      if (categoryMain.includes('政策') || categoryMain.includes('监管')) {
+        type = 'policy'
       } else if (
-        categoryMain.includes("内部") ||
-        categoryMain.includes("机构")
+        categoryMain.includes('内部') ||
+        categoryMain.includes('机构')
       ) {
-        type = "internal";
+        type = 'internal'
       }
 
       // 生成标签 - 只使用分类标签，过滤空值
       const tags: string[] = [item.categoryMain, item.categorySub].filter(
         Boolean
-      );
+      )
 
       // 生成描述 - 优先使用fileContent并进行字数省略
-      const description: string = this.getUpdateDescription(item.fileContent);
+      const description: string = this.getUpdateDescription(item.fileContent)
 
       // 预处理摘要数组，避免模板中重复计算
-      const summaryArray: string[] = this.parseSummaryArray(item.summary || "");
+      const summaryArray: string[] = this.parseSummaryArray(item.summary || '')
 
       return {
         id: item.id,
-        title: item.ruleName || "未知标题",
+        title: item.ruleName || '未知标题',
         description,
-        fileContent: item.fileContent || "",
-        summary: item.summary || "",
+        fileContent: item.fileContent || '',
+        summary: item.summary || '',
         summaryArray,
-        date: item.createdTimeStr || item.publishDateStr || "未知时间",
-        source: item.legalSource || "未知来源",
-        category: item.categoryMain || "其他",
+        date: item.createdTimeStr || item.publishDateStr || '未知时间',
+        source: item.legalSource || '未知来源',
+        category: item.categoryMain || '其他',
         type,
-        tags,
-      };
-    });
+        tags
+      }
+    })
   }
 
   get paginatedUpdates(): UpdateItem[] {
     // 前端分页：计算当前页应该显示的数据
-    const start: number = (this.currentPage - 1) * this.pageSize;
-    const end: number = start + this.pageSize;
-    return this.allUpdates.slice(start, end);
+    const start: number = (this.currentPage - 1) * this.pageSize
+    const end: number = start + this.pageSize
+    return this.allUpdates.slice(start, end)
   }
 
   get totalCount(): number {
     // 返回总数
-    return this.allUpdates.length;
+    return this.allUpdates.length
   }
 
   viewUpdate(id: string): void {
     // 查找对应的更新项以获取废止状态
     const updateItem: RuleUpdateItem | undefined = this.rawUpdates.find(
       (item: RuleUpdateItem) => item.id === id
-    );
+    )
     const isRevoke: boolean = !!(
       updateItem?.revokeDateTimestamp || updateItem?.revokeDateStr
-    );
+    )
     const query: RouteQuery = {
-      id: id,
-      pageTitle: updateItem?.ruleName || "法规更新详情",
-      ...(isRevoke ? { isRevoke: "true" } : {}),
-    };
+      id,
+      pageTitle: updateItem?.ruleName || '法规更新详情',
+      ...(isRevoke ? { isRevoke: 'true' } : {})
+    }
 
     this.$router.push({
-      path: "/lawyerUpdate/detail",
-      query,
-    });
+      path: '/lawyerUpdate/detail',
+      query
+    })
   }
 
   async downloadUpdate(id: string, title: string): Promise<void> {
-    let hideLoading = null;
+    let hideLoading = null
     try {
-      hideLoading = this.$message.loading(`正在准备下载: ${title}`, 0);
+      hideLoading = this.$message.loading(`正在准备下载: ${title}`, 0)
 
       const result = await this.$roadLawyerService.downloadRuleFile({
-        searchId: id,
-      });
+        searchId: id
+      })
 
-      hideLoading();
+      hideLoading()
 
       downloadFileWithMessage(result, {
         fileName: `${title}.docx`,
         showMessage: true,
-        messageService: this.$message,
-      });
+        messageService: this.$message
+      })
     } catch (error) {
       if (hideLoading) {
-        hideLoading();
+        hideLoading()
       }
-      console.error("下载失败:", error);
-      this.$message.error("下载失败，请检查网络连接后重试");
+      console.error('下载失败:', error)
+      this.$message.error('下载失败，请检查网络连接后重试')
     }
   }
 
   onPageChange(page: number): void {
-    this.currentPage = page;
+    this.currentPage = page
     // 前端分页，不需要重新请求API
   }
 
   onPageSizeChange(_current: number, size: number): void {
-    this.currentPage = 1;
-    this.pageSize = size;
+    this.currentPage = 1
+    this.pageSize = size
     // 前端分页，不需要重新请求API
   }
 
   getTagClass(index: number = 0): string {
     // 第0个标签是主分类，使用橙色
     if (index === 0) {
-      return "lawyer-tag-main";
+      return 'lawyer-tag-main'
     }
 
     // 其他都是子分类，使用蓝色
-    return "lawyer-tag-sub";
+    return 'lawyer-tag-sub'
   }
 
   // 解析summary数组字符串
   parseSummaryArray(summaryStr: string): string[] {
-    if (!summaryStr) return [];
+    if (!summaryStr) { return [] }
 
     // 首先尝试使用 JSON.parse 安全解析数组字符串
     try {
-      const parsed = JSON.parse(summaryStr);
+      const parsed = JSON.parse(summaryStr)
       if (Array.isArray(parsed)) {
-        return parsed.filter(Boolean);
+        return parsed.filter(Boolean)
       }
-      throw new Error("Parsed result is not an array");
+      throw new Error('Parsed result is not an array')
     } catch {
       // JSON.parse 失败，使用手动解析逻辑作为回退方案
       try {
         // 去掉首尾的方括号
-        let cleanStr = summaryStr.trim();
-        if (cleanStr.startsWith("[") && cleanStr.endsWith("]")) {
-          cleanStr = cleanStr.slice(1, -1);
+        let cleanStr = summaryStr.trim()
+        if (cleanStr.startsWith('[') && cleanStr.endsWith(']')) {
+          cleanStr = cleanStr.slice(1, -1)
         }
 
         // 按逗号分割，但要考虑引号内的逗号
-        const items: string[] = [];
-        let currentItem = "";
-        let inQuotes = false;
+        const items: string[] = []
+        let currentItem = ''
+        let inQuotes = false
 
         for (let i = 0; i < cleanStr.length; i++) {
-          const char = cleanStr[i];
+          const char = cleanStr[i]
 
           if (char === '"' || char === "'") {
-            inQuotes = !inQuotes;
-            continue;
+            inQuotes = !inQuotes
+            continue
           }
 
-          if (char === "," && !inQuotes) {
+          if (char === ',' && !inQuotes) {
             if (currentItem.trim()) {
-              items.push(currentItem.trim());
+              items.push(currentItem.trim())
             }
-            currentItem = "";
+            currentItem = ''
           } else {
-            currentItem += char;
+            currentItem += char
           }
         }
 
         // 添加最后一个项目
         if (currentItem.trim()) {
-          items.push(currentItem.trim());
+          items.push(currentItem.trim())
         }
 
-        return items.filter(Boolean);
+        return items.filter(Boolean)
       } catch (error) {
-        console.warn("解析summary失败，使用最简单的分割方式:", error);
+        console.warn('解析summary失败，使用最简单的分割方式:', error)
         // 最后的回退：简单按逗号分割
         return summaryStr
-          .replace(/^\[|\]$/g, "")
-          .split(",")
-          .map((item) => item.trim())
-          .filter(Boolean);
+          .replace(/^\[|\]$/g, '')
+          .split(',')
+          .map(item => item.trim())
+          .filter(Boolean)
       }
     }
   }
 
   // 获取摘要标题（冒号前的内容）
   getSummaryTitle(point: string): string {
-    if (!point) return "";
+    if (!point) { return '' }
 
-    const colonIndex = point.indexOf(":");
+    const colonIndex = point.indexOf(':')
     if (colonIndex === -1) {
-      return "";
+      return ''
     }
 
-    return point.substring(0, colonIndex).trim();
+    return point.substring(0, colonIndex).trim()
   }
 
   // 获取摘要内容（冒号后的内容）
   getSummaryContent(point: string): string {
-    if (!point) return "";
+    if (!point) { return '' }
 
-    const colonIndex = point.indexOf(":");
+    const colonIndex = point.indexOf(':')
     if (colonIndex === -1) {
-      return point;
+      return point
     }
 
-    return point.substring(colonIndex + 1).trim();
+    return point.substring(colonIndex + 1).trim()
   }
 }
 </script>

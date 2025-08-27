@@ -24,7 +24,7 @@
           <span
             class="legend-color"
             :style="{ backgroundColor: item.color }"
-          ></span>
+          />
           <span class="legend-name">{{ item.name }}</span>
         </div>
       </div>
@@ -33,15 +33,15 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue, Prop } from "nuxt-property-decorator";
-import { EChartOption } from "echarts";
+import { Component, Vue, Prop } from 'nuxt-property-decorator'
+import { EChartOption } from 'echarts'
 import {
   ChartData,
   LegendItem,
-  PieChartDataItem,
-} from "~/model/LawyerModel";
+  PieChartDataItem
+} from '~/model/LawyerModel'
 
-@Component({ name: "source-distribution" })
+@Component({ name: 'source-distribution' })
 export default class SourceDistribution extends Vue {
   @Prop({ type: Object, default: () => ({}) }) chartData!: ChartData;
   @Prop({ type: Array, default: () => [] }) legendItems!: LegendItem[];
@@ -49,93 +49,93 @@ export default class SourceDistribution extends Vue {
 
   // 饼图颜色配置
   private static readonly PIE_CHART_COLORS: string[] = [
-    "#1890ff",
-    "#13c2c2",
-    "#52c41a",
-    "#faad14",
-    "#722ed1",
-    "#eb2f96",
-    "#fadb14",
+    '#1890ff',
+    '#13c2c2',
+    '#52c41a',
+    '#faad14',
+    '#722ed1',
+    '#eb2f96',
+    '#fadb14'
   ];
 
   // 静态tooltip格式化函数
   private static tooltipFormatter(params): string {
-    return `${params.name}: ${Math.round(params.percent)}%`;
+    return `${params.name}: ${Math.round(params.percent)}%`
   }
 
   // 静态label格式化函数
   private static labelFormatter(params): string {
-    return `${params.name} | ${Math.round(params.percent)}%`;
+    return `${params.name} | ${Math.round(params.percent)}%`
   }
 
   // 静态饼图基础配置
   private static readonly BASE_PIE_OPTIONS: Omit<
     EChartOption,
-    "color" | "series"
+    'color' | 'series'
   > = {
     tooltip: {
-      trigger: "item",
+      trigger: 'item',
       formatter: SourceDistribution.tooltipFormatter,
-      backgroundColor: "rgba(0, 0, 0, 0.8)",
-      borderColor: "transparent",
+      backgroundColor: 'rgba(0, 0, 0, 0.8)',
+      borderColor: 'transparent',
       textStyle: {
-        color: "#fff",
-        fontSize: 12,
+        color: '#fff',
+        fontSize: 12
       },
       extraCssText:
-        "border-radius: 4px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);",
+        'border-radius: 4px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);'
     },
     legend: {
-      show: false,
-    },
+      show: false
+    }
   };
 
   // 静态series基础配置
   private static readonly BASE_SERIES_CONFIG = {
-    name: "法规更新来源分布",
-    type: "pie",
-    radius: ["55%", "75%"],
-    center: ["50%", "50%"],
+    name: '法规更新来源分布',
+    type: 'pie',
+    radius: ['55%', '75%'],
+    center: ['50%', '50%'],
     avoidLabelOverlap: false,
     label: {
       show: true,
-      position: "outside",
+      position: 'outside',
       formatter: SourceDistribution.labelFormatter,
       fontSize: 12,
-      color: "#333",
-      lineHeight: 16,
+      color: '#333',
+      lineHeight: 16
     },
     emphasis: {
       label: {
         show: true,
-        fontSize: "14",
-        fontWeight: "bold",
-        color: "#333",
+        fontSize: '14',
+        fontWeight: 'bold',
+        color: '#333'
       },
       itemStyle: {
         shadowBlur: 10,
         shadowOffsetX: 0,
-        shadowColor: "rgba(0, 0, 0, 0.5)",
-      },
+        shadowColor: 'rgba(0, 0, 0, 0.5)'
+      }
     },
     labelLine: {
       show: true,
       length: 15,
       length2: 10,
       lineStyle: {
-        color: "#999",
-        width: 1,
-      },
-    },
+        color: '#999',
+        width: 1
+      }
+    }
   };
 
   // 判断是否所有数据都为空
   get isAllDataEmpty(): boolean {
-    const data: PieChartDataItem[] = this.chartData?.series?.[0]?.data || [];
+    const data: PieChartDataItem[] = this.chartData?.series?.[0]?.data || []
     return (
       data.length === 0 ||
       data.every((item: PieChartDataItem): boolean => item.value === 0)
-    );
+    )
   }
 
   // 优化后的饼图配置 - 只合并动态部分
@@ -146,10 +146,10 @@ export default class SourceDistribution extends Vue {
       series: [
         {
           ...SourceDistribution.BASE_SERIES_CONFIG,
-          data: this.chartData?.series?.[0]?.data || [],
-        },
-      ],
-    };
+          data: this.chartData?.series?.[0]?.data || []
+        }
+      ]
+    }
   }
 }
 </script>
