@@ -74,6 +74,7 @@ export interface CrawlConfigItem {
   keywords?: string[];
   remarks?: string;
   enabled: number; // 0-禁用, 1-启用
+  crawlStartDate?: string; // 爬取起始时间
   createdBy?: string;
   createdTime?: string;
   updateTime?: string;
@@ -127,6 +128,7 @@ export interface AddCrawlConfigParams {
   keywords?: string[];
   remarks?: string;
   enabled: number;
+  crawlStartDate?: string; // 爬取起始时间
   createdBy?: string;
 }
 
@@ -141,6 +143,7 @@ export interface UpdateCrawlConfigParams {
   keywords?: string[];
   remarks?: string;
   enabled: number;
+  crawlStartDate?: string; // 爬取起始时间
   createdBy?: string;
   createdTime?: string;
   updateTime?: string;

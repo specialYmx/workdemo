@@ -67,8 +67,8 @@
                             </a-tag>
                             <a-tag v-if="text.length > 3" color="blue" class="lawyer-keyword-tag lawyer-keyword-more"
                                 :title="`还有${text.length - 3}个关键词：${text
-                  .slice(3)
-                  .join('、')}`">
+                                    .slice(3)
+                                    .join('、')}`">
                                 +{{ text.length - 3 }}个
                             </a-tag>
                         </div>
@@ -79,6 +79,11 @@
                     <template slot="enabled" slot-scope="text, record">
                         <a-switch :checked="text === 1" :loading="record.switchLoading"
                             @change="(checked) => toggleEnabled(record, checked)" />
+                    </template>
+
+                    <!-- 爬取起始时间列 -->
+                    <template slot="crawlStartDate" slot-scope="text">
+                        {{ formatTime(text) }}
                     </template>
 
                     <!-- 创建时间列 -->
@@ -125,9 +130,11 @@
                             <a-input-number v-model="formData.maxPageLimit" :min="1" :max="10000"
                                 placeholder="请输入最大页面限制" style="width: 100%" />
                         </a-form-model-item>
-                        <a-form-model-item label="启用状态" prop="enabled">
-                            <a-switch v-model="formData.enabled" checked-children="启用" un-checked-children="禁用" />
+                        <a-form-model-item label="爬取起始时间" prop="crawlStartDate">
+                            <a-date-picker v-model="formData.crawlStartDate" placeholder="请选择爬取起始时间" style="width: 100%"
+                                show-time format="YYYY-MM-DD HH:mm:ss" />
                         </a-form-model-item>
+
                     </a-col>
 
                     <!-- 右栏 -->
@@ -138,10 +145,13 @@
                                 :max-tag-text-length="8" />
                         </a-form-model-item>
                         <a-form-model-item label="备注" prop="remarks">
-                            <a-textarea v-model="formData.remarks" placeholder="请输入备注（可选）" :rows="3" />
+                            <a-textarea v-model="formData.remarks" placeholder="请输入备注（可选）" :rows="2" />
                         </a-form-model-item>
                         <a-form-model-item label="搜索模板" prop="searchTemplate">
                             <a-textarea v-model="formData.searchTemplate" placeholder="请输入搜索模板（可选）" :rows="4" />
+                        </a-form-model-item>
+                        <a-form-model-item label="启用状态" prop="enabled">
+                            <a-switch v-model="formData.enabled" checked-children="启用" un-checked-children="禁用" />
                         </a-form-model-item>
                     </a-col>
                 </a-row>
@@ -202,6 +212,7 @@ export default class CrawlConfigIndexComponent extends Vue {
         keywords: [] as string[],
         remarks: "",
         enabled: true,
+        crawlStartDate: null as any, // 爬取起始时间
     };
 
     // 表单验证规则
@@ -272,6 +283,13 @@ export default class CrawlConfigIndexComponent extends Vue {
             scopedSlots: { customRender: "enabled" },
             width: 100,
             align: "center",
+        },
+        {
+            title: "爬取起始时间",
+            dataIndex: "crawlStartDate",
+            key: "crawlStartDate",
+            scopedSlots: { customRender: "crawlStartDate" },
+            width: 160,
         },
         {
             title: "创建人",
@@ -387,6 +405,7 @@ export default class CrawlConfigIndexComponent extends Vue {
             keywords: [],
             remarks: "",
             enabled: true,
+            crawlStartDate: null as any,
         };
         this.$nextTick(() => {
             const formRef = this.$refs.formModel as any;
@@ -410,6 +429,7 @@ export default class CrawlConfigIndexComponent extends Vue {
             keywords: record.keywords || [],
             remarks: record.remarks || "",
             enabled: record.enabled === 1,
+            crawlStartDate: record.crawlStartDate ? moment(record.crawlStartDate) : null,
         };
         this.$nextTick(() => {
             const formRef = this.$refs.formModel as any;
@@ -505,6 +525,7 @@ export default class CrawlConfigIndexComponent extends Vue {
                 keywords: this.formData.keywords || [],
                 remarks: this.formData.remarks || "",
                 enabled: this.formData.enabled ? 1 : 0,
+                crawlStartDate: this.formData.crawlStartDate ? moment(this.formData.crawlStartDate).format("YYYY-MM-DD HH:mm:ss") : undefined,
                 createdBy: "admin", // TODO: 从用户信息获取
             };
 
@@ -557,23 +578,23 @@ export default class CrawlConfigIndexComponent extends Vue {
         return moment(timeStr).format("YYYY-MM-DD HH:mm:ss");
     }
 
-  // 多选标签超出时的占位符
-  getMaxTagPlaceholder(omittedValues: string[]): string {
-    return `+${omittedValues.length}个关键词`;
-  }
+    // 多选标签超出时的占位符
+    getMaxTagPlaceholder(omittedValues: string[]): string {
+        return `+${omittedValues.length}个关键词`;
+    }
 
-  // 获取要显示的关键词（前3个）
-  getDisplayKeywords(keywords: string[]): string[] {
-    return keywords.slice(0, 3);
-  }
+    // 获取要显示的关键词（前3个）
+    getDisplayKeywords(keywords: string[]): string[] {
+        return keywords.slice(0, 3);
+    }
 
-  // 截断关键词文本
-  truncateKeyword(keyword: string): string {
-    const maxLength = 8;
-    return keyword.length > maxLength
-      ? keyword.substring(0, maxLength) + "..."
-      : keyword;
-  }
+    // 截断关键词文本
+    truncateKeyword(keyword: string): string {
+        const maxLength = 8;
+        return keyword.length > maxLength
+            ? keyword.substring(0, maxLength) + "..."
+            : keyword;
+    }
 }
 </script>
 
@@ -630,20 +651,21 @@ export default class CrawlConfigIndexComponent extends Vue {
     color: #999;
     font-style: italic;
 }
+
 /* 关键词容器样式 */
 .lawyer-keywords-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: center;
 }
 
 .lawyer-keyword-tag {
-  margin: 0 !important;
-  cursor: default;
+    margin: 0 !important;
+    cursor: default;
 
-  &.lawyer-keyword-more {
-    cursor: help;
-  }
+    &.lawyer-keyword-more {
+        cursor: help;
+    }
 }
 </style>
