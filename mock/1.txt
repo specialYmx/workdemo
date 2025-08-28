@@ -1,6 +1,6 @@
 POST
-​/legal​/crawl​/getConfigList
-查询配置列表
+​/legal​/crawl​/getCrawlHistory
+查询执行网页的历史记录
 
 Parameters
 Cancel
@@ -10,177 +10,52 @@ Request body
 
 application/json
 {
-  "createdBy": "string",
   "current": 0,
-  "enabled": 0,
-  "id": 0,
-  "maxPageLimit": 0,
-  "remarks": "string",
-  "searchTemplate": "string",
+  "detailId": "string",
   "size": 0,
-  "sortRules": "string",
-  "websiteCode": "string",
-  "websiteName": "string",
-  "websiteUrl": "string"
+  "sortRules": "string"
 }
 Execute
-Clear
 Responses
-Curl
-curl -X POST "http://10.14.10.87:9090/legal/crawl/getConfigList" -H "accept: */*" -H "Content-Type: application/json" -d "{\"createdBy\":\"string\",\"current\":0,\"enabled\":0,\"id\":0,\"maxPageLimit\":0,\"remarks\":\"string\",\"searchTemplate\":\"string\",\"size\":0,\"sortRules\":\"string\",\"websiteCode\":\"string\",\"websiteName\":\"string\",\"websiteUrl\":\"string\"}"
-Request URL
-http://10.14.10.87:9090/legal/crawl/getConfigList
-Server response
-Code	Details
+Code	Description	Links
 200	
-Response body
-Download
+OK
+
+Media type
+
+*/*
+Controls Accept header.
+Example Value
+Schema
 {
-  "status": 200,
-  "message": "OK",
   "data": {
-    "records": [],
-    "total": 0,
-    "size": 0,
-    "current": 1,
-    "orders": [],
+    "countId": "string",
+    "current": 0,
+    "hitCount": true,
+    "maxLimit": 0,
     "optimizeCountSql": true,
-    "hitCount": false,
-    "countId": null,
-    "maxLimit": null,
+    "orders": [
+      {
+        "asc": true,
+        "column": "string"
+      }
+    ],
+    "pages": 0,
+    "records": [
+      {
+        "articleTitle": "string",
+        "createdTime": "2025-08-28T07:09:12.647Z",
+        "detailId": "string",
+        "detailUrl": "string",
+        "exceptionMsg": "string",
+        "id": "string",
+        "processStatus": "PROCESS_FAIL"
+      }
+    ],
     "searchCount": true,
-    "pages": 0
+    "size": 0,
+    "total": 0
   },
-  "success": true,
-  "timestamp": 0
-}
-
-
-POST
-​/legal​/crawl​/deleteConfigList
-删除配置列表
-
-Parameters
-Try it out
-Name	Description
-id *
-string
-(query)
-id
-
-id - id
-Responses
-Code	Description	Links
-200	
-OK
-
-Media type
-
-*/*
-Controls Accept header.
-Example Value
-Schema
-{
-  "data": "string",
-  "message": "string",
-  "status": 0,
-  "success": true,
-  "timestamp": 0}
-
-
-
-
-
-  Parameters
-Try it out
-No parameters
-
-Request body
-
-application/json
-Example Value
-Schema
-{
-  "createdBy": "string",
-  "createdTime": "2025-08-26T08:26:56.496Z",
-  "enabled": 0,
-  "id": 0,
-  "keywords": [
-    "string"
-  ],
-  "maxPageLimit": 0,
-  "remarks": "string",
-  "searchTemplate": "string",
-  "updateTime": "2025-08-26T08:26:56.496Z",
-  "websiteCode": "string",
-  "websiteName": "string",
-  "websiteUrl": "string"
-}
-Responses
-Code	Description	Links
-200	
-OK
-
-Media type
-
-*/*
-Controls Accept header.
-Example Value
-Schema
-{
-  "data": "string",
-  "message": "string",
-  "status": 0,
-  "success": true,
-  "timestamp": 0
-}
-
-
-
-
-
-POST
-​/legal​/crawl​/updateConfig
-更新配置
-
-Parameters
-Try it out
-No parameters
-
-Request body
-
-application/json
-Example Value
-Schema
-{
-  "createdBy": "string",
-  "createdTime": "2025-08-26T08:27:32.802Z",
-  "enabled": 0,
-  "id": 0,
-  "keywords": [
-    "string"
-  ],
-  "maxPageLimit": 0,
-  "remarks": "string",
-  "searchTemplate": "string",
-  "updateTime": "2025-08-26T08:27:32.802Z",
-  "websiteCode": "string",
-  "websiteName": "string",
-  "websiteUrl": "string"
-}
-Responses
-Code	Description	Links
-200	
-OK
-
-Media type
-
-*/*
-Controls Accept header.
-Example Value
-Schema
-{
-  "data": "string",
   "message": "string",
   "status": 0,
   "success": true,

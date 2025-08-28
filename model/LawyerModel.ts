@@ -9,6 +9,8 @@ import {
   UpdateCrawlConfigParams,
   DeleteCrawlConfigParams,
   CrawlConfigOperationResponse,
+  CrawlHistoryQueryParams,
+  CrawlHistoryResponse,
 } from "~/model/LawyerConfig";
 // 法律合规智能系统数据模型
 
@@ -370,6 +372,9 @@ export interface RoadLawyerService {
   executeCrawlTask: (
     params: ExecuteCrawlTaskParams
   ) => Promise<ExecuteCrawlTaskResponse>;
+  getCrawlHistory: (
+    params: CrawlHistoryQueryParams
+  ) => Promise<CrawlHistoryResponse>;
 
   // ==================== 爬取配置相关方法 ====================
   getCrawlConfigList: (

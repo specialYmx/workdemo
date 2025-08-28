@@ -170,6 +170,9 @@ import {
     UpdateCrawlConfigParams,
     CrawlConfigOperationResponse,
 } from "~/model/LawyerConfig";
+import { FormModel } from 'ant-design-vue'
+
+
 
 @Component({ name: "crawl-config-index-component" })
 export default class CrawlConfigIndexComponent extends Vue {
@@ -212,7 +215,7 @@ export default class CrawlConfigIndexComponent extends Vue {
         keywords: [] as string[],
         remarks: "",
         enabled: true,
-        crawlStartDate: null as any, // 爬取起始时间
+        crawlStartDate: null as string | null, // 爬取起始时间
     };
 
     // 表单验证规则
@@ -225,7 +228,6 @@ export default class CrawlConfigIndexComponent extends Vue {
         ],
         websiteUrl: [
             { required: true, message: "请输入网站URL", trigger: "blur" },
-            { type: "url", message: "请输入有效的URL", trigger: "blur" },
         ],
         maxPageLimit: [
             { required: true, message: "请输入最大页面限制", trigger: "blur" },
@@ -336,14 +338,13 @@ export default class CrawlConfigIndexComponent extends Vue {
 
             // 如果有关键词搜索，添加到参数中
             if (this.searchParams.keywords) {
-                // 这里可能需要根据后端接口调整参数名
-                (params as any).keywords = this.searchParams.keywords;
+                params.keywords = this.searchParams.keywords;
             }
 
             const response = await this.$roadLawyerService.getCrawlConfigList(params);
 
             if (response.success && response.data) {
-                this.configList = response.data.records.map((item: any) => ({
+                this.configList = response.data.records.map((item: CrawlConfigItem) => ({
                     ...item,
                     switchLoading: false, // 添加开关加载状态
                 }));
@@ -385,7 +386,7 @@ export default class CrawlConfigIndexComponent extends Vue {
     }
 
     // 表格变化处理
-    async handleTableChange(pagination: any): Promise<void> {
+    async handleTableChange(pagination: { current: number; pageSize: number }): Promise<void> {
         this.pagination.current = pagination.current;
         this.pagination.pageSize = pagination.pageSize;
         await this.loadConfigList();
@@ -405,12 +406,12 @@ export default class CrawlConfigIndexComponent extends Vue {
             keywords: [],
             remarks: "",
             enabled: true,
-            crawlStartDate: null as any,
+            crawlStartDate: null as string | null,
         };
         this.$nextTick(() => {
-            const formRef = this.$refs.formModel as any;
+            const formRef = this.$refs.formModel as FormModel;
             if (formRef && formRef.clearValidate) {
-                formRef.clearValidate();
+                formRef.clearValidate([]);
             }
         });
     }
@@ -432,9 +433,9 @@ export default class CrawlConfigIndexComponent extends Vue {
             crawlStartDate: record.crawlStartDate || null,
         };
         this.$nextTick(() => {
-            const formRef = this.$refs.formModel as any;
+            const formRef = this.$refs.formModel as FormModel;
             if (formRef && formRef.clearValidate) {
-                formRef.clearValidate();
+                formRef.clearValidate([]);
             }
         });
     }
@@ -501,19 +502,11 @@ export default class CrawlConfigIndexComponent extends Vue {
     async handleModalOk(): Promise<void> {
         try {
             // 验证表单
-            const formRef = this.$refs.formModel as any;
-            if (!formRef || !formRef.validate) {
+            const formRef = this.$refs.formModel as FormModel;
+            if (!formRef) {
                 throw new Error("表单引用无效");
             }
-            await new Promise((resolve, reject) => {
-                formRef.validate((valid: boolean) => {
-                    if (valid) {
-                        resolve(true);
-                    } else {
-                        reject(new Error("表单验证失败"));
-                    }
-                });
-            });
+            await formRef.validate();
             this.modalLoading = true;
 
             const params = {
@@ -526,7 +519,6 @@ export default class CrawlConfigIndexComponent extends Vue {
                 remarks: this.formData.remarks || "",
                 enabled: this.formData.enabled ? 1 : 0,
                 crawlStartDate: this.formData.crawlStartDate || undefined,
-                createdBy: "admin", // TODO: 从用户信息获取
             };
 
             let response: CrawlConfigOperationResponse;
@@ -535,9 +527,7 @@ export default class CrawlConfigIndexComponent extends Vue {
                 response = await this.$roadLawyerService.updateCrawlConfig({
                     ...params,
                     id: this.editingRecord.id,
-                    createdTime: this.editingRecord.createdTime,
-                    updateTime: new Date().toISOString(),
-                } as UpdateCrawlConfigParams);
+                });
             } else {
                 // 新增
                 response = await this.$roadLawyerService.addCrawlConfig(

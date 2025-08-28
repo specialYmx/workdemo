@@ -30,6 +30,7 @@ export default {
   // ==================== 爬取统计相关接口 (rule-crawl-controller) ====================
   getCrawlHtmlList: "/legal/crawl/getHtmlList", // 获取爬取HTML列表
   executeCrawlTask: "/legal/crawl/runTask", // 执行爬取任务
+  getCrawlHistory: "/legal/crawl/getCrawlHistory", // 查询执行网页的历史记录
 
   // ==================== 爬取配置相关接口 (crawl-config-controller) ====================
   getCrawlConfigList: "/legal/crawl/getConfigList", // 获取爬取配置列表

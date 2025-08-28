@@ -74,16 +74,46 @@
 
                     <!-- 操作列 -->
                     <template slot="action" slot-scope="text, record">
-                        <div>
-                            <a-button type="link" class="lawyer-link-primary" :disabled="isProcessing(record)"
+                        <div class="lawyer-action-buttons">
+                            <a-button type="link" :disabled="isProcessing(record)"
                                 :icon="isProcessing(record) ? 'loading' : 'play-circle'" @click="executeTask(record)">
                                 {{ isProcessing(record) ? "正在处理" : "执行" }}
                             </a-button>
+                            <a-button type="link" @click="viewHistory(record)">
+                                查看
+                            </a-button>
+
                         </div>
                     </template>
                 </a-table>
             </a-card>
         </div>
+
+        <!-- 历史记录弹窗 -->
+        <a-modal v-model="historyModalVisible" title="执行历史记录" width="90%" :footer="null">
+            <a-table :columns="historyColumns" :data-source="historyList" :pagination="historyPagination"
+                :loading="historyLoading" :row-key="(record) => record.id" @change="handleHistoryTableChange">
+                <!-- 处理状态列 -->
+                <template slot="processStatus" slot-scope="text">
+                    <a-tag :color="getStatusColor(text)" class="lawyer-status-tag">
+                        {{ text }}
+                    </a-tag>
+                </template>
+
+                <!-- 创建时间列 -->
+                <template slot="createdTime" slot-scope="text">
+                    {{ formatDateTime(text) }}
+                </template>
+
+                <!-- 异常信息列 -->
+                <template slot="exceptionMsg" slot-scope="text">
+                    <span v-if="text" :title="text" class="lawyer-exception-text">
+                        {{ text.length > 50 ? text.substring(0, 50) + '...' : text }}
+                    </span>
+                    <span v-else>-</span>
+                </template>
+            </a-table>
+        </a-modal>
     </div>
 </template>
 
@@ -92,7 +122,9 @@ import { Component, Vue } from 'nuxt-property-decorator'
 import moment from 'moment'
 import {
     CrawlDataItem,
-    CrawlStatisticsQueryParams
+    CrawlStatisticsQueryParams,
+    CrawlHistoryItem,
+    CrawlHistoryQueryParams
 } from '~/model/LawyerConfig'
 
 @Component({ name: 'lawyer-crawl-statistics-index-component' })
@@ -108,8 +140,8 @@ export default class CrawlStatisticsComponent extends Vue {
         processStatus: undefined, // 处理状态过滤
         current: 1,
         size: 10,
-        orderBy: 'created_time',
-        sortRules: 'DESC'
+        orderBy: 'createdTime', // 默认按创建时间排序
+        sortRules: 'desc' // 默认倒序
     };
 
     // 表格数据
@@ -119,6 +151,12 @@ export default class CrawlStatisticsComponent extends Vue {
     // 定时器
     refreshTimer: NodeJS.Timeout | null = null;
 
+    // 历史记录相关数据
+    historyModalVisible: boolean = false;
+    historyList: CrawlHistoryItem[] = [];
+    historyLoading: boolean = false;
+    currentDetailId: string = '';
+
     // 分页配置
     pagination = {
         current: 1,
@@ -127,6 +165,16 @@ export default class CrawlStatisticsComponent extends Vue {
         showSizeChanger: true,
         showQuickJumper: true,
         showTotal: (total: number) => `共 ${total} 条记录`
+    };
+
+    // 历史记录分页配置
+    historyPagination = {
+        current: 1,
+        pageSize: 10,
+        total: 0,
+        showSizeChanger: true,
+        showQuickJumper: true,
+        showTotal: (total: number) => `共 ${total} 条历史记录`
     };
 
     // 表格列配置
@@ -196,6 +244,45 @@ export default class CrawlStatisticsComponent extends Vue {
         }
     ];
 
+    // 历史记录表格列配置
+    historyColumns = [
+        {
+            title: '文章标题',
+            dataIndex: 'articleTitle',
+            key: 'articleTitle',
+            ellipsis: true
+        },
+        {
+            title: '文章详情地址',
+            dataIndex: 'detailUrl',
+            key: 'detailUrl',
+            width: 200,
+            ellipsis: true
+        },
+        {
+            title: '处理状态',
+            dataIndex: 'processStatus',
+            key: 'processStatus',
+            scopedSlots: { customRender: 'processStatus' },
+            width: 100
+        },
+        {
+            title: '异常信息',
+            dataIndex: 'exceptionMsg',
+            key: 'exceptionMsg',
+            scopedSlots: { customRender: 'exceptionMsg' },
+            ellipsis: true
+        },
+        {
+            title: '创建时间',
+            dataIndex: 'createdTime',
+            key: 'createdTime',
+            scopedSlots: { customRender: 'createdTime' },
+            width: 160,
+            sorter: true
+        }
+    ];
+
     // 生命周期
     async mounted(): Promise<void> {
         await this.loadData()
@@ -261,8 +348,8 @@ export default class CrawlStatisticsComponent extends Vue {
             processStatus: undefined,
             current: 1,
             size: 10,
-            orderBy: 'created_time',
-            sortRules: 'DESC'
+            orderBy: 'createdTime', // 默认按创建时间排序
+            sortRules: 'desc' // 默认倒序
         }
         this.pagination.current = 1
         await this.loadData()
@@ -277,9 +364,14 @@ export default class CrawlStatisticsComponent extends Vue {
         this.searchParams.current = pagination.current
         this.searchParams.size = pagination.pageSize
 
+        // 处理排序参数
         if (sorter.field) {
             this.searchParams.orderBy = sorter.field
-            this.searchParams.sortRules = sorter.order === 'ascend' ? 'ASC' : 'DESC'
+            this.searchParams.sortRules = sorter.order === 'ascend' ? 'asc' : 'desc'
+        } else {
+            // 如果没有排序，使用默认排序
+            this.searchParams.orderBy = 'createdTime'
+            this.searchParams.sortRules = 'desc'
         }
 
         await this.loadData()
@@ -384,6 +476,61 @@ export default class CrawlStatisticsComponent extends Vue {
             }
         })
     }
+
+    // 查看历史记录
+    async viewHistory(record: CrawlDataItem): Promise<void> {
+        this.currentDetailId = record.id
+        this.historyModalVisible = true
+        this.historyPagination.current = 1
+        await this.loadHistoryData()
+    }
+
+    // 加载历史记录数据
+    async loadHistoryData(): Promise<void> {
+        if (!this.currentDetailId) return
+
+        this.historyLoading = true
+        try {
+            const params: CrawlHistoryQueryParams = {
+                detailId: this.currentDetailId,
+                current: this.historyPagination.current,
+                size: this.historyPagination.pageSize,
+                sortRules: 'DESC'
+            }
+
+            const response = await this.$roadLawyerService.getCrawlHistory(params)
+
+            if (response.success && response.data) {
+                this.historyList = response.data.records
+                this.historyPagination.total = response.data.total
+                this.historyPagination.current = response.data.current
+            } else {
+                this.historyList = []
+                this.historyPagination.total = 0
+                this.$message.error(response.message || '加载历史记录失败')
+            }
+        } catch (error) {
+            console.error('加载历史记录失败:', error)
+            this.historyList = []
+            this.historyPagination.total = 0
+            this.$message.error('加载历史记录失败')
+        } finally {
+            this.historyLoading = false
+        }
+    }
+
+    // 历史记录表格变化处理
+    async handleHistoryTableChange(
+        pagination: { current: number; pageSize: number },
+        _filters: unknown,
+        _sorter: { field?: string; order?: string }
+    ): Promise<void> {
+        this.historyPagination.current = pagination.current
+        this.historyPagination.pageSize = pagination.pageSize
+        await this.loadHistoryData()
+    }
+
+
 }
 </script>
 
@@ -418,6 +565,23 @@ export default class CrawlStatisticsComponent extends Vue {
         .ant-table-tbody>tr>td {
             padding: 12px 16px;
         }
+    }
+}
+
+.lawyer-exception-text {
+    color: #ff4d4f;
+    cursor: help;
+}
+
+.lawyer-action-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+
+    .ant-btn-link {
+        padding: 0;
+        height: auto;
+        line-height: 1.5;
     }
 }
 </style>

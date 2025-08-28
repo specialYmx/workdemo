@@ -25,6 +25,8 @@ import {
   UpdateCrawlConfigParams,
   DeleteCrawlConfigParams,
   CrawlConfigOperationResponse,
+  CrawlHistoryQueryParams,
+  CrawlHistoryResponse,
 } from "~/model/LawyerConfig";
 import api from "~/api";
 
@@ -508,6 +510,46 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
       return {
         ...defaultResponse,
         message: error instanceof Error ? error.message : "Unknown error",
+      };
+    }
+  },
+
+  async getCrawlHistory(
+    params: CrawlHistoryQueryParams
+  ): Promise<CrawlHistoryResponse> {
+    const defaultData = {
+      countId: "",
+      current: params.current || 1,
+      hitCount: true,
+      maxLimit: 0,
+      optimizeCountSql: true,
+      orders: [],
+      pages: 0,
+      records: [],
+      searchCount: true,
+      size: params.size || 10,
+      total: 0,
+    };
+
+    try {
+      const res = await $axios.post(api.lawyer.getCrawlHistory, params);
+      return (
+        res.data || {
+          status: 500,
+          message: "No data received",
+          success: false,
+          timestamp: Date.now(),
+          data: defaultData,
+        }
+      );
+    } catch (error) {
+      console.error("Error fetching crawl history:", error);
+      return {
+        status: 500,
+        message: error instanceof Error ? error.message : "Unknown error",
+        success: false,
+        timestamp: Date.now(),
+        data: defaultData,
       };
     }
   },

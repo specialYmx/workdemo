@@ -1,4 +1,9 @@
 import { BaseQueryParams, MixedMap } from "./LawyerModel";
+
+// ==================== 公共类型定义 ====================
+// 处理状态类型
+export type ProcessStatus = "处理成功" | "处理失败" | "处理中" | "待处理";
+
 // ==================== 爬取统计相关数据模型 ====================
 
 // 爬取数据项
@@ -9,7 +14,7 @@ export interface CrawlDataItem {
   articleTitle: string;
   detailUrl: string;
   attachments: string | null;
-  processStatus: string;
+  processStatus: ProcessStatus;
   publishDate: string;
   detailHtml: string;
   fireCrawlContent: string;
@@ -26,7 +31,7 @@ export interface CrawlStatisticsQueryParams extends BaseQueryParams {
   detailUrl?: string;
   attachments?: string;
   publishDate?: string;
-  processStatus?: string; // 处理状态过滤
+  processStatus?: ProcessStatus; // 处理状态过滤
   orderBy?: string;
   sortRules?: string;
   current?: number;
@@ -161,4 +166,49 @@ export interface CrawlConfigOperationResponse {
   success: boolean;
   timestamp: number;
   data: string;
+}
+
+// ==================== 爬取历史记录相关数据模型 ====================
+
+// 爬取历史记录项
+export interface CrawlHistoryItem {
+  id: string;
+  detailId: string;
+  articleTitle: string;
+  detailUrl: string;
+  processStatus: ProcessStatus;
+  exceptionMsg: string;
+  createdTime: string;
+}
+
+// 爬取历史记录查询参数
+export interface CrawlHistoryQueryParams extends BaseQueryParams {
+  detailId: string;
+  current?: number;
+  size?: number;
+  sortRules?: string;
+}
+
+// 爬取历史记录响应数据
+export interface CrawlHistoryResponse {
+  status: number;
+  message: string;
+  success: boolean;
+  timestamp: number;
+  data: {
+    countId: string;
+    current: number;
+    hitCount: boolean;
+    maxLimit: number;
+    optimizeCountSql: boolean;
+    orders: Array<{
+      asc: boolean;
+      column: string;
+    }>;
+    pages: number;
+    records: CrawlHistoryItem[];
+    searchCount: boolean;
+    size: number;
+    total: number;
+  };
 }
