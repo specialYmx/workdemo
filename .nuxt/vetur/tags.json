@@ -14,11 +14,11 @@
   "LawyerCommonFileUploadModal": {
     "description": "Auto imported from components/lawyer/common/FileUploadModal.vue"
   },
-  "LawyerCrawlStatisticsIndexComponent": {
-    "description": "Auto imported from components/lawyer/crawlStatistics/indexComponent.vue"
-  },
   "LawyerCrawlConfigIndexComponent": {
     "description": "Auto imported from components/lawyer/crawlConfig/indexComponent.vue"
+  },
+  "LawyerCrawlStatisticsIndexComponent": {
+    "description": "Auto imported from components/lawyer/crawlStatistics/indexComponent.vue"
   },
   "LawyerDocumentCompare": {
     "description": "Auto imported from components/lawyer/document/DocumentCompare.vue"

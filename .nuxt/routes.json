@@ -3,70 +3,60 @@
     "name": "crawlConfig",
     "path": "/crawlConfig",
     "component": "D:\\\\temp_demo\\\\report-html\\\\law\\\\pages\\\\crawlConfig\\\\index.vue",
-    "chunkName": "pages/crawlConfig/index",
-    "_name": "_486f1f76"
+    "chunkName": "pages/crawlConfig/index"
   },
   {
     "name": "crawlStatistics",
     "path": "/crawlStatistics",
     "component": "D:\\\\temp_demo\\\\report-html\\\\law\\\\pages\\\\crawlStatistics\\\\index.vue",
-    "chunkName": "pages/crawlStatistics/index",
-    "_name": "_79a57578"
+    "chunkName": "pages/crawlStatistics/index"
   },
   {
     "name": "lawyerIndex",
     "path": "/lawyerIndex",
     "component": "D:\\\\temp_demo\\\\report-html\\\\law\\\\pages\\\\lawyerIndex\\\\index.vue",
-    "chunkName": "pages/lawyerIndex/index",
-    "_name": "_3c20d440"
+    "chunkName": "pages/lawyerIndex/index"
   },
   {
     "name": "lawyerKnowledge",
     "path": "/lawyerKnowledge",
     "component": "D:\\\\temp_demo\\\\report-html\\\\law\\\\pages\\\\lawyerKnowledge\\\\index.vue",
-    "chunkName": "pages/lawyerKnowledge/index",
-    "_name": "_f95945d8"
+    "chunkName": "pages/lawyerKnowledge/index"
   },
   {
     "name": "lawyerUpdate",
     "path": "/lawyerUpdate",
     "component": "D:\\\\temp_demo\\\\report-html\\\\law\\\\pages\\\\lawyerUpdate\\\\index.vue",
-    "chunkName": "pages/lawyerUpdate/index",
-    "_name": "_472a0619"
+    "chunkName": "pages/lawyerUpdate/index"
   },
   {
     "name": "manualReview",
     "path": "/manualReview",
     "component": "D:\\\\temp_demo\\\\report-html\\\\law\\\\pages\\\\manualReview\\\\index.vue",
-    "chunkName": "pages/manualReview/index",
-    "_name": "_056e9ab0"
+    "chunkName": "pages/manualReview/index"
   },
   {
     "name": "lawyerKnowledge-detail",
     "path": "/lawyerKnowledge/detail",
     "component": "D:\\\\temp_demo\\\\report-html\\\\law\\\\pages\\\\lawyerKnowledge\\\\detail.vue",
-    "chunkName": "pages/lawyerKnowledge/detail",
-    "_name": "_7f6b54ff"
+    "chunkName": "pages/lawyerKnowledge/detail"
   },
   {
     "name": "lawyerUpdate-detail",
     "path": "/lawyerUpdate/detail",
     "component": "D:\\\\temp_demo\\\\report-html\\\\law\\\\pages\\\\lawyerUpdate\\\\detail.vue",
-    "chunkName": "pages/lawyerUpdate/detail",
-    "_name": "_3669cc9a"
+    "chunkName": "pages/lawyerUpdate/detail"
   },
   {
     "name": "manualReview-detail",
     "path": "/manualReview/detail",
     "component": "D:\\\\temp_demo\\\\report-html\\\\law\\\\pages\\\\manualReview\\\\detail.vue",
-    "chunkName": "pages/manualReview/detail",
-    "_name": "_4420b1eb"
+    "chunkName": "pages/manualReview/detail"
   },
   {
     "name": "index",
     "path": "/",
     "component": "D:\\\\temp_demo\\\\report-html\\\\law\\\\pages\\\\index.vue",
-    "chunkName": "pages/index",
-    "_name": "_79926eb4"
+    "chunkName": "pages/index"
   }
 ]

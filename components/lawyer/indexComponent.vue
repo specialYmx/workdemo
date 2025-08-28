@@ -153,7 +153,7 @@ export default class IndexComponent extends Vue {
                     // 选择了月度+具体月份：显示该月的每一天
                     const daysInMonth = new Date(
                         new Date().getFullYear(),
-                        this.trendChartValue,
+                        this.trendChartValue - 1,
                         0
                     ).getDate();
                     const actualLength = Math.min(dataLength, daysInMonth);
@@ -233,7 +233,7 @@ export default class IndexComponent extends Vue {
             // 处理API返回的数据结构 - 兼容两种格式
             const sourceData = websiteRatioData;
 
-            if (sourceData && typeof sourceData === "object") {
+            if (sourceData && typeof sourceData === "object" && !Array.isArray(sourceData)) {
                 // 转换数据格式为饼图需要的格式
                 const pieData: Array<{ value: number; name: string }> = [];
                 const legendItems: LegendItem[] = [];

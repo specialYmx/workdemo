@@ -132,7 +132,7 @@
                         </a-form-model-item>
                         <a-form-model-item label="爬取起始时间" prop="crawlStartDate">
                             <a-date-picker v-model="formData.crawlStartDate" placeholder="请选择爬取起始时间" style="width: 100%"
-                                show-time format="YYYY-MM-DD HH:mm:ss" />
+                                show-time format="YYYY-MM-DD HH:mm:ss" value-format="YYYY-MM-DD HH:mm:ss" />
                         </a-form-model-item>
 
                     </a-col>
@@ -162,7 +162,7 @@
 
 <script lang="ts">
 import { Component, Vue } from "nuxt-property-decorator";
-import moment from "moment";
+import { formatDate } from "~/utils/date";
 import {
     CrawlConfigItem,
     CrawlConfigQueryParams,
@@ -429,7 +429,7 @@ export default class CrawlConfigIndexComponent extends Vue {
             keywords: record.keywords || [],
             remarks: record.remarks || "",
             enabled: record.enabled === 1,
-            crawlStartDate: record.crawlStartDate ? moment(record.crawlStartDate) : null,
+            crawlStartDate: record.crawlStartDate || null,
         };
         this.$nextTick(() => {
             const formRef = this.$refs.formModel as any;
@@ -525,7 +525,7 @@ export default class CrawlConfigIndexComponent extends Vue {
                 keywords: this.formData.keywords || [],
                 remarks: this.formData.remarks || "",
                 enabled: this.formData.enabled ? 1 : 0,
-                crawlStartDate: this.formData.crawlStartDate ? moment(this.formData.crawlStartDate).format("YYYY-MM-DD HH:mm:ss") : undefined,
+                crawlStartDate: this.formData.crawlStartDate || undefined,
                 createdBy: "admin", // TODO: 从用户信息获取
             };
 
@@ -575,7 +575,7 @@ export default class CrawlConfigIndexComponent extends Vue {
         if (!timeStr) {
             return "-";
         }
-        return moment(timeStr).format("YYYY-MM-DD HH:mm:ss");
+        return formatDate(timeStr, "yyyy-MM-dd hh:mm:ss");
     }
 
     // 多选标签超出时的占位符
