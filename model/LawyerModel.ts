@@ -151,6 +151,8 @@ export interface QueryParams extends BaseQueryParams {
   keyword?: string;
   sortBy?: string;
   sortOrder?: "asc" | "desc";
+  // 添加员工ID参数
+  empId?: string;
 }
 
 // ==================== 专用参数接口 ====================
@@ -603,6 +605,9 @@ export interface RuleSourceQueryParams extends BaseQueryParams {
   publishDateSort?: string;
   publishDateStr?: string;
   empId: string;
+  // 分页参数
+  page?: number;
+  pageSize?: number;
 }
 
 // 审核查询参数

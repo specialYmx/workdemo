@@ -199,13 +199,22 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
         `${api.lawyer.getRuleSourceCollect}`,
         toFormData(params)
       );
-      if (res.data?.data) {
-        return res.data.data;
-      }
-      return [];
+      // 返回完整的响应结构，包含分页信息
+      return res.data;
     } catch (error) {
       console.error("Error fetching rule source collect:", error);
-      return [];
+      return {
+        status: 500,
+        message: "获取收藏数据失败",
+        success: false,
+        data: {
+          page: 1,
+          pageSize: 10,
+          totalPages: 0,
+          totalSize: 0,
+          data: [],
+        },
+      };
     }
   },
 
@@ -245,21 +254,28 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
   // websiteName - 网站名称
   // publishDateSort - 发布日期排序
   // empId - 员工ID（用于收藏功能，从store获取）
-  async getRuleSourceList(
-    params: RuleSourceQueryParams
-  ): Promise<KnowledgeDataItem[]> {
+  async getRuleSourceList(params: RuleSourceQueryParams) {
     try {
       const res = await $axios.post(
         `${api.lawyer.getRuleSourceList}`,
         toFormData(params)
       );
-      if (res.data?.data) {
-        return res.data.data;
-      }
-      return [];
+      // 返回完整的响应结构，包含分页信息
+      return res.data;
     } catch (error) {
       console.error("Error fetching rule source list:", error);
-      return [];
+      return {
+        status: 500,
+        message: "获取数据失败",
+        success: false,
+        data: {
+          page: 1,
+          pageSize: 10,
+          totalPages: 0,
+          totalSize: 0,
+          data: [],
+        },
+      };
     }
   },
 

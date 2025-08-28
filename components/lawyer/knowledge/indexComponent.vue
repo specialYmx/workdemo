@@ -97,7 +97,7 @@
 
                 <!-- 文档列表 -->
                 <div v-if="!listLoading && allDocuments.length" class="lawyer-document-list">
-                    <div v-for="doc in paginatedDocuments" :key="doc.id" class="lawyer-document-item">
+                    <div v-for="doc in allDocuments" :key="doc.id" class="lawyer-document-item">
                         <div class="lawyer-document-item-content">
                             <div class="lawyer-document-icon">
                                 📄
@@ -196,7 +196,7 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
     currentPage: number = 1;
     pageSize: number = 10;
     totalDocuments: number = 0;
-    allDocuments: KnowledgeDataItem[] = []; // 存储所有数据用于前端分页
+    allDocuments: KnowledgeDataItem[] = []; // 当前页数据
     websiteOptions: WebsiteOption[] = [];
     uploadModalVisible: boolean = false;
     currentUploadDocId: string = '';
@@ -247,12 +247,7 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
         ]
     }
 
-    get paginatedDocuments(): KnowledgeDataItem[] {
-        // 前端分页：计算当前页应该显示的数据
-        const start: number = (this.currentPage - 1) * this.pageSize
-        const end: number = start + this.pageSize
-        return this.allDocuments.slice(start, end)
-    }
+
 
     get topicCategoryOptions(): CascaderOption[] {
         return cascaderOptions
@@ -474,7 +469,7 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
         this.currentUploadDocTitle = ''
     }
 
-    handleUploadSuccess(data: any): void {
+    handleUploadSuccess(): void {
         this.loadDocuments()
     }
 
@@ -505,15 +500,17 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
         })
     }
 
-    onPageChange(page: number): void {
+    async onPageChange(page: number): Promise<void> {
         this.currentPage = page
-        // 前端分页，不需要重新请求API
+        // 后端分页，需要重新请求API
+        await this.loadDocuments()
     }
 
-    onShowSizeChange(current: number, pageSize: number): void {
+    async onShowSizeChange(_current: number, pageSize: number): Promise<void> {
         this.pageSize = pageSize
         this.currentPage = 1
-        // 前端分页，不需要重新请求API
+        // 后端分页，需要重新请求API
+        await this.loadDocuments()
     }
 
     getTagColor(category: string, type: string = 'main'): string {
@@ -544,7 +541,10 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
         this.listLoading = true
         try {
             const params: RuleSourceQueryParams = {
-                empId: this.$store.state.auth.id
+                empId: this.$store.state.auth.id,
+                // 添加分页参数
+                page: this.currentPage,
+                pageSize: this.pageSize
             }
 
             // 根据搜索类型设置不同的参数
@@ -583,23 +583,32 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
                 params.publishDateStr = this.publishDate
             }
 
-            let result: KnowledgeDataItem[]
+            let response
             if (this.isFavoritesMode) {
                 const collectParams = {
-                    empId: this.$store.state.auth.id
+                    empId: this.$store.state.auth.id,
+                    page: this.currentPage,
+                    pageSize: this.pageSize
                 }
-                result = await this.$roadLawyerService.getRuleSourceCollect(
+                response = await this.$roadLawyerService.getRuleSourceCollect(
                     collectParams
                 )
             } else {
-                result = await this.$roadLawyerService.getRuleSourceList(params)
+                response = await this.$roadLawyerService.getRuleSourceList(params)
             }
 
-            if (result && Array.isArray(result)) {
-                this.allDocuments = result
-                this.totalDocuments = result.length
-                // 重置到第一页
-                this.currentPage = 1
+            // 根据 mock 数据结构处理响应
+            if (response && response.success && response.data) {
+                this.allDocuments = response.data.data || []
+                this.totalDocuments = response.data.totalSize || 0
+                // 更新当前页码（如果后端返回了页码信息）
+                if (response.data.page) {
+                    this.currentPage = response.data.page
+                }
+            } else if (response && Array.isArray(response)) {
+                // 兼容旧的数组格式返回
+                this.allDocuments = response
+                this.totalDocuments = response.length
             } else {
                 this.allDocuments = []
                 this.totalDocuments = 0
