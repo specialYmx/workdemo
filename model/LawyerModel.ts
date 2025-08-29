@@ -349,7 +349,7 @@ export interface RoadLawyerService {
   ) => Promise<KnowledgeDataItem[]>;
   getRuleUpdateList: (
     params: RuleUpdateQueryParams
-  ) => Promise<RuleUpdateItem[]>;
+  ) => Promise<RuleUpdateListResponse>;
   saveOrCancelCollect: (params: CollectParams) => Promise<boolean>;
   updateTimeLinessSchedule: (params: QueryParams) => Promise<boolean>;
   uploadRuleSource: (params: UploadParams) => Promise<boolean>;
@@ -591,6 +591,23 @@ export interface RouteQuery {
 export interface RuleUpdateQueryParams extends BaseQueryParams {
   query?: string;
   field?: string;
+  // 分页参数
+  page?: number;
+  pageSize?: number;
+}
+
+// 法规更新列表响应结构
+export interface RuleUpdateListResponse {
+  status: number;
+  message: string;
+  success: boolean;
+  data: {
+    pageNum: number;
+    pageSize: number;
+    totalPages: number;
+    totalSize: number;
+    data: RuleUpdateItem[];
+  };
 }
 
 // 法规来源查询参数

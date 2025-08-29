@@ -324,9 +324,20 @@ export default class IndexComponent extends Vue {
     async loadLatestUpdates(): Promise<void> {
         this.listLoading.latestUpdates = true;
         try {
-            const data = await this.$roadLawyerService.getRuleUpdateList({});
-            // 前端取前5条数据
-            this.latestUpdates = Array.isArray(data) ? data.slice(0, 5) : [];
+            const response = await this.$roadLawyerService.getRuleUpdateList({
+                page: 1,
+                pageSize: 5
+            });
+
+            // 处理新的响应结构
+            if (response && response.success && response.data && response.data.data) {
+                this.latestUpdates = response.data.data;
+            } else if (response && Array.isArray(response)) {
+                // 兼容旧的数组格式返回
+                this.latestUpdates = response.slice(0, 5);
+            } else {
+                this.latestUpdates = [];
+            }
         } catch (error) {
             console.error("加载最新法规更新数据失败:", error);
             this.latestUpdates = [];

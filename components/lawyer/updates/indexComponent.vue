@@ -22,7 +22,7 @@
 
                 <!-- 法规更新列表 -->
                 <div v-else class="lawyer-updates-list">
-                    <div v-for="item in paginatedUpdates" :key="item.id" class="lawyer-update-item">
+                    <div v-for="item in allUpdates" :key="item.id" class="lawyer-update-item">
                         <div :class="['lawyer-update-icon', item.type]">
                             <template v-if="item.type === 'law'">
                                 ⚖️
@@ -55,8 +55,8 @@
                                     <li v-for="(point, index) in item.summaryArray" :key="index">
                                         <span>
                                             <strong v-if="getSummaryTitle(point)">{{ getSummaryTitle(point)
-                                                }}：</strong>{{
-                                            getSummaryContent(point) }}
+                                            }}：</strong>{{
+                                                    getSummaryContent(point) }}
                                         </span>
                                     </li>
                                 </ul>
@@ -90,9 +90,9 @@
 
                 <!-- 分页器 -->
                 <div v-if="allUpdates.length" class="lawyer-pagination">
-                    <a-pagination v-model="currentPage" :total="totalCount" :page-size="pageSize" show-size-changer
+                    <a-pagination v-model="currentPage" :total="totalDocuments" :page-size="pageSize" show-size-changer
                         show-quick-jumper :show-total="(total, range) =>
-                                `共 ${total} 条记录，显示第 ${range[0]}-${range[1]} 条`
+                            `共 ${total} 条记录，显示第 ${range[0]}-${range[1]} 条`
                             " @change="onPageChange" @showSizeChange="onPageSizeChange" />
                 </div>
             </div>
@@ -115,9 +115,9 @@ export default class LawyerUpdatesIndexComponent extends Vue {
     currentPage: number = 1;
     pageSize: number = 10;
     loading: boolean = false;
-    updates: UpdateItem[] = [];
     rawUpdates: RuleUpdateItem[] = [];
-    allUpdates: UpdateItem[] = []; // 存储所有数据用于前端分页
+    allUpdates: UpdateItem[] = []; // 存储当前页数据
+    totalDocuments: number = 0; // 总数据量
 
     async mounted(): Promise<void> {
         await this.loadUpdates()
@@ -126,32 +126,46 @@ export default class LawyerUpdatesIndexComponent extends Vue {
     async loadUpdates(): Promise<void> {
         this.loading = true
         try {
-            // 构建查询参数
-            const params: RuleUpdateQueryParams = {}
+            // 构建查询参数，添加分页参数
+            const params: RuleUpdateQueryParams = {
+                page: this.currentPage,
+                pageSize: this.pageSize
+            }
 
             console.log('查询参数:', params)
 
             // 调用真实API获取数据
-            const result = await this.$roadLawyerService.getRuleUpdateList(params)
-            console.log('获取到的数据:', result)
+            const response = await this.$roadLawyerService.getRuleUpdateList(params)
+            console.log('获取到的数据:', response)
 
-            if (result && Array.isArray(result)) {
-                this.rawUpdates = result
+            // 根据新的数据结构处理响应
+            if (response && response.success && response.data) {
+                this.rawUpdates = response.data.data || []
 
                 // 将真实数据转换为页面显示格式
-                this.allUpdates = this.transformRawDataToDisplayFormat(result)
+                this.allUpdates = this.transformRawDataToDisplayFormat(response.data.data || [])
 
-                // 重置到第一页
-                this.currentPage = 1
+                // 更新总数和当前页码
+                this.totalDocuments = response.data.totalSize || 0
+                if (response.data.pageNum) {
+                    this.currentPage = response.data.pageNum
+                }
+            } else if (response && Array.isArray(response)) {
+                // 兼容旧的数组格式返回
+                this.rawUpdates = response
+                this.allUpdates = this.transformRawDataToDisplayFormat(response)
+                this.totalDocuments = response.length
             } else {
                 this.rawUpdates = []
                 this.allUpdates = []
+                this.totalDocuments = 0
             }
         } catch (error) {
             console.error('加载更新数据失败', error)
             this.$message.error('加载数据失败，请刷新页面重试')
             this.rawUpdates = []
             this.allUpdates = []
+            this.totalDocuments = 0
         } finally {
             this.loading = false
         }
@@ -210,18 +224,6 @@ export default class LawyerUpdatesIndexComponent extends Vue {
         })
     }
 
-    get paginatedUpdates(): UpdateItem[] {
-        // 前端分页：计算当前页应该显示的数据
-        const start: number = (this.currentPage - 1) * this.pageSize
-        const end: number = start + this.pageSize
-        return this.allUpdates.slice(start, end)
-    }
-
-    get totalCount(): number {
-        // 返回总数
-        return this.allUpdates.length
-    }
-
     viewUpdate(id: string): void {
         // 查找对应的更新项以获取废止状态
         const updateItem: RuleUpdateItem | undefined = this.rawUpdates.find(
@@ -267,15 +269,17 @@ export default class LawyerUpdatesIndexComponent extends Vue {
         }
     }
 
-    onPageChange(page: number): void {
+    async onPageChange(page: number): Promise<void> {
         this.currentPage = page
-        // 前端分页，不需要重新请求API
+        // 后端分页，重新请求API
+        await this.loadUpdates()
     }
 
-    onPageSizeChange(_current: number, size: number): void {
+    async onPageSizeChange(_current: number, size: number): Promise<void> {
         this.currentPage = 1
         this.pageSize = size
-        // 前端分页，不需要重新请求API
+        // 后端分页，重新请求API
+        await this.loadUpdates()
     }
 
     getTagClass(index: number = 0): string {

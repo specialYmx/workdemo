@@ -11,6 +11,7 @@ import {
   ExportParams,
   CompletedRuleItem,
   RuleUpdateQueryParams,
+  RuleUpdateListResponse,
   RuleSourceQueryParams,
   CheckRuleQueryParams,
 } from "~/model/LawyerModel";
@@ -279,19 +280,30 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
     }
   },
 
-  async getRuleUpdateList(params: RuleUpdateQueryParams) {
+  async getRuleUpdateList(
+    params: RuleUpdateQueryParams
+  ): Promise<RuleUpdateListResponse> {
     try {
       const res = await $axios.post(
         `${api.lawyer.getRuleUpdateList}`,
         toFormData(params)
       );
-      if (res.data?.data) {
-        return res.data.data; // 直接返回数组
-      }
-      return [];
+      // 返回完整的响应结构，包含分页信息
+      return res.data;
     } catch (error) {
       console.error("Error fetching rule update list:", error);
-      return [];
+      return {
+        status: 500,
+        message: "获取数据失败",
+        success: false,
+        data: {
+          pageNum: 1,
+          pageSize: 10,
+          totalPages: 0,
+          totalSize: 0,
+          data: [],
+        },
+      };
     }
   },
 
