@@ -346,6 +346,20 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
     }
   },
 
+  async getAdmin(params: QueryParams = {}): Promise<boolean> {
+    try {
+      const res = await $axios.post(
+        `${api.lawyer.getAdmin}`,
+        toFormData(params)
+      );
+      // 根据接口返回格式，管理员权限在 res.data.data 中
+      return res.data?.data === true;
+    } catch (error) {
+      console.error("Error checking admin permission:", error);
+      return false;
+    }
+  },
+
   // ==================== 人工审核相关方法 ====================
   async approveToDoRule(params: ApprovalParams) {
     try {

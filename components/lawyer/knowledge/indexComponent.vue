@@ -201,6 +201,7 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
     uploadModalVisible: boolean = false;
     currentUploadDocId: string = '';
     currentUploadDocTitle: string = '';
+    isAdmin: boolean = false;
 
     get uploadConfig(): KnowledgeUploadConfig {
         return {
@@ -274,8 +275,20 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
     }
 
     async mounted(): Promise<void> {
+        await this.checkAdminPermission()
         await this.loadWebsiteOptions()
         this.loadDocuments()
+    }
+
+    async checkAdminPermission(): Promise<void> {
+        try {
+            this.isAdmin = await this.$roadLawyerService.getAdmin({
+                empId: this.$store.state.auth.id
+            })
+        } catch (error) {
+            console.error('检查管理员权限失败:', error)
+            this.isAdmin = false
+        }
     }
 
     isDocumentFavorite(doc: KnowledgeDataItem): boolean {
@@ -358,18 +371,21 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
             })
         }
 
-        actions.push(
-            {
-                text: '上传更新',
-                class: 'lawyer-btn-upload',
-                handler: () => this.uploadDocument(doc.id, doc.ruleName)
-            },
-            {
-                text: '移除',
-                type: 'danger',
-                handler: () => this.removeDocument(doc)
-            }
-        )
+        // 只有管理员才能看到上传更新和移除按钮
+        if (this.isAdmin) {
+            actions.push(
+                {
+                    text: '上传更新',
+                    class: 'lawyer-btn-upload',
+                    handler: () => this.uploadDocument(doc.id, doc.ruleName)
+                },
+                {
+                    text: '移除',
+                    type: 'danger',
+                    handler: () => this.removeDocument(doc)
+                }
+            )
+        }
 
         return actions
     }
