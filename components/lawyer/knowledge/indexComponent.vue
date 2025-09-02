@@ -132,6 +132,9 @@
                                         <a-tag v-if="doc.categorySub" :color="getTagColor(doc.categorySub, 'sub')">
                                             {{ doc.categorySub }}
                                         </a-tag>
+                                        <a-tag v-if="doc.effectivenessLevel" color="purple">
+                                            {{ doc.effectivenessLevel }}
+                                        </a-tag>
                                     </div>
                                     <div class="lawyer-document-actions">
                                         <a-button v-for="(action, index) in getDocActions(doc)" :key="index"

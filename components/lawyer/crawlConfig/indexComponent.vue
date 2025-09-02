@@ -170,10 +170,7 @@ import {
     UpdateCrawlConfigParams,
     CrawlConfigOperationResponse,
 } from "~/model/LawyerConfig";
-import { FormModel } from 'ant-design-vue'
-
-
-
+import { FormModel } from 'ant-design-vue' 
 @Component({ name: "crawl-config-index-component" })
 export default class CrawlConfigIndexComponent extends Vue {
     // 数据状态
@@ -228,6 +225,9 @@ export default class CrawlConfigIndexComponent extends Vue {
         ],
         websiteUrl: [
             { required: true, message: "请输入网站URL", trigger: "blur" },
+        ],
+        crawlStartDate: [
+            { required: true, message: "请选择爬取起始时间", trigger: "change" },
         ],
         maxPageLimit: [
             { required: true, message: "请输入最大页面限制", trigger: "blur" },
@@ -520,7 +520,6 @@ export default class CrawlConfigIndexComponent extends Vue {
                 enabled: this.formData.enabled ? 1 : 0,
                 crawlStartDate: this.formData.crawlStartDate || undefined,
             };
-
             let response: CrawlConfigOperationResponse;
             if (this.editingRecord) {
                 // 编辑

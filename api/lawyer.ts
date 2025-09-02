@@ -37,5 +37,5 @@ export default {
   getCrawlConfigList: "/legal/crawl/getConfigList", // 获取爬取配置列表
   addCrawlConfig: "/legal/crawl/addConfig", // 新增爬取配置
   updateCrawlConfig: "/legal/crawl/updateConfig", // 更新爬取配置
-  deleteCrawlConfig: "/legal/crawl/deleteConfigList", // 删除爬取配置
+  deleteCrawlConfig: "/legal/crawl/deleteConfig", // 删除爬取配置
 } as Record<string, string>;
