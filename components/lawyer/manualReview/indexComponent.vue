@@ -155,7 +155,6 @@ import { categoryOptions } from "~/enum/Lawyer";
 import { downloadFileWithMessage } from "~/utils/personal";
 
 import { CustomColumn } from "~/model/CommonModel";
-import { userCheckList } from "~/mock/userCheck";
 
 @Component({ name: "lawyer-manual-review-index-component" })
 export default class LawyerManualReviewIndexComponent extends Vue {

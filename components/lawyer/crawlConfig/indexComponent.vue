@@ -15,7 +15,7 @@
                                 @keyup.enter="onSearch" />
                         </a-col>
                         <a-col :span="4">
-                            <a-input v-model="searchParams.keywords" placeholder="关键词" allow-clear
+                            <a-input v-model="searchParams.keyword" placeholder="关键词" allow-clear
                                 @keyup.enter="onSearch" />
                         </a-col>
                         <a-col :span="4">
@@ -170,7 +170,7 @@ import {
     UpdateCrawlConfigParams,
     CrawlConfigOperationResponse,
 } from "~/model/LawyerConfig";
-import { FormModel } from 'ant-design-vue' 
+import { FormModel } from 'ant-design-vue'
 @Component({ name: "crawl-config-index-component" })
 export default class CrawlConfigIndexComponent extends Vue {
     // 数据状态
@@ -181,7 +181,7 @@ export default class CrawlConfigIndexComponent extends Vue {
     searchParams: CrawlConfigQueryParams = {
         websiteCode: "",
         websiteName: "",
-        keywords: "",
+        keyword: "",
         enabled: undefined,
         current: 1,
         size: 10,
@@ -337,8 +337,8 @@ export default class CrawlConfigIndexComponent extends Vue {
             };
 
             // 如果有关键词搜索，添加到参数中
-            if (this.searchParams.keywords) {
-                params.keywords = this.searchParams.keywords;
+            if (this.searchParams.keyword) {
+                params.keyword = this.searchParams.keyword;
             }
 
             const response = await this.$roadLawyerService.getCrawlConfigList(params);
@@ -376,7 +376,7 @@ export default class CrawlConfigIndexComponent extends Vue {
         this.searchParams = {
             websiteCode: "",
             websiteName: "",
-            keywords: "",
+            keyword: "",
             enabled: undefined,
             current: 1,
             size: 10,
@@ -542,10 +542,6 @@ export default class CrawlConfigIndexComponent extends Vue {
                 this.$message.error(response.message || "操作失败");
             }
         } catch (error) {
-            if (error.errorFields) {
-                // 表单验证错误
-                return;
-            }
             console.error("保存配置失败:", error);
             this.$message.error("操作失败，请重试");
         } finally {

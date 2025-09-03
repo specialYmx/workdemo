@@ -407,7 +407,7 @@ export interface LegendItem {
 export interface ReviewStatusClassMap extends StringMap {
   已通过: string;
   已驳回: string;
-  pending: string;
+  待审核: string;
 }
 
 // 时间选项

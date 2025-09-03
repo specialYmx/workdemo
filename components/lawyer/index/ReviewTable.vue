@@ -29,7 +29,7 @@
 
                 <template slot="status" slot-scope="text">
                     <span :class="getToDoReviewStatusClass(text)">
-                        {{ getToDoReviewStatusText(text) }}
+                        {{ text }}
                     </span>
                 </template>
 
@@ -136,14 +136,9 @@ export default class ReviewTable extends Vue {
         const classMap: ReviewStatusClassMap = {
             已通过: 'lawyer-status-approved',
             已驳回: 'lawyer-status-rejected',
-            pending: 'lawyer-status-pending'
+            待审核: 'lawyer-status-pending'
         }
         return classMap[status || ''] || 'lawyer-status-pending'
-    }
-
-    // 获取待办审核状态文本
-    getToDoReviewStatusText(status: string | null): string {
-        return status || '待审核'
     }
 
     // 检查是否可以审核（版本检查）
