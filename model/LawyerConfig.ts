@@ -156,7 +156,7 @@ export interface UpdateCrawlConfigParams {
 
 // 删除爬取配置参数
 export interface DeleteCrawlConfigParams {
-  id: string;
+  id: number;
 }
 
 // 通用操作响应

@@ -481,7 +481,7 @@ export default class CrawlConfigIndexComponent extends Vue {
             onOk: async () => {
                 try {
                     const response = await this.$roadLawyerService.deleteCrawlConfig({
-                        id: record.id.toString(),
+                        id: record.id,
                     });
 
                     if (response.success) {
