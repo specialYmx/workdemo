@@ -601,29 +601,12 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
                 // 处理发布时间筛选
                 params.publishDateStr = this.publishDate
             }
-
-            let response
-            if (this.isFavoritesMode) {
-                const collectParams = {
-                    empId: this.$store.state.auth.id,
-                    page: this.currentPage,
-                    pageSize: this.pageSize
-                }
-                response = await this.$roadLawyerService.getRuleSourceCollect(
-                    collectParams
-                )
-            } else {
-                response = await this.$roadLawyerService.getRuleSourceList(params)
-            }
-
+            params.collect = this.isFavoritesMode
+            const response = await this.$roadLawyerService.getRuleSourceList(params)
             // 根据 mock 数据结构处理响应
             if (response && response.success && response.data) {
                 this.allDocuments = response.data.data || []
                 this.totalDocuments = response.data.totalSize || 0
-                // 更新当前页码（如果后端返回了页码信息）
-                if (response.data.page) {
-                    this.currentPage = response.data.page
-                }
             } else if (response && Array.isArray(response)) {
                 // 兼容旧的数组格式返回
                 this.allDocuments = response

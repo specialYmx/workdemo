@@ -7,12 +7,12 @@
 
 <script lang="ts">
 import { Component, Vue } from 'nuxt-property-decorator'
-
 import {
     DocumentComparePageData,
     ChangeItem,
-    ReviewSubmitData
+    ReviewSubmitData,
 } from '@/model/LawyerModel'
+// import { CloseCurrentRoute } from '~/utils/menu'
 
 @Component({ name: 'lawyer-manual-review-detail-component' })
 export default class LawyerManualReviewDetailComponent extends Vue {
@@ -26,23 +26,31 @@ export default class LawyerManualReviewDetailComponent extends Vue {
         newVersion: '',
         originalContent: '',
         newContent: '',
-        changes: []
-    };
+        changes: [],
+    }
 
-    loading: boolean = false;
-
+    loading: boolean = false
     // 组件销毁标志
-    private isDestroyed: boolean = false;
+    private isDestroyed: boolean = false
+    // get basePath(): string {
+    //     const path =
+    //         this.$route.path.split('/').filter((segment) => segment)[0] || 'road'
+    //     return `/${path}`
+    // }
 
     // 返回上一页
     goBack(): void {
-        this.$router.back()
+        // const { path } = this.$route.query
+        // const pathName = path || 'manualReview'
+        // CloseCurrentRoute(this.$route.fullPath)
+        // this.$router.push(`${this.basePath}/${pathName}`)
+        this.$router.back(-1)
     }
 
     // 处理文档更新
     handleUpdateDocument(updateData: {
-        tags: string[];
-        effectDate: string | null;
+        tags: string[]
+        effectDate: string | null
     }): void {
         // 更新本地文档数据
         this.documentData.tags = updateData.tags
@@ -52,9 +60,9 @@ export default class LawyerManualReviewDetailComponent extends Vue {
     // 处理审核提交
     async handleReviewSubmit(
         reviewData: ReviewSubmitData & {
-            categoryMain?: string;
-            categorySub?: string;
-            effectDateStr?: string | null;
+            categoryMain?: string
+            categorySub?: string
+            effectDateStr?: string | null
         }
     ): Promise<void> {
         const { action, categoryMain, categorySub, effectDateStr } = reviewData
@@ -66,11 +74,11 @@ export default class LawyerManualReviewDetailComponent extends Vue {
                 approvalComment: action === 'approve' ? '已通过' : '已驳回',
                 effectDateStr: effectDateStr || this.documentData.effectDate, // 优先使用弹窗设置的施行日期，允许为空
                 categoryMain, // 允许为空
-                categorySub // 允许为空
+                categorySub, // 允许为空
             })
 
             // 检查组件是否已销毁
-            if (this.isDestroyed) { return }
+            if (this.isDestroyed) return
 
             this.documentData.status = action === 'approve' ? 'approved' : 'rejected'
 
@@ -79,10 +87,10 @@ export default class LawyerManualReviewDetailComponent extends Vue {
             )
 
             // 审核后返回列表页
-            this.$router.push('/manualReview')
+            this.goBack()
         } catch (error) {
             // 检查组件是否已销毁
-            if (this.isDestroyed) { return }
+            if (this.isDestroyed) return
 
             console.error('审核操作失败:', error)
             this.$message.error('审核操作失败，请重试')
@@ -91,15 +99,13 @@ export default class LawyerManualReviewDetailComponent extends Vue {
 
     // 字符串清理工具函数
     private normalizeString(str: string): string {
-        return str
-            .replace(/[\r\n\t]/g, '')
-            .replace(/\s+/g, ' ')
-            .trim()
+        if (!str) return ''
+        return str.replace(/[\r\n\t\s]+/g, ' ').trim()
     }
 
     // 格式化文档变更数据（拆分解析逻辑，提高可维护性）
     formatChanges(checkResult: string): ChangeItem[] {
-        if (!checkResult || typeof checkResult !== 'string') { return [] }
+        if (!checkResult || typeof checkResult !== 'string') return []
         try {
             // 1) 去掉方括号
             let content: string = checkResult.trim()
@@ -116,25 +122,27 @@ export default class LawyerManualReviewDetailComponent extends Vue {
                         position: trimmedContent,
                         sectionDisplay: '',
                         oldText: '',
-                        newText: ''
-                    }
+                        newText: '',
+                    },
                 ]
             }
-            if (!content.trim()) { return [] }
+            if (!content.trim()) return []
             // 2) 智能分割（处理引号内逗号）
             const items: string[] = []
             let current = ''
             let inQuotes = false
             for (let i = 0; i < content.length; i++) {
                 const ch = content[i]
-                if (ch === "'" && !inQuotes) { inQuotes = true } else if (ch === "'" && inQuotes) { inQuotes = false } else if (ch === ',' && !inQuotes) {
-                    if (current.trim()) { items.push(current.trim()) }
+                if (ch === "'" && !inQuotes) inQuotes = true
+                else if (ch === "'" && inQuotes) inQuotes = false
+                else if (ch === ',' && !inQuotes) {
+                    if (current.trim()) items.push(current.trim())
                     current = ''
                     continue
                 }
                 current += ch
             }
-            if (current.trim()) { items.push(current.trim()) }
+            if (current.trim()) items.push(current.trim())
             // 3) 解析每一项 - 调用提取的解析方法
             const changes: ChangeItem[] = []
             for (const raw of items) {
@@ -145,8 +153,9 @@ export default class LawyerManualReviewDetailComponent extends Vue {
             }
             // 4) 统一清理空白
             return changes.map((c) => {
-                if (c.position) { c.position = this.normalizeString(c.position) }
-                if (c.sectionDisplay) { c.sectionDisplay = this.normalizeString(c.sectionDisplay) }
+                if (c.position) c.position = this.normalizeString(c.position)
+                if (c.sectionDisplay)
+                    c.sectionDisplay = this.normalizeString(c.sectionDisplay)
                 return c
             })
         } catch (error) {
@@ -157,7 +166,7 @@ export default class LawyerManualReviewDetailComponent extends Vue {
 
     // 解析单个变更项（提取复杂的正则匹配逻辑）
     private parseChangeItem(item: string): ChangeItem | null {
-        if (!item) { return null }
+        if (!item) return null
         // 标题变更
         let changeMatch = item.match(/^(.+?)\s+标题变更：由'(.+?)'变更为'(.+?)'$/)
         if (changeMatch) {
@@ -167,20 +176,19 @@ export default class LawyerManualReviewDetailComponent extends Vue {
                 position: '标题变更',
                 sectionDisplay: sectionText,
                 oldText: changeMatch[2].trim(),
-                newText: changeMatch[3].trim()
+                newText: changeMatch[3].trim(),
             }
         }
 
         // 删除条款
-        changeMatch = item.match(/^删除条款：(.+)$/)
-        if (changeMatch) {
-            const contentText = changeMatch[1].trim()
+        if (item.includes('删除条款：')) {
+            const contentText = item.substring(item.indexOf('删除条款：') + 6).trim()
             const displayMatch = contentText.match(/^(第.+?[章条])/)
             return {
                 type: 'delete',
                 position: '删除内容',
                 sectionDisplay: displayMatch ? displayMatch[1] : '',
-                oldText: contentText
+                oldText: contentText,
             }
         }
 
@@ -193,7 +201,7 @@ export default class LawyerManualReviewDetailComponent extends Vue {
                 position: '内容变更',
                 sectionDisplay: sectionText,
                 oldText: changeMatch[2].trim(),
-                newText: changeMatch[3].trim()
+                newText: changeMatch[3].trim(),
             }
         }
 
@@ -205,7 +213,7 @@ export default class LawyerManualReviewDetailComponent extends Vue {
                 type: 'add',
                 position: '新增内容',
                 sectionDisplay: sectionText,
-                newText: changeMatch[2].trim()
+                newText: changeMatch[2].trim(),
             }
         }
 
@@ -219,7 +227,7 @@ export default class LawyerManualReviewDetailComponent extends Vue {
         const docId = this.$route.query.id
         const pageTitle = this.$route.query.pageTitle
         const checkStatus = this.$route.query.checkStatus // 从路由参数获取审核状态
-        if (!docId) { return }
+        if (!docId) return
         this.loading = true
         this.documentData = {
             id: docId as string,
@@ -237,21 +245,19 @@ export default class LawyerManualReviewDetailComponent extends Vue {
             newFileVersion: null,
             newPublishTime: null,
             effectDate: null,
-            currentMaxFileVersion: 0
+            currentMaxFileVersion: 0,
         }
 
         try {
             // 调用接口获取文档详情
             const result = await this.$roadLawyerService.getToDoRuleDetail({
-                id: docId as string
+                id: docId as string,
             })
-            console.log('文档详情数据:', result)
-
             if (result && (result.oldFileContent || result.newFileContent)) {
                 // 构建标签数组，包含一级和二级分类
                 const tags: string[] = []
-                if (result.categoryMain) { tags.push(result.categoryMain) }
-                if (result.categorySub) { tags.push(result.categorySub) }
+                if (result.categoryMain) tags.push(result.categoryMain)
+                if (result.categorySub) tags.push(result.categorySub)
 
                 // 处理文档数据 - 使用从URL参数获取的标题
                 this.documentData = {
@@ -279,12 +285,11 @@ export default class LawyerManualReviewDetailComponent extends Vue {
                     oldPublishTime: result.oldPublishTime,
                     newFileVersion: result.newFileVersion,
                     newPublishTime: result.newPublishTime,
-                    currentMaxFileVersion: result.currentMaxFileVersion || 0
+                    currentMaxFileVersion: result.currentMaxFileVersion || 0,
                 }
             } else {
                 // 检查组件是否已销毁
-                if (this.isDestroyed) { return }
-
+                if (this.isDestroyed) return
                 // 数据为空
                 this.documentData = {
                     id: docId as string,
@@ -296,14 +301,13 @@ export default class LawyerManualReviewDetailComponent extends Vue {
                     newVersion: '',
                     originalContent: 'error',
                     newContent: 'error',
-                    changes: []
+                    changes: [],
                 }
-                this.$message.error('获取的文档数据为空，请检查文档ID是否正确')
+                this.$message.error('文件缺失或暂无对比结果，请联系管理员')
             }
         } catch (error) {
             // 检查组件是否已销毁
-            if (this.isDestroyed) { return }
-
+            if (this.isDestroyed) return
             console.error('获取文档对比数据失败:', error)
             this.$message.error('获取文档对比数据失败，请重试')
 
@@ -324,7 +328,7 @@ export default class LawyerManualReviewDetailComponent extends Vue {
                 newFileVersion: null,
                 newPublishTime: null,
                 effectDate: null,
-                currentMaxFileVersion: 0
+                currentMaxFileVersion: 0,
             }
         } finally {
             // 检查组件是否已销毁
@@ -350,7 +354,6 @@ export default class LawyerManualReviewDetailComponent extends Vue {
 <style lang="less">
 .lawyer-manual-review-detail-wrapper {
     width: 100%;
-    height: 100vh;
     overflow: hidden;
 }
 </style>

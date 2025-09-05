@@ -347,7 +347,8 @@ export default class DashboardOverview extends Vue {
         const classMap: ReviewStatusClassMap = {
             已通过: 'lawyer-status-approved',
             已驳回: 'lawyer-status-rejected',
-            待审核: 'lawyer-status-pending'
+            待审核: 'lawyer-status-pending',
+            已过期: 'lawyer-status-rejected'
         }
         return classMap[status] || 'lawyer-status-pending'
     }

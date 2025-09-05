@@ -128,6 +128,7 @@ import {
 import { categoryOptions } from '~/enums/Lawyer'
 import { downloadFileWithMessage } from '~/utils/personal'
 import { CustomColumn, CustomPagination } from '~/model/CommonModel'
+import lawyer from '~/api/lawyer'
 
 @Component({ name: 'lawyer-manual-review-index-component' })
 export default class LawyerManualReviewIndexComponent extends Vue {
@@ -496,7 +497,7 @@ export default class LawyerManualReviewIndexComponent extends Vue {
         this.$message.info(`查看文档: ${document.ruleName}`)
         // 跳转到文档比较详情页面
         this.$router.push({
-            path: `${this.basePath}/manualReview/detail`,
+            path: `manualReview/detail`,
             query: {
                 id: document.id,
                 pageTitle: document.ruleName,

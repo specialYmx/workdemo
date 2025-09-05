@@ -83,7 +83,7 @@
                             <!-- 正常变更内容 -->
                             <div v-else>
                                 <div class="change-title">
-                                    {{ change.sectionDisplay || change.position || "" }}
+                                    {{ change.sectionDisplay || change.position || '' }}
                                 </div>
 
                                 <div class="change-detail">
@@ -141,32 +141,33 @@
 
 <script lang="ts">
 import { Component, Vue, Prop, Emit } from 'nuxt-property-decorator'
-import { cascaderOptions } from '~/enum/Lawyer'
+import { cascaderOptions } from '~/enums/Lawyer'
 import {
     DocumentCompareData,
     ReviewAction,
     DocumentColumn,
     CascaderOption,
-    ReviewSubmitData
+    ReviewSubmitData,
 } from '~/model/LawyerModel'
 
 @Component({ name: 'document-compare' })
 export default class DocumentCompare extends Vue {
-    @Prop({ required: true }) document!: DocumentCompareData;
+    @Prop({ required: true }) document!: DocumentCompareData
 
     // 标签编辑相关
-    tagEditVisible: boolean = false;
-    tempSelectedTagPath: string[] = [];
-    tempEffectDate: string | null = null;
+    tagEditVisible: boolean = false
+    tempSelectedTagPath: string[] = []
+    tempEffectDate: string | null = null
 
     // 标签选项数据
-    tagOptions: CascaderOption[] = cascaderOptions;
+    tagOptions: CascaderOption[] = cascaderOptions
 
     // 显示标签（合并为单个标签）
     get displayTag(): string {
+        if (!this.document) return ''
         const tags: string[] = this.document.tags || []
-        if (tags.length === 0) { return '' }
-        if (tags.length === 1) { return tags[0] }
+        if (tags.length === 0) return ''
+        if (tags.length === 1) return tags[0]
         return `${tags[0]}/${tags[1]}`
     }
 
@@ -176,75 +177,58 @@ export default class DocumentCompare extends Vue {
             {
                 text: '通过',
                 type: 'primary',
-                handler: this.handleApprove
+                handler: this.handleApprove,
             },
             {
                 text: '驳回',
                 type: 'danger',
-                handler: this.handleReject
-            }
+                handler: this.handleReject,
+            },
         ]
     }
 
     // 是否显示审核按钮
     get shouldShowReviewButtons(): boolean {
-        // 首先检查文档的审核状态是否为'待审核'
-        const isPendingStatus =
-            this.document.checkStatus === '待审核' ||
-            (this.document.checkStatus === undefined &&
-                this.document.status === 'pending')
-        // 只有在待审核状态下才进一步检查其他条件
-        return isPendingStatus && this.canReview
+        // 只检查文档的审核状态是否为'待审核'，并确保内容没有错误
+        return this.document.checkStatus === '待审核' && this.canReview
     }
 
     // 是否显示警告信息
     get shouldShowWarning(): boolean {
-        // 首先检查文档的审核状态是否为'待审核'
-        const isPendingStatus =
-            this.document.checkStatus === '待审核' ||
-            (this.document.checkStatus === undefined &&
-                this.document.status === 'pending')
-
-        // 只有在待审核状态下且不能审核时才显示警告
-        return isPendingStatus && !this.canReview
+        // 显示警告当状态不是待审核或者内容有错误
+        return this.document.checkStatus !== '待审核' || !this.canReview
     }
 
     // 是否有特殊信息（无旧版文件或无新版文件）
     get hasSpecialInfo(): boolean {
-        return this.document.changes.some(change => change.type === 'info')
+        return this.document.changes.some((change) => change.type === 'info')
     }
 
     // 获取版本和内容状态信息
     private getVersionStatus() {
         return {
-            newFileVersion: this.document.newFileVersion || 0,
-            currentMaxFileVersion: this.document.currentMaxFileVersion || 0,
             hasContentError: this.documentColumns.some(
-                col =>
+                (col) =>
                     col.content === 'error' || col.content === '加载失败，请刷新页面重试'
-            )
+            ),
         }
     }
 
     // 是否允许审核操作
     get canReview(): boolean {
-        const { newFileVersion, currentMaxFileVersion, hasContentError } =
-            this.getVersionStatus()
-        return newFileVersion >= currentMaxFileVersion && !hasContentError
+        const { hasContentError } = this.getVersionStatus()
+        // 只根据checkStatus判断是否允许审核，并检查内容是否加载成功
+        return this.document.checkStatus === '待审核' && !hasContentError
     }
 
     // 检查审核状态并显示错误信息
     checkReviewStatusAndShowError(): boolean {
-        const { newFileVersion, currentMaxFileVersion, hasContentError } =
-            this.getVersionStatus()
+        const { hasContentError } = this.getVersionStatus()
 
         if (hasContentError) {
             this.$message.error('文档内容加载失败，请刷新页面重试后再进行审核')
             return false
-        } else if (newFileVersion < currentMaxFileVersion) {
-            this.$message.error('当前版本落后系统最高版本，不允许审核')
-            return false
-        } else if (!this.canReview) {
+        } else if (this.document.checkStatus !== '待审核') {
             this.$message.error('当前状态不允许审核')
             return false
         }
@@ -253,15 +237,14 @@ export default class DocumentCompare extends Vue {
 
     // 获取审核警告信息
     getReviewWarningMessage(): string {
-        const { newFileVersion, currentMaxFileVersion, hasContentError } =
-            this.getVersionStatus()
+        const { hasContentError } = this.getVersionStatus()
 
         if (hasContentError) {
             return '文档内容加载失败，请刷新页面重试'
-        } else if (newFileVersion < currentMaxFileVersion) {
-            return `当前版本(V${newFileVersion})落后系统最高版本(V${currentMaxFileVersion})，请先更新系统版本`
+        } else if (this.document.checkStatus !== '待审核') {
+            return '当前状态不允许审核'
         }
-        return '当前状态不允许审核'
+        return ''
     }
 
     // 文档列数据
@@ -273,7 +256,7 @@ export default class DocumentCompare extends Vue {
                     ? `V${this.document.oldFileVersion}`
                     : undefined,
                 date: this.document.oldPublishTime || '',
-                content: this.document.originalContent || '暂无数据'
+                content: this.document.originalContent || '暂无数据',
             },
             {
                 title: '修改后文档',
@@ -281,8 +264,8 @@ export default class DocumentCompare extends Vue {
                     ? `V${this.document.newFileVersion}`
                     : undefined,
                 date: this.document.modifiedDate || this.document.newPublishTime || '',
-                content: this.document.newContent || '暂无数据'
-            }
+                content: this.document.newContent || '暂无数据',
+            },
         ]
     }
 
@@ -306,9 +289,9 @@ export default class DocumentCompare extends Vue {
             onOk: () => {
                 this.emitSubmitReview({
                     action: 'approve',
-                    comment: ''
+                    comment: '',
                 })
-            }
+            },
         })
     }
 
@@ -328,15 +311,15 @@ export default class DocumentCompare extends Vue {
             onOk: () => {
                 this.emitSubmitReview({
                     action: 'reject',
-                    comment: ''
+                    comment: '',
                 })
-            }
+            },
         })
     }
 
     // 查找标签在级联选项中的路径
-    findTagPath(tags: string[]): string[] {
-        if (!tags || tags.length === 0) { return [] }
+    findTagPath(tags?: string[]): string[] {
+        if (!tags || tags.length === 0) return []
 
         // 如果有两个标签，尝试匹配父子关系
         if (tags.length >= 2) {
@@ -394,7 +377,7 @@ export default class DocumentCompare extends Vue {
         // 通过事件通知父组件更新文档数据
         this.emitUpdateDocument({
             tags: [...this.tempSelectedTagPath],
-            effectDate: this.tempEffectDate
+            effectDate: this.tempEffectDate,
         })
 
         if (tagDisplay) {
@@ -417,9 +400,9 @@ export default class DocumentCompare extends Vue {
 
     @Emit('submit-review')
     emitSubmitReview(data: ReviewSubmitData): ReviewSubmitData & {
-        categoryMain?: string;
-        categorySub?: string;
-        effectDateStr?: string | null;
+        categoryMain?: string
+        categorySub?: string
+        effectDateStr?: string | null
     } {
         // 从当前文档的标签中获取分类信息
         const categoryMain =
@@ -436,14 +419,14 @@ export default class DocumentCompare extends Vue {
             ...data,
             categoryMain,
             categorySub,
-            effectDateStr
+            effectDateStr,
         }
     }
 
     @Emit('update-document')
     emitUpdateDocument(updateData: {
-        tags: string[];
-        effectDate: string | null;
+        tags: string[]
+        effectDate: string | null
     }): { tags: string[]; effectDate: string | null } {
         return updateData
     }
@@ -451,21 +434,101 @@ export default class DocumentCompare extends Vue {
 </script>
 
 <style lang="less">
-@import "~/assets/styles/lawyer.less";
+@import '~/assets/styles/lawyer.less';
 
 .document-compare-wrapper {
-    overflow: hidden;
-    background: var(--lawyer-background);
-    padding: 20px;
-
     .lawyer-compare-page {
-        height: calc(100vh - 110px);
+        height: calc(100vh - 190px);
         display: flex;
         flex-direction: column;
         background: var(--lawyer-surface);
         padding: 10px;
         overflow: hidden;
         border-radius: 5px;
+    }
+
+    .lawyer-header-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .lawyer-compare-main-container {
+        display: flex;
+        padding: 5px;
+        gap: 24px;
+        flex: 1;
+        min-height: 0; // 关键：允许flex子项收缩
+        overflow: hidden;
+    }
+
+    .lawyer-document-column,
+    .review-content-column {
+        background: var(--lawyer-surface);
+        border: 1px solid var(--lawyer-border);
+        border-radius: 8px;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.07);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        min-height: 0; // 关键：允许flex子项收缩
+    }
+
+    .lawyer-document-column {
+        flex: 1;
+        position: relative;
+
+        &.is-loading::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    }
+
+    .review-content-column {
+        flex-basis: 300px;
+        border-left: 1px solid var(--lawyer-border);
+    }
+
+    .lawyer-column-header {
+        padding: 8px 20px;
+        font-size: 16px;
+        font-weight: 600;
+        border-bottom: 1px solid #d9d9d9;
+    }
+
+    .lawyer-column-content {
+        padding: 20px;
+        overflow-y: auto;
+        flex: 1; // 使用flex占据剩余空间
+        min-height: 0; // 允许收缩
+        white-space: pre-wrap; // 保留换行符
+        word-break: break-word; // 长单词换行
+
+        h2,
+        h3 {
+            color: var(--lawyer-primary);
+            font-weight: 600;
+            margin-top: 16px;
+        }
+
+        h2 {
+            font-size: 18px;
+            margin-top: 20px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(var(--lawyer-primary-rgb), 0.2);
+        }
+
+        h3 {
+            font-size: 16px;
+        }
     }
 
     .lawyer-compare-header {
@@ -525,90 +588,6 @@ export default class DocumentCompare extends Vue {
                     }
                 }
             }
-        }
-    }
-
-    .lawyer-header-actions {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .lawyer-compare-main-container {
-        display: flex;
-        padding: 5px;
-        gap: 24px;
-        flex: 1;
-        min-height: 0; // 关键：允许flex子项收缩
-        overflow: hidden;
-    }
-
-    .lawyer-document-column,
-    .review-content-column {
-        background: var(--lawyer-surface);
-        border: 1px solid var(--lawyer-border);
-        border-radius: 8px;
-        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.07);
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        min-height: 0; // 关键：允许flex子项收缩
-    }
-
-    .lawyer-document-column {
-        flex: 1;
-        position: relative;
-
-        &.is-loading::after {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(255, 255, 255, 0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-    }
-
-    .review-content-column {
-        flex-basis: 300px;
-        border-left: 1px solid var(--lawyer-border);
-    }
-
-    .lawyer-column-header {
-        padding: 8px 20px;
-        font-size: 16px;
-        font-weight: 600;
-        border-bottom: 1px solid #d9d9d9;
-    }
-
-    .lawyer-column-content {
-        padding: 20px;
-        overflow-y: auto;
-        flex: 1; // 使用flex占据剩余空间
-        min-height: 0; // 允许收缩
-        white-space: pre-wrap; // 保留换行符
-        word-break: break-word; // 长单词换行
-
-        h2,
-        h3 {
-            color: var(--lawyer-primary);
-            font-weight: 600;
-            margin-top: 16px;
-        }
-
-        h2 {
-            font-size: 18px;
-            margin-top: 20px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid rgba(var(--lawyer-primary-rgb), 0.2);
-        }
-
-        h3 {
-            font-size: 16px;
         }
     }
 

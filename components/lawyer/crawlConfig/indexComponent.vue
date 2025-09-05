@@ -169,7 +169,7 @@ import {
     AddCrawlConfigParams,
     UpdateCrawlConfigParams,
     CrawlConfigOperationResponse,
-} from "~/model/LawyerConfig";
+} from "~/model/LawyerConfigModel";
 import { FormModel } from 'ant-design-vue'
 @Component({ name: "crawl-config-index-component" })
 export default class CrawlConfigIndexComponent extends Vue {
@@ -575,6 +575,7 @@ export default class CrawlConfigIndexComponent extends Vue {
 
     // 截断关键词文本
     truncateKeyword(keyword: string): string {
+        if (!keyword) return '';
         const maxLength = 8;
         return keyword.length > maxLength
             ? keyword.substring(0, maxLength) + "..."

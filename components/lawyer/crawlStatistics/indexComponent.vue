@@ -17,8 +17,8 @@
                         <a-col :span="4">
                             <div class="lawyer-width-100">
                                 <a-select v-model="searchParams.processStatus" placeholder="处理状态" allow-clear>
-                                    <a-select-option value="处理成功">
-                                        处理成功
+                                    <a-select-option value="爬取成功">
+                                        爬取成功
                                     </a-select-option>
                                     <a-select-option value="处理失败">
                                         处理失败
@@ -55,6 +55,12 @@
                         <a-tag :color="getStatusColor(getStringValue(text))" class="lawyer-status-tag">
                             {{ getStringValue(text) || "未知" }}
                         </a-tag>
+                    </template>
+
+                    <template slot="aiExtractStatus" slot-scope="text">
+                        <span :class="getCheckStatusClass(text)">
+                            {{ text || '未知状态' }}
+                        </span>
                     </template>
 
                     <!-- 发布日期列 -->
@@ -125,7 +131,7 @@ import {
     CrawlStatisticsQueryParams,
     CrawlHistoryItem,
     CrawlHistoryQueryParams
-} from '~/model/LawyerConfig'
+} from '~/model/LawyerConfigModel'
 
 @Component({ name: 'lawyer-crawl-statistics-index-component' })
 export default class CrawlStatisticsComponent extends Vue {
@@ -209,6 +215,12 @@ export default class CrawlStatisticsComponent extends Vue {
             dataIndex: 'processStatus',
             key: 'processStatus',
             scopedSlots: { customRender: 'processStatus' },
+            width: 100
+        },
+        {
+            title: '对比状态',
+            dataIndex: 'aiExtractStatus',
+            key: 'aiExtractStatus',
             width: 100
         },
         {
@@ -380,12 +392,21 @@ export default class CrawlStatisticsComponent extends Vue {
     // 获取状态颜色
     getStatusColor(status: string): string {
         const colorMap: { [key: string]: string } = {
-            处理成功: 'green',
+            爬取成功: 'green',
             处理失败: 'red',
             处理中: 'blue',
             待处理: 'orange'
         }
         return colorMap[status] || 'default'
+    }
+    // 获取审核状态样式类（使用全局样式）
+    getCheckStatusClass(status: string | null): string {
+        const classMap = {
+            未对比: 'lawyer-status-pending',
+            对比成功: 'lawyer-status-approved',
+            对比失败: 'lawyer-status-rejected',
+        }
+        return classMap[status || ''] || 'lawyer-status-pending'
     }
 
     // 格式化日期时间（统一方法）

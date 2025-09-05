@@ -23,10 +23,6 @@
                     </div>
                 </template>
 
-                <template slot="category" slot-scope="text">
-                    {{ text }}
-                </template>
-
                 <template slot="status" slot-scope="text">
                     <span :class="getToDoReviewStatusClass(text)">
                         {{ text }}
@@ -97,7 +93,6 @@ export default class ReviewTable extends Vue {
             title: '分类',
             dataIndex: 'categoryMain',
             key: 'categoryMain',
-            scopedSlots: { customRender: 'category' },
             width: '15%'
         },
         {
@@ -136,7 +131,8 @@ export default class ReviewTable extends Vue {
         const classMap: ReviewStatusClassMap = {
             已通过: 'lawyer-status-approved',
             已驳回: 'lawyer-status-rejected',
-            待审核: 'lawyer-status-pending'
+            待审核: 'lawyer-status-pending',
+            已过期: 'lawyer-status-rejected'
         }
         return classMap[status || ''] || 'lawyer-status-pending'
     }
