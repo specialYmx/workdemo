@@ -11,7 +11,8 @@ import {
   CrawlConfigOperationResponse,
   CrawlHistoryQueryParams,
   CrawlHistoryResponse,
-} from "~/model/LawyerConfig";
+} from "~/model/LawyerConfigModel";
+
 // 法律合规智能系统数据模型
 
 // 饼图系列数据
@@ -74,6 +75,8 @@ export interface DocumentViewerData {
   content: string;
   isRevoke: boolean;
   timeLiness: string;
+  tags?: string[];
+  effectivenessLevel?: string;
 }
 
 // 文档比较数据
@@ -112,12 +115,6 @@ export interface UploadConfig {
   autoUpload?: boolean;
 }
 
-// 文件变化事件数据
-export interface FileChangeData {
-  files: File[];
-  currentFile: File | null;
-}
-
 // 上传成功事件数据
 export interface UploadSuccessData {
   files: File[];
@@ -138,7 +135,7 @@ export interface StringMap {
 
 // 通用混合类型映射接口
 export interface MixedMap {
-  [key: string]: string | number | boolean | null | undefined;
+  [key: string]: string | number | boolean | string[] | null | undefined;
 }
 
 // 基础查询参数接口
@@ -206,8 +203,6 @@ export interface ResponseHeaders {
   "content-length"?: string;
 }
 
-// ==================== 首页统计相关数据模型 ====================
-
 // ==================== 大家智库相关数据模型 ====================
 
 // 法规数据基础接口（公共字段）
@@ -230,7 +225,7 @@ export interface BaseRuleItem {
   modifyDateTimestamp: number | null;
   revokeDateStr: string | null;
   revokeDateTimestamp: number | null;
-  filePathTxt: string;
+  filePathTxt: string | null;
   filePathOther: string;
   fileVersion: number;
   updateTimeStr: string | null;
@@ -247,7 +242,7 @@ export interface BaseRuleItem {
   effectivenessLevel: string;
   topicCategory: string | null;
   diffResultId: string | null;
-  initDataFlag: number;
+  initDataFlag: 0 | 1;
   deleted: number;
 }
 
@@ -267,7 +262,6 @@ export interface RuleUpdateItem extends BaseRuleItem {
 
 // ==================== 人工审核相关数据模型 ====================
 
-// 审核相关基础接口（包含共同属性）
 export interface BaseAuditRuleItem {
   id: string;
   diffResultId: string | null;
@@ -286,7 +280,6 @@ export interface BaseAuditRuleItem {
   fileVersion: number; // 文件版本号
   updateTime: string | null; // 更新时间
   checkStatus: string; // 审核状态，如："待审核"、"已通过"、"已驳回"
-  deleted: number; // 删除标记，0表示未删除
   createdTime: string; // 创建时间，如："2025-08-13T19:14:27"
   currentMaxFileVersion: number; // 当前最大文件版本
   parentId: string | null; // 父级ID
@@ -306,15 +299,16 @@ export interface CompletedRuleItem extends BaseAuditRuleItem {
 }
 
 // ==================== 通用数据模型 ====================
+
 export interface FileCompareDetail {
   newFileVersion: number | null;
-  effectDate: string;
+  effectDate: string | null;
   newFileContent: string;
   categoryMain: string;
   categorySub?: string; // 添加二级分类
   newPublishTime: string;
   oldFileContent: string;
-  oldFileVersion?: number; // 修改前文档版本
+  oldFileVersion?: number | null; // 修改前文档版本
   oldPublishTime?: string; // 修改前文档发布时间
   checkResult: string;
   currentMaxFileVersion: number;
@@ -343,6 +337,9 @@ export interface RoadLawyerService {
   getRuleSourceDetail: (params: {
     searchId: string;
     isRevoke?: boolean;
+    categoryMain?: string;
+    categorySub?: string;
+    effectivenessLevel?: string;
   }) => Promise<KnowledgeDataItem | null>;
   getRuleSourceList: (
     params: RuleSourceQueryParams
@@ -350,6 +347,7 @@ export interface RoadLawyerService {
   getRuleUpdateList: (
     params: RuleUpdateQueryParams
   ) => Promise<RuleUpdateListResponse>;
+  initData: (params?: QueryParams) => Promise<boolean>;
   saveOrCancelCollect: (params: CollectParams) => Promise<boolean>;
   updateTimeLinessSchedule: (params: QueryParams) => Promise<boolean>;
   uploadRuleSource: (params: UploadParams) => Promise<boolean>;
@@ -361,13 +359,11 @@ export interface RoadLawyerService {
   exportExcel: (
     params: ExportParams
   ) => Promise<{ data: Blob; headers: ResponseHeaders }>;
-  getDiffResultSchedule: (params: QueryParams) => Promise<ScheduleStatusData>;
   getToDoRuleDetail: (params: { id: string }) => Promise<FileCompareDetail>;
   getRuleList: (
     params?: CheckRuleQueryParams,
     useCase?: "homepage" | "management"
-  ) => Promise<ToDoRuleItem[]>;
-
+  ) => Promise<ToDoRuleItem[] | CheckRuleListResponse>;
   // ==================== 爬取统计相关方法 ====================
   getCrawlHtmlList: (
     params: CrawlStatisticsQueryParams
@@ -378,7 +374,6 @@ export interface RoadLawyerService {
   getCrawlHistory: (
     params: CrawlHistoryQueryParams
   ) => Promise<CrawlHistoryResponse>;
-
   // ==================== 爬取配置相关方法 ====================
   getCrawlConfigList: (
     params: CrawlConfigQueryParams
@@ -407,6 +402,7 @@ export interface LegendItem {
 export interface ReviewStatusClassMap extends StringMap {
   已通过: string;
   已驳回: string;
+  已过期: string;
   待审核: string;
 }
 
@@ -497,7 +493,7 @@ export interface UpdateItem {
   description: string;
   fileContent?: string;
   summary?: string;
-  summaryArray: string[]; // 预处理的摘要数组
+  summaryArray: string[]; // 处理的摘要数组
   date: string;
   source: string;
   category: string;
@@ -551,8 +547,6 @@ export interface KnowledgeUploadConfig {
   autoUpload: boolean;
 }
 
-// 章节信息
-
 // 文档变更项
 export type ChangeItem = DocumentChange;
 
@@ -585,6 +579,7 @@ export interface RouteQuery {
   id?: string;
   pageTitle?: string;
   isRevoke?: string;
+  path?: string;
   [key: string]: string | string[] | null | undefined;
 }
 
@@ -596,7 +591,6 @@ export interface RuleUpdateQueryParams extends BaseQueryParams {
   page?: number;
   pageSize?: number;
 }
-
 // 法规更新列表响应结构
 export interface RuleUpdateListResponse {
   status: number;
@@ -610,7 +604,25 @@ export interface RuleUpdateListResponse {
     data: RuleUpdateItem[];
   };
 }
-
+// 审核规则列表响应结构
+export interface CheckRuleListResponse {
+  status: number;
+  message: string;
+  success: boolean;
+  data: {
+    records: ToDoRuleItem[];
+    total: number;
+    size: number;
+    current: number;
+    pages: number;
+    orders: unknown[];
+    optimizeCountSql: boolean;
+    hitCount: boolean;
+    countId: string | null;
+    maxLimit: string | null;
+    searchCount: boolean;
+  };
+}
 // 法规来源查询参数
 export interface RuleSourceQueryParams extends BaseQueryParams {
   query?: string;
@@ -631,12 +643,12 @@ export interface RuleSourceQueryParams extends BaseQueryParams {
 // 审核查询参数
 export interface CheckRuleQueryParams extends BaseQueryParams {
   condition?: string;
-  checkStatus?: string;
+  checkStatus?: string | string[];
   category?: string;
+  // 分页参数
+  page?: number;
+  pageSize?: number;
 }
-
-// 日期范围
-export type DateRange = (string | Date | number)[] | null;
 
 // 时间线统计数据
 export interface TimelinessCountData {
@@ -656,12 +668,4 @@ export interface RowSelectionConfig<T = unknown> {
   onChange: (selectedRowKeys: string[], selectedRows: T[]) => void;
   onSelectAll: (selected: boolean, selectedRows: T[], changeRows: T[]) => void;
   getCheckboxProps: (record: T) => { disabled: boolean; name: string };
-}
-
-// 调度状态数据
-export interface ScheduleStatusData {
-  status: "running" | "stopped" | "pending";
-  lastRun?: string;
-  nextRun?: string;
-  message?: string;
 }

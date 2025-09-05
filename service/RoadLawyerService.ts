@@ -1,4 +1,5 @@
 import { AxiosInstance } from "axios";
+import api from "~/api/index";
 import {
   RoadLawyerService,
   KnowledgeDataItem,
@@ -28,9 +29,7 @@ import {
   CrawlConfigOperationResponse,
   CrawlHistoryQueryParams,
   CrawlHistoryResponse,
-} from "~/model/LawyerConfig";
-import api from "~/api";
-
+} from "~/model/LawyerConfigModel";
 // 将对象转换为FormData的辅助函数
 const toFormData = (obj: Record<string, unknown>): FormData => {
   const formData = new FormData();
@@ -307,6 +306,22 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
     }
   },
 
+  async initData(params: QueryParams = {}) {
+    try {
+      const res = await $axios.post(
+        `${api.lawyer.initData}`,
+        toFormData(params)
+      );
+      if (res.data?.data) {
+        return res.data.data;
+      }
+      return {};
+    } catch (error) {
+      console.error("Error initializing data:", error);
+      return {};
+    }
+  },
+
   async saveOrCancelCollect(params: CollectParams) {
     try {
       const res = await $axios.post(
@@ -359,7 +374,6 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
       return false;
     }
   },
-
   // ==================== 人工审核相关方法 ====================
   async approveToDoRule(params: ApprovalParams) {
     try {
@@ -413,22 +427,6 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
     } catch (error) {
       console.error("导出Excel错误:", error);
       return null;
-    }
-  },
-
-  async getDiffResultSchedule(params: QueryParams) {
-    try {
-      const res = await $axios.post(
-        `${api.lawyer.getDiffResultSchedule}`,
-        toFormData(params)
-      );
-      if (res.data?.data) {
-        return res.data.data;
-      }
-      return {};
-    } catch (error) {
-      console.error("Error fetching diff result schedule:", error);
-      return {};
     }
   },
 
@@ -486,16 +484,48 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
 
       const res = await $axios.post(apiEndpoint, toFormData(params));
 
-      if (res.data?.data) {
-        return res.data.data;
+      if (useCase === "management") {
+        // 人工审核页面返回完整的分页响应结构
+        return (
+          res.data || {
+            status: 500,
+            message: "获取数据失败",
+            success: false,
+            data: {
+              records: [],
+              total: 0,
+              size: params.pageSize || 10,
+              current: params.page || 1,
+              pages: 0,
+            },
+          }
+        );
+      } else {
+        // 首页保持原有逻辑，只返回数据数组
+        if (res.data?.data) {
+          return res.data.data;
+        }
+        return [];
       }
-      return [];
     } catch (error) {
       console.error(`Error fetching rule list (${useCase}):`, error);
+      if (useCase === "management") {
+        return {
+          status: 500,
+          message: "获取数据失败",
+          success: false,
+          data: {
+            records: [],
+            total: 0,
+            size: params.pageSize || 10,
+            current: params.page || 1,
+            pages: 0,
+          },
+        };
+      }
       return [];
     }
   },
-
   // ==================== 爬取统计相关方法 ====================
   async getCrawlHtmlList(
     params: CrawlStatisticsQueryParams
@@ -521,7 +551,7 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
     } catch (error) {
       console.error("Error fetching crawl html list:", error);
       return {
-        status: "error",
+        status: 201,
         message: error instanceof Error ? error.message : "Unknown error",
         success: false,
         timestamp: Date.now(),
@@ -534,7 +564,7 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
     params: ExecuteCrawlTaskParams
   ): Promise<ExecuteCrawlTaskResponse> {
     const defaultResponse = {
-      status: "error",
+      status: 201,
       message: "No response received",
       success: false,
       timestamp: Date.now(),
@@ -555,7 +585,6 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
       };
     }
   },
-
   async getCrawlHistory(
     params: CrawlHistoryQueryParams
   ): Promise<CrawlHistoryResponse> {
@@ -565,7 +594,6 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
       hitCount: true,
       maxLimit: 0,
       optimizeCountSql: true,
-      orders: [],
       pages: 0,
       records: [],
       searchCount: true,
@@ -605,7 +633,6 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
       size: params.size || 10,
       current: params.current || 1,
       records: [],
-      orders: [],
       optimizeCountSql: true,
       hitCount: false,
       countId: null,
@@ -695,9 +722,9 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
     };
 
     try {
-      const res = await $axios.post(
-        `${api.lawyer.deleteCrawlConfig}?id=${params.id}`
-      );
+      const res = await $axios.post(api.lawyer.deleteCrawlConfig, null, {
+        params: { id: params.id },
+      });
       return res.data || defaultResponse;
     } catch (error) {
       console.error("Error deleting crawl config:", error);
