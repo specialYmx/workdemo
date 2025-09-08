@@ -5,6 +5,7 @@ import { RoadLawyerService } from "~/model/LawyerModel";
 // 扩展 Route 接口以支持 Nuxt.js 的 query
 interface NuxtRoute extends Route {
   query: { [key: string]: string | (string | null)[] | null | undefined };
+  path: string;
 }
 
 // 扩展 Vue 实例类型

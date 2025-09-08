@@ -20,11 +20,11 @@
                                     <a-select-option value="爬取成功">
                                         爬取成功
                                     </a-select-option>
-                                    <a-select-option value="处理失败">
-                                        处理失败
+                                    <a-select-option value="爬取失败">
+                                        爬取失败
                                     </a-select-option>
-                                    <a-select-option value="处理中">
-                                        处理中
+                                    <a-select-option value="爬取中">
+                                        爬取中
                                     </a-select-option>
                                 </a-select>
                             </div>
@@ -57,7 +57,7 @@
                         </a-tag>
                     </template>
 
-                    <template slot="aiExtractStatus" slot-scope="text">
+                    <template slot="extractStatus" slot-scope="text">
                         <span :class="getCheckStatusClass(text)">
                             {{ text || '未知状态' }}
                         </span>
@@ -104,6 +104,11 @@
                     <a-tag :color="getStatusColor(text)" class="lawyer-status-tag">
                         {{ text }}
                     </a-tag>
+                </template>
+                <template slot="extractStatus" slot-scope="text">
+                    <span :class="getCheckStatusClass(text)">
+                        {{ text || '未知状态' }}
+                    </span>
                 </template>
 
                 <!-- 创建时间列 -->
@@ -219,8 +224,9 @@ export default class CrawlStatisticsComponent extends Vue {
         },
         {
             title: '对比状态',
-            dataIndex: 'aiExtractStatus',
-            key: 'aiExtractStatus',
+            dataIndex: 'extractStatus',
+            key: 'extractStatus',
+            scopedSlots: { customRender: 'extractStatus' },
             width: 100
         },
         {
@@ -393,8 +399,8 @@ export default class CrawlStatisticsComponent extends Vue {
     getStatusColor(status: string): string {
         const colorMap: { [key: string]: string } = {
             爬取成功: 'green',
-            处理失败: 'red',
-            处理中: 'blue',
+            爬取失败: '#f50',
+            爬取中: '#2db7f5',
             待处理: 'orange'
         }
         return colorMap[status] || 'default'
@@ -402,9 +408,9 @@ export default class CrawlStatisticsComponent extends Vue {
     // 获取审核状态样式类（使用全局样式）
     getCheckStatusClass(status: string | null): string {
         const classMap = {
-            未对比: 'lawyer-status-pending',
-            对比成功: 'lawyer-status-approved',
-            对比失败: 'lawyer-status-rejected',
+            未核对: 'lawyer-status-pending',
+            核对成功: 'lawyer-status-approved',
+            核对失败: 'lawyer-status-rejected',
         }
         return classMap[status || ''] || 'lawyer-status-pending'
     }
@@ -439,17 +445,17 @@ export default class CrawlStatisticsComponent extends Vue {
             : String(targetValue || '')
     }
 
-    // 判断任务是否正在处理中
+    // 判断任务是否正在爬取中
     isProcessing(record: CrawlDataItem): boolean {
         const status = this.getStringValue(record, 'processStatus')
-        return status === '处理中'
+        return status === '爬取中'
     }
 
     // 开始自动刷新
     startAutoRefresh(): void {
         // 每10分钟刷新一次（600000毫秒）
         this.refreshTimer = setInterval(() => {
-            // 只有当存在处理中的任务时才自动刷新
+            // 只有当存在爬取中的任务时才自动刷新
             const hasProcessingTasks = this.dataList.some(item =>
                 this.isProcessing(item)
             )

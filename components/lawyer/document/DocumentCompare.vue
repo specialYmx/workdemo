@@ -90,7 +90,7 @@
                                     <div v-if="change.type === 'add'" class="change-text">
                                         新增内容：<span class="highlight-text">{{
                                             change.newText
-                                        }}</span>
+                                            }}</span>
                                     </div>
                                     <div v-else-if="change.type === 'delete'" class="change-text">
                                         删除了"<span class="deleted-text">{{ change.oldText }}</span>"
@@ -98,7 +98,7 @@
                                     <div v-else-if="change.type === 'modify'" class="change-text">
                                         修改内容：<span class="highlight-text">{{
                                             change.newText
-                                        }}</span>，原内容："{{ change.oldText }}"
+                                            }}</span>，原内容："{{ change.oldText }}"
                                     </div>
                                 </div>
                             </div>
@@ -235,6 +235,35 @@ export default class DocumentCompare extends Vue {
         return true
     }
 
+    // 检查分类标签和施行日期是否已设置
+    checkTagsAndEffectDate(): Promise<boolean> {
+        return new Promise((resolve) => {
+            const hasTag = this.document.tags && this.document.tags.length > 0
+            const hasEffectDate = this.document.effectDate
+
+            if (!hasTag || !hasEffectDate) {
+                const missingItems = []
+                if (!hasTag) missingItems.push('分类标签')
+                if (!hasEffectDate) missingItems.push('施行日期')
+
+                this.$confirm({
+                    title: '提示',
+                    content: `检测到您还未设置${missingItems.join('和')}，建议先设置后再进行审核。是否继续审核？`,
+                    okText: '继续审核',
+                    cancelText: '去设置',
+                    onOk: () => {
+                        resolve(true)
+                    },
+                    onCancel: () => {
+                        resolve(false)
+                    },
+                })
+            } else {
+                resolve(true)
+            }
+        })
+    }
+
     // 获取审核警告信息
     getReviewWarningMessage(): string {
         const { hasContentError } = this.getVersionStatus()
@@ -275,9 +304,15 @@ export default class DocumentCompare extends Vue {
     }
 
     // 处理通过审核
-    handleApprove(): void {
+    async handleApprove(): Promise<void> {
         // 检查是否允许审核
         if (!this.checkReviewStatusAndShowError()) {
+            return
+        }
+
+        // 检查分类标签和施行日期
+        const canProceed = await this.checkTagsAndEffectDate()
+        if (!canProceed) {
             return
         }
 
@@ -296,9 +331,15 @@ export default class DocumentCompare extends Vue {
     }
 
     // 处理驳回审核
-    handleReject(): void {
+    async handleReject(): Promise<void> {
         // 检查是否允许审核
         if (!this.checkReviewStatusAndShowError()) {
+            return
+        }
+
+        // 检查分类标签和施行日期
+        const canProceed = await this.checkTagsAndEffectDate()
+        if (!canProceed) {
             return
         }
 
@@ -359,6 +400,12 @@ export default class DocumentCompare extends Vue {
 
     // 显示标签编辑模态框
     showTagEditModal(): void {
+        // 检查文档状态，只有待审核状态才能编辑
+        if (this.document.checkStatus !== '待审核') {
+            this.$message.warning('当前文档状态不允许编辑')
+            return
+        }
+
         this.tempSelectedTagPath = this.findTagPath(this.document.tags || [])
         this.tempEffectDate = this.document.effectDate || null
         this.tagEditVisible = true
