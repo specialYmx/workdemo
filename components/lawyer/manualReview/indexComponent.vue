@@ -8,7 +8,7 @@
 
                 <!-- 搜索筛选和操作区域 -->
                 <div class="lawyer-controls-row">
-                    <a-input-search v-model="searchText" placeholder="搜索标题、文号、来源..." class="lawyer-search-input"
+                    <a-input-search v-model.trim="searchText" placeholder="搜索标题、文号、来源..." class="lawyer-search-input"
                         @search="onSearch" />
 
                     <div class="lawyer-filter-select">
@@ -82,33 +82,6 @@
                                 </template>
                             </div>
                         </span>
-
-                        <!-- 自定义筛选下拉框 -->
-                        <div slot="filterDropdown" slot-scope="{
-                setSelectedKeys,
-                selectedKeys,
-                confirm,
-                clearFilters,
-                column,
-              }" style="padding: 8px">
-                            <a-input ref="searchInput" :placeholder="`搜索 ${column.title}`" :value="selectedKeys[0]"
-                                style="width: 188px; margin-bottom: 8px; display: block" @change="
-                                    (e) => setSelectedKeys(e.target.value ? [e.target.value] : [])
-                                " @pressEnter="
-                                    () => handleSearch(selectedKeys, confirm, column.dataIndex)
-                                " />
-                            <a-button type="primary" icon="search" size="small" style="width: 90px; margin-right: 8px"
-                                @click="
-                                    () => handleSearch(selectedKeys, confirm, column.dataIndex)
-                                ">
-                                搜索
-                            </a-button>
-                            <a-button size="small" style="width: 90px" @click="() => handleReset(clearFilters)">
-                                重置
-                            </a-button>
-                        </div>
-                        <a-icon slot="filterIcon" slot-scope="filtered" type="search"
-                            :style="{ color: filtered ? '#1890ff' : undefined }" />
                     </a-table>
                 </div>
             </div>
@@ -128,7 +101,6 @@ import {
 import { categoryOptions } from '~/enums/Lawyer'
 import { downloadFileWithMessage } from '~/utils/personal'
 import { CustomColumn, CustomPagination } from '~/model/CommonModel'
-import lawyer from '~/api/lawyer'
 
 @Component({ name: 'lawyer-manual-review-index-component' })
 export default class LawyerManualReviewIndexComponent extends Vue {
@@ -172,6 +144,8 @@ export default class LawyerManualReviewIndexComponent extends Vue {
         }
     }
 
+
+
     // 表格列配置（使用 any 以避免对 CommonModel.ts 的依赖）
     get columns(): CustomColumn[] {
         return [
@@ -189,30 +163,12 @@ export default class LawyerManualReviewIndexComponent extends Vue {
                 key: 'categoryMain',
                 scopedSlots: {
                     customRender: 'type',
-                    filterDropdown: 'filterDropdown',
-                    filterIcon: 'filterIcon',
-                },
-
-                onFilter: (value: string, record: ToDoRuleItem) => {
-                    const searchValue = String(value).toLowerCase()
-                    const categoryMain = String(record.categoryMain || '').toLowerCase()
-                    return categoryMain.includes(searchValue)
                 },
             },
             {
                 title: '来源',
                 dataIndex: 'legalSource',
                 key: 'legalSource',
-
-                scopedSlots: {
-                    filterDropdown: 'filterDropdown',
-                    filterIcon: 'filterIcon',
-                },
-                onFilter: (value: string, record: ToDoRuleItem) => {
-                    const searchValue = String(value).toLowerCase()
-                    const legalSource = String(record.legalSource || '').toLowerCase()
-                    return legalSource.includes(searchValue)
-                },
             },
             {
                 title: '提交时间',
@@ -429,6 +385,10 @@ export default class LawyerManualReviewIndexComponent extends Vue {
         return checkStatusFilter // 直接返回表格筛选的状态数组
     }
 
+
+
+
+
     // 表格变化事件
     async handleTableChange(
         pagination: CustomPagination,
@@ -448,20 +408,7 @@ export default class LawyerManualReviewIndexComponent extends Vue {
         await this.loadDocuments()
     }
 
-    // 处理搜索
-    handleSearch(
-        selectedKeys: string[],
-        confirm: Function,
-        dataIndex: string
-    ): void {
-        confirm()
-        console.log('搜索:', selectedKeys, dataIndex)
-    }
 
-    // 处理重置
-    handleReset(clearFilters: Function): void {
-        clearFilters()
-    }
 
     // 刷新数据
     async refreshData(): Promise<void> {

@@ -57,6 +57,10 @@
                         </a-tag>
                     </template>
 
+                    <template slot="detailUrl" slot-scope="text">
+                        <a :href="text" target="_blank">{{ text }}</a>
+                    </template>
+
                     <template slot="extractStatus" slot-scope="text">
                         <span :class="getCheckStatusClass(text)">
                             {{ text || '未知状态' }}
@@ -212,6 +216,7 @@ export default class CrawlStatisticsComponent extends Vue {
             title: '文章详情地址',
             dataIndex: 'detailUrl',
             key: 'detailUrl',
+            scopedSlots: { customRender: 'detailUrl' },
             width: 200,
             ellipsis: true
         },
