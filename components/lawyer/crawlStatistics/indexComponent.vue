@@ -114,7 +114,9 @@
                         {{ text || '未知状态' }}
                     </span>
                 </template>
-
+                <template slot="detailUrl" slot-scope="text">
+                    <a :href="text" target="_blank">{{ text }}</a>
+                </template>
                 <!-- 创建时间列 -->
                 <template slot="createdTime" slot-scope="text">
                     {{ formatDateTime(text) }}
@@ -280,6 +282,7 @@ export default class CrawlStatisticsComponent extends Vue {
             dataIndex: 'detailUrl',
             key: 'detailUrl',
             width: 200,
+            scopedSlots: { customRender: 'detailUrl' },
             ellipsis: true
         },
         {
