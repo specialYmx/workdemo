@@ -36,16 +36,16 @@ export default class SourceDistribution extends Vue {
     @Prop({ type: Array, default: () => [] }) legendItems!: LegendItem[];
     @Prop({ type: Boolean, default: false }) loading!: boolean;
 
-    // 饼图颜色配置
-    private static readonly PIE_CHART_COLORS: string[] = [
-        '#1890ff',
-        '#13c2c2',
-        '#52c41a',
-        '#faad14',
-        '#722ed1',
-        '#eb2f96',
-        '#fadb14'
-    ];
+    // 颜色映射与indexComponent.vue保持一致
+    private static readonly SOURCE_COLOR_MAP: { [key: string]: string } = {
+        '国家金融监督管理总局': '#1890ff',
+        '人民银行网站': '#13c2c2',
+        '证监会公告': '#52c41a',
+        '财政部通知': '#faad14',
+        '交易所规则': '#722ed1',
+        '行业协会': '#eb2f96',
+        '其他机构': '#fadb14',
+    }
 
     // 静态tooltip格式化函数
     private static tooltipFormatter(params): string {
@@ -126,12 +126,18 @@ export default class SourceDistribution extends Vue {
             data.every((item: PieChartDataItem): boolean => item.value === 0)
         )
     }
-
+    // 获取颜色数组，根据数据项名称匹配颜色
+    get chartColors(): string[] {
+        const data: PieChartDataItem[] = this.chartData?.series?.[0]?.data || []
+        return data.map(item =>
+            SourceDistribution.SOURCE_COLOR_MAP[item.name] || '#999999'
+        )
+    }
     // 优化后的饼图配置 - 只合并动态部分
     get pieChartOptions(): EChartOption {
         return {
             ...SourceDistribution.BASE_PIE_OPTIONS,
-            color: SourceDistribution.PIE_CHART_COLORS,
+            color: this.chartColors,
             series: [
                 {
                     ...SourceDistribution.BASE_SERIES_CONFIG,
