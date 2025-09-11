@@ -21,8 +21,8 @@
                         </a-button>
                     </div>
 
-                    <!-- 高级筛选选项 -->
-                    <div v-show="isAdvancedSearchVisible" class="lawyer-filter-options">
+                    <!-- 筛选选项 -->
+                    <div class="lawyer-filter-options">
                         <!-- 时效性选择器 -->
                         <div class="lawyer-filter-group">
                             <a-select v-model="timelinessFilter" style="width: 100%" placeholder="时效性"
@@ -194,7 +194,6 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
     effectivenessLevelFilter: string = 'all';
     publishDate: string | null = null;
     isFavoritesMode: boolean = false;
-    isAdvancedSearchVisible: boolean = false;
     listLoading: boolean = true;
     currentPage: number = 1;
     pageSize: number = 10;
@@ -241,12 +240,6 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
                 icon: 'star',
                 isActive: this.isFavoritesMode,
                 handler: this.toggleFavorites
-            },
-            {
-                text: this.isAdvancedSearchVisible ? '收起筛选' : '高级筛选',
-                icon: 'filter',
-                isActive: this.isAdvancedSearchVisible,
-                handler: this.toggleAdvancedSearch
             }
         ]
     }
@@ -345,10 +338,6 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
         this.$message.info(
             this.isFavoritesMode ? '已切换至收藏夹' : '已退出收藏夹模式'
         )
-    }
-
-    toggleAdvancedSearch(): void {
-        this.isAdvancedSearchVisible = !this.isAdvancedSearchVisible
     }
 
     getDocActions(doc: KnowledgeDataItem): DocumentAction[] {
