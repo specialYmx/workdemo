@@ -247,6 +247,9 @@ export default class DivTextSearch extends Vue {
 .lawyer-div-text-search-container {
     background: var(--lawyer-surface);
     overflow: hidden;
+    height: 100%; // 确保容器填充父元素
+    display: flex;
+    flex-direction: column;
 }
 
 .lawyer-search-bar {
@@ -259,6 +262,7 @@ export default class DivTextSearch extends Vue {
     gap: 10px;
     align-items: center;
     padding: 10px 0 5px 0;
+    flex-shrink: 0; // 防止搜索栏被压缩
 }
 
 .lawyer-search-box {
@@ -299,11 +303,54 @@ export default class DivTextSearch extends Vue {
 }
 
 .lawyer-content-area {
-    padding: 10px;
+    padding: 10px 20px 10px 10px; // 右侧增加padding为滚动条留出空间
     min-height: 300px;
-    max-height: calc(100vh - 300px);
+    height: calc(100% - 60px); // 使用固定高度而不是max-height，减去搜索栏高度
     overflow-y: auto;
+    overflow-x: hidden;
     position: relative;
+
+    // 强化滚动条样式，确保在所有缩放级别下都能正常点击
+    scrollbar-width: auto; // 使用auto而不是thin，确保足够宽
+    scrollbar-color: #666 rgba(0, 0, 0, 0.1);
+
+    &::-webkit-scrollbar {
+        width: 16px; // 进一步增加滚动条宽度，确保在高缩放下也能点击
+        background: rgba(0, 0, 0, 0.05);
+    }
+
+    &::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.05);
+        border-radius: 8px;
+        margin: 2px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background-color: #666;
+        border-radius: 8px;
+        border: 3px solid rgba(0, 0, 0, 0.05); // 增加边框，创建更大的点击区域
+        background-clip: padding-box;
+        min-height: 30px; // 确保滚动条thumb有最小高度
+
+        &:hover {
+            background-color: #444;
+            border-color: rgba(0, 0, 0, 0.1);
+        }
+
+        &:active {
+            background-color: #222;
+        }
+    }
+
+    // 确保滚动条在所有缩放级别下都可见和可点击
+    &::-webkit-scrollbar-corner {
+        background: rgba(0, 0, 0, 0.05);
+    }
+
+    // 强制显示滚动条，即使内容不够长
+    &::-webkit-scrollbar-track:vertical {
+        background: rgba(0, 0, 0, 0.05);
+    }
 }
 
 .lawyer-highlight {

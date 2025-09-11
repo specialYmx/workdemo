@@ -249,11 +249,13 @@ export default class DocumentViewer extends Vue {
 
     // 基础布局
     .lawyer-document-page {
-        height: calc(100vh - 70px);
+        height: calc(100vh - 70px); // 减去 header 高度，确保页面不出现滚动条
         display: flex;
         flex-direction: column;
         background-color: var(--lawyer-background);
         padding: 16px;
+        box-sizing: border-box;
+        overflow: hidden; // 防止页面级别的滚动条
     }
 
     // 标题和状态标签同行布局
@@ -335,11 +337,12 @@ export default class DocumentViewer extends Vue {
     .lawyer-main-layout {
         display: flex;
         flex: 1;
-        overflow: hidden;
         gap: 16px;
+        min-height: 0; // 允许flex子项收缩
+        overflow: hidden; // 防止主布局产生滚动条
 
-        // 响应式布局
-        @media (max-width: 1200px) {
+        // 响应式布局 - 只在真正的移动设备上切换为垂直布局
+        @media (max-width: 768px) {
             flex-direction: column;
             gap: 12px;
         }
@@ -351,9 +354,11 @@ export default class DocumentViewer extends Vue {
         display: flex;
         flex-direction: column;
         min-width: 0; // 防止flex子项溢出
+        min-height: 0; // 允许内容滚动
 
-        @media (max-width: 1200px) {
+        @media (max-width: 768px) {
             height: 60vh; // 小屏幕时限制高度
+            min-height: 400px; // 确保最小高度
         }
     }
 
@@ -363,8 +368,10 @@ export default class DocumentViewer extends Vue {
         flex-shrink: 0;
         display: flex;
         flex-direction: column;
+        min-height: 0; // 允许内容滚动
+        overflow: hidden; // 防止右侧区域产生滚动条
 
-        @media (max-width: 1200px) {
+        @media (max-width: 768px) {
             width: 100%;
             min-height: 500px; // 确保足够的最小高度
             height: auto; // 改为自适应高度
@@ -377,14 +384,17 @@ export default class DocumentViewer extends Vue {
         background: var(--lawyer-surface);
         display: flex;
         flex-direction: column;
-        height: 100%;
+        min-height: 0; // 允许内容滚动
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        overflow: hidden; // 防止卡片级别的滚动条
 
         .ant-card-body {
             padding: 0;
             display: flex;
             flex-direction: column;
-            height: 100%;
+            flex: 1;
+            min-height: 0; // 允许内容滚动
+            overflow: hidden; // 防止卡片body的滚动条
         }
     }
 
@@ -438,8 +448,9 @@ export default class DocumentViewer extends Vue {
     .lawyer-document-content {
         flex: 1;
         padding: 20px 24px;
-        overflow-y: auto;
-        height: 100%;
+        overflow: hidden; // 移除滚动，避免与内层DivTextSearch冲突
+        min-height: 0; // 确保可以滚动
+        // 移除max-height，让它自然适应容器高度
     }
 
     // 废止状态编辑弹窗样式
@@ -492,5 +503,25 @@ export default class DocumentViewer extends Vue {
             }
         }
     }
+
+    // 针对浏览器缩放的特殊处理
+    @media (min-width: 769px) {
+        .lawyer-main-layout {
+            // 确保在桌面端始终保持左右布局
+            flex-direction: row !important;
+        }
+
+        .lawyer-document-left {
+            // 桌面端不限制高度
+            height: auto !important;
+        }
+
+        .lawyer-document-right {
+            // 桌面端保持固定宽度
+            width: 400px !important;
+        }
+    }
+
+    // 移除DocumentViewer的滚动条样式，因为滚动由DivTextSearch组件处理
 }
 </style>
