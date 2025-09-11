@@ -45,8 +45,8 @@
                         </div>
                         <!-- 专题分类级联选择器 -->
                         <div class="lawyer-filter-group">
-                            <a-cascader v-model="topicCategory" :options="topicCategoryOptions" placeholder="专题分类"
-                                style="width: 100%" :show-search="true" @change="onFilterChange" />
+                            <a-cascader v-model="topicCategory" change-on-select :options="topicCategoryOptions"
+                                placeholder="专题分类" style="width: 100%" :show-search="true" @change="onFilterChange" />
                         </div>
                         <!-- 来源筛选 -->
                         <div class="lawyer-filter-group">
