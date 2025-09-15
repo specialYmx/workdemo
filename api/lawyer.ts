@@ -32,6 +32,9 @@ export default {
   getCrawlHtmlList: "/legal/crawl/getHtmlList", // 获取爬取HTML列表
   executeCrawlTask: "/legal/crawl/runTask", // 执行爬取任务
   getCrawlHistory: "/legal/crawl/getCrawlHistory", // 查询执行网页的历史记录
+  updateCrawlStatus: "/legal/crawl/updateStatus", // 修改爬取状态
+  getTaskHistory: "/legal/crawl/getTaskHistory", // 获取定时任务的执行记录
+  getCrawlCheckRuleList: "/legal/crawl/getCheckRuleList", // 查看爬虫对应的审核条数
 
   // ==================== 爬取配置相关接口 (crawl-config-controller) ====================
   getCrawlConfigList: "/legal/crawl/getConfigList", // 获取爬取配置列表
