@@ -52,8 +52,8 @@
                     :row-key="(record) => record.id" @change="handleTableChange">
                     <!-- 处理状态列 -->
                     <template slot="processStatus" slot-scope="text">
-                        <a-tag :color="getStatusColor(getStringValue(text))" class="lawyer-status-tag">
-                            {{ getStringValue(text) || "未知" }}
+                        <a-tag :color="getStatusColor(text)" class="lawyer-status-tag">
+                            {{ text || "未知" }}
                         </a-tag>
                     </template>
 
@@ -69,17 +69,17 @@
 
                     <!-- 发布日期列 -->
                     <template slot="publishDate" slot-scope="text">
-                        {{ formatDateTime(getStringValue(text), "date") }}
+                        {{ formatTime(text, "yyyy-MM-dd") }}
                     </template>
 
                     <!-- 创建时间列 -->
                     <template slot="createdTime" slot-scope="text">
-                        {{ formatDateTime(getStringValue(text)) }}
+                        {{ formatTime(text) }}
                     </template>
 
                     <!-- 更新时间列 -->
                     <template slot="updateTime" slot-scope="text">
-                        {{ formatDateTime(getStringValue(text)) }}
+                        {{ formatTime(text) }}
                     </template>
 
                     <!-- 操作列 -->
@@ -89,59 +89,104 @@
                                 :icon="isProcessing(record) ? 'loading' : 'play-circle'" @click="executeTask(record)">
                                 {{ isProcessing(record) ? "正在处理" : "执行" }}
                             </a-button>
-                            <a-button type="link" @click="viewHistory(record)">
+                            <a-button type="link" @click="viewCrawlHistory(record)">
                                 查看
                             </a-button>
-
+                            <a-button type="link" @click="viewWebsiteDetails(record)">
+                                网站详情
+                            </a-button>
+                            <a-button type="link" @click="editRecord(record)">
+                                修改
+                            </a-button>
                         </div>
                     </template>
                 </a-table>
             </a-card>
         </div>
 
-        <!-- 历史记录弹窗 -->
-        <a-modal v-model="historyModalVisible" title="执行历史记录" width="90%" :footer="null">
-            <a-table :columns="historyColumns" :data-source="historyList" :pagination="historyPagination"
-                :loading="historyLoading" :row-key="(record) => record.id" @change="handleHistoryTableChange">
+
+
+        <!-- 执行历史记录弹窗 -->
+        <a-modal v-model="crawlHistoryModalVisible" title="执行历史记录" width="90%" :footer="null">
+            <a-table :columns="crawlHistoryColumns" :data-source="crawlHistoryList" :pagination="historyPagination"
+                :loading="crawlHistoryLoading" :row-key="(record) => record.id">
                 <!-- 处理状态列 -->
                 <template slot="processStatus" slot-scope="text">
-                    <a-tag :color="getStatusColor(text)" class="lawyer-status-tag">
+                    <a-tag :color="getProcessStatusColor(text)" class="lawyer-status-tag">
                         {{ text }}
                     </a-tag>
-                </template>
-                <template slot="extractStatus" slot-scope="text">
-                    <span :class="getCheckStatusClass(text)">
-                        {{ text || '未知状态' }}
-                    </span>
                 </template>
                 <template slot="detailUrl" slot-scope="text">
                     <a :href="text" target="_blank">{{ text }}</a>
                 </template>
+
                 <!-- 创建时间列 -->
                 <template slot="createdTime" slot-scope="text">
-                    {{ formatDateTime(text) }}
-                </template>
-
-                <!-- 异常信息列 -->
-                <template slot="exceptionMsg" slot-scope="text">
-                    <span v-if="text" :title="text" class="lawyer-exception-text">
-                        {{ text.length > 50 ? text.substring(0, 50) + '...' : text }}
-                    </span>
-                    <span v-else>-</span>
+                    {{ formatTime(text) }}
                 </template>
             </a-table>
         </a-modal>
+
+        <!-- 网站详情弹窗 -->
+        <a-modal v-model="checkRuleModalVisible" title="网站详情" width="90%" :footer="null">
+            <a-table :columns="checkRuleColumns" :data-source="checkRuleList" :pagination="false"
+                :loading="checkRuleLoading" :row-key="(record) => record.id">
+                <!-- 审核状态列 -->
+                <template slot="checkStatus" slot-scope="text">
+                    <a-tag :color="getCheckStatusColor(text)" class="lawyer-status-tag">
+                        {{ text }}
+                    </a-tag>
+                </template>
+                <!-- 施行日期列 -->
+                <template slot="effectDate" slot-scope="text">
+                    {{ formatTime(text) }}
+                </template>
+                <!-- 创建时间列 -->
+                <template slot="createdTime" slot-scope="text">
+                    {{ formatTime(text) }}
+                </template>
+            </a-table>
+        </a-modal>
+
+        <!-- 修改状态弹窗 -->
+        <a-modal v-model="editModalVisible" title="修改状态" width="500px" :confirmLoading="editLoading"
+            @ok="handleEditSubmit" @cancel="handleEditCancel">
+            <a-form-model ref="editFormModel" :model="editFormData" :rules="editFormRules" :label-col="{ span: 6 }"
+                :wrapper-col="{ span: 16 }">
+                <a-form-model-item label="处理状态" prop="processStatus">
+                    <a-select v-model="editFormData.processStatus" placeholder="请选择处理状态">
+                        <a-select-option value="爬取成功">爬取成功</a-select-option>
+                        <a-select-option value="爬取失败">爬取失败</a-select-option>
+                        <a-select-option value="爬取中">爬取中</a-select-option>
+                    </a-select>
+                </a-form-model-item>
+                <a-form-model-item label="对比状态" prop="extractStatus">
+                    <a-select v-model="editFormData.extractStatus" placeholder="请选择对比状态" allow-clear>
+                        <a-select-option value="核对成功">核对成功</a-select-option>
+                        <a-select-option value="核对失败">核对失败</a-select-option>
+                        <a-select-option value="未核对">未核对</a-select-option>
+                    </a-select>
+                </a-form-model-item>
+            </a-form-model>
+        </a-modal>
+
+
     </div>
 </template>
 
 <script lang="ts">
 import { Component, Vue } from 'nuxt-property-decorator'
-import moment from 'moment'
+import { FormModel } from 'ant-design-vue'
+import { formatDate } from '~/utils/date'
 import {
     CrawlDataItem,
     CrawlStatisticsQueryParams,
+    CheckRuleItem,
+    CrawlCheckRuleListParams,
     CrawlHistoryItem,
-    CrawlHistoryQueryParams
+    CrawlHistoryQueryParams,
+    ProcessStatus,
+    UpdateCrawlStatusSimpleParams
 } from '~/model/LawyerConfigModel'
 
 @Component({ name: 'lawyer-crawl-statistics-index-component' })
@@ -152,7 +197,6 @@ export default class CrawlStatisticsComponent extends Vue {
         websiteName: '',
         articleTitle: '',
         detailUrl: '',
-        attachments: '',
         publishDate: '', // 可以设置为 "" 或 "2025-05-09" 这样的默认值
         processStatus: undefined, // 处理状态过滤
         current: 1,
@@ -168,11 +212,37 @@ export default class CrawlStatisticsComponent extends Vue {
     // 定时器
     refreshTimer: NodeJS.Timeout | null = null;
 
-    // 历史记录相关数据
-    historyModalVisible: boolean = false;
-    historyList: CrawlHistoryItem[] = [];
-    historyLoading: boolean = false;
-    currentDetailId: string = '';
+
+
+    // 执行历史记录相关数据
+    crawlHistoryModalVisible: boolean = false;
+    crawlHistoryList: CrawlHistoryItem[] = [];
+    crawlHistoryLoading: boolean = false;
+
+    // 审核记录相关数据
+    checkRuleModalVisible: boolean = false;
+    checkRuleList: CheckRuleItem[] = [];
+    checkRuleLoading: boolean = false;
+
+    // 修改状态相关数据
+    editModalVisible: boolean = false;
+    editLoading: boolean = false;
+    currentEditRecord: CrawlDataItem | null = null;
+
+    // 表单数据
+    editFormData = {
+        processStatus: '',
+        extractStatus: ''
+    };
+
+    // 表单验证规则
+    editFormRules = {
+        processStatus: [
+            { required: true, message: '请选择处理状态', trigger: 'change' }
+        ]
+    };
+
+
 
     // 分页配置
     pagination = {
@@ -184,15 +254,9 @@ export default class CrawlStatisticsComponent extends Vue {
         showTotal: (total: number) => `共 ${total} 条记录`
     };
 
-    // 历史记录分页配置
-    historyPagination = {
-        current: 1,
-        pageSize: 10,
-        total: 0,
-        showSizeChanger: true,
-        showQuickJumper: true,
-        showTotal: (total: number) => `共 ${total} 条历史记录`
-    };
+    historyPagination = { pageSize: 10, showSizeChanger: true, showQuickJumper: true, showTotal: (total) => `共 ${total} 条记录` }
+
+
 
     // 表格列配置
     columns = [
@@ -264,48 +328,96 @@ export default class CrawlStatisticsComponent extends Vue {
             title: '操作',
             key: 'action',
             scopedSlots: { customRender: 'action' },
-            width: 120,
+            width: 200,
             fixed: 'right'
         }
     ];
 
-    // 历史记录表格列配置
-    historyColumns = [
+    // 执行历史记录表格列配置
+    crawlHistoryColumns = [
         {
             title: '文章标题',
             dataIndex: 'articleTitle',
             key: 'articleTitle',
-            ellipsis: true
+            ellipsis: true,
+            width: 200
         },
         {
-            title: '文章详情地址',
+            title: '详情链接',
             dataIndex: 'detailUrl',
             key: 'detailUrl',
-            width: 200,
             scopedSlots: { customRender: 'detailUrl' },
-            ellipsis: true
+            ellipsis: true,
+            width: 200
         },
         {
             title: '处理状态',
             dataIndex: 'processStatus',
             key: 'processStatus',
             scopedSlots: { customRender: 'processStatus' },
-            width: 100
+            width: 120
         },
         {
             title: '异常信息',
             dataIndex: 'exceptionMsg',
             key: 'exceptionMsg',
-            scopedSlots: { customRender: 'exceptionMsg' },
-            ellipsis: true
+            ellipsis: true,
+            width: 200
         },
         {
             title: '创建时间',
             dataIndex: 'createdTime',
             key: 'createdTime',
             scopedSlots: { customRender: 'createdTime' },
-            width: 160,
-            sorter: true
+            width: 160
+        }
+    ];
+
+    // 审核记录表格列配置
+    checkRuleColumns = [
+        {
+            title: '标题',
+            dataIndex: 'ruleName',
+            key: 'ruleName',
+            ellipsis: true
+        },
+        {
+            title: '网站名称',
+            dataIndex: 'websiteName',
+            key: 'websiteName',
+            width: 150
+        },
+        {
+            title: '分类',
+            dataIndex: 'categoryMain',
+            key: 'categoryMain',
+            width: 150,
+            customRender: (_text: string, record: CheckRuleItem) => {
+                const main = record.categoryMain || '';
+                const sub = record.categorySub || '';
+                return sub ? `${main} / ${sub}` : main;
+            }
+        },
+        {
+            title: '审核状态',
+            dataIndex: 'checkStatus',
+            key: 'checkStatus',
+            scopedSlots: { customRender: 'checkStatus' },
+            width: 100
+        },
+        {
+            title: '施行日期',
+            dataIndex: 'effectDate',
+            key: 'effectDate',
+            scopedSlots: { customRender: 'effectDate' },
+            width: 120
+        },
+        {
+            title: '创建时间',
+            dataIndex: 'createdTime',
+            key: 'createdTime',
+            scopedSlots: { customRender: 'createdTime' },
+            width: 160
         }
     ];
 
@@ -369,7 +481,6 @@ export default class CrawlStatisticsComponent extends Vue {
             websiteName: '',
             articleTitle: '',
             detailUrl: '',
-            attachments: '',
             publishDate: '',
             processStatus: undefined,
             current: 1,
@@ -406,12 +517,12 @@ export default class CrawlStatisticsComponent extends Vue {
     // 获取状态颜色
     getStatusColor(status: string): string {
         const colorMap: { [key: string]: string } = {
-            爬取成功: 'green',
-            爬取失败: '#f50',
-            爬取中: '#2db7f5',
-            待处理: 'orange'
+            爬取成功: '#52c41a',
+            爬取失败: '#ff4d4f',
+            爬取中: '#1890ff',
+            待处理: '#fa8c16'
         }
-        return colorMap[status] || 'default'
+        return colorMap[status] || '#d9d9d9'
     }
     // 获取审核状态样式类（使用全局样式）
     getCheckStatusClass(status: string | null): string {
@@ -423,40 +534,37 @@ export default class CrawlStatisticsComponent extends Vue {
         return classMap[status || ''] || 'lawyer-status-pending'
     }
 
-    // 格式化日期时间（统一方法）
-    formatDateTime(
-        datetime: string,
-        format: 'date' | 'datetime' = 'datetime'
-    ): string {
-        if (!datetime) { return '-' }
-        try {
-            const m = moment(datetime)
-            return format === 'date'
-                ? m.format('YYYY-MM-DD')
-                : m.format('YYYY-MM-DD HH:mm:ss')
-        } catch {
-            return datetime // 如果解析失败，返回原始字符串
+    // 获取审核状态颜色
+    getCheckStatusColor(status: string): string {
+        const colorMap: { [key: string]: string } = {
+            待审核: '#fa8c16',
+            已通过: '#52c41a',
+            已驳回: '#ff4d4f',
+            审核中: '#1890ff'
         }
+        return colorMap[status] || '#d9d9d9'
     }
 
-    // 辅助方法：安全获取字符串值（支持对象属性和直接值）
-    getStringValue(value: unknown, key?: string): string {
-        let targetValue = value
-
-        // 如果指定了key，从对象中获取属性值
-        if (key && value && typeof value === 'object' && key in value) {
-            targetValue = (value as Record<string, unknown>)[key]
+    // 获取处理状态颜色
+    getProcessStatusColor(status: ProcessStatus): string {
+        const colorMap: { [key: string]: string } = {
+            '爬取中': '#1890ff',
+            '爬取成功': '#52c41a',
+            '爬取失败': '#ff4d4f'
         }
-
-        return typeof targetValue === 'string'
-            ? targetValue
-            : String(targetValue || '')
+        return colorMap[status] || '#d9d9d9'
     }
+
+    // 格式化时间显示
+    formatTime(timeStr: string, format?: string): string {
+        if (!timeStr) return '-'
+        return formatDate(timeStr, format || 'yyyy-MM-dd HH:mm:ss')
+    }
+
 
     // 判断任务是否正在爬取中
     isProcessing(record: CrawlDataItem): boolean {
-        const status = this.getStringValue(record, 'processStatus')
-        return status === '爬取中'
+        return record.processStatus === '爬取中'
     }
 
     // 开始自动刷新
@@ -512,57 +620,147 @@ export default class CrawlStatisticsComponent extends Vue {
         })
     }
 
-    // 查看历史记录
-    async viewHistory(record: CrawlDataItem): Promise<void> {
-        this.currentDetailId = record.id
-        this.historyModalVisible = true
-        this.historyPagination.current = 1
-        await this.loadHistoryData()
+
+
+    // 查看执行历史记录
+    async viewCrawlHistory(record: CrawlDataItem): Promise<void> {
+        this.crawlHistoryModalVisible = true
+        await this.loadCrawlHistoryData(record.id)
     }
 
-    // 加载历史记录数据
-    async loadHistoryData(): Promise<void> {
-        if (!this.currentDetailId) return
+    // 查看网站详情
+    async viewWebsiteDetails(record: CrawlDataItem): Promise<void> {
+        this.checkRuleModalVisible = true
+        await this.loadCheckRuleData(record.id)
+    }
 
-        this.historyLoading = true
+    // 加载审核记录数据
+    async loadCheckRuleData(id: string): Promise<void> {
+        this.checkRuleLoading = true
+        try {
+            const params: CrawlCheckRuleListParams = {
+                id: id
+            }
+
+            const response = await this.$roadLawyerService.getCrawlCheckRuleList(params)
+
+            if (response.success && response.data) {
+                this.checkRuleList = response.data
+            } else {
+                this.checkRuleList = []
+                this.$message.error(response.message || '加载审核记录失败')
+            }
+        } catch (error) {
+            console.error('加载审核记录失败:', error)
+            this.checkRuleList = []
+            this.$message.error('加载审核记录失败')
+        } finally {
+            this.checkRuleLoading = false
+        }
+    }
+
+    // 加载执行历史记录数据
+    async loadCrawlHistoryData(detailId: string): Promise<void> {
+        this.crawlHistoryLoading = true
         try {
             const params: CrawlHistoryQueryParams = {
-                detailId: this.currentDetailId,
-                current: this.historyPagination.current,
-                size: this.historyPagination.pageSize,
-                sortRules: 'DESC'
+                detailId: detailId,
+                current: 1,
+                size: 100 // 显示更多历史记录
             }
 
             const response = await this.$roadLawyerService.getCrawlHistory(params)
 
-            if (response.success && response.data) {
-                this.historyList = response.data.records
-                this.historyPagination.total = response.data.total
-                this.historyPagination.current = response.data.current
+            if (response.success && response.data && response.data.records) {
+                this.crawlHistoryList = response.data.records
             } else {
-                this.historyList = []
-                this.historyPagination.total = 0
-                this.$message.error(response.message || '加载历史记录失败')
+                this.crawlHistoryList = []
+                this.$message.error(response.message || '加载执行历史记录失败')
             }
         } catch (error) {
-            console.error('加载历史记录失败:', error)
-            this.historyList = []
-            this.historyPagination.total = 0
-            this.$message.error('加载历史记录失败')
+            console.error('加载执行历史记录失败:', error)
+            this.crawlHistoryList = []
+            this.$message.error('加载执行历史记录失败')
         } finally {
-            this.historyLoading = false
+            this.crawlHistoryLoading = false
         }
     }
 
-    // 历史记录表格变化处理
-    async handleHistoryTableChange(
-        pagination: { current: number; pageSize: number },
-        _filters: unknown,
-        _sorter: { field?: string; order?: string }
-    ): Promise<void> {
-        this.historyPagination.current = pagination.current
-        this.historyPagination.pageSize = pagination.pageSize
-        await this.loadHistoryData()
+    // 打开修改弹窗
+    editRecord(record: CrawlDataItem): void {
+        this.currentEditRecord = record
+        this.editModalVisible = true
+
+        // 设置表单数据
+        this.editFormData = {
+            processStatus: record.processStatus,
+            extractStatus: record.extractStatus || ''
+        }
+
+        // 清除表单验证
+        this.$nextTick(() => {
+            const formRef = this.$refs.editFormModel as FormModel
+            if (formRef && formRef.clearValidate) {
+                formRef.clearValidate([])
+            }
+        })
+    }
+
+    // 处理修改提交
+    async handleEditSubmit(): Promise<void> {
+        if (!this.currentEditRecord) return
+
+        try {
+            // 验证表单
+            const formRef = this.$refs.editFormModel as FormModel
+            if (!formRef) {
+                throw new Error('表单引用无效')
+            }
+            await formRef.validate()
+            this.editLoading = true
+
+            const params: UpdateCrawlStatusSimpleParams = {
+                id: this.currentEditRecord.id,
+                processStatus: this.editFormData.processStatus as ProcessStatus,
+                extractStatus: this.editFormData.extractStatus || ''
+            }
+
+            const response = await this.$roadLawyerService.updateCrawlStatusSimple(params)
+
+            if (response.success) {
+                this.$message.success('修改成功')
+                this.editModalVisible = false
+                await this.loadData() // 刷新数据
+            } else {
+                this.$message.error(response.message || '修改失败')
+            }
+        } catch (error) {
+            console.error('修改失败:', error)
+
+            this.$message.error('修改失败，请重试')
+        } finally {
+            this.editLoading = false
+        }
+    }
+
+    // 取消修改
+    handleEditCancel(): void {
+        this.editModalVisible = false
+        this.currentEditRecord = null
+
+        // 重置表单数据
+        this.editFormData = {
+            processStatus: '',
+            extractStatus: ''
+        }
+
+        // 清除表单验证
+        this.$nextTick(() => {
+            const formRef = this.$refs.editFormModel as FormModel
+            if (formRef && formRef.clearValidate) {
+                formRef.clearValidate([])
+            }
+        })
     }
 
 

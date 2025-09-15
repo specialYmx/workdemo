@@ -29,6 +29,13 @@ import {
   CrawlConfigOperationResponse,
   CrawlHistoryQueryParams,
   CrawlHistoryResponse,
+  UpdateCrawlStatusParams,
+  UpdateCrawlStatusSimpleParams,
+  UpdateCrawlStatusResponse,
+  TaskHistoryQueryParams,
+  TaskHistoryResponse,
+  CrawlCheckRuleListParams,
+  CrawlCheckRuleListResponse,
 } from "~/model/LawyerConfigModel";
 // 将对象转换为FormData的辅助函数
 const toFormData = (obj: Record<string, unknown>): FormData => {
@@ -620,6 +627,130 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
         success: false,
         timestamp: Date.now(),
         data: defaultData,
+      };
+    }
+  },
+
+  async updateCrawlStatus(
+    params: UpdateCrawlStatusParams
+  ): Promise<UpdateCrawlStatusResponse> {
+    try {
+      const res = await $axios.post(api.lawyer.updateCrawlStatus, params);
+      return (
+        res.data || {
+          status: 500,
+          message: "No data received",
+          success: false,
+          timestamp: Date.now(),
+          data: "",
+        }
+      );
+    } catch (error) {
+      console.error("Error updating crawl status:", error);
+      return {
+        status: 500,
+        message: error instanceof Error ? error.message : "Unknown error",
+        success: false,
+        timestamp: Date.now(),
+        data: "",
+      };
+    }
+  },
+
+  // 简化的状态更新方法，只传递必要的状态参数
+  async updateCrawlStatusSimple(
+    params: UpdateCrawlStatusSimpleParams
+  ): Promise<UpdateCrawlStatusResponse> {
+    try {
+      const res = await $axios.post(api.lawyer.updateCrawlStatus, params);
+      return (
+        res.data || {
+          status: 500,
+          message: "No data received",
+          success: false,
+          timestamp: Date.now(),
+          data: "",
+        }
+      );
+    } catch (error) {
+      console.error("Error updating crawl status (simple):", error);
+      return {
+        status: 500,
+        message: error instanceof Error ? error.message : "Unknown error",
+        success: false,
+        timestamp: Date.now(),
+        data: "",
+      };
+    }
+  },
+
+  async getTaskHistory(
+    params: TaskHistoryQueryParams
+  ): Promise<TaskHistoryResponse> {
+    const defaultData = {
+      countId: "",
+      current: params.pageNum || 1,
+      hitCount: true,
+      maxLimit: 0,
+      optimizeCountSql: true,
+      orders: [],
+      pages: 0,
+      records: [],
+      searchCount: true,
+      size: params.pageSize || 10,
+      total: 0,
+    };
+
+    try {
+      const res = await $axios.post(
+        api.lawyer.getTaskHistory,
+        toFormData(params)
+      );
+      return (
+        res.data || {
+          status: 500,
+          message: "No data received",
+          success: false,
+          timestamp: Date.now(),
+          data: defaultData,
+        }
+      );
+    } catch (error) {
+      console.error("Error getting task history:", error);
+      return {
+        status: 500,
+        message: error instanceof Error ? error.message : "Unknown error",
+        success: false,
+        timestamp: Date.now(),
+        data: defaultData,
+      };
+    }
+  },
+
+  async getCrawlCheckRuleList(
+    params: CrawlCheckRuleListParams
+  ): Promise<CrawlCheckRuleListResponse> {
+    try {
+      const res = await $axios.post(api.lawyer.getCrawlCheckRuleList, null, {
+        params: { id: params.id },
+      });
+      return (
+        res.data || {
+          status: 500,
+          message: "No data received",
+          success: false,
+          timestamp: Date.now(),
+          data: [],
+        }
+      );
+    } catch (error) {
+      console.error("Error getting crawl check rule list:", error);
+      return {
+        status: 500,
+        message: error instanceof Error ? error.message : "Unknown error",
+        success: false,
+        timestamp: Date.now(),
+        data: [],
       };
     }
   },

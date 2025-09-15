@@ -11,6 +11,13 @@ import {
   CrawlConfigOperationResponse,
   CrawlHistoryQueryParams,
   CrawlHistoryResponse,
+  UpdateCrawlStatusParams,
+  UpdateCrawlStatusSimpleParams,
+  UpdateCrawlStatusResponse,
+  TaskHistoryQueryParams,
+  TaskHistoryResponse,
+  CrawlCheckRuleListParams,
+  CrawlCheckRuleListResponse,
 } from "~/model/LawyerConfigModel";
 
 // 法律合规智能系统数据模型
@@ -374,6 +381,18 @@ export interface RoadLawyerService {
   getCrawlHistory: (
     params: CrawlHistoryQueryParams
   ) => Promise<CrawlHistoryResponse>;
+  updateCrawlStatus: (
+    params: UpdateCrawlStatusParams
+  ) => Promise<UpdateCrawlStatusResponse>;
+  updateCrawlStatusSimple: (
+    params: UpdateCrawlStatusSimpleParams
+  ) => Promise<UpdateCrawlStatusResponse>;
+  getTaskHistory: (
+    params: TaskHistoryQueryParams
+  ) => Promise<TaskHistoryResponse>;
+  getCrawlCheckRuleList: (
+    params: CrawlCheckRuleListParams
+  ) => Promise<CrawlCheckRuleListResponse>;
   // ==================== 爬取配置相关方法 ====================
   getCrawlConfigList: (
     params: CrawlConfigQueryParams
