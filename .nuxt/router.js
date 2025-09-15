@@ -10,6 +10,7 @@ const _3c20d440 = () => interopDefault(import('..\\pages\\lawyerIndex\\index.vue
 const _f95945d8 = () => interopDefault(import('..\\pages\\lawyerKnowledge\\index.vue' /* webpackChunkName: "pages/lawyerKnowledge/index" */))
 const _472a0619 = () => interopDefault(import('..\\pages\\lawyerUpdate\\index.vue' /* webpackChunkName: "pages/lawyerUpdate/index" */))
 const _056e9ab0 = () => interopDefault(import('..\\pages\\manualReview\\index.vue' /* webpackChunkName: "pages/manualReview/index" */))
+const _6dea137f = () => interopDefault(import('..\\pages\\taskHistory\\index.vue' /* webpackChunkName: "pages/taskHistory/index" */))
 const _7f6b54ff = () => interopDefault(import('..\\pages\\lawyerKnowledge\\detail.vue' /* webpackChunkName: "pages/lawyerKnowledge/detail" */))
 const _3669cc9a = () => interopDefault(import('..\\pages\\lawyerUpdate\\detail.vue' /* webpackChunkName: "pages/lawyerUpdate/detail" */))
 const _4420b1eb = () => interopDefault(import('..\\pages\\manualReview\\detail.vue' /* webpackChunkName: "pages/manualReview/detail" */))
@@ -50,6 +51,10 @@ export const routerOptions = {
     path: "/manualReview",
     component: _056e9ab0,
     name: "manualReview"
+  }, {
+    path: "/taskHistory",
+    component: _6dea137f,
+    name: "taskHistory"
   }, {
     path: "/lawyerKnowledge/detail",
     component: _7f6b54ff,
