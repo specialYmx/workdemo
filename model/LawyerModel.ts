@@ -176,13 +176,22 @@ export interface DownloadFileParams extends MixedMap {
 export interface CollectParams extends MixedMap {
   searchId: string;
   empId: string;
-  isCollect: boolean;
+  collect: boolean;
 }
 
 // 文件上传参数
 export interface UploadParams {
-  id: string;
+  id?: string; // 更新时的文档ID，新增时可选
   file: File;
+  timeLiness?: string; // 时效性
+  effectivenessLevel?: string; // 效力位阶
+  categoryId?: string; // 分类ID
+  categoryMain?: string; // 主分类
+  legalSource?: string; // 来源
+  publishDateStr?: string; // 发布时间
+  department?: string; // 部门
+  appendix?: boolean; // 附件标识
+  documentNumber?: string; // 文档编号
   [key: string]: File | string | number | boolean | undefined;
 }
 
@@ -251,6 +260,10 @@ export interface BaseRuleItem {
   diffResultId: string | null;
   initDataFlag: 0 | 1;
   deleted: number;
+  // 新增字段
+  department?: string | null; // 责任部门
+  documentNumber?: string | null; // 发文字号
+  appendix?: boolean; // 是否附录
 }
 
 // 法规文档信息（基于真实API数据结构）
@@ -359,6 +372,9 @@ export interface RoadLawyerService {
   updateTimeLinessSchedule: (params: QueryParams) => Promise<boolean>;
   uploadRuleSource: (params: UploadParams) => Promise<boolean>;
   getAdmin: (params?: QueryParams) => Promise<boolean>;
+  getLegalCategory: (
+    params: LegalCategoryParams
+  ) => Promise<LegalCategoryItem[]>;
 
   // ==================== 人工审核相关方法 ====================
   approveToDoRule: (params: ApprovalParams) => Promise<boolean>;
@@ -441,6 +457,23 @@ export interface IconTypeMap extends StringMap {
 export interface DocumentMetaItem {
   icon: string;
   content: string;
+}
+
+// ==================== 专题分类相关类型定义 ====================
+
+// 专题分类项
+export interface LegalCategoryItem {
+  id: string;
+  name: string;
+  level: number;
+  parentId: string;
+  sort: number;
+  children: LegalCategoryItem[];
+}
+
+// 专题分类接口参数
+export interface LegalCategoryParams extends Record<string, unknown> {
+  id?: string; // 页面ID，如'2'、'3'等，空值表示获取全量数据
 }
 
 // 消息服务接口
@@ -663,9 +696,15 @@ export interface RuleSourceQueryParams extends BaseQueryParams {
   effectivenessLevel?: string;
   categoryMain?: string;
   categorySub?: string;
+  categoryId?: string;
   legalSource?: string;
   publishDateSort?: string;
   publishDateStr?: string;
+  collect?: boolean;
+  // 新增字段
+  appendix?: boolean;
+  department?: string;
+  documentNumber?: string;
   empId: string;
   // 分页参数
   page?: number;

@@ -79,7 +79,7 @@
 
                     <!-- 更新时间列 -->
                     <template slot="updateTime" slot-scope="text">
-                        {{ formatTime(text) }}
+                        {{ formatTime(text, 'yyyy-MM-dd') }}
                     </template>
 
                     <!-- 操作列 -->
@@ -108,12 +108,24 @@
 
         <!-- 执行历史记录弹窗 -->
         <a-modal v-model="crawlHistoryModalVisible" title="执行历史记录" width="90%" :footer="null">
-            <a-table :columns="crawlHistoryColumns" :data-source="crawlHistoryList" :pagination="historyPagination"
-                :loading="crawlHistoryLoading" :row-key="(record) => record.id">
+            <a-tabs v-model="activeLogType" @change="onLogTypeChange">
+                <a-tab-pane v-for="logType in logTypes" :key="logType" :tab="logType">
+                </a-tab-pane>
+            </a-tabs>
+
+            <!-- 统一的表格，放在 tabs 外面 -->
+            <a-table :columns="dynamicCrawlHistoryColumns" :data-source="crawlHistoryList"
+                :pagination="historyPagination" :loading="crawlHistoryLoading" :row-key="(record) => record.id">
                 <!-- 处理状态列 -->
                 <template slot="processStatus" slot-scope="text">
                     <a-tag :color="getProcessStatusColor(text)" class="lawyer-status-tag">
                         {{ text }}
+                    </a-tag>
+                </template>
+                <!-- AI提取状态列 -->
+                <template slot="aiExtractStatus" slot-scope="text">
+                    <a-tag :color="getAiExtractStatusColor(text)" class="lawyer-status-tag">
+                        {{ formatAiExtractStatus(text) }}
                     </a-tag>
                 </template>
                 <template slot="detailUrl" slot-scope="text">
@@ -197,52 +209,46 @@ export default class CrawlStatisticsComponent extends Vue {
         websiteName: '',
         articleTitle: '',
         detailUrl: '',
-        publishDate: '', // 可以设置为 "" 或 "2025-05-09" 这样的默认值
-        processStatus: undefined, // 处理状态过滤
+        publishDate: '',
+        processStatus: undefined,
         current: 1,
         size: 10,
-        orderBy: 'createdTime', // 默认按创建时间排序
-        sortRules: 'desc' // 默认倒序
+        orderBy: 'createdTime',
+        sortRules: 'desc'
     };
 
     // 表格数据
     dataList: CrawlDataItem[] = [];
     tableLoading: boolean = false;
-
     // 定时器
     refreshTimer: NodeJS.Timeout | null = null;
-
-
-
     // 执行历史记录相关数据
     crawlHistoryModalVisible: boolean = false;
     crawlHistoryList: CrawlHistoryItem[] = [];
     crawlHistoryLoading: boolean = false;
-
+    activeLogType: string = '爬取日志'; // 当前激活的日志类型
+    currentDetailId: string = ''; // 当前查看的详情ID
+    // 日志类型常量
+    logTypes = ['爬取日志', '核对日志'];
     // 审核记录相关数据
     checkRuleModalVisible: boolean = false;
     checkRuleList: CheckRuleItem[] = [];
     checkRuleLoading: boolean = false;
-
     // 修改状态相关数据
     editModalVisible: boolean = false;
     editLoading: boolean = false;
     currentEditRecord: CrawlDataItem | null = null;
-
     // 表单数据
     editFormData = {
         processStatus: '',
         extractStatus: ''
     };
-
     // 表单验证规则
     editFormRules = {
         processStatus: [
             { required: true, message: '请选择处理状态', trigger: 'change' }
         ]
     };
-
-
 
     // 分页配置
     pagination = {
@@ -253,10 +259,12 @@ export default class CrawlStatisticsComponent extends Vue {
         showQuickJumper: true,
         showTotal: (total: number) => `共 ${total} 条记录`
     };
-
-    historyPagination = { pageSize: 10, showSizeChanger: true, showQuickJumper: true, showTotal: (total) => `共 ${total} 条记录` }
-
-
+    historyPagination = {
+        pageSize: 10,
+        showSizeChanger: true,
+        showQuickJumper: true,
+        showTotal: (total: number) => `共 ${total} 条记录`
+    };
 
     // 表格列配置
     columns = [
@@ -270,12 +278,13 @@ export default class CrawlStatisticsComponent extends Vue {
             title: '网站名称',
             dataIndex: 'websiteName',
             key: 'websiteName',
-            width: 200
+            width: 150
         },
         {
             title: '文章标题',
             dataIndex: 'articleTitle',
             key: 'articleTitle',
+            width: 150,
             ellipsis: true
         },
         {
@@ -283,7 +292,7 @@ export default class CrawlStatisticsComponent extends Vue {
             dataIndex: 'detailUrl',
             key: 'detailUrl',
             scopedSlots: { customRender: 'detailUrl' },
-            width: 200,
+            width: 100,
             ellipsis: true
         },
         {
@@ -305,7 +314,6 @@ export default class CrawlStatisticsComponent extends Vue {
             dataIndex: 'publishDate',
             key: 'publishDate',
             scopedSlots: { customRender: 'publishDate' },
-            sorter: true,
             width: 140
         },
         {
@@ -321,7 +329,7 @@ export default class CrawlStatisticsComponent extends Vue {
             dataIndex: 'updateTime',
             key: 'updateTime',
             scopedSlots: { customRender: 'updateTime' },
-            width: 160,
+
             sorter: true
         },
         {
@@ -372,6 +380,59 @@ export default class CrawlStatisticsComponent extends Vue {
             width: 160
         }
     ];
+
+    // 动态表格列配置（根据日志类型）
+    get dynamicCrawlHistoryColumns() {
+        // 根据日志类型确定状态列配置
+        const statusColumn = this.activeLogType === '核对日志'
+            ? {
+                title: '状态',
+                dataIndex: 'aiExtractStatus',
+                key: 'aiExtractStatus',
+                scopedSlots: { customRender: 'aiExtractStatus' },
+                width: 120
+            }
+            : {
+                title: '处理状态',
+                dataIndex: 'processStatus',
+                key: 'processStatus',
+                scopedSlots: { customRender: 'processStatus' },
+                width: 120
+            };
+
+        return [
+            {
+                title: '文章标题',
+                dataIndex: 'articleTitle',
+                key: 'articleTitle',
+                ellipsis: true,
+                width: 200
+            },
+            {
+                title: '详情链接',
+                dataIndex: 'detailUrl',
+                key: 'detailUrl',
+                scopedSlots: { customRender: 'detailUrl' },
+                ellipsis: true,
+                width: 200
+            },
+            statusColumn,
+            {
+                title: '异常信息',
+                dataIndex: 'exceptionMsg',
+                key: 'exceptionMsg',
+                ellipsis: true,
+                width: 200
+            },
+            {
+                title: '创建时间',
+                dataIndex: 'createdTime',
+                key: 'createdTime',
+                scopedSlots: { customRender: 'createdTime' },
+                width: 160
+            }
+        ];
+    }
 
     // 审核记录表格列配置
     checkRuleColumns = [
@@ -474,8 +535,8 @@ export default class CrawlStatisticsComponent extends Vue {
         await this.loadData()
     }
 
-    // 重置搜索
-    async onReset(): Promise<void> {
+    // 重置搜索参数
+    private resetSearchParams(): void {
         this.searchParams = {
             websiteCode: '',
             websiteName: '',
@@ -485,9 +546,14 @@ export default class CrawlStatisticsComponent extends Vue {
             processStatus: undefined,
             current: 1,
             size: 10,
-            orderBy: 'createdTime', // 默认按创建时间排序
-            sortRules: 'desc' // 默认倒序
+            orderBy: 'createdTime',
+            sortRules: 'desc'
         }
+    }
+
+    // 重置搜索
+    async onReset(): Promise<void> {
+        this.resetSearchParams()
         this.pagination.current = 1
         await this.loadData()
     }
@@ -555,10 +621,26 @@ export default class CrawlStatisticsComponent extends Vue {
         return colorMap[status] || '#d9d9d9'
     }
 
+    // 格式化AI提取状态显示
+    formatAiExtractStatus(status: number | null | undefined): string {
+        if (status === 1) {
+            return '核对成功'
+        }
+        return '核对失败'
+    }
+
+    // 获取AI提取状态颜色
+    getAiExtractStatusColor(status: number | null | undefined): string {
+        if (status === 1) {
+            return '#52c41a' // 绿色表示成功
+        }
+        return '#ff4d4f' // 红色表示失败
+    }
+
     // 格式化时间显示
     formatTime(timeStr: string, format?: string): string {
         if (!timeStr) return '-'
-        return formatDate(timeStr, format || 'yyyy-MM-dd HH:mm:ss')
+        return formatDate(timeStr, format || 'yyyy-MM-dd hh:mm:ss')
     }
 
 
@@ -569,7 +651,7 @@ export default class CrawlStatisticsComponent extends Vue {
 
     // 开始自动刷新
     startAutoRefresh(): void {
-        // 每10分钟刷新一次（600000毫秒）
+        // 每10分钟刷新一次
         this.refreshTimer = setInterval(() => {
             // 只有当存在爬取中的任务时才自动刷新
             const hasProcessingTasks = this.dataList.some(item =>
@@ -624,8 +706,10 @@ export default class CrawlStatisticsComponent extends Vue {
 
     // 查看执行历史记录
     async viewCrawlHistory(record: CrawlDataItem): Promise<void> {
+        this.currentDetailId = record.id
+        this.activeLogType = '爬取日志' // 默认显示爬取日志
         this.crawlHistoryModalVisible = true
-        await this.loadCrawlHistoryData(record.id)
+        await this.loadCrawlHistoryData(record.id, this.activeLogType)
     }
 
     // 查看网站详情
@@ -660,13 +744,14 @@ export default class CrawlStatisticsComponent extends Vue {
     }
 
     // 加载执行历史记录数据
-    async loadCrawlHistoryData(detailId: string): Promise<void> {
+    async loadCrawlHistoryData(detailId: string, logType: string): Promise<void> {
         this.crawlHistoryLoading = true
         try {
             const params: CrawlHistoryQueryParams = {
                 detailId: detailId,
+                logType: logType,
                 current: 1,
-                size: 100 // 显示更多历史记录
+                size: 10 // 显示更多历史记录
             }
 
             const response = await this.$roadLawyerService.getCrawlHistory(params)
@@ -763,6 +848,14 @@ export default class CrawlStatisticsComponent extends Vue {
         })
     }
 
+    // 处理日志类型切换
+    async onLogTypeChange(logType: string): Promise<void> {
+        this.activeLogType = logType
+        if (this.currentDetailId) {
+            await this.loadCrawlHistoryData(this.currentDetailId, logType)
+        }
+    }
+
 
 }
 </script>
@@ -782,9 +875,20 @@ export default class CrawlStatisticsComponent extends Vue {
     align-items: center;
 }
 
-.lawyer-button-group {
+.lawyer-button-group,
+.lawyer-action-buttons {
     display: flex;
     gap: 8px;
+}
+
+.lawyer-action-buttons {
+    justify-content: center;
+
+    .ant-btn-link {
+        padding: 0;
+        height: auto;
+        line-height: 1.5;
+    }
 }
 
 .lawyer-status-tag {
@@ -804,17 +908,5 @@ export default class CrawlStatisticsComponent extends Vue {
 .lawyer-exception-text {
     color: #ff4d4f;
     cursor: help;
-}
-
-.lawyer-action-buttons {
-    display: flex;
-    gap: 8px;
-    justify-content: center;
-
-    .ant-btn-link {
-        padding: 0;
-        height: auto;
-        line-height: 1.5;
-    }
 }
 </style>

@@ -15,6 +15,8 @@ import {
   RuleUpdateListResponse,
   RuleSourceQueryParams,
   CheckRuleQueryParams,
+  LegalCategoryParams,
+  LegalCategoryItem,
 } from "~/model/LawyerModel";
 import {
   CrawlStatisticsQueryParams,
@@ -379,6 +381,21 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
     } catch (error) {
       console.error("Error checking admin permission:", error);
       return false;
+    }
+  },
+
+  async getLegalCategory(
+    params: LegalCategoryParams
+  ): Promise<LegalCategoryItem[]> {
+    try {
+      const res = await $axios.post(
+        `${api.lawyer.getLegalCategory}`,
+        toFormData(params)
+      );
+      return res.data?.data || [];
+    } catch (error) {
+      console.error("Error fetching legal category:", error);
+      return [];
     }
   },
   // ==================== 人工审核相关方法 ====================

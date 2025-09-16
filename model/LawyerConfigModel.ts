@@ -208,6 +208,7 @@ export interface CrawlHistoryItem {
   processStatus: ProcessStatus;
   exceptionMsg: string;
   createdTime: string;
+  aiExtractStatus?: number; // AI提取状态：1为成功，其他为失败
 }
 
 // ==================== 任务执行记录相关数据模型 ====================
@@ -306,6 +307,7 @@ export interface CrawlHistoryQueryParams extends BaseQueryParams {
   current?: number;
   size?: number;
   sortRules?: string;
+  logType?: string; // 日志类型：'爬取日志' | '执行日志'
 }
 
 // 爬取历史记录响应数据
