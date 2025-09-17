@@ -445,6 +445,8 @@ export default class CrawlConfigIndexComponent extends Vue {
         record: CrawlConfigItem,
         checked: boolean
     ): Promise<void> {
+        // 保存原始状态，用于失败时回滚
+        const originalState = record.enabled;
         // 设置开关加载状态
         this.$set(record, "switchLoading", true);
 
@@ -460,10 +462,14 @@ export default class CrawlConfigIndexComponent extends Vue {
                 record.enabled = checked ? 1 : 0;
                 this.$message.success(`已${checked ? "启用" : "禁用"}配置`);
             } else {
+                // 请求失败时回滚到原始状态
+                record.enabled = originalState;
                 this.$message.error(response.message || "操作失败");
             }
         } catch (error) {
             console.error("切换状态失败:", error);
+            // 异常时回滚到原始状态
+            record.enabled = originalState;
             this.$message.error("操作失败，请重试");
         } finally {
             this.$set(record, "switchLoading", false);
