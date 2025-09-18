@@ -70,8 +70,10 @@ export default function ({ $axios, redirect, store }) {
 
   // 请求拦截器
   $axios.onRequest((config) => {
-    // 这里可以添加请求头等配置
-    // 例如: config.headers.Authorization = `Bearer ${store.state.auth.token}`
+    // 添加Bearer token验证
+    if (store.state.auth && store.state.auth.token) {
+      config.headers.Authorization = `Bearer ${store.state.auth.token}`;
+    }
     return config;
   });
 

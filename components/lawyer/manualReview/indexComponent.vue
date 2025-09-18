@@ -117,6 +117,8 @@ export default class LawyerManualReviewIndexComponent extends Vue {
 
     // 组件销毁标志
     private isDestroyed: boolean = false
+    // 初始化标志，避免重复加载数据
+    private hasInitialized: boolean = false
     // 当前分页状态（使用 CommonModel 的 CustomPagination）
     currentPagination: CustomPagination = {
         current: 1,
@@ -232,6 +234,9 @@ export default class LawyerManualReviewIndexComponent extends Vue {
 
         // 加载文档数据
         await this.loadDocuments()
+
+        // 标记初始化完成
+        this.hasInitialized = true
     }
 
     // 监听路由变化
@@ -239,6 +244,9 @@ export default class LawyerManualReviewIndexComponent extends Vue {
     async onRouteChange(to, from): Promise<void> {
         // 防护：确保路由对象存在
         if (!to || !from) return
+
+        // 如果还未完成初始化，跳过路由变化处理，避免重复加载
+        if (!this.hasInitialized) return
 
         // 只有当筛选参数发生变化时才重新设置
         if (to.query.filter !== from.query.filter) {
@@ -291,6 +299,10 @@ export default class LawyerManualReviewIndexComponent extends Vue {
     // 加载文档数据
     async loadDocuments(): Promise<void> {
         this.tableLoading = true
+
+        // 清除选中状态，避免操作过期数据
+        this.selectedRowKeys = []
+        this.selectedRows = []
 
         try {
             // 构建查询参数，包含分页信息

@@ -39,11 +39,63 @@ export default class LawyerKnowledgeDetailComponent extends Vue {
 
     // 处理文档状态更新
     handleUpdateDocumentStatus(statusData: {
-        isRevoke: boolean;
         timeLiness: string;
+        categoryMain?: string;
+        categorySub?: string;
+        categoryId?: string;
+        effectivenessLevel?: string;
+        effectDate?: string;
+        legalSource?: string;
+        department?: string;
+        documentNumber?: string;
+        appendix?: boolean;
+        publishDateStr?: string;
     }): void {
-        this.document.isRevoke = statusData.isRevoke
+        // 更新时效性相关字段
         this.document.timeLiness = statusData.timeLiness
+        this.document.status = statusData.timeLiness
+        this.document.isRevoke = statusData.timeLiness === '已废止'
+
+        // 更新分类相关字段（DocumentViewerData接口已包含这些字段）
+        if (statusData.categoryMain !== undefined) {
+            this.document.categoryMain = statusData.categoryMain
+        }
+        if (statusData.categorySub !== undefined) {
+            this.document.categorySub = statusData.categorySub
+        }
+        if (statusData.categoryId !== undefined) {
+            this.document.categoryId = statusData.categoryId
+        }
+
+        // 更新效力位阶
+        if (statusData.effectivenessLevel !== undefined) {
+            this.document.effectivenessLevel = statusData.effectivenessLevel
+        }
+
+        // 更新生效时间（注意字段名映射：effectDate -> effectiveDate）
+        if (statusData.effectDate !== undefined) {
+            this.document.effectiveDate = statusData.effectDate
+        }
+
+        // 更新其他字段
+        if (statusData.legalSource !== undefined) {
+            this.document.legalSource = statusData.legalSource
+            this.document.publisher = statusData.legalSource // 同时更新publisher字段
+        }
+        if (statusData.department !== undefined) {
+            this.document.department = statusData.department
+        }
+        if (statusData.documentNumber !== undefined) {
+            this.document.documentNumber = statusData.documentNumber
+            this.document.fileNumber = statusData.documentNumber // 同时更新fileNumber字段
+        }
+        if (statusData.appendix !== undefined) {
+            this.document.appendix = statusData.appendix
+        }
+        if (statusData.publishDateStr !== undefined) {
+            this.document.publishDateStr = statusData.publishDateStr
+            this.document.date = statusData.publishDateStr // 同时更新date字段
+        }
     }
 
     // 获取文档详情数据
@@ -65,14 +117,18 @@ export default class LawyerKnowledgeDetailComponent extends Vue {
                     id: result.id,
                     title: result.ruleName,
                     date: result.publishDateStr || result.createdTimeStr,
-                    effectiveDate: result.effectDateStr || '暂无',
-                    publisher: result.legalSource || result.websiteName,
-                    fileNumber: result.documentNo || '暂无',
+                    effectiveDate: result.effectDateStr,
+                    publisher: result.legalSource,
+                    fileNumber: result.documentNo || result.documentNumber || undefined,
                     status: result.timeLiness || '未知',
                     views: result.readCount,
                     content: formattedContent,
                     isRevoke: result.timeLiness === '已废止',
-                    timeLiness: result.timeLiness || '未知'
+                    timeLiness: result.timeLiness || '未知',
+                    // 保留所有需要的字段
+                    effectivenessLevel: result.effectivenessLevel,
+                    tags: result.topicCategory ? [result.topicCategory] : [],
+                    ...result // 保留原始数据的所有字段
                 }
             } else {
                 // 如果没有获取到数据，显示错误信息

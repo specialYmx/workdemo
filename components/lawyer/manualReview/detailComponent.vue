@@ -62,10 +62,11 @@ export default class LawyerManualReviewDetailComponent extends Vue {
         reviewData: ReviewSubmitData & {
             categoryMain?: string
             categorySub?: string
+            categoryId?: string
             effectDateStr?: string | null
         }
     ): Promise<void> {
-        const { action, categoryMain, categorySub, effectDateStr } = reviewData
+        const { action, categoryMain, categorySub, categoryId, effectDateStr } = reviewData
 
         try {
             // 调用API
@@ -75,6 +76,7 @@ export default class LawyerManualReviewDetailComponent extends Vue {
                 effectDateStr: effectDateStr || this.documentData.effectDate, // 优先使用弹窗设置的施行日期，允许为空
                 categoryMain, // 允许为空
                 categorySub, // 允许为空
+                categoryId, // 专题分类ID - 跟大家智库的逻辑一样
             })
 
             // 检查组件是否已销毁

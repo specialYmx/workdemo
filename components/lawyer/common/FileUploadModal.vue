@@ -1,6 +1,6 @@
 <template>
     <div ref="fileUploadModalContainer">
-        <a-modal :visible="visible" :title="title" :width="520" :footer="null" :mask-closable="false"
+        <a-modal :visible="visible" :title="title" :width="800" :footer="null" :mask-closable="false"
             :closable="!uploading" :get-container="() => $refs.fileUploadModalContainer || document.body"
             @cancel="handleCancel">
             <div class="lawyer-upload-container">
@@ -34,6 +34,89 @@
                             <span>已选择 {{ selectedFiles.length }} 个文件</span>
                         </div>
                     </div>
+
+                    <!-- 表单字段 - 只在新增模式下显示 -->
+                    <a-form-model v-if="!isUpdate" ref="form" :model="formData" :label-col="{ span: 8 }"
+                        :wrapper-col="{ span: 16 }" style="margin-top: 24px;">
+                        <a-row :gutter="16">
+                            <a-col :span="12">
+                                <!-- 时效性 -->
+                                <a-form-model-item label="时效性" prop="timeLiness">
+                                    <a-select v-model="formData.timeLiness" placeholder="请选择时效性">
+                                        <a-select-option v-for="option in timeLinessOptions" :key="option.value"
+                                            :value="option.value">
+                                            {{ option.label }}
+                                        </a-select-option>
+                                    </a-select>
+                                </a-form-model-item>
+
+                                <!-- 专题分类 -->
+                                <a-form-model-item label="专题分类" prop="categoryPath">
+                                    <a-cascader v-model="formData.categoryPath" :options="categoryOptions"
+                                        placeholder="请选择专题分类" :show-search="true" :change-on-select="true"
+                                        style="width: 100%" />
+                                </a-form-model-item>
+
+                                <!-- 发布时间 -->
+                                <a-form-model-item label="发布时间" prop="publishDate">
+                                    <a-date-picker v-model="formData.publishDate" style="width: 100%"
+                                        placeholder="请选择发布时间" format="YYYY-MM-DD" value-format="YYYY-MM-DD" />
+                                </a-form-model-item>
+
+
+
+                                <!-- 文档编号 -->
+                                <a-form-model-item label="发文字号" prop="documentNumber">
+                                    <a-input v-model="formData.documentNumber" placeholder="请输入发文字号" />
+                                </a-form-model-item>
+                                <!-- 是否附录 -->
+                                <a-form-model-item label="是否附录" prop="appendix">
+                                    <a-switch v-model="formData.appendix" />
+                                    <span style="margin-left: 8px; color: #666; font-size: 12px;">
+                                        {{ formData.appendix ? '是' : '否' }}
+                                    </span>
+                                </a-form-model-item>
+                            </a-col>
+
+                            <a-col :span="12">
+                                <!-- 效力位阶 -->
+                                <a-form-model-item label="效力位阶" prop="effectivenessLevel">
+                                    <a-select v-model="formData.effectivenessLevel" placeholder="请选择效力位阶">
+                                        <a-select-option value="法律法规">法律法规</a-select-option>
+                                        <a-select-option value="部门规章规范性文件">部门规章规范性文件</a-select-option>
+                                        <a-select-option value="自律规则">自律规则</a-select-option>
+                                        <a-select-option value="其他">其他</a-select-option>
+                                    </a-select>
+                                </a-form-model-item>
+
+                                <!-- 来源 -->
+                                <a-form-model-item label="来源" prop="legalSource">
+                                    <a-select v-model="formData.legalSource" placeholder="请选择来源">
+                                        <a-select-option v-for="option in websiteOptions" :key="option.value"
+                                            :value="option.value">
+                                            {{ option.label }}
+                                        </a-select-option>
+                                    </a-select>
+                                </a-form-model-item>
+                                <!-- 生效时间 -->
+                                <a-form-model-item label="生效时间" prop="effectDate">
+                                    <a-date-picker v-model="formData.effectDate" style="width: 100%"
+                                        placeholder="请选择生效时间" format="YYYY-MM-DD" value-format="YYYY-MM-DD" />
+                                </a-form-model-item>
+                                <!-- 部门 -->
+                                <a-form-model-item label="责任部门" prop="department">
+                                    <a-select v-model="formData.department" placeholder="请选择责任部门" :allow-clear="true">
+                                        <a-select-option v-for="option in departmentOptions" :key="option.value"
+                                            :value="option.value">
+                                            {{ option.label }}
+                                        </a-select-option>
+                                    </a-select>
+                                </a-form-model-item>
+
+
+                            </a-col>
+                        </a-row>
+                    </a-form-model>
 
                     <!-- 错误提示 -->
                     <div v-if="errorMessage" class="lawyer-error-message">
@@ -106,7 +189,7 @@
                     </a-button>
                     <a-button v-if="!uploading && !uploadSuccess" type="primary" :disabled="selectedFiles.length === 0"
                         @click="startUpload">
-                        开始上传
+                        {{ isUpdate ? '更新文档' : '上传文档' }}
                     </a-button>
 
                     <a-button v-if="!uploading && uploadSuccess" type="primary" @click="handleComplete">
@@ -123,15 +206,24 @@ import { Component, Vue, Prop, Watch, Emit } from 'nuxt-property-decorator'
 import {
     UploadConfig,
     UploadSuccessData,
-    UploadErrorData
+    UploadErrorData,
+    CascaderOption,
+    FilterOption,
+    DepartmentOption
 } from '~/model/LawyerModel'
 
 @Component
 export default class FileUploadModal extends Vue {
-    @Prop({ type: Boolean, default: false }) visible!: boolean;
-    @Prop({ type: String, default: '上传文件' }) title!: string;
-    @Prop({ type: String, default: '' }) documentId!: string;
-    @Prop({ type: String, default: '' }) documentTitle!: string;
+    @Prop({ default: false }) visible!: boolean;
+    @Prop({ default: '上传文件' }) title!: string;
+    @Prop({ default: '' }) documentId!: string;
+    @Prop({ default: '' }) documentTitle!: string;
+    @Prop({ default: '' }) categoryName!: string; // 分类名称，用于获取分类数据
+    @Prop({ default: () => [] }) timeLinessOptions!: FilterOption[]; // 时效性选项
+    @Prop({ default: () => [] }) websiteOptions!: FilterOption[]; // 来源选项
+    @Prop({ default: () => [] }) categoryOptions!: CascaderOption[]; // 分类选项
+    @Prop({ default: () => [] }) departmentOptions!: DepartmentOption[]; // 部门选项
+    @Prop({ default: () => ({}) }) documentData!: any; // 文档数据，用于回显
 
     // 上传配置
     @Prop({
@@ -147,6 +239,29 @@ export default class FileUploadModal extends Vue {
     uploadProgress: number = 0;
     errorMessage: string = '';
     progressTimer: NodeJS.Timeout | null = null;
+
+    // 表单数据
+    formData: {
+        timeLiness?: string;
+        effectivenessLevel?: string;
+        categoryPath?: string[];
+        legalSource?: string;
+        publishDate?: string;
+        effectDate?: string;
+        department?: string;
+        documentNumber?: string;
+        appendix?: boolean;
+    } = {
+            timeLiness: undefined,
+            effectivenessLevel: undefined,
+            categoryPath: [],
+            legalSource: undefined,
+            publishDate: undefined,
+            effectDate: undefined,
+            department: undefined,
+            documentNumber: undefined,
+            appendix: false
+        };
 
     // 计算属性 - 获取配置值
     get uploadConfig(): Required<UploadConfig> {
@@ -175,6 +290,24 @@ export default class FileUploadModal extends Vue {
             status: 'done',
             originFileObj: file
         }))
+    }
+
+
+
+    // 是否为更新模式
+    get isUpdate(): boolean {
+        return !!this.documentId
+    }
+
+    // 监听弹窗显示状态
+    @Watch('visible')
+    onVisibleChange(newVal: boolean): void {
+        if (newVal) {
+            this.resetFormData()
+            this.fillFormData() // 回显数据
+        } else {
+            this.resetState()
+        }
     }
 
     // antd-vue Upload 组件的 beforeUpload 钩子
@@ -277,6 +410,150 @@ export default class FileUploadModal extends Vue {
         this.errorMessage = ''
     }
 
+
+
+    // 重置表单数据
+    resetFormData(): void {
+        this.formData = {
+            timeLiness: undefined,
+            effectivenessLevel: undefined,
+            categoryPath: [],
+            legalSource: undefined,
+            publishDate: undefined,
+            department: undefined,
+            documentNumber: undefined,
+            appendix: false
+        }
+    }
+
+    // 填充表单数据（用于回显）
+    fillFormData(): void {
+        if (!this.documentData || !this.isUpdate) return
+
+        // 回显时效性
+        if (this.documentData.timeLiness) {
+            this.formData.timeLiness = this.documentData.timeLiness
+        }
+
+        // 回显效力位阶
+        if (this.documentData.effectivenessLevel) {
+            this.formData.effectivenessLevel = this.documentData.effectivenessLevel
+        }
+
+        // 回显来源
+        if (this.documentData.legalSource) {
+            this.formData.legalSource = this.documentData.legalSource
+        }
+
+        // 回显发布时间
+        if (this.documentData.publishDateStr) {
+            this.formData.publishDate = this.documentData.publishDateStr
+        }
+
+        // 回显生效时间 - 确保不是无效的日期字符串
+        const effectDate = this.documentData.effectDate || this.documentData.effectDateStr
+        if (effectDate && effectDate !== '暂无' && effectDate !== 'undefined' && effectDate !== 'null') {
+            // 验证是否为有效的日期格式
+            const dateRegex = /^\d{4}-\d{2}-\d{2}$/
+            if (dateRegex.test(effectDate)) {
+                this.formData.effectDate = effectDate
+            } else {
+                this.formData.effectDate = undefined
+            }
+        } else {
+            this.formData.effectDate = undefined
+        }
+
+        // 回显部门
+        if (this.documentData.department) {
+            this.formData.department = this.documentData.department
+        }
+
+        // 回显文档编号
+        if (this.documentData.documentNumber) {
+            this.formData.documentNumber = this.documentData.documentNumber
+        }
+
+        // 回显专题分类 - 优先使用categoryId，其次使用categoryMain/categorySub
+        if (this.documentData.categoryId) {
+            // 如果有categoryId，需要找到完整的路径
+            const categoryPath = this.getCategoryPathById(this.documentData.categoryId)
+            this.formData.categoryPath = categoryPath
+        } else if (this.documentData.categoryMain) {
+            // 兼容旧数据：根据分类名称获取分类ID
+            const categoryPath = [this.getCategoryIdByName(this.documentData.categoryMain)]
+            if (this.documentData.categorySub) {
+                categoryPath.push(this.getCategoryIdByName(this.documentData.categorySub))
+            }
+            this.formData.categoryPath = categoryPath
+        }
+
+        // 回显是否附录
+        if (this.documentData.appendix !== undefined) {
+            this.formData.appendix = this.documentData.appendix
+        }
+
+
+    }
+
+    // 根据分类ID获取分类名称
+    getCategoryNameById(categoryId: string): string {
+        const findCategoryName = (options: CascaderOption[], id: string): string => {
+            for (const option of options) {
+                if (option.value === id) {
+                    return option.label
+                }
+                if (option.children && option.children.length > 0) {
+                    const childName = findCategoryName(option.children, id)
+                    if (childName) {
+                        return childName
+                    }
+                }
+            }
+            return ''
+        }
+        return findCategoryName(this.categoryOptions, categoryId)
+    }
+
+    // 根据分类名称获取分类ID
+    getCategoryIdByName(categoryName: string): string {
+        const findCategoryId = (options: CascaderOption[], name: string): string => {
+            for (const option of options) {
+                if (option.label === name) {
+                    return option.value
+                }
+                if (option.children && option.children.length > 0) {
+                    const childId = findCategoryId(option.children, name)
+                    if (childId) {
+                        return childId
+                    }
+                }
+            }
+            return ''
+        }
+        return findCategoryId(this.categoryOptions, categoryName)
+    }
+
+    // 根据分类ID获取完整的分类路径
+    getCategoryPathById(categoryId: string): string[] {
+        const findCategoryPath = (options: CascaderOption[], id: string, path: string[] = []): string[] | null => {
+            for (const option of options) {
+                const currentPath = [...path, option.value]
+                if (option.value === id) {
+                    return currentPath
+                }
+                if (option.children && option.children.length > 0) {
+                    const childPath = findCategoryPath(option.children, id, currentPath)
+                    if (childPath) {
+                        return childPath
+                    }
+                }
+            }
+            return null
+        }
+        return findCategoryPath(this.categoryOptions, categoryId) || []
+    }
+
     removeSelectedFile(index?: number): void {
         if (typeof index === 'number') {
             // 移除指定索引的文件
@@ -323,13 +600,19 @@ export default class FileUploadModal extends Vue {
 
     // 真实上传到后端 - 支持单文件和多文件
     async simulateUpload(): Promise<void> {
-        if (this.selectedFiles.length === 0 || !this.documentId) {
-            throw new Error('缺少必要的上传参数')
+        if (this.selectedFiles.length === 0) {
+            throw new Error('请先选择文件')
+        }
+
+        // 新增模式不需要documentId，更新模式需要
+        if (this.isUpdate && !this.documentId) {
+            throw new Error('缺少文档ID')
         }
 
         try {
             const totalFiles = this.selectedFiles.length
             let completedFiles = 0
+            let currentFileProgress = 0
 
             console.log('上传参数:', {
                 id: this.documentId,
@@ -339,12 +622,15 @@ export default class FileUploadModal extends Vue {
 
             // 上传进度处理
             this.progressTimer = setInterval(() => {
+                // 模拟当前文件的上传进度
+                currentFileProgress += Math.random() * 15 + 5 // 每次增加5-20%
+                currentFileProgress = Math.min(90, currentFileProgress)
+
                 // 基础进度：已完成文件的进度 + 当前文件的模拟进度
                 const baseProgress = (completedFiles / totalFiles) * 100
-                const currentFileProgress = Math.min(90, this.uploadProgress % 100)
                 const totalProgress = Math.min(
                     90,
-                    baseProgress + currentFileProgress / totalFiles
+                    baseProgress + (currentFileProgress / totalFiles)
                 )
                 this.uploadProgress = totalProgress
             }, 200)
@@ -355,13 +641,47 @@ export default class FileUploadModal extends Vue {
 
                 console.log(`正在上传第 ${i + 1}/${totalFiles} 个文件: ${file.name}`)
 
-                // 调用真实的后端接口
-                const success: boolean = await this.$roadLawyerService.uploadRuleSource(
-                    {
-                        id: this.documentId,
-                        file
+                // 重置当前文件进度
+                currentFileProgress = 0
+
+                // 准备上传参数
+                const uploadParams: any = {
+                    file
+                }
+
+                // 如果是更新操作，只添加id，不传递其他字段
+                if (this.isUpdate) {
+                    uploadParams.id = this.documentId
+                } else {
+                    // 新增模式下才传递表单字段
+                    uploadParams.appendix = this.formData.appendix
+                    uploadParams.timeLiness = this.formData.timeLiness
+                    uploadParams.effectivenessLevel = this.formData.effectivenessLevel
+                    uploadParams.legalSource = this.formData.legalSource
+                    uploadParams.publishDateStr = this.formData.publishDate
+                    uploadParams.effectDate = this.formData.effectDate
+                    uploadParams.department = this.formData.department
+                    uploadParams.documentNumber = this.formData.documentNumber
+
+                    // 处理分类路径
+                    if (this.formData.categoryPath && this.formData.categoryPath.length > 0) {
+                        // 使用分类ID作为categoryId，使用分类名称作为categoryMain和categorySub
+                        uploadParams.categoryMain = this.getCategoryNameById(this.formData.categoryPath[0])
+                        if (this.formData.categoryPath.length > 1) {
+                            uploadParams.categorySub = this.getCategoryNameById(this.formData.categoryPath[1])
+                            // 如果有子分类，使用子分类ID作为 categoryId
+                            uploadParams.categoryId = this.formData.categoryPath[1]
+                        } else {
+                            // 如果只有主分类，使用主分类ID作为 categoryId
+                            uploadParams.categoryId = this.formData.categoryPath[0]
+                        }
                     }
-                )
+                }
+
+                console.log('上传参数:', uploadParams)
+
+                // 调用真实的后端接口
+                const success: boolean = await this.$roadLawyerService.uploadRuleSource(uploadParams)
 
                 if (!success) {
                     throw new Error(`文件 "${file.name}" 上传失败`)
@@ -418,10 +738,7 @@ export default class FileUploadModal extends Vue {
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
     }
 
-    @Watch('visible')
-    onVisibleChange(newVal: boolean): void {
-        if (!newVal) { this.resetState() }
-    }
+
 
     // 组件销毁时清理异步任务
     beforeDestroy(): void {
@@ -487,6 +804,8 @@ export default class FileUploadModal extends Vue {
         }
     }
 }
+
+
 
 .lawyer-files-container {
     margin-top: 16px;

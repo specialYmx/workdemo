@@ -16,6 +16,31 @@
                             <a-icon type="book" />
                             大家智库
                         </nuxt-link>
+                        <nuxt-link to="/regulationCompilation" class="lawyer-nav-link" exact-active-class="active">
+                            <a-icon type="file-protect" />
+                            法规汇编
+                        </nuxt-link>
+                        <nuxt-link to="/punishmentCompilation" class="lawyer-nav-link" exact-active-class="active">
+                            <a-icon type="warning" />
+                            处罚汇编
+                        </nuxt-link>
+                        <nuxt-link to="/researchCollection" class="lawyer-nav-link" exact-active-class="active">
+                            <a-icon type="experiment" />
+                            研究集锦
+                        </nuxt-link>
+                        <nuxt-link to="/legalComplianceQuarterly" class="lawyer-nav-link" exact-active-class="active">
+                            <a-icon type="calendar" />
+                            法律合规季刊
+                        </nuxt-link>
+                        <nuxt-link to="/institutionLibrary" class="lawyer-nav-link" exact-active-class="active">
+                            <a-icon type="bank" />
+                            制度库
+                        </nuxt-link>
+                        <nuxt-link to="/newRegulationInterpretation" class="lawyer-nav-link"
+                            exact-active-class="active">
+                            <a-icon type="read" />
+                            新规解读
+                        </nuxt-link>
                         <nuxt-link to="/lawyerUpdate" class="lawyer-nav-link" exact-active-class="active">
                             <a-icon type="file-text" />
                             法规更新

@@ -8,10 +8,13 @@ export default {
   exportStatisticExcel: "/legal/exportStatisticExcel", // 导出Excel报告 参数：condition : month|quarter|year
 
   // ==================== 大家智库相关接口 (rule-source-controller) ====================
+  getLegalCategory: "/legal/getLegalCategory", // 获取专题分类  参数 如id:'2'，id:'3'等，空值表示获取全量数据
+  getDepartmentData: "/auth/role/inquireRoles", // 获取部门数据 参数传{current：1，size:999固定这样传参}为了获取所有的部门数据
   deleteRuleSource: "/legal/deleteRuleSource", // 删除法规资源
   downloadRuleFile: "/legal/download", // 下载法规文件
   getRuleSourceCollect: "/legal/getMyCollectionList", // 获取法规收藏
   getRuleSourceDetail: "/legal/getRuleSourceDetail", // 获取法规详情
+  updateRuleSourceDetail: "/legal/updateRuleSourceDetail", // 修改法规详情
   getRuleSourceList: "/legal/getRuleSourceList", // 大家智库-列表页
   getRuleUpdateList: "/legal/getRuleUpdateList", // 智库更新-列表页
   saveOrCancelCollect: "/legal/saveOrCancelCollect", // 保存或取消收藏

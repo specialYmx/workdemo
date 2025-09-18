@@ -25,14 +25,8 @@
 
                 <a-table :columns="columns" :data-source="dataList" :pagination="pagination" :loading="tableLoading"
                     :row-key="(record) => record.id" @change="handleTableChange">
-                    <!-- 任务状态列 -->
-                    <template slot="taskResult" slot-scope="text">
-                        <a-tag :color="getTaskResultColor(text)" class="lawyer-status-tag">
-                            {{ text }}
-                        </a-tag>
-                    </template>
-                    <!-- 任务开始时间列 -->
-                    <template slot="taskStartTime" slot-scope="text">
+                    <!-- 时间格式化插槽 -->
+                    <template slot="datetime" slot-scope="text">
                         {{ formatDateTime(text) }}
                     </template>
                 </a-table>
@@ -43,12 +37,12 @@
 
 <script lang="ts">
 import { Component, Vue } from 'nuxt-property-decorator'
-import moment from 'moment'
 import {
     TaskHistoryItem,
     TaskHistoryQueryParams
 } from '~/model/LawyerConfigModel'
-import { CustomPagination, CustomColumn } from '~/model/CommonModel';
+import { CustomPagination, CustomColumn } from '~/model/CommonModel'
+import { formatDate } from '~/utils/date';
 @Component({ name: 'lawyer-task-history-index-component' })
 export default class TaskHistoryIndexComponent extends Vue {
     // 搜索参数
@@ -90,14 +84,20 @@ export default class TaskHistoryIndexComponent extends Vue {
             title: '任务状态',
             dataIndex: 'taskResult',
             key: 'taskResult',
-            scopedSlots: { customRender: 'taskResult' },
             width: 120
         },
         {
             title: '任务开始时间',
             dataIndex: 'taskStartTime',
             key: 'taskStartTime',
-            scopedSlots: { customRender: 'taskStartTime' },
+            scopedSlots: { customRender: 'datetime' },
+            width: 180
+        },
+        {
+            title: '任务结束时间',
+            dataIndex: 'taskEndTime',
+            key: 'taskEndTime',
+            scopedSlots: { customRender: 'datetime' },
             width: 180
         }
     ];
@@ -167,26 +167,6 @@ export default class TaskHistoryIndexComponent extends Vue {
         await this.loadData()
     }
 
-    // 获取任务状态颜色
-    getTaskResultColor(status: string): string {
-        switch (status) {
-            case '成功':
-            case '执行成功':
-                return 'green'
-            case '失败':
-            case '执行失败':
-                return 'red'
-            case '执行中':
-            case '运行中':
-                return 'blue'
-            case '等待中':
-            case '待执行':
-                return 'orange'
-            default:
-                return 'default'
-        }
-    }
-
     // 格式化日期时间
     formatDateTime(
         datetime: string,
@@ -194,10 +174,9 @@ export default class TaskHistoryIndexComponent extends Vue {
     ): string {
         if (!datetime) { return '-' }
         try {
-            const m = moment(datetime)
             return format === 'date'
-                ? m.format('YYYY-MM-DD')
-                : m.format('YYYY-MM-DD HH:mm:ss')
+                ? formatDate(datetime, 'yyyy-MM-dd')
+                : formatDate(datetime, 'yyyy-MM-dd hh:mm:ss')
         } catch {
             return datetime
         }

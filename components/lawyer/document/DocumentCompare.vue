@@ -141,13 +141,13 @@
 
 <script lang="ts">
 import { Component, Vue, Prop, Emit } from 'nuxt-property-decorator'
-import { cascaderOptions } from '~/enums/Lawyer'
 import {
     DocumentCompareData,
     ReviewAction,
     DocumentColumn,
     CascaderOption,
     ReviewSubmitData,
+    LegalCategoryItem,
 } from '~/model/LawyerModel'
 
 @Component({ name: 'document-compare' })
@@ -160,15 +160,76 @@ export default class DocumentCompare extends Vue {
     tempEffectDate: string | null = null
 
     // 标签选项数据
-    tagOptions: CascaderOption[] = cascaderOptions
+    tagOptions: CascaderOption[] = []
 
-    // 显示标签（合并为单个标签）
+    // 组件挂载时加载专题分类数据
+    async mounted(): Promise<void> {
+        await this.loadCategoryOptions()
+    }
+
+    // 加载专题分类数据 - 固定获取全部数据
+    async loadCategoryOptions(): Promise<void> {
+        try {
+            console.log('开始加载专题分类数据（全量）')
+
+            const categories: LegalCategoryItem[] = await this.$roadLawyerService.getLegalCategory({
+                // 不传 id 参数，获取全部专题分类数据
+            })
+
+            console.log('获取到的分类数据:', categories)
+
+            if (categories && categories.length > 0) {
+                this.tagOptions = this.convertToCascaderOptions(categories)
+                console.log('转换后的级联选择器数据:', this.tagOptions)
+            } else {
+                console.warn('未获取到分类数据')
+                this.tagOptions = []
+            }
+        } catch (error) {
+            console.error('加载专题分类数据失败:', error)
+            this.tagOptions = []
+        }
+    }
+
+    // 将API数据转换为级联选择器格式
+    convertToCascaderOptions(categories: LegalCategoryItem[]): CascaderOption[] {
+        return categories.map((category: LegalCategoryItem): CascaderOption => ({
+            value: category.id,
+            label: category.name,
+            children: this.convertToCascaderOptions(category.children || [])
+        }))
+    }
+
+    // 根据分类ID获取分类名称
+    getCategoryNameById(categoryId: string): string {
+        const findCategoryName = (options: CascaderOption[], id: string): string => {
+            for (const option of options) {
+                if (option.value === id) {
+                    return option.label
+                }
+                if (option.children && option.children.length > 0) {
+                    const childName = findCategoryName(option.children, id)
+                    if (childName) {
+                        return childName
+                    }
+                }
+            }
+            return ''
+        }
+        return findCategoryName(this.tagOptions, categoryId)
+    }
+
+    // 显示标签（合并为单个标签）- 将ID转换为名称显示
     get displayTag(): string {
         if (!this.document) return ''
         const tags: string[] = this.document.tags || []
         if (tags.length === 0) return ''
-        if (tags.length === 1) return tags[0]
-        return `${tags[0]}/${tags[1]}`
+
+        // 将ID转换为名称
+        const tagNames = tags.map(tagId => this.getCategoryNameById(tagId) || tagId)
+
+        if (tagNames.length === 1) return tagNames[0]
+        return `${tagNames[0]}/${tagNames[1]}`
     }
 
     // 审核操作按钮
@@ -413,12 +474,15 @@ export default class DocumentCompare extends Vue {
 
     // 处理标签编辑确认
     handleTagEditConfirm(): void {
-        // 生成显示标签
+        // 生成显示标签 - 将ID转换为名称显示
         let tagDisplay: string = ''
         if (this.tempSelectedTagPath.length === 1) {
-            tagDisplay = this.tempSelectedTagPath[0]
+            const categoryName = this.getCategoryNameById(this.tempSelectedTagPath[0])
+            tagDisplay = categoryName || this.tempSelectedTagPath[0]
         } else if (this.tempSelectedTagPath.length >= 2) {
-            tagDisplay = `${this.tempSelectedTagPath[0]}/${this.tempSelectedTagPath[1]}`
+            const firstName = this.getCategoryNameById(this.tempSelectedTagPath[0])
+            const secondName = this.getCategoryNameById(this.tempSelectedTagPath[1])
+            tagDisplay = `${firstName || this.tempSelectedTagPath[0]}/${secondName || this.tempSelectedTagPath[1]}`
         }
 
         // 通过事件通知父组件更新文档数据
@@ -449,23 +513,38 @@ export default class DocumentCompare extends Vue {
     emitSubmitReview(data: ReviewSubmitData): ReviewSubmitData & {
         categoryMain?: string
         categorySub?: string
+        categoryId?: string
         effectDateStr?: string | null
     } {
         // 从当前文档的标签中获取分类信息
         const categoryMain =
             this.document.tags && this.document.tags.length > 0
-                ? this.document.tags[0]
+                ? this.getCategoryNameById(this.document.tags[0]) || this.document.tags[0]
                 : undefined
         const categorySub =
             this.document.tags && this.document.tags.length > 1
-                ? this.document.tags[1]
+                ? this.getCategoryNameById(this.document.tags[1]) || this.document.tags[1]
                 : undefined
+
+        // 计算 categoryId - 跟大家智库的逻辑一样
+        let categoryId: string | undefined
+        if (this.document.tags && this.document.tags.length > 0) {
+            if (this.document.tags.length > 1) {
+                // 如果有子分类，使用子分类ID作为 categoryId
+                categoryId = this.document.tags[1]
+            } else {
+                // 如果只有主分类，使用主分类ID作为 categoryId
+                categoryId = this.document.tags[0]
+            }
+        }
+
         const effectDateStr = this.document.effectDate
 
         return {
             ...data,
             categoryMain,
             categorySub,
+            categoryId,
             effectDateStr,
         }
     }

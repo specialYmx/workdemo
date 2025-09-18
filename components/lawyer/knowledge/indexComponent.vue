@@ -3,165 +3,31 @@
         <div>
             <!-- 整体内容容器 -->
             <div class="lawyer-content-wrapper">
-                <!-- 搜索区域 -->
-                <section>
-                    <h1>法规与文件大家智库</h1>
-                    <p>
-                        搜索和浏览法律法规、政策文件、典型案例和解读材料，获取最新的合规信息和专业指导。
-                    </p>
-
-                    <div class="lawyer-search-form">
-                        <a-input v-model="searchText" placeholder="输入关键词搜索法规、案例、解读..." size="large"
-                            class="lawyer-search-input" :allow-clear="true" @keyup.enter="onSearch"
-                            @change="onSearchInputChange" />
-                        <a-button v-for="(btn, index) in searchButtons" :key="index"
-                            :type="btn.isActive ? 'primary' : btn.type || 'default'" :icon="btn.icon" size="large"
-                            :loading="btn.loading" :class="{ 'lawyer-btn-active': btn.isActive }" @click="btn.handler">
-                            {{ btn.text }}{{ btn.count ? ` (${btn.count})` : "" }}
-                        </a-button>
-                    </div>
-
-                    <!-- 筛选选项 -->
-                    <div class="lawyer-filter-options">
-                        <!-- 时效性选择器 -->
-                        <div class="lawyer-filter-group">
-                            <a-select v-model="timelinessFilter" style="width: 100%" placeholder="时效性"
-                                @change="onFilterChange">
-                                <a-select-option v-for="option in timeLinessOptions" :key="option.value"
-                                    :value="option.value">
-                                    {{ option.label }}
-                                </a-select-option>
-                            </a-select>
-                        </div>
-                        <!-- 效力位阶选择器 -->
-                        <div class="lawyer-filter-group">
-                            <a-select v-model="effectivenessLevelFilter" style="width: 100%" placeholder="效力位阶"
-                                @change="onFilterChange">
-                                <a-select-option v-for="option in effectivenessLevelOptions" :key="option.value"
-                                    :value="option.value">
-                                    {{ option.label }}
-                                </a-select-option>
-                            </a-select>
-                        </div>
-                        <!-- 专题分类级联选择器 -->
-                        <div class="lawyer-filter-group">
-                            <a-cascader v-model="topicCategory" change-on-select :options="topicCategoryOptions"
-                                placeholder="专题分类" style="width: 100%" :show-search="true" @change="onFilterChange" />
-                        </div>
-                        <!-- 来源筛选 -->
-                        <div class="lawyer-filter-group">
-                            <a-select v-model="filterSource" style="width: 100%" placeholder="全部来源"
-                                @change="onFilterChange">
-                                <a-select-option value="all">
-                                    全部来源
-                                </a-select-option>
-                                <a-select-option v-for="option in websiteOptions" :key="option.value"
-                                    :value="option.value">
-                                    {{ option.label }}
-                                </a-select-option>
-                            </a-select>
-                        </div>
-                        <!-- 发布时间筛选 -->
-                        <div class="lawyer-filter-group">
-                            <a-date-picker v-model="publishDate" style="width: 100%" placeholder="发布时间"
-                                format="YYYY-MM-DD" value-format="YYYY-MM-DD" :allow-clear="true"
-                                @change="onFilterChange" />
-                        </div>
-                        <!-- 排序方式 -->
-                        <div class="lawyer-filter-group">
-                            <a-select v-model="sortOrder" style="width: 100%" placeholder="排序方式"
-                                @change="onFilterChange">
-                                <a-select-option value="desc">
-                                    按发布日期 (新→旧)
-                                </a-select-option>
-                                <a-select-option value="asc">
-                                    按发布日期 (旧→新)
-                                </a-select-option>
-                            </a-select>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- 加载中 -->
-                <div v-if="listLoading" class="lawyer-loading-overlay">
-                    <a-spin size="large" />
-                    <h3>正在努力加载中...</h3>
-                    <p>请稍候，我们正在为您检索信息。</p>
-                </div>
-
-                <!-- 无结果提示 -->
-                <div v-if="!listLoading && !allDocuments.length" class="lawyer-no-results">
-                    <h3>未能找到相关结果</h3>
-                    <p>请尝试调整您的搜索关键词或筛选条件。</p>
-                </div>
+                <!-- 搜索和筛选区域 -->
+                <lawyer-knowledge-filter-options :category-name="categoryName" :search-text.sync="searchText"
+                    :search-buttons="searchButtons" :timeliness-filter.sync="timelinessFilter"
+                    :effectiveness-level-filter.sync="effectivenessLevelFilter" :topic-category.sync="topicCategory"
+                    :filter-source.sync="filterSource" :publish-date.sync="publishDate" :sort-order.sync="sortOrder"
+                    :document-number-filter.sync="documentNumberFilter" :department-filter.sync="departmentFilter"
+                    :is-appendix-filter.sync="isAppendixFilter" :website-options="websiteOptions"
+                    :topic-category-options="topicCategoryOptions" :department-options="departmentOptions"
+                    @search="onExactSearch" @show-add-document-modal="showAddDocumentModal"
+                    @filter-change="onFilterChange" :isAdmin="isAdmin" />
 
                 <!-- 文档列表 -->
-                <div v-if="!listLoading && allDocuments.length" class="lawyer-document-list">
-                    <div v-for="doc in allDocuments" :key="doc.id" class="lawyer-document-item">
-                        <div class="lawyer-document-item-content">
-                            <div class="lawyer-document-icon">
-                                📄
-                            </div>
-                            <div class="lawyer-document-main-content">
-                                <div class="lawyer-document-header">
-                                    <h3 class="lawyer-document-title">
-                                        {{ doc.ruleName }}
-                                    </h3>
-                                    <div class="lawyer-document-meta">
-                                        <span><a-icon type="calendar" /> {{ doc.publishDateStr }}</span>
-                                        <span><a-icon type="bank" /> {{ doc.legalSource }}</span>
-                                        <span><a-icon type="eye" /> {{ doc.readCount }} 阅读</span>
-                                        <span class="lawyer-timeliness-tag">
-                                            <a-icon type="clock-circle" /> {{ doc.timeLiness }}
-                                        </span>
-                                        <span>
-                                            <a-icon type="schedule" /> {{ doc.effectivenessLevel }}
-                                        </span>
-                                    </div>
-                                </div>
-                                <p class="lawyer-document-summary">
-                                    {{ doc.fileContent || "暂无摘要" }}
-                                </p>
-                                <div class="lawyer-document-footer">
-                                    <div class="lawyer-document-tags">
-                                        <a-tag :color="getTagColor(doc.categoryMain, 'main')">
-                                            {{
-                                                doc.categoryMain
-                                            }}
-                                        </a-tag>
-                                        <a-tag v-if="doc.categorySub" :color="getTagColor(doc.categorySub, 'sub')">
-                                            {{ doc.categorySub }}
-                                        </a-tag>
-                                        <a-tag v-if="doc.effectivenessLevel" color="purple">
-                                            {{ doc.effectivenessLevel }}
-                                        </a-tag>
-                                    </div>
-                                    <div class="lawyer-document-actions">
-                                        <a-button v-for="(action, index) in getDocActions(doc)" :key="index"
-                                            :type="action.type || 'default'" :class="action.class"
-                                            @click="action.handler">
-                                            {{ action.text }}
-                                        </a-button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 分页 -->
-                    <div v-if="allDocuments.length" class="lawyer-pagination">
-                        <a-pagination :current="currentPage" :total="totalDocuments" :page-size="pageSize"
-                            show-size-changer show-quick-jumper :show-total="(total, range) =>
-                                `共 ${total} 条记录，显示第 ${range[0]}-${range[1]} 条`
-                                " @change="onPageChange" @showSizeChange="onShowSizeChange" />
-                    </div>
-                </div>
+                <lawyer-knowledge-document-list :loading="listLoading" :documents="allDocuments"
+                    :current-page="currentPage" :total-documents="totalDocuments" :page-size="pageSize"
+                    :doc-actions="documentActions" @page-change="onPageChange" @show-size-change="onShowSizeChange"
+                    @document-action="handleDocumentAction" />
             </div>
 
-            <!-- 文件上传组件 -->
-            <lawyer-common-file-upload-modal :visible="uploadModalVisible" :title="`更新文档: ${currentUploadDocTitle}`"
-                :document-id="currentUploadDocId" :document-title="currentUploadDocTitle" :config="uploadConfig"
-                @cancel="handleUploadCancel" @complete="handleUploadComplete" @upload-success="handleUploadSuccess" />
+            <!-- 文档上传组件 -->
+            <lawyer-common-file-upload-modal :visible="uploadModalVisible" :title="uploadModalTitle"
+                :document-id="currentUploadDocId" :document-title="currentUploadDocTitle" :category-name="categoryName"
+                :time-liness-options="timeLinessOptions" :website-options="websiteOptions"
+                :category-options="topicCategoryOptions" :department-options="departmentOptions"
+                :document-data="currentDocumentData" :config="uploadConfig" @cancel="handleUploadCancel"
+                @complete="handleUploadComplete" @upload-success="handleUploadSuccess" />
         </div>
     </div>
 </template>
@@ -177,9 +43,10 @@ import {
     KnowledgeUploadConfig,
     CascaderOption,
     RouteQuery,
-    RuleSourceQueryParams
-} from '@/model/LawyerModel'
-import { cascaderOptions } from '@/enum/Lawyer'
+    RuleSourceQueryParams,
+    LegalCategoryItem,
+    DepartmentOption
+} from '~/model/LawyerModel'
 
 import { downloadFileWithMessage } from '~/utils/personal'
 
@@ -187,13 +54,17 @@ import { downloadFileWithMessage } from '~/utils/personal'
 export default class LawyerKnowledgeIndexComponent extends Vue {
     searchText: string = '';
     searchLoading: boolean = false;
-    filterSource: string = 'all';
+    filterSource: string = '';
     sortOrder: string = 'desc';
     topicCategory: string[] = [];
-    timelinessFilter: string = 'all';
-    effectivenessLevelFilter: string = 'all';
-    publishDate: string | null = null;
+    timelinessFilter: string = '';
+    effectivenessLevelFilter: string = '';
+    publishDate: string | null = "";
     isFavoritesMode: boolean = false;
+    // 新增筛选条件
+    isAppendixFilter: boolean = false;
+    documentNumberFilter: string = '';
+    departmentFilter: string = '';
     listLoading: boolean = true;
     currentPage: number = 1;
     pageSize: number = 10;
@@ -203,7 +74,11 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
     uploadModalVisible: boolean = false;
     currentUploadDocId: string = '';
     currentUploadDocTitle: string = '';
+    currentDocumentData: any = {}; // 当前文档数据，用于回显
     isAdmin: boolean = false;
+    categoryData: LegalCategoryItem[] = []; // 存储从接口获取的分类数据
+    isAddMode: boolean = false; // 是否为新增模式
+    departmentOptions: DepartmentOption[] = []; // 存储部门数据
 
     get uploadConfig(): KnowledgeUploadConfig {
         return {
@@ -215,6 +90,43 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
             hintText: '仅支持 DOC、DOCX 格式，文件大小不超过 500MB',
             autoUpload: false
         }
+    }
+
+    get uploadModalTitle(): string {
+        return this.isAddMode ? '新增文档' : `更新文档: ${this.currentUploadDocTitle}`
+    }
+
+    get categoryName(): string {
+        // 根据路由获取分类名称，用于显示
+        const routePath = this.$route.path
+
+        // 路由路径与分类名称的映射
+        const routeMap: Record<string, string> = {
+            '/lawyerKnowledge': '大家智库',
+            '/regulationCompilation': '法规汇编',
+            '/punishmentCompilation': '处罚汇编',
+            '/researchCollection': '研究集锦',
+            '/legalComplianceQuarterly': '法律合规季刊',
+            '/newRegulationInterpretation': '新规解读',
+            '/institutionLibrary': '内部制度库', // 企业内部管理制度和规范文件
+            '/policyLibrary': '政策库',
+            '/caseLibrary': '案例库'
+        }
+
+        // 精确匹配路由路径
+        if (routeMap[routePath] || routeMap[routePath.replace(/\/$/, '')]) {
+            return routeMap[routePath] || routeMap[routePath.replace(/\/$/, '')]
+        }
+
+        // 模糊匹配（包含路径）
+        for (const [path, name] of Object.entries(routeMap)) {
+            if (routePath.includes(path)) {
+                return name
+            }
+        }
+
+        // 默认返回
+        return '大家智库'
     }
 
     get searchButtons(): SearchButton[] {
@@ -247,12 +159,19 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
 
 
     get topicCategoryOptions(): CascaderOption[] {
-        return cascaderOptions
+        return this.convertToCascaderOptions(this.categoryData)
+    }
+
+    get documentActions(): Record<string, DocumentAction[]> {
+        const actions: Record<string, DocumentAction[]> = {}
+        this.allDocuments.forEach(doc => {
+            actions[doc.id] = this.getDocActions(doc)
+        })
+        return actions
     }
 
     get timeLinessOptions(): FilterOption[] {
         return [
-            { value: 'all', label: '全部' },
             { value: '待生效', label: '待生效' },
             { value: '已施行', label: '已施行' },
             { value: '已修订', label: '已修订' },
@@ -260,19 +179,11 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
         ]
     }
 
-    get effectivenessLevelOptions(): FilterOption[] {
-        return [
-            { value: 'all', label: '全部' },
-            { value: '法律法规', label: '法律法规' },
-            { value: '部门规章规范性文件', label: '部门规章规范性文件' },
-            { value: '自律规则', label: '自律规则' },
-            { value: '其他', label: '其他' }
-        ]
-    }
-
     async mounted(): Promise<void> {
         await this.checkAdminPermission()
         await this.loadWebsiteOptions()
+        await this.loadLegalCategory()
+        await this.loadDepartmentData()
         this.loadDocuments()
     }
 
@@ -315,7 +226,7 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
 
     async onFilterChange(): Promise<void> {
         // 筛选器变化时使用默认搜索（普通搜索）
-        await this.loadDocuments('default')
+        await this.loadDocuments('exact')
     }
 
     onSearchInputChange(e: Event): void {
@@ -364,20 +275,20 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
         }
 
         // 只有管理员才能看到上传更新和移除按钮
-        if (this.isAdmin) {
-            actions.push(
-                {
-                    text: '上传更新',
-                    class: 'lawyer-btn-upload',
-                    handler: () => this.uploadDocument(doc.id, doc.ruleName)
-                },
-                {
-                    text: '移除',
-                    type: 'danger',
-                    handler: () => this.removeDocument(doc)
-                }
-            )
-        }
+        // if (this.isAdmin) {
+        actions.push(
+            {
+                text: '上传更新',
+                class: 'lawyer-btn-upload',
+                handler: () => this.uploadDocument(doc.id, doc.ruleName, doc)
+            },
+            {
+                text: '移除',
+                type: 'danger',
+                handler: () => this.removeDocument(doc)
+            }
+        )
+        // }
 
         return actions
     }
@@ -430,7 +341,7 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
             const params = {
                 searchId: doc.id,
                 empId: this.$store.state.auth.id,
-                isCollect: newCollectStatus
+                collect: newCollectStatus
             }
             const success = await this.$roadLawyerService.saveOrCancelCollect(params)
             if (success) {
@@ -459,22 +370,34 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
         }
     }
 
-    uploadDocument(docId: string, docTitle: string): void {
+    uploadDocument(docId: string, docTitle: string, docData?: KnowledgeDataItem): void {
+        this.isAddMode = false
         this.uploadModalVisible = true
         this.currentUploadDocId = docId
         this.currentUploadDocTitle = docTitle
+        this.currentDocumentData = docData || {}
+    }
+
+    showAddDocumentModal(): void {
+        this.isAddMode = true
+        this.uploadModalVisible = true
+        this.currentUploadDocId = ''
+        this.currentUploadDocTitle = ''
+        this.currentDocumentData = {} // 清空文档数据
     }
 
     handleUploadCancel(): void {
         this.uploadModalVisible = false
         this.currentUploadDocId = ''
         this.currentUploadDocTitle = ''
+        this.isAddMode = false
     }
 
     handleUploadComplete(): void {
         this.uploadModalVisible = false
         this.currentUploadDocId = ''
         this.currentUploadDocTitle = ''
+        this.isAddMode = false
     }
 
     handleUploadSuccess(): void {
@@ -489,12 +412,19 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
             cancelText: '取消',
             onOk: async () => {
                 try {
+                    // 删除前检查当前页数据数量，判断是否需要跳转到前一页
+                    const isLastItemOnPage = this.allDocuments.length === 1
+                    const shouldGoToPreviousPage = isLastItemOnPage && this.currentPage > 1
                     const success = await this.$roadLawyerService.deleteRuleSource({
                         id: doc.id
                     })
                     if (success) {
                         this.$message.success(`文档"${doc.ruleName}"已移除`)
                         setTimeout(async () => {
+                            // 如果删除的是当前页最后一条数据且不是第一页，则跳转到前一页
+                            if (shouldGoToPreviousPage) {
+                                this.currentPage -= 1
+                            }
                             await this.loadDocuments()
                         }, 500)
                     } else {
@@ -521,10 +451,19 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
         await this.loadDocuments()
     }
 
-    getTagColor(category: string, type: string = 'main'): string {
-        if (!category) { return 'blue' }
-        return type === 'main' ? 'gold' : 'blue'
+    handleDocumentAction(payload: { action: string; doc: KnowledgeDataItem }): void {
+        const { action, doc } = payload
+        switch (action) {
+            case 'view':
+                this.viewDocument(doc)
+                break
+            case 'download':
+                this.downloadDocument(doc)
+                break
+        }
     }
+
+
 
     async loadWebsiteOptions(): Promise<void> {
         try {
@@ -541,6 +480,120 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
             console.error('加载网站来源数据失败:', error)
             this.websiteOptions = []
         }
+    }
+
+    async loadLegalCategory(): Promise<void> {
+        try {
+            // 根据当前路由动态确定分类ID
+            const categoryId = this.getCategoryIdByRoute()
+            const response = await this.$roadLawyerService.getLegalCategory({
+                id: categoryId
+            })
+            if (response && response.length > 0) {
+                // 大家智库页面获取全量数据，直接使用返回的数据
+                // 其他页面取第一个元素的children作为分类数据
+                if (!categoryId) {
+                    // 大家智库页面：全量数据
+                    this.categoryData = response
+                } else {
+                    // 其他页面：取第一个元素的children
+                    this.categoryData = response[0].children || []
+                }
+            } else {
+                console.warn(`获取专题分类数据为空，分类ID: ${categoryId || '全量'}`)
+                this.categoryData = []
+            }
+        } catch (error) {
+            console.error('加载专题分类数据失败:', error)
+            this.categoryData = []
+        }
+    }
+
+    async loadDepartmentData(): Promise<void> {
+        try {
+            const response = await this.$roadLawyerService.getDepartmentData({
+                current: 1,
+                size: 999
+            })
+            if (response.length) {
+                this.departmentOptions = response.map(dept => ({
+                    value: dept.name,
+                    label: dept.name,
+                    id: dept.id
+                }))
+            } else {
+                console.warn('获取部门数据为空')
+                this.departmentOptions = []
+            }
+        } catch (error) {
+            console.error('加载部门数据失败:', error)
+            this.departmentOptions = []
+        }
+    }
+
+    getCategoryIdByRoute(): string | undefined {
+        // 根据当前路由确定分类ID
+        const routePath = this.$route.path
+        console.log('当前路由路径:', routePath)
+
+        if (routePath.includes('/lawyerKnowledge')) {
+            console.log('匹配到大家智库页面，使用全量数据')
+            return undefined // 大家智库页面使用全量数据
+        } else if (routePath.includes('/regulationCompilation')) {
+            console.log('匹配到法规汇编页面')
+            return '2' // 法规汇编
+        } else if (routePath.includes('/punishmentCompilation')) {
+            console.log('匹配到处罚汇编页面')
+            return '1' // 处罚汇编
+        } else if (routePath.includes('/researchCollection')) {
+            console.log('匹配到研究集锦页面')
+            return '311' // 研究集锦
+        } else if (routePath.includes('/legalComplianceQuarterly')) {
+            console.log('匹配到法律合规季刊页面')
+            return '312' // 法律合规季刊
+        } else if (routePath.includes('/newRegulationInterpretation')) {
+            console.log('匹配到新规解读页面')
+            return '310' // 新规解读
+        } else if (routePath === '/institutionLibrary' || routePath === '/institutionLibrary/') {
+            console.log('匹配到制度库页面')
+            return '3' // 制度库
+        } else if (routePath.includes('/policyLibrary')) {
+            console.log('匹配到政策库页面')
+            return '2' // 法规汇编
+        } else if (routePath.includes('/caseLibrary')) {
+            console.log('匹配到案例库页面')
+            return '2' // 法规汇编
+        }
+        // 默认返回undefined，使用全量数据
+        console.log('使用默认分类: 全量数据')
+        return undefined
+    }
+
+    convertToCascaderOptions(categories: LegalCategoryItem[]): CascaderOption[] {
+        return categories.map((category: LegalCategoryItem): CascaderOption => ({
+            value: category.id,
+            label: category.name,
+            children: this.convertToCascaderOptions(category.children || [])
+        }))
+    }
+
+    // 根据分类ID获取分类名称
+    getCategoryNameById(categoryId: string): string {
+        const findCategoryName = (categories: LegalCategoryItem[], id: string): string => {
+            for (const category of categories) {
+                if (category.id === id) {
+                    return category.name
+                }
+                if (category.children && category.children.length > 0) {
+                    const childName = findCategoryName(category.children, id)
+                    if (childName) {
+                        return childName
+                    }
+                }
+            }
+            return ''
+        }
+        return findCategoryName(this.categoryData, categoryId)
     }
 
     async loadDocuments(
@@ -565,22 +618,28 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
                     params.query = this.searchText
                 }
             }
-            if (this.timelinessFilter && this.timelinessFilter !== 'all') {
+            if (this.timelinessFilter) {
                 params.timeLiness = this.timelinessFilter
             }
-            if (
-                this.effectivenessLevelFilter &&
-                this.effectivenessLevelFilter !== 'all'
-            ) {
+            if (this.effectivenessLevelFilter) {
                 params.effectivenessLevel = this.effectivenessLevelFilter
             }
             if (this.topicCategory && this.topicCategory.length > 0) {
-                params.categoryMain = this.topicCategory[0]
+                // 使用分类ID而不是名称
+                params.categoryId = this.topicCategory[this.topicCategory.length - 1] // 使用最后一级的ID
+                // 为了兼容性，仍然传递名称字段（如果后端需要）
+                params.categoryMain = this.getCategoryNameById(this.topicCategory[0])
+                if (this.topicCategory.length > 1) {
+                    params.categorySub = this.getCategoryNameById(this.topicCategory[1])
+                }
+            } else {
+                // 当用户没有选择专题分类时，根据当前页面设置固定的categoryId
+                const fixedCategoryId = this.getCategoryIdByRoute()
+                if (fixedCategoryId) {
+                    params.categoryId = fixedCategoryId
+                }
             }
-            if (this.topicCategory && this.topicCategory.length > 1) {
-                params.categorySub = this.topicCategory[1]
-            }
-            if (this.filterSource && this.filterSource !== 'all') {
+            if (this.filterSource) {
                 params.legalSource = this.filterSource
             }
             if (this.sortOrder) {
@@ -589,6 +648,16 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
             if (this.publishDate) {
                 // 处理发布时间筛选
                 params.publishDateStr = this.publishDate
+            }
+            // 新增筛选参数
+            if (this.isAppendixFilter) {
+                params.appendix = true
+            }
+            if (this.documentNumberFilter) {
+                params.documentNumber = this.documentNumberFilter
+            }
+            if (this.departmentFilter) {
+                params.department = this.departmentFilter
             }
             params.collect = this.isFavoritesMode
             const response = await this.$roadLawyerService.getRuleSourceList(params)
@@ -632,39 +701,9 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
         background-color: var(--lawyer-surface);
     }
 
-    .lawyer-search-form {
-        display: flex;
-        gap: 12px;
-        align-items: center;
-        margin-bottom: 24px;
 
-        .lawyer-search-input {
-            flex: 1;
-            min-width: 300px;
-        }
 
-        .lawyer-search-form .ant-btn {
-            flex-shrink: 0;
 
-            &.lawyer-btn-active {
-                background-color: var(--lawyer-primary);
-                color: white;
-                border-color: var(--lawyer-primary);
-            }
-        }
-    }
-
-    .lawyer-filter-options {
-        display: flex;
-        gap: 16px;
-        flex-wrap: wrap;
-        margin-bottom: 24px;
-
-        .lawyer-filter-group {
-            flex: 1;
-            flex-basis: 200px;
-        }
-    }
 
     .lawyer-loading-overlay,
     .lawyer-no-results {
@@ -699,6 +738,16 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
         &:hover {
             background-color: rgba(var(--lawyer-primary-rgb), 0.03);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        // 附录项特殊样式
+        &.lawyer-document-item-appendix {
+            background-color: rgba(255, 165, 0, 0.05);
+            border-left: 4px solid #ff9500;
+
+            &:hover {
+                background-color: rgba(255, 165, 0, 0.08);
+            }
         }
 
         &-content {

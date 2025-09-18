@@ -252,6 +252,39 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
     }
   },
 
+  // 修改法规详情
+  async updateRuleSourceDetail(params: {
+    searchId: string;
+    timeLiness?: string;
+    effectivenessLevel?: string;
+    categoryId?: string;
+    categoryMain?: string;
+    legalSource?: string;
+    publishDateStr?: string;
+    department?: string;
+    appendix?: boolean;
+    documentNumber?: string;
+    categorySub?: string;
+    effectDate?: string;
+  }): Promise<{ success: boolean; message?: string }> {
+    try {
+      const res = await $axios.post(
+        `${api.lawyer.updateRuleSourceDetail}`,
+        toFormData(params)
+      );
+      return {
+        success: res.data?.success || false,
+        message: res.data?.message || "更新成功",
+      };
+    } catch (error) {
+      console.error("Error updating rule source detail:", error);
+      return {
+        success: false,
+        message: "更新失败，请重试",
+      };
+    }
+  },
+
   // 获取法规源列表
   // 接口参数：
   // query - 搜索关键词
@@ -395,6 +428,27 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
       return res.data?.data || [];
     } catch (error) {
       console.error("Error fetching legal category:", error);
+      return [];
+    }
+  },
+
+  // 获取部门数据
+  async getDepartmentData(
+    params: { current: number; size: number } = { current: 1, size: 999 }
+  ) {
+    try {
+      // 临时使用mock数据，后续可以切换到真实接口
+      const { department } = await import("~/mock/dep.js");
+      return department.records;
+
+      // 真实接口调用（暂时注释）
+      // const res = await $axios.post(
+      //   `${api.lawyer.getDepartmentData}`,
+      //   toFormData(params)
+      // );
+      // return res.data?.records || [];
+    } catch (error) {
+      console.error("Error fetching department data:", error);
       return [];
     }
   },

@@ -15,12 +15,10 @@
                                         <h1>{{ document.title }}</h1>
                                         <a-tag :color="document.isRevoke ? 'red' : 'green'" :class="[
                                             'lawyer-editable-status',
-                                            'lawyer-inline-status',
-                                            { 'lawyer-status-disabled': document.isRevoke },
+                                            'lawyer-inline-status'
                                         ]" @click="handleStatusTagClick">
-                                            {{ document.timeLiness || "未知" }}
-                                            <a-icon v-if="!document.isRevoke" type="edit"
-                                                class="lawyer-status-edit-icon" />
+                                            {{ document.timeLiness || '未知' }}
+                                            <a-icon type="edit" class="lawyer-status-edit-icon" />
                                         </a-tag>
                                     </div>
 
@@ -56,37 +54,97 @@
 
                 <!-- 右侧：文档智能问答 -->
                 <div class="lawyer-document-right">
-                    <lawyer-common-document-a-i-chat :document="document" />
+                    <common-ai-chat ref="aiChat" title="文档智能问答" :is-show-network="true"
+                        :response-chat-list="responseChatList" :is-fetch="true" :fetch-headers="fetchHeaders"
+                        :fetch-params="fetchParams" :fetch-url="fetchUrl" :old-footer-style="false"
+                        :fetch-split-txt="splitTxt" :chart-height="'100%'" width="calc(40vw - 40px)"
+                        @beforeBtnEnter="beforeBtnEnter" @onBtnEnter="onBtnEnter" />
                 </div>
             </div>
 
-            <!-- 废止状态编辑模态框 -->
-            <a-modal title="编辑文档状态" :visible="revokeStatusVisible" :width="400" ok-text="确认" cancel-text="取消"
-                :get-container="() => $refs.documentViewerContainer" @ok="handleRevokeStatusConfirm"
-                @cancel="handleRevokeStatusCancel">
-                <div class="lawyer-revoke-status-content">
-                    <div class="lawyer-status-row">
-                        <label>文档状态</label>
-                        <div class="lawyer-status-switch-container">
-                            <a-switch v-model="tempIsRevoke" :checked-children="'已废止'" :un-checked-children="'未废止'"
-                                size="default" />
-                            <span class="lawyer-status-text">
-                                {{ tempIsRevoke ? "已废止" : "未废止" }}
-                            </span>
-                        </div>
-                    </div>
+            <!-- 编辑文档信息模态框 -->
+            <a-modal title="编辑文档信息" :visible="editModalVisible" :width="800" ok-text="确认" cancel-text="取消"
+                :get-container="() => $refs.documentViewerContainer" @ok="handleEditConfirm" @cancel="handleEditCancel">
+                <div class="lawyer-edit-content">
+                    <a-form-model ref="form" :model="formData" :label-col="{ span: 8 }" :wrapper-col="{ span: 16 }">
+                        <a-row :gutter="16">
+                            <a-col :span="12">
+                                <!-- 时效性 -->
+                                <a-form-model-item label="时效性" prop="timeLiness">
+                                    <a-select v-model="formData.timeLiness" placeholder="请选择时效性">
+                                        <a-select-option value="待生效">待生效</a-select-option>
+                                        <a-select-option value="已施行">已施行</a-select-option>
+                                        <a-select-option value="已修订">已修订</a-select-option>
+                                        <a-select-option value="已废止">已废止</a-select-option>
+                                    </a-select>
+                                </a-form-model-item>
 
-                    <!-- 废止说明 -->
-                    <div class="lawyer-status-description">
-                        <p v-if="tempIsRevoke" class="lawyer-revoke-tip">
-                            <a-icon type="exclamation-circle" style="color: #ff4d4f; margin-right: 8px" />
-                            设置为已废止后，该文档将标记为无效状态
-                        </p>
-                        <p v-else class="lawyer-active-tip">
-                            <a-icon type="check-circle" style="color: #52c41a; margin-right: 8px" />
-                            文档当前为有效状态
-                        </p>
-                    </div>
+                                <!-- 专题分类 -->
+                                <a-form-model-item label="专题分类" prop="categoryPath">
+                                    <a-cascader v-model="formData.categoryPath" :options="tagOptions"
+                                        placeholder="请选择专题分类" :show-search="true" :change-on-select="true"
+                                        style="width: 100%" />
+                                </a-form-model-item>
+
+                                <!-- 发布时间 -->
+                                <a-form-model-item label="发布时间" prop="publishDate">
+                                    <a-date-picker v-model="formData.publishDate" style="width: 100%"
+                                        placeholder="请选择发布时间" format="YYYY-MM-DD" value-format="YYYY-MM-DD" />
+                                </a-form-model-item>
+
+                                <!-- 发文字号 -->
+                                <a-form-model-item label="发文字号" prop="documentNumber">
+                                    <a-input v-model="formData.documentNumber" placeholder="请输入发文字号" />
+                                </a-form-model-item>
+                                <!-- 是否附录 -->
+                                <a-form-model-item label="是否附录" prop="appendix">
+                                    <a-switch v-model="formData.appendix" />
+                                    <span style="margin-left: 8px; color: #666; font-size: 12px;">
+                                        {{ formData.appendix ? '是' : '否' }}
+                                    </span>
+                                </a-form-model-item>
+                            </a-col>
+                            <a-col :span="12">
+                                <!-- 效力位阶 -->
+                                <a-form-model-item label="效力位阶" prop="effectivenessLevel">
+                                    <a-select v-model="formData.effectivenessLevel" placeholder="请选择效力位阶">
+                                        <a-select-option value="法律法规">法律法规</a-select-option>
+                                        <a-select-option value="部门规章规范性文件">部门规章规范性文件</a-select-option>
+                                        <a-select-option value="自律规则">自律规则</a-select-option>
+                                        <a-select-option value="其他">其他</a-select-option>
+                                    </a-select>
+                                </a-form-model-item>
+
+                                <!-- 来源 -->
+                                <a-form-model-item label="来源" prop="legalSource">
+                                    <a-select v-model="formData.legalSource" placeholder="请选择来源">
+                                        <a-select-option v-for="option in websiteOptions" :key="option.value"
+                                            :value="option.value">
+                                            {{ option.label }}
+                                        </a-select-option>
+                                    </a-select>
+                                </a-form-model-item>
+
+                                <!-- 生效时间 -->
+                                <a-form-model-item label="生效时间" prop="effectDate">
+                                    <a-date-picker v-model="formData.effectDate" style="width: 100%"
+                                        placeholder="请选择生效时间" format="YYYY-MM-DD" value-format="YYYY-MM-DD" />
+                                </a-form-model-item>
+
+                                <!-- 责任部门 -->
+                                <a-form-model-item label="责任部门" prop="department">
+                                    <a-select v-model="formData.department" placeholder="请选择责任部门" :allow-clear="true">
+                                        <a-select-option v-for="option in departmentOptions" :key="option.value"
+                                            :value="option.value">
+                                            {{ option.label }}
+                                        </a-select-option>
+                                    </a-select>
+                                </a-form-model-item>
+
+
+                            </a-col>
+                        </a-row>
+                    </a-form-model>
                 </div>
             </a-modal>
         </div>
@@ -95,37 +153,231 @@
 
 <script lang="ts">
 import { Component, Vue, Prop, Emit } from 'nuxt-property-decorator'
-
+import { v4 as uuidv4 } from 'uuid'
 import { downloadFileWithMessage } from '~/utils/personal'
-import { DocumentViewerData, DocumentMetaItem } from '~/model/LawyerModel'
+import {
+    DocumentViewerData,
+    DocumentMetaItem,
+    CascaderOption,
+    LegalCategoryItem,
+    DepartmentOption,
+    WebsiteOption
+} from '~/model/LawyerModel'
+import { ChatListType } from "~/model/chatModel"
+import api from '~/api'
+import { getFetchFormat } from '~/utils/aiFetchFormat'
+import CommonAiChat from '~/components/common/AiChat.vue'
 
-@Component({})
+@Component({
+    name: 'document-viewer',
+    components: {
+        CommonAiChat,
+    },
+})
 export default class DocumentViewer extends Vue {
-    @Prop({ required: true }) document!: DocumentViewerData;
+    @Prop({ required: true }) document!: DocumentViewerData
 
-    // 废止状态编辑相关
-    revokeStatusVisible: boolean = false;
-    tempIsRevoke: boolean = false;
+    // AI助手相关
+    responseChatList: ChatListType[] = []
+    fetchHeaders: Record<string, string> = {
+        'Content-Type': 'application/json',
+    }
+
+    fetchParams: BodyInit | null = null
+    fetchUrl: string = api.lawyer.getAIRobotAnswer
+    splitTxt: string = `End\n\n`
+    tempTxt: string = ''
+
+    // 编辑状态相关
+    editModalVisible: boolean = false
+    isAdmin: boolean = false
+
+    // 表单数据
+    formData: {
+        timeLiness?: string;
+        effectivenessLevel?: string;
+        categoryPath?: string[];
+        legalSource?: string;
+        publishDate?: string;
+        effectDate?: string;
+        department?: string;
+        documentNumber?: string;
+        appendix?: boolean;
+    } = {
+            timeLiness: undefined,
+            effectivenessLevel: undefined,
+            categoryPath: [],
+            legalSource: undefined,
+            publishDate: undefined,
+            effectDate: undefined,
+            department: undefined,
+            documentNumber: undefined,
+            appendix: false
+        }
+
+    // 标签分类相关
+    tagOptions: CascaderOption[] = []
+    websiteOptions: WebsiteOption[] = []
+    departmentOptions: DepartmentOption[] = [] // 存储部门数据
+
+    // 组件挂载时初始化欢迎消息
+    async mounted(): Promise<void> {
+        this.initWelcomeMessage()
+        await this.checkAdminPermission()
+        await this.loadCategoryOptions()
+        await this.loadWebsiteOptions()
+        await this.loadDepartmentData()
+    }
+
+    // 检查管理员权限
+    async checkAdminPermission(): Promise<void> {
+        try {
+            this.isAdmin = await this.$roadLawyerService.getAdmin({
+                empId: this.$store.state.auth.id
+            })
+        } catch (error) {
+            console.error('检查管理员权限失败:', error)
+            this.isAdmin = false
+        }
+    }
+
+    // 加载网站来源数据
+    async loadWebsiteOptions(): Promise<void> {
+        try {
+            const websiteRatioData = await this.$roadLawyerService.getWebSiteRatio()
+            if (websiteRatioData && typeof websiteRatioData === 'object') {
+                this.websiteOptions = Object.keys(websiteRatioData).map(
+                    (key: string): WebsiteOption => ({
+                        value: key,
+                        label: key
+                    })
+                )
+            }
+        } catch (error) {
+            console.error('加载网站来源数据失败:', error)
+            this.websiteOptions = []
+        }
+    }
+
+    // 初始化欢迎消息
+    initWelcomeMessage(): void {
+        this.responseChatList = [
+            {
+                label:
+                    '您好！我是文档AI助手。您可以向我提问关于这个文档的任何问题，请随时向我提问！',
+                id: uuidv4().replace(/-/g, ''),
+                isSelf: false,
+                isLoading: false,
+            },
+        ]
+    }
+
+    // 根据路由确定分类ID
+    getCategoryIdByRoute(): string | undefined {
+        const routePath = this.$route.path
+        console.log('当前路由路径:', routePath)
+
+        if (routePath.includes('/lawyerKnowledge')) {
+            console.log('匹配到大家智库页面，使用全量数据')
+            return undefined // 大家智库页面使用全量数据
+        } else if (routePath.includes('/institutionLibrary')) {
+            console.log('匹配到制度库页面')
+            return '3' // 制度库
+        } else if (routePath.includes('/policyLibrary')) {
+            console.log('匹配到政策库页面')
+            return '2' // 法规汇编
+        } else if (routePath.includes('/caseLibrary')) {
+            console.log('匹配到案例库页面')
+            return '2' // 法规汇编
+        }
+        // 默认返回undefined，使用全量数据
+        console.log('使用默认分类: 全量数据')
+        return undefined
+    }
+
+    // 加载专题分类数据
+    async loadCategoryOptions(): Promise<void> {
+        try {
+            const categoryId = this.getCategoryIdByRoute()
+            console.log('开始加载专题分类数据，分类ID:', categoryId || '全量')
+
+            const categories: LegalCategoryItem[] = await this.$roadLawyerService.getLegalCategory({
+                id: categoryId
+            })
+
+            console.log('获取到的分类数据:', categories)
+
+            if (categories && categories.length > 0) {
+                // 根据是否有categoryId决定数据处理方式
+                let processedCategories = categories
+                if (categoryId) {
+                    // 有具体ID时，取第一个元素的children
+                    processedCategories = categories[0].children || []
+                }
+                this.tagOptions = this.convertToCascaderOptions(processedCategories)
+                console.log('转换后的级联选择器数据:', this.tagOptions)
+            } else {
+                console.warn('未获取到分类数据，使用默认数据')
+                this.tagOptions = []
+            }
+        } catch (error) {
+            console.error('加载专题分类数据失败:', error)
+            // 出错时使用默认数据
+            this.tagOptions = []
+        }
+    }
+
+    // 加载部门数据
+    async loadDepartmentData(): Promise<void> {
+        try {
+            const response = await this.$roadLawyerService.getDepartmentData({
+                current: 1,
+                size: 999
+            })
+            if (response.length) {
+                this.departmentOptions = response.map(dept => ({
+                    value: dept.name,
+                    label: dept.name,
+                    id: dept.id
+                }))
+            } else {
+                console.warn('获取部门数据为空')
+                this.departmentOptions = []
+            }
+        } catch (error) {
+            console.error('加载部门数据失败:', error)
+            this.departmentOptions = []
+        }
+    }
+
+    // 将API数据转换为级联选择器格式
+    convertToCascaderOptions(categories: LegalCategoryItem[]): CascaderOption[] {
+        return categories.map((category: LegalCategoryItem): CascaderOption => ({
+            value: category.id,
+            label: category.name,
+            children: this.convertToCascaderOptions(category.children || [])
+        }))
+    }
 
     // 文档元数据项
     get documentMetaItems(): DocumentMetaItem[] {
         return [
             {
                 icon: 'number',
-                content: `文号：${this.document.fileNumber || '暂无'}`
+                content: `文号：${this.document.fileNumber || '暂无'}`,
             },
             {
                 icon: 'bank',
-                content: `发布机构：${this.document.publisher || '暂无'}`
+                content: `发布机构：${this.document.publisher || '暂无'}`,
             },
             {
                 icon: 'calendar',
-                content: `发布日期：${this.document.date || '暂无'}`
+                content: `发布日期：${this.document.date || '暂无'}`,
             },
             {
                 icon: 'clock-circle',
-                content: `生效日期：${this.document.effectiveDate || '暂无'}`
-            }
+                content: `生效日期：${this.document.effectiveDate || '暂无'}`,
+            },
         ]
     }
 
@@ -136,61 +388,227 @@ export default class DocumentViewer extends Vue {
 
     // 处理状态标签点击
     handleStatusTagClick(): void {
-        // 只有非已废止状态的文档才能点击
-        if (!this.document.isRevoke) {
-            this.showRevokeStatusModal()
+        // 只有管理员才能点击编辑
+        // if (!this.isAdmin) {
+        //     this.$message.warning('只有管理员才能编辑文档信息')
+        //     return
+        // }
+        this.showEditModal()
+    }
+
+    // 显示编辑模态框
+    showEditModal(): void {
+        console.log("🚀 ~ DocumentViewer ~ showEditModal ~ this.document:", this.document);
+
+        // 初始化表单数据
+        this.fillFormData()
+        this.editModalVisible = true
+    }
+
+    // 填充表单数据（用于回显）
+    fillFormData(): void {
+        // 回显时效性
+        this.formData.timeLiness = this.document.timeLiness || undefined
+
+        // 回显效力位阶
+        this.formData.effectivenessLevel = this.document.effectivenessLevel || undefined
+
+        // 回显专题分类
+        this.formData.categoryPath = []
+
+        // 尝试从不同的字段获取分类信息
+        const docAny = this.document as any
+
+        if (docAny.categoryMain) {
+            // 根据分类名称获取分类ID
+            const mainCategoryId = this.getCategoryIdByName(docAny.categoryMain)
+            if (mainCategoryId) {
+                this.formData.categoryPath.push(mainCategoryId)
+
+                if (docAny.categorySub) {
+                    const subCategoryId = this.getCategoryIdByName(docAny.categorySub)
+                    if (subCategoryId) {
+                        this.formData.categoryPath.push(subCategoryId)
+                    }
+                }
+            }
+        } else if (docAny.topicCategory) {
+            // 如果有topicCategory字段，尝试根据名称获取ID
+            const categoryId = this.getCategoryIdByName(docAny.topicCategory)
+            if (categoryId) {
+                this.formData.categoryPath.push(categoryId)
+            }
+        } else if (this.document.tags && this.document.tags.length > 0) {
+            // 如果tags字段存在，直接使用（假设已经是ID）
+            this.formData.categoryPath = [...this.document.tags]
         }
+
+        console.log('专题分类回显数据:', {
+            categoryMain: docAny.categoryMain,
+            categorySub: docAny.categorySub,
+            topicCategory: docAny.topicCategory,
+            tags: this.document.tags,
+            categoryPath: this.formData.categoryPath
+        })
+
+        // 回显来源
+        this.formData.legalSource = (this.document as any).legalSource || this.document.publisher || undefined
+
+        // 回显发布时间 - 确保不是无效的日期字符串
+        const publishDate = this.document.date
+        if (publishDate && publishDate !== '暂无' && publishDate !== 'undefined' && publishDate !== 'null') {
+            // 验证是否为有效的日期格式
+            const dateRegex = /^\d{4}-\d{2}-\d{2}$/
+            if (dateRegex.test(publishDate)) {
+                this.formData.publishDate = publishDate
+            } else {
+                this.formData.publishDate = undefined
+            }
+        } else {
+            this.formData.publishDate = undefined
+        }
+
+        // 回显生效时间 - 确保不是无效的日期字符串
+        const effectiveDate = this.document.effectiveDate
+        if (effectiveDate && effectiveDate !== '暂无' && effectiveDate !== 'undefined' && effectiveDate !== 'null') {
+            // 验证是否为有效的日期格式
+            const dateRegex = /^\d{4}-\d{2}-\d{2}$/
+            if (dateRegex.test(effectiveDate)) {
+                this.formData.effectDate = effectiveDate
+            } else {
+                this.formData.effectDate = undefined
+            }
+        } else {
+            this.formData.effectDate = undefined
+        }
+
+        // 回显责任部门
+        this.formData.department = (this.document as any).department || undefined
+
+        // 回显发文字号 - 确保不是无效值
+        const fileNumber = this.document.fileNumber
+        if (fileNumber && fileNumber !== '暂无' && fileNumber !== 'undefined' && fileNumber !== 'null') {
+            this.formData.documentNumber = fileNumber
+        } else {
+            this.formData.documentNumber = undefined
+        }
+
+        // 回显是否附录
+        this.formData.appendix = !!(this.document as any).appendix
     }
 
-    // 显示废止状态编辑模态框
-    showRevokeStatusModal(): void {
-        // 初始状态为false，让用户选择是否要将状态改为已废止
-        this.tempIsRevoke = false
-        this.revokeStatusVisible = true
-    }
-
-    // 处理废止状态编辑确认
-    async handleRevokeStatusConfirm(): Promise<void> {
+    // 处理编辑确认
+    async handleEditConfirm(): Promise<void> {
         let hideLoading = null
         try {
-            // 如果用户打开了已废止开关，才调用接口
-            if (this.tempIsRevoke) {
-                hideLoading = this.$message.loading('正在更新文档状态...', 0)
+            hideLoading = this.$message.loading('正在更新文档信息...', 0)
 
-                await this.$roadLawyerService.getRuleSourceDetail({
-                    searchId: this.document.id,
-                    isRevoke: true
-                })
-
-                if (hideLoading) {
-                    hideLoading()
-                }
-
-                // 通过事件通知父组件更新状态
-                this.emitUpdateDocumentStatus({
-                    isRevoke: true,
-                    timeLiness: '已废止'
-                })
-
-                this.$message.success('文档状态已更新为：已废止')
-            } else {
-                // 用户关闭了开关，不调用接口，保持原状态
-                this.$message.success('已取消状态修改')
+            // 准备更新参数 - 参考新增参数配置
+            const updateParams: any = {
+                searchId: this.document.id,
+                appendix: this.formData.appendix,
+                timeLiness: this.formData.timeLiness,
+                effectivenessLevel: this.formData.effectivenessLevel,
+                legalSource: this.formData.legalSource,
+                publishDateStr: this.formData.publishDate,
+                effectDate: this.formData.effectDate,
+                department: this.formData.department,
+                documentNumber: this.formData.documentNumber
             }
 
-            this.revokeStatusVisible = false
+            // 处理分类路径 - 参考新增时的逻辑
+            if (this.formData.categoryPath && this.formData.categoryPath.length > 0) {
+                // 使用分类ID作为categoryId，使用分类名称作为categoryMain和categorySub
+                updateParams.categoryMain = this.getCategoryNameById(this.formData.categoryPath[0])
+                if (this.formData.categoryPath.length > 1) {
+                    updateParams.categorySub = this.getCategoryNameById(this.formData.categoryPath[1])
+                    // 如果有子分类，使用子分类ID作为 categoryId
+                    updateParams.categoryId = this.formData.categoryPath[1]
+                } else {
+                    // 如果只有主分类，使用主分类ID作为 categoryId
+                    updateParams.categoryId = this.formData.categoryPath[0]
+                }
+            }
+
+            console.log('编辑更新参数:', updateParams)
+
+            const result = await this.$roadLawyerService.updateRuleSourceDetail(updateParams)
+
+            if (!result.success) {
+                throw new Error(result.message || '更新失败')
+            }
+
+            if (hideLoading) {
+                hideLoading()
+            }
+
+            // 更新文档状态 - 传递所有更新的字段
+            this.emitUpdateDocumentStatus({
+                timeLiness: this.formData.timeLiness || '已施行',
+                categoryMain: updateParams.categoryMain,
+                categorySub: updateParams.categorySub,
+                categoryId: updateParams.categoryId,
+                effectivenessLevel: this.formData.effectivenessLevel,
+                effectDate: this.formData.effectDate,
+                legalSource: this.formData.legalSource,
+                department: this.formData.department,
+                documentNumber: this.formData.documentNumber,
+                appendix: this.formData.appendix,
+                publishDateStr: this.formData.publishDate,
+            })
+
+            this.$message.success(`文档信息已更新`)
+            this.editModalVisible = false
         } catch (error) {
             if (hideLoading) {
                 hideLoading()
             }
-            console.error('更新文档状态失败:', error)
-            this.$message.error('更新文档状态失败，请重试')
+            console.error('更新文档信息失败:', error)
+            this.$message.error('更新文档信息失败，请重试')
         }
     }
 
-    // 处理废止状态编辑取消
-    handleRevokeStatusCancel(): void {
-        this.revokeStatusVisible = false
+    // 处理编辑取消
+    handleEditCancel(): void {
+        this.editModalVisible = false
+    }
+
+    // 根据分类ID获取分类名称
+    getCategoryNameById(categoryId: string): string {
+        const findCategoryName = (options: CascaderOption[], id: string): string => {
+            for (const option of options) {
+                if (option.value === id) {
+                    return option.label
+                }
+                if (option.children && option.children.length > 0) {
+                    const childName = findCategoryName(option.children, id)
+                    if (childName) {
+                        return childName
+                    }
+                }
+            }
+            return ''
+        }
+        return findCategoryName(this.tagOptions, categoryId)
+    }
+
+    // 根据分类名称获取分类ID
+    getCategoryIdByName(categoryName: string): string {
+        const findCategoryId = (options: CascaderOption[], name: string): string => {
+            for (const option of options) {
+                if (option.label === name) {
+                    return option.value
+                }
+                if (option.children && option.children.length > 0) {
+                    const childId = findCategoryId(option.children, name)
+                    if (childId) {
+                        return childId
+                    }
+                }
+            }
+            return ''
+        }
+        return findCategoryId(this.tagOptions, categoryName)
     }
 
     // 下载文档
@@ -203,7 +621,7 @@ export default class DocumentViewer extends Vue {
             )
 
             const result = await this.$roadLawyerService.downloadRuleFile({
-                searchId: this.document.id
+                searchId: this.document.id,
             })
 
             if (hideLoading) {
@@ -214,7 +632,7 @@ export default class DocumentViewer extends Vue {
                 downloadFileWithMessage(result, {
                     fileName: `${this.document.title}.docx`,
                     showMessage: true,
-                    messageService: this.$message
+                    messageService: this.$message,
                 })
             }
         } catch (error) {
@@ -226,6 +644,35 @@ export default class DocumentViewer extends Vue {
         }
     }
 
+    // 发送请求前处理
+    beforeBtnEnter(data: { textContent: string; enableNetworkQuery: boolean }) {
+        // 准备请求参数 - 使用 JSON 格式
+        const userId: string = this.$store.state.auth.id
+
+        this.fetchParams = JSON.stringify({
+            searchId: this.document.id,
+            userId,
+            question: data.textContent,
+            enableNetworkQuery: data.enableNetworkQuery,
+        })
+
+        // 清空上条文本
+        this.tempTxt = ''
+    }
+
+    // 处理响应数据
+    onBtnEnter(item: string) {
+        const aiChat: any = this.$refs.aiChat as CommonAiChat
+        const chatList = aiChat.chatList
+        const { tempTxt, newChatList } = getFetchFormat(
+            item,
+            this.tempTxt,
+            chatList
+        )
+        this.tempTxt = tempTxt
+        this.responseChatList = newChatList
+    }
+
     // Emit 装饰器方法
     @Emit('go-back')
     emitGoBack(): void {
@@ -234,22 +681,43 @@ export default class DocumentViewer extends Vue {
 
     @Emit('update-document-status')
     emitUpdateDocumentStatus(statusData: {
-        isRevoke: boolean;
-        timeLiness: string;
-    }): { isRevoke: boolean; timeLiness: string } {
+        timeLiness: string
+        categoryMain?: string
+        categorySub?: string
+        categoryId?: string
+        effectivenessLevel?: string
+        effectDate?: string
+        legalSource?: string
+        department?: string
+        documentNumber?: string
+        appendix?: boolean
+        publishDateStr?: string
+    }): {
+        timeLiness: string
+        categoryMain?: string
+        categorySub?: string
+        categoryId?: string
+        effectivenessLevel?: string
+        effectDate?: string
+        legalSource?: string
+        department?: string
+        documentNumber?: string
+        appendix?: boolean
+        publishDateStr?: string
+    } {
         return statusData
     }
 }
 </script>
 
 <style lang="less">
-@import "~/assets/styles/lawyer.less";
+@import '~/assets/styles/lawyer.less';
 
 .document-viewer-wrapper {
 
     // 基础布局
     .lawyer-document-page {
-        height: calc(100vh - 70px); // 减去 header 高度，确保页面不出现滚动条
+        height: calc(100vh - 160px);
         display: flex;
         flex-direction: column;
         background-color: var(--lawyer-background);
@@ -362,12 +830,36 @@ export default class DocumentViewer extends Vue {
         }
     }
 
-    // 右侧AI问答区域
-    .lawyer-document-right {
-        width: 400px;
-        flex-shrink: 0;
+    // 文档查看器
+    .lawyer-document-viewer {
+        flex: 1;
+        background: var(--lawyer-surface);
         display: flex;
         flex-direction: column;
+        height: 100%;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        min-height: 0; // 允许内容滚动
+
+        .ant-card-body {
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            flex: 1;
+            min-height: 0; // 允许内容滚动
+            overflow: hidden; // 防止卡片body的滚动条
+        }
+    }
+
+    // 右侧AI问答区域
+    .lawyer-document-right {
+        background: #fff;
+
+        .card {
+            border: none;
+            height: calc(100vh - 310px);
+        }
+
         min-height: 0; // 允许内容滚动
         overflow: hidden; // 防止右侧区域产生滚动条
 
@@ -375,26 +867,6 @@ export default class DocumentViewer extends Vue {
             width: 100%;
             min-height: 500px; // 确保足够的最小高度
             height: auto; // 改为自适应高度
-        }
-    }
-
-    // 文档查看器
-    .lawyer-document-viewer {
-        flex: 1;
-        background: var(--lawyer-surface);
-        display: flex;
-        flex-direction: column;
-        min-height: 0; // 允许内容滚动
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        overflow: hidden; // 防止卡片级别的滚动条
-
-        .ant-card-body {
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            flex: 1;
-            min-height: 0; // 允许内容滚动
-            overflow: hidden; // 防止卡片body的滚动条
         }
     }
 
@@ -448,59 +920,28 @@ export default class DocumentViewer extends Vue {
     .lawyer-document-content {
         flex: 1;
         padding: 20px 24px;
+        height: 100%;
         overflow: hidden; // 移除滚动，避免与内层DivTextSearch冲突
         min-height: 0; // 确保可以滚动
         // 移除max-height，让它自然适应容器高度
     }
 
-    // 废止状态编辑弹窗样式
-    .lawyer-revoke-status-content {
-        .lawyer-status-row {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            margin-bottom: 20px;
-
-            label {
-                font-weight: 500;
-                color: #333;
-                min-width: 80px;
-            }
-
-            .lawyer-status-switch-container {
-                display: flex;
-                align-items: center;
-                gap: 12px;
-
-                .lawyer-status-text {
-                    font-size: 14px;
-                    color: #666;
-                    font-weight: 500;
-                }
-            }
+    // 编辑弹窗样式
+    .lawyer-edit-content {
+        .ant-form-model-item {
+            margin-bottom: 16px;
         }
 
-        .lawyer-status-description {
-            padding: 12px;
-            background-color: #fafafa;
-            border-radius: 6px;
-            border: 1px solid #f0f0f0;
+        .ant-form-model-item-label {
+            font-weight: 500;
+            color: #333;
+        }
 
-            .lawyer-revoke-tip,
-            .lawyer-active-tip {
-                margin: 0;
-                font-size: 13px;
-                display: flex;
-                align-items: center;
-            }
-
-            .lawyer-revoke-tip {
-                color: #ff4d4f;
-            }
-
-            .lawyer-active-tip {
-                color: #52c41a;
-            }
+        .ant-select,
+        .ant-cascader,
+        .ant-date-picker,
+        .ant-input {
+            width: 100%;
         }
     }
 
@@ -518,10 +959,8 @@ export default class DocumentViewer extends Vue {
 
         .lawyer-document-right {
             // 桌面端保持固定宽度
-            width: 400px !important;
+            width: 40%;
         }
     }
-
-    // 移除DocumentViewer的滚动条样式，因为滚动由DivTextSearch组件处理
 }
 </style>

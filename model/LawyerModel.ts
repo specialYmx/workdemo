@@ -84,6 +84,17 @@ export interface DocumentViewerData {
   timeLiness: string;
   tags?: string[];
   effectivenessLevel?: string;
+  // 新增字段
+  legalSource?: string;
+  department?: string;
+  documentNumber?: string;
+  appendix?: boolean;
+  publishDateStr?: string;
+  effectDateStr?: string;
+  topicCategory?: string;
+  categoryMain?: string;
+  categorySub?: string;
+  categoryId?: string;
 }
 
 // 文档比较数据
@@ -202,6 +213,7 @@ export interface ApprovalParams extends MixedMap {
   effectDateStr?: string | null;
   categoryMain?: string;
   categorySub?: string;
+  categoryId?: string; // 专题分类ID - 跟大家智库的逻辑一样
 }
 
 // 导出参数
@@ -231,6 +243,7 @@ export interface BaseRuleItem {
   createdTimestamp: number;
   categoryMain: string;
   categorySub: string;
+  categoryId?: string; // 分类ID，用于新的分类系统
   timeLiness: string;
   fileContent: string;
   publishDateStr: string;
@@ -361,6 +374,20 @@ export interface RoadLawyerService {
     categorySub?: string;
     effectivenessLevel?: string;
   }) => Promise<KnowledgeDataItem | null>;
+  updateRuleSourceDetail: (params: {
+    searchId: string;
+    timeLiness?: string;
+    effectivenessLevel?: string;
+    categoryId?: string;
+    categoryMain?: string;
+    legalSource?: string;
+    publishDateStr?: string;
+    department?: string;
+    appendix?: boolean;
+    documentNumber?: string;
+    categorySub?: string;
+    effectDate?: string;
+  }) => Promise<{ success: boolean; message?: string }>;
   getRuleSourceList: (
     params: RuleSourceQueryParams
   ) => Promise<RuleSourceListResponse>;
@@ -375,6 +402,10 @@ export interface RoadLawyerService {
   getLegalCategory: (
     params: LegalCategoryParams
   ) => Promise<LegalCategoryItem[]>;
+  getDepartmentData: (params?: {
+    current: number;
+    size: number;
+  }) => Promise<DepartmentItem[]>;
 
   // ==================== 人工审核相关方法 ====================
   approveToDoRule: (params: ApprovalParams) => Promise<boolean>;
@@ -476,17 +507,6 @@ export interface LegalCategoryParams extends Record<string, unknown> {
   id?: string; // 页面ID，如'2'、'3'等，空值表示获取全量数据
 }
 
-// 消息服务接口
-export interface MessageService {
-  success(content: string, duration?: number): void;
-  error(content: string, duration?: number): void;
-  info(content: string, duration?: number): void;
-  warning(content: string, duration?: number): void;
-  warn(content: string, duration?: number): void;
-  loading(content: string, duration?: number): void;
-  destroy(): void;
-}
-
 // 审核操作
 export interface ReviewAction {
   text: string;
@@ -507,6 +527,34 @@ export interface CascaderOption {
   value: string;
   label: string;
   children?: CascaderOption[];
+}
+
+// 部门数据项接口
+export interface DepartmentItem {
+  createdDate: string;
+  id: string;
+  name: string;
+  sysId: string | null;
+  remarks: string | null;
+  parentId: string;
+  type: number;
+  emplId: string | null;
+  type2: string | null;
+  typeName: string;
+  department: string | null;
+  checked: string;
+  children: DepartmentItem[] | null;
+  parent: DepartmentItem | null;
+  sysRes: string | null;
+  sysResIds: string | null;
+  nameLike: string | null;
+}
+
+// 部门选项接口（用于下拉选择）
+export interface DepartmentOption {
+  value: string;
+  label: string;
+  id: string;
 }
 
 // AI消息
