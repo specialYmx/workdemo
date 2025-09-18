@@ -146,19 +146,21 @@ export default class LawyerKnowledgeFilterOptions extends Vue {
     }
 
     @Emit('update:timelinessFilter')
-    onTimelinessChange(value: string): string {
+    onTimelinessChange(value: string | undefined): string {
+        const result = value || ''
         this.$nextTick(() => {
             this.$emit('filter-change')
         })
-        return value
+        return result
     }
 
     @Emit('update:effectivenessLevelFilter')
-    onEffectivenessLevelChange(value: string): string {
+    onEffectivenessLevelChange(value: string | undefined): string {
+        const result = value || ''
         this.$nextTick(() => {
             this.$emit('filter-change')
         })
-        return value
+        return result
     }
 
     @Emit('update:topicCategory')
@@ -170,19 +172,21 @@ export default class LawyerKnowledgeFilterOptions extends Vue {
     }
 
     @Emit('update:filterSource')
-    onFilterSourceChange(value: string): string {
+    onFilterSourceChange(value: string | undefined): string {
+        const result = value || ''
         this.$nextTick(() => {
             this.$emit('filter-change')
         })
-        return value
+        return result
     }
 
     @Emit('update:publishDate')
-    onPublishDateChange(value: string | null): string | null {
+    onPublishDateChange(value: string | null | undefined): string | null | undefined {
+        const result = value || ''
         this.$nextTick(() => {
             this.$emit('filter-change')
         })
-        return value
+        return result
     }
 
     @Emit('update:sortOrder')
@@ -203,11 +207,12 @@ export default class LawyerKnowledgeFilterOptions extends Vue {
     }
 
     @Emit('update:departmentFilter')
-    onDepartmentChange(value: string): string {
+    onDepartmentChange(value: string | undefined): string {
+        const result = value || ''
         this.$nextTick(() => {
             this.$emit('filter-change')
         })
-        return value
+        return result
     }
 
     @Emit('update:isAppendixFilter')
