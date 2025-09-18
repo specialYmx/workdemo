@@ -6,10 +6,16 @@ import scrollBehavior from './router.scrollBehavior.js'
 
 const _486f1f76 = () => interopDefault(import('..\\pages\\crawlConfig\\index.vue' /* webpackChunkName: "pages/crawlConfig/index" */))
 const _79a57578 = () => interopDefault(import('..\\pages\\crawlStatistics\\index.vue' /* webpackChunkName: "pages/crawlStatistics/index" */))
+const _3cd0793a = () => interopDefault(import('..\\pages\\institutionLibrary\\index.vue' /* webpackChunkName: "pages/institutionLibrary/index" */))
 const _3c20d440 = () => interopDefault(import('..\\pages\\lawyerIndex\\index.vue' /* webpackChunkName: "pages/lawyerIndex/index" */))
 const _f95945d8 = () => interopDefault(import('..\\pages\\lawyerKnowledge\\index.vue' /* webpackChunkName: "pages/lawyerKnowledge/index" */))
 const _472a0619 = () => interopDefault(import('..\\pages\\lawyerUpdate\\index.vue' /* webpackChunkName: "pages/lawyerUpdate/index" */))
+const _05d1f5be = () => interopDefault(import('..\\pages\\legalComplianceQuarterly\\index.vue' /* webpackChunkName: "pages/legalComplianceQuarterly/index" */))
 const _056e9ab0 = () => interopDefault(import('..\\pages\\manualReview\\index.vue' /* webpackChunkName: "pages/manualReview/index" */))
+const _2b28a4dc = () => interopDefault(import('..\\pages\\newRegulationInterpretation\\index.vue' /* webpackChunkName: "pages/newRegulationInterpretation/index" */))
+const _c41769c4 = () => interopDefault(import('..\\pages\\punishmentCompilation\\index.vue' /* webpackChunkName: "pages/punishmentCompilation/index" */))
+const _ff2bd856 = () => interopDefault(import('..\\pages\\regulationCompilation\\index.vue' /* webpackChunkName: "pages/regulationCompilation/index" */))
+const _7ca206ed = () => interopDefault(import('..\\pages\\researchCollection\\index.vue' /* webpackChunkName: "pages/researchCollection/index" */))
 const _6dea137f = () => interopDefault(import('..\\pages\\taskHistory\\index.vue' /* webpackChunkName: "pages/taskHistory/index" */))
 const _7f6b54ff = () => interopDefault(import('..\\pages\\lawyerKnowledge\\detail.vue' /* webpackChunkName: "pages/lawyerKnowledge/detail" */))
 const _3669cc9a = () => interopDefault(import('..\\pages\\lawyerUpdate\\detail.vue' /* webpackChunkName: "pages/lawyerUpdate/detail" */))
@@ -36,6 +42,10 @@ export const routerOptions = {
     component: _79a57578,
     name: "crawlStatistics"
   }, {
+    path: "/institutionLibrary",
+    component: _3cd0793a,
+    name: "institutionLibrary"
+  }, {
     path: "/lawyerIndex",
     component: _3c20d440,
     name: "lawyerIndex"
@@ -48,9 +58,29 @@ export const routerOptions = {
     component: _472a0619,
     name: "lawyerUpdate"
   }, {
+    path: "/legalComplianceQuarterly",
+    component: _05d1f5be,
+    name: "legalComplianceQuarterly"
+  }, {
     path: "/manualReview",
     component: _056e9ab0,
     name: "manualReview"
+  }, {
+    path: "/newRegulationInterpretation",
+    component: _2b28a4dc,
+    name: "newRegulationInterpretation"
+  }, {
+    path: "/punishmentCompilation",
+    component: _c41769c4,
+    name: "punishmentCompilation"
+  }, {
+    path: "/regulationCompilation",
+    component: _ff2bd856,
+    name: "regulationCompilation"
+  }, {
+    path: "/researchCollection",
+    component: _7ca206ed,
+    name: "researchCollection"
   }, {
     path: "/taskHistory",
     component: _6dea137f,

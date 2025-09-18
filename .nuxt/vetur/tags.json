@@ -17,6 +17,9 @@
   "LawyerCommonFileUploadModal": {
     "description": "Auto imported from components/lawyer/common/FileUploadModal.vue"
   },
+  "LawyerCrawlStatisticsIndexComponent": {
+    "description": "Auto imported from components/lawyer/crawlStatistics/indexComponent.vue"
+  },
   "LawyerCrawlConfigIndexComponent": {
     "description": "Auto imported from components/lawyer/crawlConfig/indexComponent.vue"
   },
@@ -32,26 +35,29 @@
   "LawyerIndexSourceDistribution": {
     "description": "Auto imported from components/lawyer/index/SourceDistribution.vue"
   },
-  "LawyerCrawlStatisticsIndexComponent": {
-    "description": "Auto imported from components/lawyer/crawlStatistics/indexComponent.vue"
-  },
   "LawyerDocumentCompare": {
     "description": "Auto imported from components/lawyer/document/DocumentCompare.vue"
   },
   "LawyerDocumentViewer": {
     "description": "Auto imported from components/lawyer/document/DocumentViewer.vue"
   },
+  "LawyerKnowledgeDetailComponent": {
+    "description": "Auto imported from components/lawyer/knowledge/detailComponent.vue"
+  },
+  "LawyerKnowledgeDocumentList": {
+    "description": "Auto imported from components/lawyer/knowledge/DocumentList.vue"
+  },
+  "LawyerKnowledgeFilterOptions": {
+    "description": "Auto imported from components/lawyer/knowledge/FilterOptions.vue"
+  },
+  "LawyerKnowledgeIndexComponent": {
+    "description": "Auto imported from components/lawyer/knowledge/indexComponent.vue"
+  },
   "LawyerManualReviewDetailComponent": {
     "description": "Auto imported from components/lawyer/manualReview/detailComponent.vue"
   },
   "LawyerManualReviewIndexComponent": {
     "description": "Auto imported from components/lawyer/manualReview/indexComponent.vue"
-  },
-  "LawyerKnowledgeDetailComponent": {
-    "description": "Auto imported from components/lawyer/knowledge/detailComponent.vue"
-  },
-  "LawyerKnowledgeIndexComponent": {
-    "description": "Auto imported from components/lawyer/knowledge/indexComponent.vue"
   },
   "LawyerTaskHistoryIndexComponent": {
     "description": "Auto imported from components/lawyer/taskHistory/indexComponent.vue"

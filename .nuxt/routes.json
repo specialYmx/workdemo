@@ -14,6 +14,13 @@
     "_name": "_79a57578"
   },
   {
+    "name": "institutionLibrary",
+    "path": "/institutionLibrary",
+    "component": "D:\\\\temp_demo\\\\report-html\\\\law\\\\pages\\\\institutionLibrary\\\\index.vue",
+    "chunkName": "pages/institutionLibrary/index",
+    "_name": "_3cd0793a"
+  },
+  {
     "name": "lawyerIndex",
     "path": "/lawyerIndex",
     "component": "D:\\\\temp_demo\\\\report-html\\\\law\\\\pages\\\\lawyerIndex\\\\index.vue",
@@ -35,11 +42,46 @@
     "_name": "_472a0619"
   },
   {
+    "name": "legalComplianceQuarterly",
+    "path": "/legalComplianceQuarterly",
+    "component": "D:\\\\temp_demo\\\\report-html\\\\law\\\\pages\\\\legalComplianceQuarterly\\\\index.vue",
+    "chunkName": "pages/legalComplianceQuarterly/index",
+    "_name": "_05d1f5be"
+  },
+  {
     "name": "manualReview",
     "path": "/manualReview",
     "component": "D:\\\\temp_demo\\\\report-html\\\\law\\\\pages\\\\manualReview\\\\index.vue",
     "chunkName": "pages/manualReview/index",
     "_name": "_056e9ab0"
+  },
+  {
+    "name": "newRegulationInterpretation",
+    "path": "/newRegulationInterpretation",
+    "component": "D:\\\\temp_demo\\\\report-html\\\\law\\\\pages\\\\newRegulationInterpretation\\\\index.vue",
+    "chunkName": "pages/newRegulationInterpretation/index",
+    "_name": "_2b28a4dc"
+  },
+  {
+    "name": "punishmentCompilation",
+    "path": "/punishmentCompilation",
+    "component": "D:\\\\temp_demo\\\\report-html\\\\law\\\\pages\\\\punishmentCompilation\\\\index.vue",
+    "chunkName": "pages/punishmentCompilation/index",
+    "_name": "_c41769c4"
+  },
+  {
+    "name": "regulationCompilation",
+    "path": "/regulationCompilation",
+    "component": "D:\\\\temp_demo\\\\report-html\\\\law\\\\pages\\\\regulationCompilation\\\\index.vue",
+    "chunkName": "pages/regulationCompilation/index",
+    "_name": "_ff2bd856"
+  },
+  {
+    "name": "researchCollection",
+    "path": "/researchCollection",
+    "component": "D:\\\\temp_demo\\\\report-html\\\\law\\\\pages\\\\researchCollection\\\\index.vue",
+    "chunkName": "pages/researchCollection/index",
+    "_name": "_7ca206ed"
   },
   {
     "name": "taskHistory",
