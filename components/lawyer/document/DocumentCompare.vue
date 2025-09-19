@@ -90,7 +90,7 @@
                                     <div v-if="change.type === 'add'" class="change-text">
                                         新增内容：<span class="highlight-text">{{
                                             change.newText
-                                            }}</span>
+                                        }}</span>
                                     </div>
                                     <div v-else-if="change.type === 'delete'" class="change-text">
                                         删除了"<span class="deleted-text">{{ change.oldText }}</span>"
@@ -98,7 +98,7 @@
                                     <div v-else-if="change.type === 'modify'" class="change-text">
                                         修改内容：<span class="highlight-text">{{
                                             change.newText
-                                            }}</span>，原内容："{{ change.oldText }}"
+                                        }}</span>，原内容："{{ change.oldText }}"
                                     </div>
                                 </div>
                             </div>
@@ -512,30 +512,18 @@ export default class DocumentCompare extends Vue {
     @Emit('submit-review')
     emitSubmitReview(data: ReviewSubmitData): ReviewSubmitData & {
         categoryMain?: string
-        categorySub?: string
         categoryId?: string
         effectDateStr?: string | null
     } {
-        // 从当前文档的标签中获取分类信息
-        const categoryMain =
-            this.document.tags && this.document.tags.length > 0
-                ? this.getCategoryNameById(this.document.tags[0]) || this.document.tags[0]
-                : undefined
-        const categorySub =
-            this.document.tags && this.document.tags.length > 1
-                ? this.getCategoryNameById(this.document.tags[1]) || this.document.tags[1]
-                : undefined
-
-        // 计算 categoryId - 跟大家智库的逻辑一样
+        // 根据新的后端逻辑，categoryMain是最终选择的分类名称，categoryId是最终选择的分类ID
+        let categoryMain: string | undefined
         let categoryId: string | undefined
+
         if (this.document.tags && this.document.tags.length > 0) {
-            if (this.document.tags.length > 1) {
-                // 如果有子分类，使用子分类ID作为 categoryId
-                categoryId = this.document.tags[1]
-            } else {
-                // 如果只有主分类，使用主分类ID作为 categoryId
-                categoryId = this.document.tags[0]
-            }
+            // 使用最后一个标签作为最终选择的分类
+            const lastTagIndex = this.document.tags.length - 1
+            categoryId = this.document.tags[lastTagIndex]
+            categoryMain = this.getCategoryNameById(categoryId) || categoryId
         }
 
         const effectDateStr = this.document.effectDate
@@ -543,7 +531,6 @@ export default class DocumentCompare extends Vue {
         return {
             ...data,
             categoryMain,
-            categorySub,
             categoryId,
             effectDateStr,
         }

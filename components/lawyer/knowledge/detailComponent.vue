@@ -41,7 +41,6 @@ export default class LawyerKnowledgeDetailComponent extends Vue {
     handleUpdateDocumentStatus(statusData: {
         timeLiness: string;
         categoryMain?: string;
-        categorySub?: string;
         categoryId?: string;
         effectivenessLevel?: string;
         effectDate?: string;
@@ -56,12 +55,9 @@ export default class LawyerKnowledgeDetailComponent extends Vue {
         this.document.status = statusData.timeLiness
         this.document.isRevoke = statusData.timeLiness === '已废止'
 
-        // 更新分类相关字段（DocumentViewerData接口已包含这些字段）
+        // 更新分类相关字段（根据新的后端逻辑，categoryMain是最终选择的分类名称）
         if (statusData.categoryMain !== undefined) {
             this.document.categoryMain = statusData.categoryMain
-        }
-        if (statusData.categorySub !== undefined) {
-            this.document.categorySub = statusData.categorySub
         }
         if (statusData.categoryId !== undefined) {
             this.document.categoryId = statusData.categoryId

@@ -417,42 +417,26 @@ export default class DocumentViewer extends Vue {
         this.formData.categoryPath = []
 
         // 尝试从不同的字段获取分类信息
-        const docAny = this.document as any
-
-        if (docAny.categoryMain) {
-            // 根据分类名称获取分类ID
-            const mainCategoryId = this.getCategoryIdByName(docAny.categoryMain)
-            if (mainCategoryId) {
-                this.formData.categoryPath.push(mainCategoryId)
-
-                if (docAny.categorySub) {
-                    const subCategoryId = this.getCategoryIdByName(docAny.categorySub)
-                    if (subCategoryId) {
-                        this.formData.categoryPath.push(subCategoryId)
-                    }
-                }
-            }
-        } else if (docAny.topicCategory) {
-            // 如果有topicCategory字段，尝试根据名称获取ID
-            const categoryId = this.getCategoryIdByName(docAny.topicCategory)
-            if (categoryId) {
-                this.formData.categoryPath.push(categoryId)
-            }
+        // 优先使用categoryId字段（如果存在）
+        if (this.document.categoryId) {
+            // 如果有categoryId，需要找到完整的分类路径
+            const categoryPath = this.getCategoryPathById(this.document.categoryId)
+            this.formData.categoryPath = categoryPath
+        } else if (this.document.categoryMain) {
+            // 新逻辑：categoryMain现在是最终选择的分类名称，不再是父级
+            // 根据categoryMain的名称获取对应的分类ID和完整路径
+            const categoryPath = this.getCategoryPathByName(this.document.categoryMain)
+            this.formData.categoryPath = categoryPath
+        } else if (this.document.topicCategory) {
+            // 如果有topicCategory字段，尝试根据名称获取完整路径
+            const categoryPath = this.getCategoryPathByName(this.document.topicCategory)
+            this.formData.categoryPath = categoryPath
         } else if (this.document.tags && this.document.tags.length > 0) {
             // 如果tags字段存在，直接使用（假设已经是ID）
             this.formData.categoryPath = [...this.document.tags]
         }
-
-        console.log('专题分类回显数据:', {
-            categoryMain: docAny.categoryMain,
-            categorySub: docAny.categorySub,
-            topicCategory: docAny.topicCategory,
-            tags: this.document.tags,
-            categoryPath: this.formData.categoryPath
-        })
-
         // 回显来源
-        this.formData.legalSource = (this.document as any).legalSource || this.document.publisher || undefined
+        this.formData.legalSource = this.document.legalSource || this.document.publisher || undefined
 
         // 回显发布时间 - 确保不是无效的日期字符串
         const publishDate = this.document.date
@@ -483,7 +467,7 @@ export default class DocumentViewer extends Vue {
         }
 
         // 回显责任部门
-        this.formData.department = (this.document as any).department || undefined
+        this.formData.department = this.document.department || undefined
 
         // 回显发文字号 - 确保不是无效值
         const fileNumber = this.document.fileNumber
@@ -494,7 +478,7 @@ export default class DocumentViewer extends Vue {
         }
 
         // 回显是否附录
-        this.formData.appendix = !!(this.document as any).appendix
+        this.formData.appendix = !!this.document.appendix
     }
 
     // 处理编辑确认
@@ -504,7 +488,7 @@ export default class DocumentViewer extends Vue {
             hideLoading = this.$message.loading('正在更新文档信息...', 0)
 
             // 准备更新参数 - 参考新增参数配置
-            const updateParams: any = {
+            const updateParams = {
                 searchId: this.document.id,
                 appendix: this.formData.appendix,
                 timeLiness: this.formData.timeLiness,
@@ -513,21 +497,19 @@ export default class DocumentViewer extends Vue {
                 publishDateStr: this.formData.publishDate,
                 effectDate: this.formData.effectDate,
                 department: this.formData.department,
-                documentNumber: this.formData.documentNumber
+                documentNumber: this.formData.documentNumber,
+                categoryId: "",
+                categoryMain: ""
             }
 
-            // 处理分类路径 - 参考新增时的逻辑
+            // 处理分类路径 - 根据新的后端逻辑调整
             if (this.formData.categoryPath && this.formData.categoryPath.length > 0) {
-                // 使用分类ID作为categoryId，使用分类名称作为categoryMain和categorySub
-                updateParams.categoryMain = this.getCategoryNameById(this.formData.categoryPath[0])
-                if (this.formData.categoryPath.length > 1) {
-                    updateParams.categorySub = this.getCategoryNameById(this.formData.categoryPath[1])
-                    // 如果有子分类，使用子分类ID作为 categoryId
-                    updateParams.categoryId = this.formData.categoryPath[1]
-                } else {
-                    // 如果只有主分类，使用主分类ID作为 categoryId
-                    updateParams.categoryId = this.formData.categoryPath[0]
-                }
+                // 新逻辑：categoryMain是最终选择的分类名称，categoryId是最终选择的分类ID
+                const lastCategoryId = this.formData.categoryPath[this.formData.categoryPath.length - 1]
+                updateParams.categoryId = lastCategoryId
+                updateParams.categoryMain = this.getCategoryNameById(lastCategoryId)
+
+                // 根据新逻辑，不再需要设置categorySub，因为categoryMain已经是最终选择的分类
             }
 
             console.log('编辑更新参数:', updateParams)
@@ -546,7 +528,6 @@ export default class DocumentViewer extends Vue {
             this.emitUpdateDocumentStatus({
                 timeLiness: this.formData.timeLiness || '已施行',
                 categoryMain: updateParams.categoryMain,
-                categorySub: updateParams.categorySub,
                 categoryId: updateParams.categoryId,
                 effectivenessLevel: this.formData.effectivenessLevel,
                 effectDate: this.formData.effectDate,
@@ -592,23 +573,44 @@ export default class DocumentViewer extends Vue {
         return findCategoryName(this.tagOptions, categoryId)
     }
 
-    // 根据分类名称获取分类ID
-    getCategoryIdByName(categoryName: string): string {
-        const findCategoryId = (options: CascaderOption[], name: string): string => {
+    // 根据分类ID获取完整的分类路径（包含所有父级）
+    getCategoryPathById(categoryId: string): string[] {
+        const findCategoryPath = (options: CascaderOption[], id: string, path: string[] = []): string[] => {
             for (const option of options) {
-                if (option.label === name) {
-                    return option.value
+                const currentPath = [...path, option.value]
+                if (option.value === id) {
+                    return currentPath
                 }
                 if (option.children && option.children.length > 0) {
-                    const childId = findCategoryId(option.children, name)
-                    if (childId) {
-                        return childId
+                    const childPath = findCategoryPath(option.children, id, currentPath)
+                    if (childPath.length > 0) {
+                        return childPath
                     }
                 }
             }
-            return ''
+            return []
         }
-        return findCategoryId(this.tagOptions, categoryName)
+        return findCategoryPath(this.tagOptions, categoryId)
+    }
+
+    // 根据分类名称获取完整的分类路径（包含所有父级）
+    getCategoryPathByName(categoryName: string): string[] {
+        const findCategoryPath = (options: CascaderOption[], name: string, path: string[] = []): string[] => {
+            for (const option of options) {
+                const currentPath = [...path, option.value]
+                if (option.label === name) {
+                    return currentPath
+                }
+                if (option.children && option.children.length > 0) {
+                    const childPath = findCategoryPath(option.children, name, currentPath)
+                    if (childPath.length > 0) {
+                        return childPath
+                    }
+                }
+            }
+            return []
+        }
+        return findCategoryPath(this.tagOptions, categoryName)
     }
 
     // 下载文档
@@ -662,7 +664,7 @@ export default class DocumentViewer extends Vue {
 
     // 处理响应数据
     onBtnEnter(item: string) {
-        const aiChat: any = this.$refs.aiChat as CommonAiChat
+        const aiChat = this.$refs.aiChat as CommonAiChat
         const chatList = aiChat.chatList
         const { tempTxt, newChatList } = getFetchFormat(
             item,
@@ -683,7 +685,6 @@ export default class DocumentViewer extends Vue {
     emitUpdateDocumentStatus(statusData: {
         timeLiness: string
         categoryMain?: string
-        categorySub?: string
         categoryId?: string
         effectivenessLevel?: string
         effectDate?: string
@@ -695,7 +696,6 @@ export default class DocumentViewer extends Vue {
     }): {
         timeLiness: string
         categoryMain?: string
-        categorySub?: string
         categoryId?: string
         effectivenessLevel?: string
         effectDate?: string

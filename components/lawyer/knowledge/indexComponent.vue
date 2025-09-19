@@ -216,6 +216,7 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
     async onExactSearch(): Promise<void> {
         this.searchLoading = true
         try {
+            this.currentPage = 1
             await this.loadDocuments('exact')
         } catch (error) {
             console.error('精确搜索失败:', error)
@@ -225,7 +226,7 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
     }
 
     async onFilterChange(): Promise<void> {
-        // 筛选器变化时使用默认搜索（普通搜索）
+        this.currentPage = 1
         await this.loadDocuments('exact')
     }
 
@@ -554,7 +555,7 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
         } else if (routePath.includes('/newRegulationInterpretation')) {
             console.log('匹配到新规解读页面')
             return '310' // 新规解读
-        } else if (routePath === '/institutionLibrary' || routePath === '/institutionLibrary/') {
+        } else if (routePath.includes('/institutionLibrary')) {
             console.log('匹配到制度库页面')
             return '3' // 制度库
         } else if (routePath.includes('/policyLibrary')) {
@@ -597,7 +598,7 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
     }
 
     async loadDocuments(
-        searchType: 'normal' | 'exact' | 'default' = 'default'
+        searchType: 'normal' | 'exact' | 'default' = 'exact'
     ): Promise<void> {
         this.listLoading = true
         try {
