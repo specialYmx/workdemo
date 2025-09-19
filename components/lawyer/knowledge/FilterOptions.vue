@@ -24,7 +24,7 @@
             <div class="lawyer-filter-group">
                 <a-select :value="timelinessFilter || undefined" style="width: 100%" placeholder="时效性"
                     :allow-clear="true" @change="onTimelinessChange">
-                    <a-select-option v-for="option in timeLinessOptions" :key="option.value" :value="option.value">
+                    <a-select-option v-for="option in timelinessOptions" :key="option.value" :value="option.value">
                         {{ option.label }}
                     </a-select-option>
                 </a-select>
@@ -79,8 +79,7 @@
             <div class="lawyer-filter-group">
                 <a-select :value="departmentFilter || undefined" style="width: 100%" placeholder="责任部门"
                     :allow-clear="true" @change="onDepartmentChange">
-                    <a-select-option v-for="option in departmentOptions" :key="option.value"
-                        :value="option.value + option.label">
+                    <a-select-option v-for="option in departmentOptions" :key="option.id" :value="option.value">
                         {{ option.label }}
                     </a-select-option>
                 </a-select>
@@ -125,9 +124,9 @@ export default class LawyerKnowledgeFilterOptions extends Vue {
     @Prop({ required: true }) topicCategoryOptions!: CascaderOption[]
     @Prop({ required: true }) departmentOptions!: DepartmentOption[]
     mounted() {
-        console.log("🚀 ~ LawyerKnowledgeFilterOptions ~ publishDate:", this.timelinessFilter);
+        // 组件挂载完成
     }
-    get timeLinessOptions(): FilterOption[] {
+    get timelinessOptions(): FilterOption[] {
         return [
             { value: '待生效', label: '待生效' },
             { value: '已施行', label: '已施行' },
@@ -181,7 +180,8 @@ export default class LawyerKnowledgeFilterOptions extends Vue {
     }
 
     @Emit('update:publishDate')
-    onPublishDateChange(value: string | null | undefined): string | null | undefined {
+    onPublishDateChange(value: string | null | undefined): string {
+        // 将null/undefined转换为空字符串，避免Vue props验证警告
         const result = value || ''
         this.$nextTick(() => {
             this.$emit('filter-change')

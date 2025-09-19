@@ -24,7 +24,7 @@
             <!-- 文档上传组件 -->
             <lawyer-common-file-upload-modal :visible="uploadModalVisible" :title="uploadModalTitle"
                 :document-id="currentUploadDocId" :document-title="currentUploadDocTitle" :category-name="categoryName"
-                :time-liness-options="timeLinessOptions" :website-options="websiteOptions"
+                :time-liness-options="timelinessOptions" :website-options="websiteOptions"
                 :category-options="topicCategoryOptions" :department-options="departmentOptions"
                 :document-data="currentDocumentData" :config="uploadConfig" @cancel="handleUploadCancel"
                 @complete="handleUploadComplete" @upload-success="handleUploadSuccess" />
@@ -170,7 +170,7 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
         return actions
     }
 
-    get timeLinessOptions(): FilterOption[] {
+    get timelinessOptions(): FilterOption[] {
         return [
             { value: '待生效', label: '待生效' },
             { value: '已施行', label: '已施行' },
@@ -498,7 +498,7 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
                     this.categoryData = response
                 } else {
                     // 其他页面：取第一个元素的children
-                    this.categoryData = response[0].children || []
+                    this.categoryData = response[0]?.children || []
                 }
             } else {
                 console.warn(`获取专题分类数据为空，分类ID: ${categoryId || '全量'}`)
@@ -535,38 +535,27 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
     getCategoryIdByRoute(): string | undefined {
         // 根据当前路由确定分类ID
         const routePath = this.$route.path
-        console.log('当前路由路径:', routePath)
 
         if (routePath.includes('/lawyerKnowledge')) {
-            console.log('匹配到大家智库页面，使用全量数据')
             return undefined // 大家智库页面使用全量数据
         } else if (routePath.includes('/regulationCompilation')) {
-            console.log('匹配到法规汇编页面')
             return '2' // 法规汇编
         } else if (routePath.includes('/punishmentCompilation')) {
-            console.log('匹配到处罚汇编页面')
             return '1' // 处罚汇编
         } else if (routePath.includes('/researchCollection')) {
-            console.log('匹配到研究集锦页面')
             return '311' // 研究集锦
         } else if (routePath.includes('/legalComplianceQuarterly')) {
-            console.log('匹配到法律合规季刊页面')
             return '312' // 法律合规季刊
         } else if (routePath.includes('/newRegulationInterpretation')) {
-            console.log('匹配到新规解读页面')
             return '310' // 新规解读
         } else if (routePath.includes('/institutionLibrary')) {
-            console.log('匹配到制度库页面')
             return '3' // 制度库
         } else if (routePath.includes('/policyLibrary')) {
-            console.log('匹配到政策库页面')
             return '2' // 法规汇编
         } else if (routePath.includes('/caseLibrary')) {
-            console.log('匹配到案例库页面')
             return '2' // 法规汇编
         }
         // 默认返回undefined，使用全量数据
-        console.log('使用默认分类: 全量数据')
         return undefined
     }
 
