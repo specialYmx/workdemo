@@ -336,7 +336,6 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
     async collectDocument(doc: KnowledgeDataItem): Promise<void> {
         const isCurrentlyFavorite: boolean = this.isDocumentFavorite(doc)
         const newCollectStatus: boolean = !isCurrentlyFavorite
-        doc.isCollect = newCollectStatus
 
         try {
             const params = {
@@ -346,26 +345,27 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
             }
             const success = await this.$roadLawyerService.saveOrCancelCollect(params)
             if (success) {
+                // 接口调用成功后再更新状态，确保响应式更新
+                const docIndex = this.allDocuments.findIndex(item => item.id === doc.id)
+                if (docIndex !== -1) {
+                    // 使用 Vue.set 或者直接修改数组元素来触发响应式更新
+                    this.$set(this.allDocuments[docIndex], 'isCollect', newCollectStatus)
+                }
+
                 if (newCollectStatus) {
                     this.$message.success(`已收藏: ${doc.ruleName}`)
                 } else {
                     this.$message.info(`已取消收藏: ${doc.ruleName}`)
                     if (this.isFavoritesMode) {
-                        const index: number = this.allDocuments.findIndex(
-                            (item: KnowledgeDataItem) => item.id === doc.id
-                        )
-                        if (index !== -1) {
-                            this.allDocuments.splice(index, 1)
-                            this.totalDocuments = this.allDocuments.length
-                        }
+                        // 在收藏模式下取消收藏时，从列表中移除该文档
+                        this.allDocuments.splice(docIndex, 1)
+                        this.totalDocuments = this.allDocuments.length
                     }
                 }
             } else {
-                doc.isCollect = isCurrentlyFavorite
                 this.$message.error('操作失败，请重试')
             }
         } catch (error) {
-            doc.isCollect = isCurrentlyFavorite
             console.error('收藏操作失败:', error)
             this.$message.error('操作失败，请重试')
         }
