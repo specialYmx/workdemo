@@ -495,7 +495,7 @@ export default class DocumentViewer extends Vue {
                 effectivenessLevel: this.formData.effectivenessLevel,
                 legalSource: this.formData.legalSource,
                 publishDateStr: this.formData.publishDate,
-                effectDate: this.formData.effectDate,
+                effectDateStr: this.formData.effectDate,
                 department: this.formData.department,
                 documentNumber: this.formData.documentNumber,
                 categoryId: "",
