@@ -302,6 +302,7 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
         const query: RouteQuery = {
             id: doc.id,
             pageTitle: doc.ruleName,
+            source: this.$route.path, // 传递来源页面路径，用于详情页面正确获取专题分类
             ...(isRevoke ? { isRevoke: 'true' } : {})
         }
         this.$router.push({
@@ -537,28 +538,20 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
     getCategoryIdByRoute(): string | undefined {
         // 根据当前路由确定分类ID
         const routePath = this.$route.path
-
-        if (routePath.includes('/lawyerKnowledge')) {
-            return undefined // 大家智库页面使用全量数据
-        } else if (routePath.includes('/regulationCompilation')) {
-            return '2' // 法规汇编
+        if (routePath.includes('/institutionLibrary')) {
+            return '3' // 制度库
         } else if (routePath.includes('/punishmentCompilation')) {
             return '1' // 处罚汇编
+        } else if (routePath.includes('/regulationCompilation')) {
+            return '2' // 法规汇编
+        } else if (routePath.includes('/newRegulationInterpretation')) {
+            return '310' // 新规解读
         } else if (routePath.includes('/researchCollection')) {
             return '311' // 研究集锦
         } else if (routePath.includes('/legalComplianceQuarterly')) {
             return '312' // 法律合规季刊
-        } else if (routePath.includes('/newRegulationInterpretation')) {
-            return '310' // 新规解读
-        } else if (routePath.includes('/institutionLibrary')) {
-            return '3' // 制度库
-        } else if (routePath.includes('/policyLibrary')) {
-            return '2' // 法规汇编
-        } else if (routePath.includes('/caseLibrary')) {
-            return '2' // 法规汇编
         }
-        // 默认返回undefined，使用全量数据
-        return undefined
+        return undefined // 大家智库页面使用全量数据
     }
 
     convertToCascaderOptions(categories: LegalCategoryItem[]): CascaderOption[] {

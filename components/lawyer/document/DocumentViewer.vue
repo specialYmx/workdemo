@@ -274,38 +274,32 @@ export default class DocumentViewer extends Vue {
 
     // 根据路由确定分类ID
     getCategoryIdByRoute(): string | undefined {
-        const routePath = this.$route.path
-        console.log('当前路由路径:', routePath)
-
-        if (routePath.includes('/lawyerKnowledge')) {
-            console.log('匹配到大家智库页面，使用全量数据')
-            return undefined // 大家智库页面使用全量数据
-        } else if (routePath.includes('/institutionLibrary')) {
-            console.log('匹配到制度库页面')
+        // 优先从路由参数获取来源页面信息
+        const sourcePath = this.$route.query.source as string
+        const routePath = sourcePath || this.$route.path
+        if (routePath.includes('/institutionLibrary')) {
             return '3' // 制度库
-        } else if (routePath.includes('/policyLibrary')) {
-            console.log('匹配到政策库页面')
+        } else if (routePath.includes('/punishmentCompilation')) {
+            return '1' // 处罚汇编
+        } else if (routePath.includes('/regulationCompilation')) {
             return '2' // 法规汇编
-        } else if (routePath.includes('/caseLibrary')) {
-            console.log('匹配到案例库页面')
-            return '2' // 法规汇编
+        } else if (routePath.includes('/newRegulationInterpretation')) {
+            return '310' // 新规解读
+        } else if (routePath.includes('/researchCollection')) {
+            return '311' // 研究集锦
+        } else if (routePath.includes('/legalComplianceQuarterly')) {
+            return '312' // 法律合规季刊
         }
-        // 默认返回undefined，使用全量数据
-        console.log('使用默认分类: 全量数据')
-        return undefined
+        return undefined // 大家智库页面使用全量数据
     }
 
     // 加载专题分类数据
     async loadCategoryOptions(): Promise<void> {
         try {
             const categoryId = this.getCategoryIdByRoute()
-            console.log('开始加载专题分类数据，分类ID:', categoryId || '全量')
-
             const categories: LegalCategoryItem[] = await this.$roadLawyerService.getLegalCategory({
                 id: categoryId
             })
-
-            console.log('获取到的分类数据:', categories)
 
             if (categories && categories.length > 0) {
                 // 根据是否有categoryId决定数据处理方式
@@ -315,14 +309,11 @@ export default class DocumentViewer extends Vue {
                     processedCategories = categories[0].children || []
                 }
                 this.tagOptions = this.convertToCascaderOptions(processedCategories)
-                console.log('转换后的级联选择器数据:', this.tagOptions)
             } else {
-                console.warn('未获取到分类数据，使用默认数据')
                 this.tagOptions = []
             }
         } catch (error) {
             console.error('加载专题分类数据失败:', error)
-            // 出错时使用默认数据
             this.tagOptions = []
         }
     }

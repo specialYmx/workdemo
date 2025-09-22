@@ -34,7 +34,14 @@ export default class LawyerKnowledgeDetailComponent extends Vue {
 
     // 返回上一页
     goBack(): void {
-        this.$router.back()
+        // 优先根据来源页面参数返回到正确的列表页面
+        const sourcePath = this.$route.query.source as string
+
+        if (sourcePath) {
+            this.$router.push(sourcePath)
+        } else {
+            this.$router.back()
+        }
     }
 
     // 处理文档状态更新
