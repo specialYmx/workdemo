@@ -17,6 +17,15 @@
   "LawyerCommonFileUploadModal": {
     "description": "Auto imported from components/lawyer/common/FileUploadModal.vue"
   },
+  "LawyerCrawlStatisticsIndexComponent": {
+    "description": "Auto imported from components/lawyer/crawlStatistics/indexComponent.vue"
+  },
+  "LawyerDocumentCompare": {
+    "description": "Auto imported from components/lawyer/document/DocumentCompare.vue"
+  },
+  "LawyerDocumentViewer": {
+    "description": "Auto imported from components/lawyer/document/DocumentViewer.vue"
+  },
   "LawyerCrawlConfigIndexComponent": {
     "description": "Auto imported from components/lawyer/crawlConfig/indexComponent.vue"
   },
@@ -31,15 +40,6 @@
   },
   "LawyerIndexSourceDistribution": {
     "description": "Auto imported from components/lawyer/index/SourceDistribution.vue"
-  },
-  "LawyerDocumentCompare": {
-    "description": "Auto imported from components/lawyer/document/DocumentCompare.vue"
-  },
-  "LawyerDocumentViewer": {
-    "description": "Auto imported from components/lawyer/document/DocumentViewer.vue"
-  },
-  "LawyerCrawlStatisticsIndexComponent": {
-    "description": "Auto imported from components/lawyer/crawlStatistics/indexComponent.vue"
   },
   "LawyerKnowledgeDetailComponent": {
     "description": "Auto imported from components/lawyer/knowledge/detailComponent.vue"
