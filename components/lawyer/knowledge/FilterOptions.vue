@@ -39,9 +39,9 @@
                     </a-select-option>
                 </a-select>
             </div>
-            <!-- 专题分类级联选择器 -->
+            <!-- 分类级联选择器 -->
             <div class="lawyer-filter-group">
-                <a-cascader :value="topicCategory" change-on-select :options="topicCategoryOptions" placeholder="专题分类"
+                <a-cascader :value="topicCategory" change-on-select :options="topicCategoryOptions" placeholder="分类"
                     :show-search="true" @change="onTopicCategoryChange" />
             </div>
             <!-- 来源筛选 -->

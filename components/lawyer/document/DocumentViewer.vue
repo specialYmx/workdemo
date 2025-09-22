@@ -79,10 +79,10 @@
                                     </a-select>
                                 </a-form-model-item>
 
-                                <!-- 专题分类 -->
-                                <a-form-model-item label="专题分类" prop="categoryPath">
+                                <!-- 分类 -->
+                                <a-form-model-item label="分类" prop="categoryPath">
                                     <a-cascader v-model="formData.categoryPath" :options="tagOptions"
-                                        placeholder="请选择专题分类" :show-search="true" :change-on-select="true"
+                                        placeholder="请选择分类" :show-search="true" :change-on-select="true"
                                         style="width: 100%" />
                                 </a-form-model-item>
 
@@ -293,7 +293,7 @@ export default class DocumentViewer extends Vue {
         return undefined // 大家智库页面使用全量数据
     }
 
-    // 加载专题分类数据
+    // 加载分类数据
     async loadCategoryOptions(): Promise<void> {
         try {
             const categoryId = this.getCategoryIdByRoute()
@@ -313,7 +313,7 @@ export default class DocumentViewer extends Vue {
                 this.tagOptions = []
             }
         } catch (error) {
-            console.error('加载专题分类数据失败:', error)
+            console.error('加载分类数据失败:', error)
             this.tagOptions = []
         }
     }
@@ -404,7 +404,7 @@ export default class DocumentViewer extends Vue {
         // 回显效力位阶
         this.formData.effectivenessLevel = this.document.effectivenessLevel || undefined
 
-        // 回显专题分类
+        // 回显分类
         this.formData.categoryPath = []
 
         // 尝试从不同的字段获取分类信息

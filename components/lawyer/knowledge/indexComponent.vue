@@ -81,16 +81,14 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
     departmentOptions: DepartmentOption[] = []; // 存储部门数据
 
     get uploadConfig(): KnowledgeUploadConfig {
-        const isInstitutionLibrary = this.$route.path.includes('/institutionLibrary')
-
         return {
             multiple: false,
             maxFileSize: 500 * 1024 * 1024,
             maxFileCount: 1,
             autoUpload: false,
-            acceptTypes: isInstitutionLibrary ? '.pdf' : '.doc,.docx',
+            acceptTypes: '.doc,.docx,.pdf',
             uploadText: '点击或拖拽文件到此区域上传',
-            hintText: `仅支持 ${isInstitutionLibrary ? 'PDF' : 'DOC、DOCX'} 格式，文件大小不超过 500MB`
+            hintText: `仅支持PDF、DOC、DOCX 格式，文件大小不超过 500MB`
         }
     }
 
