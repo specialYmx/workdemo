@@ -12,13 +12,13 @@
                     :is-appendix-filter.sync="isAppendixFilter" :website-options="websiteOptions"
                     :topic-category-options="topicCategoryOptions" :department-options="departmentOptions"
                     @search="onExactSearch" @show-add-document-modal="showAddDocumentModal"
-                    @filter-change="onFilterChange" :isAdmin="isAdmin" />
+                    @filter-change="onFilterChange" @search-input-clear="onSearchInputClear" :isAdmin="isAdmin" />
 
                 <!-- 文档列表 -->
                 <lawyer-knowledge-document-list :loading="listLoading" :documents="allDocuments"
                     :current-page="currentPage" :total-documents="totalDocuments" :page-size="pageSize"
                     :doc-actions="documentActions" @page-change="onPageChange" @show-size-change="onShowSizeChange"
-                    @document-action="handleDocumentAction" />
+                    @document-action="handleDocumentAction" :search-keyword="searchKeyword" />
             </div>
 
             <!-- 文档上传组件 -->
@@ -53,6 +53,7 @@ import { downloadFileWithMessage } from '~/utils/personal'
 @Component({ name: 'lawyer-knowledge-index-component' })
 export default class LawyerKnowledgeIndexComponent extends Vue {
     searchText: string = '';
+    searchKeyword: string = '';
     searchLoading: boolean = false;
     filterSource: string = '';
     sortOrder: string = 'desc';
@@ -205,6 +206,7 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
     async onSearch(): Promise<void> {
         this.searchLoading = true
         try {
+            this.searchKeyword = this.searchText
             await this.loadDocuments('normal')
         } catch (error) {
             console.error('搜索失败:', error)
@@ -217,6 +219,7 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
         this.searchLoading = true
         try {
             this.currentPage = 1
+            this.searchKeyword = this.searchText
             await this.loadDocuments('exact')
         } catch (error) {
             console.error('精确搜索失败:', error)
@@ -230,17 +233,12 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
         await this.loadDocuments('exact')
     }
 
-    onSearchInputChange(e: Event): void {
-        // 类型安全检查
-        if (!(e.target instanceof HTMLInputElement)) { return }
-
-        const target = e.target
-        // 当输入框被清空时（用户点击清空按钮或手动删除所有内容）
-        if (!target.value.trim()) {
-            this.searchText = ''
-            // 自动执行搜索以显示所有结果
-            this.loadDocuments('default')
-        }
+    onSearchInputClear(): void {
+        // 处理输入框清空事件
+        this.searchText = ''
+        this.searchKeyword = ""
+        // 自动执行搜索以显示所有结果
+        this.loadDocuments('default')
     }
 
     async toggleFavorites(): Promise<void> {

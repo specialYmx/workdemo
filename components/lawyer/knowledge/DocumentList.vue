@@ -23,8 +23,7 @@
                     </div>
                     <div class="lawyer-document-main-content">
                         <div class="lawyer-document-header">
-                            <h3 class="lawyer-document-title">
-                                {{ doc.ruleName }}
+                            <h3 class="lawyer-document-title" v-html="highlightKeyword(doc.ruleName, searchKeyword)">
                             </h3>
                             <div class="lawyer-document-meta">
                                 <span><a-icon type="calendar" /> {{ doc.publishDateStr }}</span>
@@ -44,10 +43,10 @@
                                 </span>
                             </div>
                         </div>
-                        <p class="lawyer-document-summary">
-                            {{ doc.fileContent || "暂无摘要" }}
+                        <p class="lawyer-document-summary"
+                            v-html="highlightKeyword(doc.fileContent, searchKeyword) || '暂无摘要'">
                         </p>
-                        <div class="lawyer-document-footer">
+                        <div class=" lawyer-document-footer">
                             <div class="lawyer-document-tags">
                                 <a-tag color="blue">
                                     {{ doc.categoryMain }}
@@ -93,7 +92,15 @@ export default class LawyerKnowledgeDocumentList extends Vue {
     @Prop({ required: true }) totalDocuments!: number
     @Prop({ required: true }) pageSize!: number
     @Prop({ required: true }) docActions!: Record<string, DocumentAction[]>
+    @Prop({ default: '' }) searchKeyword!: string
+    highlightKeyword(text: string, keyword: string): string {
+        if (!keyword) return text
 
+        // 转义特殊字符
+        const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+        const regex = new RegExp(`(${escapedKeyword})`, 'gi')
+        return text.replace(regex, '<span class="lawyer-keyword-highlight">$1</span>')
+    }
     get paginationConfig() {
         return {
             current: this.currentPage,
@@ -126,6 +133,15 @@ export default class LawyerKnowledgeDocumentList extends Vue {
 
 <style lang="less">
 @import "~/assets/styles/lawyer.less";
+
+.lawyer-keyword-highlight {
+    background-color: #ffefb8;
+    color: #d26b00;
+    font-weight: bold;
+    padding: 0 2px;
+    border-radius: 2px;
+}
+
 
 .lawyer-loading-overlay {
     display: flex;
@@ -240,7 +256,6 @@ export default class LawyerKnowledgeDocumentList extends Vue {
         color: var(--lawyer-text-secondary);
         line-height: 1.5;
         display: -webkit-box;
-        -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
     }

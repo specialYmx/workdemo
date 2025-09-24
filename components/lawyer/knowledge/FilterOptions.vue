@@ -7,7 +7,8 @@
 
         <div class="lawyer-search-form">
             <a-input :value="searchText" placeholder="输入关键词搜索法规、案例、解读..." size="large" class="lawyer-search-input"
-                :allow-clear="true" @keyup.enter="onSearch" @input="onSearchInputChange" />
+                :allow-clear="true" @keyup.enter="onSearch" @input="onSearchInputChange"
+                @change="onSearchInputChange" />
             <a-button v-for="(btn, index) in searchButtons" :key="index"
                 :type="btn.isActive ? 'primary' : btn.type || 'default'" :icon="btn.icon" size="large"
                 :loading="btn.loading" :class="{ 'lawyer-btn-active': btn.isActive }" @click="btn.handler">
@@ -231,6 +232,12 @@ export default class LawyerKnowledgeFilterOptions extends Vue {
     @Emit('update:searchText')
     onSearchInputChange(e: Event): string {
         const value = (e.target as HTMLInputElement).value
+
+        // 当输入框被清空时，触发清空高亮的事件
+        if (!value.trim()) {
+            this.$emit('search-input-clear')
+        }
+
         return value
     }
 
