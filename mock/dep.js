@@ -191,6 +191,7 @@ export const department = {
       nameLike: null,
     },
   ],
+
   total: 38,
   size: 10,
   current: 1,
