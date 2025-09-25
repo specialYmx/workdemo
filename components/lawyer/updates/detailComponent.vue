@@ -45,8 +45,8 @@ export default class LawyerUpdatesDetailComponent extends Vue {
         effectivenessLevel?: string;
         effectDate?: string;
         legalSource?: string;
-        department?: string;
-        documentNumber?: string;
+        department?: string | string[];
+        documentNo?: string;
         appendix?: boolean;
         publishDateStr?: string;
     }): void {
@@ -81,9 +81,9 @@ export default class LawyerUpdatesDetailComponent extends Vue {
         if (statusData.department !== undefined) {
             this.document.department = statusData.department
         }
-        if (statusData.documentNumber !== undefined) {
-            this.document.documentNumber = statusData.documentNumber
-            this.document.fileNumber = statusData.documentNumber // 同时更新fileNumber字段
+        if (statusData.documentNo !== undefined) {
+            this.document.documentNo = statusData.documentNo
+            this.document.fileNumber = statusData.documentNo // 同时更新fileNumber字段
         }
         if (statusData.appendix !== undefined) {
             this.document.appendix = statusData.appendix
@@ -118,7 +118,7 @@ export default class LawyerUpdatesDetailComponent extends Vue {
                     date: result.publishDateStr || result.createdTimeStr,
                     effectiveDate: result.effectDateStr,
                     publisher: result.legalSource,
-                    fileNumber: result.documentNo || result.documentNumber || undefined,
+                    fileNumber: result.documentNo || result.documentNo || undefined,
                     status: result.timeLiness || '未知',
                     views: result.readCount,
                     content: formattedContent,

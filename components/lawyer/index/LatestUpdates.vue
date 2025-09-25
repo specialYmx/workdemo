@@ -35,7 +35,7 @@
                             </h3>
                             <span class="lawyer-text-light">{{
                                 item.publishDateStr || item.createdTimeStr
-                                }}</span>
+                            }}</span>
                         </div>
                         <p class="lawyer-update-summary">
                             {{ getUpdateDescription(item) }}
@@ -48,7 +48,7 @@
                                 <li v-for="(point, index) in item.parsedSummary" :key="index">
                                     <span>
                                         <strong v-if="getSummaryTitle(point)">{{ getSummaryTitle(point) }}：</strong>{{
-                                        getSummaryContent(point) }}
+                                            getSummaryContent(point) }}
                                     </span>
                                 </li>
                             </ul>
@@ -112,7 +112,9 @@ export default class LatestUpdates extends Vue {
 
     // 获取更新标签
     getUpdateTags(item: BaseRuleItem): string[] {
-        return [item.categoryMain, item.categorySub].filter(Boolean)
+        const mainCategory = item.assemblyCategoryMain || item.categoryMain || ''
+        const subCategory = item.categorySub || ''
+        return [mainCategory, subCategory].filter(Boolean)
     }
 
     getTagClass(index: number): string {

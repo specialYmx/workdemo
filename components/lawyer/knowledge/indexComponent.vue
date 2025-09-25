@@ -515,7 +515,7 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
                 current: 1,
                 size: 999
             })
-            if (response.length) {
+            if (response?.length) {
                 this.departmentOptions = response.map(dept => ({
                     value: dept.name,
                     label: dept.name,
@@ -635,7 +635,7 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
                 params.appendix = true
             }
             if (this.documentNumberFilter) {
-                params.documentNumber = this.documentNumberFilter
+                params.documentNo = this.documentNumberFilter
             }
             if (this.departmentFilter) {
                 params.department = this.departmentFilter

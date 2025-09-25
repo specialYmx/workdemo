@@ -261,9 +261,9 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
     categoryMain?: string;
     legalSource?: string;
     publishDateStr?: string;
-    department?: string;
+    department?: string | string[];
     appendix?: boolean;
-    documentNumber?: string;
+    documentNo?: string;
     categorySub?: string;
     effectDate?: string;
   }): Promise<{ success: boolean; message?: string }> {

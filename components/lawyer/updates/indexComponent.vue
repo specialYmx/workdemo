@@ -197,10 +197,10 @@ export default class LawyerUpdatesIndexComponent extends Vue {
                 type = 'internal'
             }
 
-            // 生成标签 - 只使用分类标签，过滤空值
-            const tags: string[] = [item.categoryMain, item.categorySub].filter(
-                Boolean
-            )
+            // 生成标签 - 优先使用assemblyCategoryMain，其次使用categoryMain
+            const mainCategory = item.assemblyCategoryMain || item.categoryMain || ''
+            const subCategory = item.categorySub || ''
+            const tags: string[] = [mainCategory, subCategory].filter(Boolean)
 
             // 生成描述 - 优先使用fileContent并进行字数省略
             const description: string = this.getUpdateDescription(item.fileContent)

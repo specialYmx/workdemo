@@ -35,8 +35,8 @@
                                 <span>
                                     <a-icon type="schedule" /> {{ doc.effectivenessLevel }}
                                 </span>
-                                <span v-if="doc.documentNumber">
-                                    <a-icon type="file-text" /> {{ doc.documentNumber }}
+                                <span v-if="doc.documentNo">
+                                    <a-icon type="file-text" /> {{ doc.documentNo }}
                                 </span>
                                 <span v-if="doc.department">
                                     <a-icon type="team" /> {{ doc.department }}
@@ -49,7 +49,7 @@
                         <div class=" lawyer-document-footer">
                             <div class="lawyer-document-tags">
                                 <a-tag color="blue">
-                                    {{ doc.categoryMain }}
+                                    {{ doc.assemblyCategoryMain }}
                                 </a-tag>
                                 <a-tag v-if="doc.categorySub" color="geekblue">
                                     {{ doc.categorySub }}

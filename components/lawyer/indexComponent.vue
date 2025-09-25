@@ -90,7 +90,7 @@ export default class IndexComponent extends Vue {
     get basePath(): string {
         const path =
             this.$route.path.split('/').filter((segment) => segment)[0] || 'road'
-        return `/${path}`
+        return ``
     }
 
     // 生命周期钩子

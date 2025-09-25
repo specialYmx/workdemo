@@ -1,6 +1,6 @@
 <template>
     <div ref="fileUploadModalContainer">
-        <a-modal :visible="visible" :title="title" :width="800" :footer="null" :mask-closable="false"
+        <a-modal :visible="visible" :title="title" :width="1000" :footer="null" :mask-closable="false"
             :closable="!uploading" :get-container="() => $refs.fileUploadModalContainer || document.body"
             @cancel="handleCancel">
             <div class="lawyer-upload-container">
@@ -66,8 +66,8 @@
 
 
                                 <!-- 文档编号 -->
-                                <a-form-model-item label="发文字号" prop="documentNumber">
-                                    <a-input v-model="formData.documentNumber" placeholder="请输入发文字号" />
+                                <a-form-model-item label="发文字号" prop="documentNo">
+                                    <a-input v-model="formData.documentNo" placeholder="请输入发文字号" />
                                 </a-form-model-item>
                                 <!-- 是否附录 -->
                                 <a-form-model-item label="是否附录" prop="appendix">
@@ -105,7 +105,9 @@
                                 </a-form-model-item>
                                 <!-- 部门 -->
                                 <a-form-model-item label="责任部门" prop="department">
-                                    <a-select v-model="formData.department" placeholder="请选择责任部门" :allow-clear="true">
+                                    <a-select v-model="formData.department" mode="multiple" placeholder="请选择责任部门"
+                                        :allow-clear="true" :max-tag-count="2" :max-tag-text-length="8"
+                                        max-tag-placeholder="...">
                                         <a-select-option v-for="option in departmentOptions" :key="option.value"
                                             :value="option.value">
                                             {{ option.label }}
@@ -248,8 +250,8 @@ export default class FileUploadModal extends Vue {
         legalSource?: string;
         publishDate?: string;
         effectDate?: string;
-        department?: string;
-        documentNumber?: string;
+        department?: string[];
+        documentNo?: string;
         appendix?: boolean;
     } = {
             timeLiness: undefined,
@@ -258,8 +260,8 @@ export default class FileUploadModal extends Vue {
             legalSource: undefined,
             publishDate: undefined,
             effectDate: undefined,
-            department: undefined,
-            documentNumber: undefined,
+            department: [],
+            documentNo: undefined,
             appendix: false
         };
 
@@ -420,8 +422,8 @@ export default class FileUploadModal extends Vue {
             categoryPath: [],
             legalSource: undefined,
             publishDate: undefined,
-            department: undefined,
-            documentNumber: undefined,
+            department: [],
+            documentNo: undefined,
             appendix: false
         }
     }
@@ -466,12 +468,22 @@ export default class FileUploadModal extends Vue {
 
         // 回显部门
         if (this.documentData.department) {
-            this.formData.department = this.documentData.department
+            // 兼容字符串和数组格式
+            if (Array.isArray(this.documentData.department)) {
+                this.formData.department = this.documentData.department
+            } else if (typeof this.documentData.department === 'string') {
+                // 如果是字符串，转换为数组（支持逗号分隔的字符串）
+                this.formData.department = this.documentData.department.split(',').map((dept: string) => dept.trim()).filter((dept: string) => dept)
+            } else {
+                this.formData.department = []
+            }
+        } else {
+            this.formData.department = []
         }
 
         // 回显文档编号
-        if (this.documentData.documentNumber) {
-            this.formData.documentNumber = this.documentData.documentNumber
+        if (this.documentData.documentNo) {
+            this.formData.documentNo = this.documentData.documentNo
         }
 
         // 回显分类 - 优先使用categoryId，其次使用categoryMain/categorySub
@@ -661,7 +673,7 @@ export default class FileUploadModal extends Vue {
                     uploadParams.publishDateStr = this.formData.publishDate
                     uploadParams.effectDate = this.formData.effectDate
                     uploadParams.department = this.formData.department
-                    uploadParams.documentNumber = this.formData.documentNumber
+                    uploadParams.documentNo = this.formData.documentNo
 
                     // 处理分类路径
                     if (this.formData.categoryPath && this.formData.categoryPath.length > 0) {

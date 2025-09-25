@@ -86,8 +86,8 @@ export interface DocumentViewerData {
   effectivenessLevel?: string;
   // 新增字段
   legalSource?: string;
-  department?: string;
-  documentNumber?: string;
+  department?: string | string[];
+  documentNo?: string;
   appendix?: boolean;
   publishDateStr?: string;
   effectDateStr?: string;
@@ -200,10 +200,10 @@ export interface UploadParams {
   categoryMain?: string; // 主分类
   legalSource?: string; // 来源
   publishDateStr?: string; // 发布时间
-  department?: string; // 部门
+  department?: string | string[]; // 部门（支持字符串数组）
   appendix?: boolean; // 附件标识
-  documentNumber?: string; // 文档编号
-  [key: string]: File | string | number | boolean | undefined;
+  documentNo?: string; // 文档编号
+  [key: string]: File | string | string[] | number | boolean | undefined;
 }
 
 // 审核操作参数
@@ -262,11 +262,9 @@ export interface BaseRuleItem {
   updateTimestamp: number | null;
   summary: string;
   readCount: number;
-  documentNo: string | null;
   url: string | null;
   checkStatus: string | null;
   checkTime: string | null;
-  thinktankType: string | null;
   compilationType: string | null;
   effectivenessLevel: string;
   topicCategory: string | null;
@@ -274,9 +272,10 @@ export interface BaseRuleItem {
   initDataFlag: 0 | 1;
   deleted: number;
   // 新增字段
-  department?: string | null; // 责任部门
-  documentNumber?: string | null; // 发文字号
+  department?: string | string[] | null; // 责任部门（支持字符串数组）
+  documentNo?: string | null; // 发文字号
   appendix?: boolean; // 是否附录
+  assemblyCategoryMain?: string; // 组装分类主字段
 }
 
 // 法规文档信息（基于真实API数据结构）
@@ -382,9 +381,9 @@ export interface RoadLawyerService {
     categoryMain?: string;
     legalSource?: string;
     publishDateStr?: string;
-    department?: string;
+    department?: string | string[];
     appendix?: boolean;
-    documentNumber?: string;
+    documentNo?: string;
     categorySub?: string;
     effectDate?: string;
   }) => Promise<{ success: boolean; message?: string }>;
@@ -751,8 +750,8 @@ export interface RuleSourceQueryParams extends BaseQueryParams {
   collect?: boolean;
   // 新增字段
   appendix?: boolean;
-  department?: string;
-  documentNumber?: string;
+  department?: string | string[];
+  documentNo?: string;
   empId: string;
   // 分页参数
   page?: number;

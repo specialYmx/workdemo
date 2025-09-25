@@ -63,7 +63,7 @@
             </div>
 
             <!-- 编辑文档信息模态框 -->
-            <a-modal title="编辑文档信息" :visible="editModalVisible" :width="800" ok-text="确认" cancel-text="取消"
+            <a-modal title="编辑文档信息" :visible="editModalVisible" :width="1000" ok-text="确认" cancel-text="取消"
                 :get-container="() => $refs.documentViewerContainer" @ok="handleEditConfirm" @cancel="handleEditCancel">
                 <div class="lawyer-edit-content">
                     <a-form-model ref="form" :model="formData" :label-col="{ span: 8 }" :wrapper-col="{ span: 16 }">
@@ -93,8 +93,8 @@
                                 </a-form-model-item>
 
                                 <!-- 发文字号 -->
-                                <a-form-model-item label="发文字号" prop="documentNumber">
-                                    <a-input v-model="formData.documentNumber" placeholder="请输入发文字号" />
+                                <a-form-model-item label="发文字号" prop="documentNo">
+                                    <a-input v-model="formData.documentNo" placeholder="请输入发文字号" />
                                 </a-form-model-item>
                                 <!-- 是否附录 -->
                                 <a-form-model-item label="是否附录" prop="appendix">
@@ -133,8 +133,9 @@
 
                                 <!-- 责任部门 -->
                                 <a-form-model-item label="责任部门" prop="department">
-                                    <a-select v-model="formData.department" placeholder="请选择责任部门" :allow-clear="true">
-                                        <a-select-option v-for="option in departmentOptions" :key="option.value"
+                                    <a-select v-model="formData.department" mode="multiple" placeholder="请选择责任部门"
+                                        :allow-clear="true" :max-tag-count="2" max-tag-placeholder="...">
+                                        <a-select-option v-for="option in departmentOptions" :key="option.id"
                                             :value="option.value">
                                             {{ option.label }}
                                         </a-select-option>
@@ -200,8 +201,8 @@ export default class DocumentViewer extends Vue {
         legalSource?: string;
         publishDate?: string;
         effectDate?: string;
-        department?: string;
-        documentNumber?: string;
+        department?: string[];
+        documentNo?: string;
         appendix?: boolean;
     } = {
             timeLiness: undefined,
@@ -210,8 +211,8 @@ export default class DocumentViewer extends Vue {
             legalSource: undefined,
             publishDate: undefined,
             effectDate: undefined,
-            department: undefined,
-            documentNumber: undefined,
+            department: [],
+            documentNo: undefined,
             appendix: false
         }
 
@@ -458,14 +459,26 @@ export default class DocumentViewer extends Vue {
         }
 
         // 回显责任部门
-        this.formData.department = this.document.department || undefined
+        if (this.document.department) {
+            // 兼容字符串和数组格式
+            if (Array.isArray(this.document.department)) {
+                this.formData.department = this.document.department
+            } else if (typeof this.document.department === 'string') {
+                // 如果是字符串，转换为数组（支持逗号分隔的字符串）
+                this.formData.department = this.document.department.split(',').map((dept: string) => dept.trim()).filter((dept: string) => dept)
+            } else {
+                this.formData.department = []
+            }
+        } else {
+            this.formData.department = []
+        }
 
         // 回显发文字号 - 确保不是无效值
         const fileNumber = this.document.fileNumber
         if (fileNumber && fileNumber !== '暂无' && fileNumber !== 'undefined' && fileNumber !== 'null') {
-            this.formData.documentNumber = fileNumber
+            this.formData.documentNo = fileNumber
         } else {
-            this.formData.documentNumber = undefined
+            this.formData.documentNo = undefined
         }
 
         // 回显是否附录
@@ -488,7 +501,7 @@ export default class DocumentViewer extends Vue {
                 publishDateStr: this.formData.publishDate,
                 effectDateStr: this.formData.effectDate,
                 department: this.formData.department,
-                documentNumber: this.formData.documentNumber,
+                documentNo: this.formData.documentNo,
                 categoryId: "",
                 categoryMain: ""
             }
@@ -524,7 +537,7 @@ export default class DocumentViewer extends Vue {
                 effectDate: this.formData.effectDate,
                 legalSource: this.formData.legalSource,
                 department: this.formData.department,
-                documentNumber: this.formData.documentNumber,
+                documentNo: this.formData.documentNo,
                 appendix: this.formData.appendix,
                 publishDateStr: this.formData.publishDate,
             })
@@ -680,8 +693,8 @@ export default class DocumentViewer extends Vue {
         effectivenessLevel?: string
         effectDate?: string
         legalSource?: string
-        department?: string
-        documentNumber?: string
+        department?: string | string[]
+        documentNo?: string
         appendix?: boolean
         publishDateStr?: string
     }): {
@@ -691,8 +704,8 @@ export default class DocumentViewer extends Vue {
         effectivenessLevel?: string
         effectDate?: string
         legalSource?: string
-        department?: string
-        documentNumber?: string
+        department?: string | string[]
+        documentNo?: string
         appendix?: boolean
         publishDateStr?: string
     } {
