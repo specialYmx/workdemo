@@ -699,6 +699,7 @@ export interface RuleSourceListResponse {
 export interface RuleUpdateQueryParams extends BaseQueryParams {
   query?: string;
   field?: string;
+  categoryId?: string; // 分类ID参数
   // 分页参数
   page?: number;
   pageSize?: number;
