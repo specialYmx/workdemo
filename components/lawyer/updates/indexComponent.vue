@@ -5,12 +5,12 @@
             <div class="lawyer-card">
                 <!-- 页面头部 -->
                 <div class="lawyer-updates-header">
-                    <h2 class="lawyer-title">
-                        智库更新与通知
-                    </h2>
+                    <h2 class="lawyer-title">智库更新与通知</h2>
                     <div class="lawyer-filter-tabs">
-                        <button class="lawyer-filter-btn lawyer-filter-btn-active">
-                            法规更新
+                        <button v-for="category in categoryList" :key="category.id" class="lawyer-filter-btn" :class="{
+                            'lawyer-filter-btn-active': currentCategoryId === category.id,
+                        }" @click="changeCategory(category.id)">
+                            {{ category.name }}
                         </button>
                     </div>
                 </div>
@@ -24,18 +24,10 @@
                 <div v-else class="lawyer-updates-list">
                     <div v-for="item in allUpdates" :key="item.id" class="lawyer-update-item">
                         <div :class="['lawyer-update-icon', item.type]">
-                            <template v-if="item.type === 'law'">
-                                ⚖️
-                            </template>
-                            <template v-else-if="item.type === 'policy'">
-                                📋
-                            </template>
-                            <template v-else-if="item.type === 'internal'">
-                                🏢
-                            </template>
-                            <template v-else>
-                                🔧
-                            </template>
+                            <template v-if="item.type === 'law'"> ⚖️ </template>
+                            <template v-else-if="item.type === 'policy'"> 📋 </template>
+                            <template v-else-if="item.type === 'internal'"> 🏢 </template>
+                            <template v-else> 🔧 </template>
                         </div>
                         <div class="lawyer-update-content">
                             <div class="lawyer-flex lawyer-justify-between">
@@ -55,7 +47,7 @@
                                     <li v-for="(point, index) in item.summaryArray" :key="index">
                                         <span>
                                             <strong v-if="getSummaryTitle(point)">{{ getSummaryTitle(point)
-                                            }}：</strong>{{
+                                                }}：</strong>{{
                                                     getSummaryContent(point) }}
                                         </span>
                                     </li>
@@ -101,16 +93,16 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from 'nuxt-property-decorator'
+import { Component, Vue } from "nuxt-property-decorator";
 import {
     RuleUpdateItem,
     UpdateItem,
     RuleUpdateQueryParams,
-    RouteQuery
-} from '~/model/LawyerModel'
-import { downloadFileWithMessage } from '~/utils/personal'
+    RouteQuery,
+} from "~/model/LawyerModel";
+import { downloadFileWithMessage } from "~/utils/personal";
 
-@Component({ name: 'lawyer-updates-index-component' })
+@Component({ name: "lawyer-updates-index-component" })
 export default class LawyerUpdatesIndexComponent extends Vue {
     currentPage: number = 1;
     pageSize: number = 10;
@@ -118,263 +110,299 @@ export default class LawyerUpdatesIndexComponent extends Vue {
     rawUpdates: RuleUpdateItem[] = [];
     allUpdates: UpdateItem[] = []; // 存储当前页数据
     totalDocuments: number = 0; // 总数据量
+    currentCategoryId: string | null = null; // 当前选中的分类ID
+
+    // 分类数据
+    categoryList = [
+        { id: null, name: "全部更新" },
+        { id: "2", name: "法律汇编" },
+        { id: "310", name: "新规解读" },
+        { id: "1", name: "处罚汇编" },
+        { id: "311", name: "研究集锦" },
+        { id: "312", name: "法律合规季刊" },
+        { id: "3", name: "制度库" },
+    ];
 
     async mounted(): Promise<void> {
-        await this.loadUpdates()
+        await this.loadUpdates();
     }
 
     async loadUpdates(): Promise<void> {
-        this.loading = true
+        this.loading = true;
         try {
             // 构建查询参数，添加分页参数
             const params: RuleUpdateQueryParams = {
                 page: this.currentPage,
-                pageSize: this.pageSize
+                pageSize: this.pageSize,
+            };
+
+            // 添加分类ID参数，如果有选择分类
+            if (this.currentCategoryId) {
+                params.categoryId = this.currentCategoryId;
             }
 
-            console.log('查询参数:', params)
+            console.log("查询参数:", params);
 
             // 调用真实API获取数据
-            const response = await this.$roadLawyerService.getRuleUpdateList(params)
-            console.log('获取到的数据:', response)
+            const response = await this.$roadLawyerService.getRuleUpdateList(params);
+            console.log("获取到的数据:", response);
 
             // 根据新的数据结构处理响应
             if (response && response.success && response.data) {
-                this.rawUpdates = response.data.data || []
+                this.rawUpdates = response.data.data || [];
 
                 // 将真实数据转换为页面显示格式
-                this.allUpdates = this.transformRawDataToDisplayFormat(response.data.data || [])
+                this.allUpdates = this.transformRawDataToDisplayFormat(
+                    response.data.data || []
+                );
 
                 // 更新总数和当前页码
-                this.totalDocuments = response.data.totalSize || 0
+                this.totalDocuments = response.data.totalSize || 0;
                 if (response.data.pageNum) {
-                    this.currentPage = response.data.pageNum
+                    this.currentPage = response.data.pageNum;
                 }
             } else if (response && Array.isArray(response)) {
                 // 兼容旧的数组格式返回
-                this.rawUpdates = response
-                this.allUpdates = this.transformRawDataToDisplayFormat(response)
-                this.totalDocuments = response.length
+                this.rawUpdates = response;
+                this.allUpdates = this.transformRawDataToDisplayFormat(response);
+                this.totalDocuments = response.length;
             } else {
-                this.rawUpdates = []
-                this.allUpdates = []
-                this.totalDocuments = 0
+                this.rawUpdates = [];
+                this.allUpdates = [];
+                this.totalDocuments = 0;
             }
         } catch (error) {
-            console.error('加载更新数据失败', error)
-            this.$message.error('加载数据失败，请刷新页面重试')
-            this.rawUpdates = []
-            this.allUpdates = []
-            this.totalDocuments = 0
+            console.error("加载更新数据失败", error);
+            this.$message.error("加载数据失败，请刷新页面重试");
+            this.rawUpdates = [];
+            this.allUpdates = [];
+            this.totalDocuments = 0;
         } finally {
-            this.loading = false
+            this.loading = false;
         }
     }
 
     // 获取更新描述
     getUpdateDescription(fileContent: string): string {
         if (!fileContent) {
-            return '暂无详细描述'
+            return "暂无详细描述";
         }
 
         return fileContent.length > 200
-            ? fileContent.substring(0, 200) + '...'
-            : fileContent
+            ? fileContent.substring(0, 200) + "..."
+            : fileContent;
     }
 
     // 将真实API数据转换为页面显示格式
     transformRawDataToDisplayFormat(rawData: RuleUpdateItem[]): UpdateItem[] {
         return rawData.map((item: RuleUpdateItem): UpdateItem => {
             // 根据分类确定类型
-            const categoryMain: string = item.categoryMain || ''
-            let type: string = 'law'
-            if (categoryMain.includes('政策') || categoryMain.includes('监管')) {
-                type = 'policy'
+            const categoryMain: string = item.categoryMain || "";
+            let type: string = "law";
+            if (categoryMain.includes("政策") || categoryMain.includes("监管")) {
+                type = "policy";
             } else if (
-                categoryMain.includes('内部') ||
-                categoryMain.includes('机构')
+                categoryMain.includes("内部") ||
+                categoryMain.includes("机构")
             ) {
-                type = 'internal'
+                type = "internal";
             }
 
             // 生成标签 - 优先使用assemblyCategoryMain，其次使用categoryMain
-            const mainCategory = item.assemblyCategoryMain || item.categoryMain || ''
-            const subCategory = item.categorySub || ''
-            const tags: string[] = [mainCategory, subCategory].filter(Boolean)
+            const mainCategory = item.assemblyCategoryMain || item.categoryMain || "";
+            const subCategory = item.categorySub || "";
+            const tags: string[] = [mainCategory, subCategory].filter(Boolean);
 
             // 生成描述 - 优先使用fileContent并进行字数省略
-            const description: string = this.getUpdateDescription(item.fileContent)
+            const description: string = this.getUpdateDescription(item.fileContent);
 
             // 预处理摘要数组，避免模板中重复计算
-            const summaryArray: string[] = this.parseSummaryArray(item.summary || '')
+            const summaryArray: string[] = this.parseSummaryArray(item.summary || "");
 
             return {
                 id: item.id,
-                title: item.ruleName || '未知标题',
+                title: item.ruleName || "未知标题",
                 description,
-                fileContent: item.fileContent || '',
-                summary: item.summary || '',
+                fileContent: item.fileContent || "",
+                summary: item.summary || "",
                 summaryArray,
-                date: item.createdTimeStr || item.publishDateStr || '未知时间',
-                source: item.legalSource || '未知来源',
-                category: item.categoryMain || '其他',
+                date: item.createdTimeStr || item.publishDateStr || "未知时间",
+                source: item.legalSource || "未知来源",
+                category: item.categoryMain || "其他",
                 type,
-                tags
-            }
-        })
+                tags,
+            };
+        });
     }
 
     viewUpdate(id: string): void {
         // 查找对应的更新项以获取废止状态
         const updateItem: RuleUpdateItem | undefined = this.rawUpdates.find(
             (item: RuleUpdateItem) => item.id === id
-        )
+        );
         const isRevoke: boolean = !!(
             updateItem?.revokeDateTimestamp || updateItem?.revokeDateStr
-        )
+        );
         const query: RouteQuery = {
             id,
-            pageTitle: updateItem?.ruleName || '法规更新详情',
-            ...(isRevoke ? { isRevoke: 'true' } : {})
-        }
+            pageTitle: updateItem?.ruleName || "法规更新详情",
+            ...(isRevoke ? { isRevoke: "true" } : {}),
+        };
 
         this.$router.push({
-            path: '/lawyerUpdate/detail',
-            query
-        })
+            path: "/lawyerUpdate/detail",
+            query,
+        });
     }
 
     async downloadUpdate(id: string, title: string): Promise<void> {
-        let hideLoading = null
+        let hideLoading = null;
         try {
-            hideLoading = this.$message.loading(`正在准备下载: ${title}`, 0)
+            hideLoading = this.$message.loading(`正在准备下载: ${title}`, 0);
 
             const result = await this.$roadLawyerService.downloadRuleFile({
-                searchId: id
-            })
+                searchId: id,
+            });
 
-            hideLoading()
+            hideLoading();
 
             downloadFileWithMessage(result, {
                 fileName: `${title}.docx`,
                 showMessage: true,
-                messageService: this.$message
-            })
+                messageService: this.$message,
+            });
         } catch (error) {
             if (hideLoading) {
-                hideLoading()
+                hideLoading();
             }
-            console.error('下载失败:', error)
-            this.$message.error('下载失败，请检查网络连接后重试')
+            console.error("下载失败:", error);
+            this.$message.error("下载失败，请检查网络连接后重试");
         }
     }
 
     async onPageChange(page: number): Promise<void> {
-        this.currentPage = page
+        this.currentPage = page;
         // 后端分页，重新请求API
-        await this.loadUpdates()
+        await this.loadUpdates();
     }
 
     async onPageSizeChange(_current: number, size: number): Promise<void> {
-        this.currentPage = 1
-        this.pageSize = size
+        this.currentPage = 1;
+        this.pageSize = size;
         // 后端分页，重新请求API
-        await this.loadUpdates()
+        await this.loadUpdates();
+    }
+
+    // 切换分类
+    async changeCategory(categoryId: string | null): Promise<void> {
+        if (this.currentCategoryId === categoryId) {
+            return; // 如果点击当前已选中的分类，不做任何操作
+        }
+
+        this.currentCategoryId = categoryId;
+        this.currentPage = 1; // 切换分类时重置为第一页
+        await this.loadUpdates(); // 重新加载数据
     }
 
     getTagClass(index: number = 0): string {
         // 第0个标签是主分类，使用橙色
         if (index === 0) {
-            return 'lawyer-tag-main'
+            return "lawyer-tag-main";
         }
 
         // 其他都是子分类，使用蓝色
-        return 'lawyer-tag-sub'
+        return "lawyer-tag-sub";
     }
 
     // 解析summary数组字符串
     parseSummaryArray(summaryStr: string): string[] {
-        if (!summaryStr) { return [] }
+        if (!summaryStr) {
+            return [];
+        }
 
         // 首先尝试使用 JSON.parse 安全解析数组字符串
         try {
-            const parsed = JSON.parse(summaryStr)
+            const parsed = JSON.parse(summaryStr);
             if (Array.isArray(parsed)) {
-                return parsed.filter(Boolean)
+                return parsed.filter(Boolean);
             }
-            throw new Error('Parsed result is not an array')
+            throw new Error("Parsed result is not an array");
         } catch {
             // JSON.parse 失败，使用手动解析逻辑作为回退方案
             try {
                 // 去掉首尾的方括号
-                let cleanStr = summaryStr.trim()
-                if (cleanStr.startsWith('[') && cleanStr.endsWith(']')) {
-                    cleanStr = cleanStr.slice(1, -1)
+                let cleanStr = summaryStr.trim();
+                if (cleanStr.startsWith("[") && cleanStr.endsWith("]")) {
+                    cleanStr = cleanStr.slice(1, -1);
                 }
 
                 // 按逗号分割，但要考虑引号内的逗号
-                const items: string[] = []
-                let currentItem = ''
-                let inQuotes = false
+                const items: string[] = [];
+                let currentItem = "";
+                let inQuotes = false;
 
                 for (let i = 0; i < cleanStr.length; i++) {
-                    const char = cleanStr[i]
+                    const char = cleanStr[i];
 
                     if (char === '"' || char === "'") {
-                        inQuotes = !inQuotes
-                        continue
+                        inQuotes = !inQuotes;
+                        continue;
                     }
 
-                    if (char === ',' && !inQuotes) {
+                    if (char === "," && !inQuotes) {
                         if (currentItem.trim()) {
-                            items.push(currentItem.trim())
+                            items.push(currentItem.trim());
                         }
-                        currentItem = ''
+                        currentItem = "";
                     } else {
-                        currentItem += char
+                        currentItem += char;
                     }
                 }
 
                 // 添加最后一个项目
                 if (currentItem.trim()) {
-                    items.push(currentItem.trim())
+                    items.push(currentItem.trim());
                 }
 
-                return items.filter(Boolean)
+                return items.filter(Boolean);
             } catch (error) {
-                console.warn('解析summary失败，使用最简单的分割方式:', error)
+                console.warn("解析summary失败，使用最简单的分割方式:", error);
                 // 最后的回退：简单按逗号分割
                 return summaryStr
-                    .replace(/^\[|\]$/g, '')
-                    .split(',')
-                    .map(item => item.trim())
-                    .filter(Boolean)
+                    .replace(/^\[|\]$/g, "")
+                    .split(",")
+                    .map((item) => item.trim())
+                    .filter(Boolean);
             }
         }
     }
 
     // 获取摘要标题（冒号前的内容）
     getSummaryTitle(point: string): string {
-        if (!point) { return '' }
-
-        const colonIndex = point.indexOf(':')
-        if (colonIndex === -1) {
-            return ''
+        if (!point) {
+            return "";
         }
 
-        return point.substring(0, colonIndex).trim()
+        const colonIndex = point.indexOf(":");
+        if (colonIndex === -1) {
+            return "";
+        }
+
+        return point.substring(0, colonIndex).trim();
     }
 
     // 获取摘要内容（冒号后的内容）
     getSummaryContent(point: string): string {
-        if (!point) { return '' }
-
-        const colonIndex = point.indexOf(':')
-        if (colonIndex === -1) {
-            return point
+        if (!point) {
+            return "";
         }
 
-        return point.substring(colonIndex + 1).trim()
+        const colonIndex = point.indexOf(":");
+        if (colonIndex === -1) {
+            return point;
+        }
+
+        return point.substring(colonIndex + 1).trim();
     }
 }
 </script>
