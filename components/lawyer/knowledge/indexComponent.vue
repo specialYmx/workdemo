@@ -94,7 +94,7 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
   publishDate: string | null = "";
   isFavoritesMode: boolean = false;
   // 新增筛选条件
-  isAppendixFilter: boolean = false;
+  isAppendixFilter: string = "";
   documentNumberFilter: string = "";
   departmentFilter: string = "";
   listLoading: boolean = true;
@@ -675,9 +675,12 @@ export default class LawyerKnowledgeIndexComponent extends Vue {
         params.publishDateStr = this.publishDate;
       }
       // 新增筛选参数
-      if (this.isAppendixFilter) {
+      if (this.isAppendixFilter === "true") {
         params.appendix = true;
+      } else if (this.isAppendixFilter === "false") {
+        params.appendix = false;
       }
+      // 当isAppendixFilter为空字符串时，不传递appendix参数
       if (this.documentNumberFilter) {
         params.documentNo = this.documentNumberFilter;
       }

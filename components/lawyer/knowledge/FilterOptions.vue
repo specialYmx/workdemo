@@ -165,10 +165,16 @@
       </div>
       <!-- 是否附录 -->
       <div class="lawyer-filter-group">
-        <div class="lawyer-appendix-filter">
-          <span class="lawyer-filter-label">是否附录：</span>
-          <a-switch :checked="isAppendixFilter" @change="onAppendixChange" />
-        </div>
+        <a-select
+          :value="isAppendixFilter || undefined"
+          style="width: 100%"
+          placeholder="是否附录"
+          :allow-clear="true"
+          @change="onAppendixChange"
+        >
+          <a-select-option value="true">是</a-select-option>
+          <a-select-option value="false">否</a-select-option>
+        </a-select>
       </div>
     </div>
   </div>
@@ -198,7 +204,7 @@ export default class LawyerKnowledgeFilterOptions extends Vue {
   @Prop({ required: true }) sortOrder!: string;
   @Prop({ required: true }) documentNumberFilter!: string;
   @Prop({ required: true }) departmentFilter!: string;
-  @Prop({ required: true }) isAppendixFilter!: boolean;
+  @Prop({ required: true }) isAppendixFilter!: string;
   @Prop({ required: true }) websiteOptions!: WebsiteOption[];
   @Prop({ required: true }) topicCategoryOptions!: CascaderOption[];
   @Prop({ required: true }) departmentOptions!: DepartmentOption[];
@@ -296,11 +302,13 @@ export default class LawyerKnowledgeFilterOptions extends Vue {
   }
 
   @Emit("update:isAppendixFilter")
-  onAppendixChange(value: boolean): boolean {
+  onAppendixChange(value: string | undefined): string {
+    const result = value || "";
+
     this.$nextTick(() => {
       this.filterChange();
     });
-    return value;
+    return result;
   }
 
   @Emit("filter-change")
@@ -394,18 +402,6 @@ export default class LawyerKnowledgeFilterOptions extends Vue {
   .lawyer-filter-group {
     flex: 1;
     flex-basis: 200px;
-  }
-
-  .lawyer-appendix-filter {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-
-    .lawyer-filter-label {
-      font-size: 14px;
-      color: #333333;
-      white-space: nowrap;
-    }
   }
 }
 </style>
