@@ -35,6 +35,10 @@ declare module "vue/types/vue" {
     $form: {
       createForm(component: any): any;
     };
+    $set: any;
+    $nextTick: any;
+    $refs: any;
+    $nuxt: any;
   }
 }
 
@@ -65,6 +69,10 @@ declare module "nuxt-property-decorator" {
     $form: {
       createForm(component: any): any;
     };
+    $set: any;
+    $nextTick: any;
+    $refs: any;
+    $nuxt: any;
   }
 }
 

@@ -4,10 +4,15 @@ module.exports = {
     browser: true,
     node: true
   },
-  extends: ['@nuxtjs/eslint-config-typescript', 'plugin:nuxt/recommended'],
-  plugins: [],
+  extends: [
+    '@nuxtjs/eslint-config-typescript',
+    'plugin:nuxt/recommended',
+    'plugin:prettier/recommended'
+  ],
+  plugins: ['prettier'],
   // add your custom rules here
   rules: {
+    'prettier/prettier': 'error',
     'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
     'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
     'vue/multi-word-component-names': 'off',
@@ -19,4 +24,4 @@ module.exports = {
     'vue/no-unused-components': 'off',
     'space-before-function-paren': 'off'
   }
-}
+};

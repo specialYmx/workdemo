@@ -25,10 +25,9 @@ export interface DownloadResult {
  * 消息服务接口
  */
 export interface MessageService {
-  loading(content: string, duration?: number): void;
+  // 下载工具仅用到这两个方法，保持最小契约，避免与 UI 库类型不一致
   success(content: string, duration?: number): void;
   error(content: string, duration?: number): void;
-  destroy(): void;
 }
 
 /**

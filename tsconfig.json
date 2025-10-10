@@ -30,7 +30,16 @@
     "forceConsistentCasingInFileNames": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
+    "suppressImplicitAnyIndexErrors": true,
+    "noImplicitThis": false,
+    "noImplicitReturns": false,
+    "noFallthroughCasesInSwitch": false,
     "typeRoots": ["./types", "./node_modules/@types"]
+  },
+  "vueCompilerOptions": {
+    "target": 2.6,
+    "strictTemplates": false,
+    "skipTemplateCodegen": true
   },
   "exclude": ["node_modules", ".nuxt", "dist"],
   "include": ["**/*.ts", "**/*.tsx", "**/*.vue", "types/*.d.ts"]
