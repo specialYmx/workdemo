@@ -199,6 +199,7 @@
           // 构建标签数组，包含一级和二级分类
           const tags: string[] = [];
           if (result.categoryMain) tags.push(result.categoryMain);
+
           if (result.categorySub) tags.push(result.categorySub);
 
           // 处理文档数据 - 使用从URL参数获取的标题

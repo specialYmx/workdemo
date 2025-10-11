@@ -1,17 +1,17 @@
 <template>
-    <div>
-        <lawyer-updates-detail-component />
-    </div>
+  <div>
+    <lawyer-updates-detail-component />
+  </div>
 </template>
 
 <script lang="ts">
-import { Component, Vue } from 'nuxt-property-decorator'
+  import { Component, Vue } from 'nuxt-property-decorator';
 
-@Component({ layout: 'page', middleware: 'auth' })
-export default class LawyerUpdateDetailPage extends Vue {
+  @Component({ layout: 'page', middleware: 'auth' })
+  export default class LawyerUpdateDetailPage extends Vue {
     // 页面头部配置
     head(): { title: string } {
-        return { title: '法律合规智能系统' }
+      return { title: '法律合规智能系统' };
     }
-}
+  }
 </script>

@@ -1,5 +1,5 @@
-import { AxiosInstance } from "axios";
-import api from "~/api/index";
+import { AxiosInstance } from 'axios';
+import api from '~/api/index';
 import {
   RoadLawyerService,
   KnowledgeDataItem,
@@ -16,8 +16,8 @@ import {
   RuleSourceQueryParams,
   CheckRuleQueryParams,
   LegalCategoryParams,
-  LegalCategoryItem,
-} from "~/model/LawyerModel";
+  LegalCategoryItem
+} from '~/model/LawyerModel';
 import {
   CrawlStatisticsQueryParams,
   CrawlStatisticsResponse,
@@ -37,24 +37,22 @@ import {
   TaskHistoryQueryParams,
   TaskHistoryResponse,
   CrawlCheckRuleListParams,
-  CrawlCheckRuleListResponse,
-} from "~/model/LawyerConfigModel";
+  CrawlCheckRuleListResponse
+} from '~/model/LawyerConfigModel';
 // 将对象转换为FormData的辅助函数
 const toFormData = (obj: Record<string, unknown>): FormData => {
   const formData = new FormData();
 
-  if (!obj || typeof obj !== "object") {
+  if (!obj || typeof obj !== 'object') {
     return formData;
   }
 
   // 检查值是否可以添加到FormData
-  const isValidFormDataValue = (
-    value: unknown
-  ): value is string | number | boolean | Blob => {
+  const isValidFormDataValue = (value: unknown): value is string | number | boolean | Blob => {
     return (
-      typeof value === "string" ||
-      typeof value === "number" ||
-      typeof value === "boolean" ||
+      typeof value === 'string' ||
+      typeof value === 'number' ||
+      typeof value === 'boolean' ||
       value instanceof Blob
     );
   };
@@ -75,7 +73,7 @@ const toFormData = (obj: Record<string, unknown>): FormData => {
 
     if (Array.isArray(value)) {
       // 处理数组参数 - 每个元素使用相同的key名
-      value.forEach((item) => appendValue(key, item));
+      value.forEach(item => appendValue(key, item));
     } else {
       // 处理单个值
       appendValue(key, value);
@@ -87,85 +85,67 @@ const toFormData = (obj: Record<string, unknown>): FormData => {
 
 export default ($axios: AxiosInstance): RoadLawyerService => ({
   // ==================== 首页统计相关方法 ====================
-  async getCheckCompleteList(
-    params: QueryParams = {}
-  ): Promise<CompletedRuleItem[]> {
+  async getCheckCompleteList(params: QueryParams = {}): Promise<CompletedRuleItem[]> {
     try {
-      const res = await $axios.post(
-        `${api.lawyer.getCheckCompleteList}`,
-        toFormData(params)
-      );
+      const res = await $axios.post(`${api.lawyer.getCheckCompleteList}`, toFormData(params));
       if (res.data?.data) {
         return res.data.data;
       }
       return [];
     } catch (error) {
-      console.error("Error fetching check complete list:", error);
+      console.error('Error fetching check complete list:', error);
       return [];
     }
   },
 
   async getUpdateCount(params: QueryParams = {}): Promise<number> {
     try {
-      const res = await $axios.post(
-        `${api.lawyer.getUpdateCount}`,
-        toFormData(params)
-      );
+      const res = await $axios.post(`${api.lawyer.getUpdateCount}`, toFormData(params));
       if (res.data?.data !== undefined && res.data?.data !== null) {
         return Number(res.data.data);
       }
       return 0;
     } catch (error) {
-      console.error("Error fetching update count:", error);
+      console.error('Error fetching update count:', error);
       return 0;
     }
   },
 
   async getUpdateTimeLinessCount(params: QueryParams = {}) {
     try {
-      const res = await $axios.post(
-        `${api.lawyer.getUpdateTimeLinessCount}`,
-        toFormData(params)
-      );
+      const res = await $axios.post(`${api.lawyer.getUpdateTimeLinessCount}`, toFormData(params));
       if (res.data?.data) {
         return res.data.data;
       }
       return {};
     } catch (error) {
-      console.error("Error fetching update timeliness count:", error);
+      console.error('Error fetching update timeliness count:', error);
       return {};
     }
   },
 
   async getWebSiteRatio(params: QueryParams = {}) {
     try {
-      const res = await $axios.post(
-        `${api.lawyer.getWebSiteRatio}`,
-        toFormData(params)
-      );
+      const res = await $axios.post(`${api.lawyer.getWebSiteRatio}`, toFormData(params));
       if (res.data?.data) {
         return res.data.data;
       }
       return {};
     } catch (error) {
-      console.error("Error fetching website ratio:", error);
+      console.error('Error fetching website ratio:', error);
       return {};
     }
   },
 
   async exportStatisticExcel(params: { condition: string }) {
     try {
-      const res = await $axios.post(
-        `${api.lawyer.exportStatisticExcel}`,
-        toFormData(params),
-        {
-          responseType: "blob",
-        }
-      );
+      const res = await $axios.post(`${api.lawyer.exportStatisticExcel}`, toFormData(params), {
+        responseType: 'blob'
+      });
       if (res.data) return { data: res.data, headers: res.headers };
       return null;
     } catch (error) {
-      console.error("Error exporting statistic excel:", error);
+      console.error('Error exporting statistic excel:', error);
       throw error;
     }
   },
@@ -173,13 +153,10 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
   // ==================== 大家智库相关方法 ====================
   async deleteRuleSource(params: DeleteRuleParams) {
     try {
-      const res = await $axios.post(
-        `${api.lawyer.deleteRuleSource}`,
-        toFormData(params)
-      );
+      const res = await $axios.post(`${api.lawyer.deleteRuleSource}`, toFormData(params));
       return res.data?.success || false;
     } catch (error) {
-      console.error("Error deleting rule source:", error);
+      console.error('Error deleting rule source:', error);
       return false;
     }
   },
@@ -187,42 +164,35 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
   async downloadRuleFile(params: DownloadFileParams) {
     try {
       // 使用POST请求和FormData参数，与其他接口保持一致
-      const res = await $axios.post(
-        `${api.lawyer.downloadRuleFile}`,
-        toFormData(params),
-        {
-          responseType: "blob",
-        }
-      );
+      const res = await $axios.post(`${api.lawyer.downloadRuleFile}`, toFormData(params), {
+        responseType: 'blob'
+      });
       if (res.data) return { data: res.data, headers: res.headers };
       return null;
     } catch (error) {
-      console.error("Error downloading rule file:", error);
+      console.error('Error downloading rule file:', error);
       return null;
     }
   },
 
   async getRuleSourceCollect(params: QueryParams) {
     try {
-      const res = await $axios.post(
-        `${api.lawyer.getRuleSourceCollect}`,
-        toFormData(params)
-      );
+      const res = await $axios.post(`${api.lawyer.getRuleSourceCollect}`, toFormData(params));
       // 返回完整的响应结构，包含分页信息
       return res.data;
     } catch (error) {
-      console.error("Error fetching rule source collect:", error);
+      console.error('Error fetching rule source collect:', error);
       return {
         status: 500,
-        message: "获取收藏数据失败",
+        message: '获取收藏数据失败',
         success: false,
         data: {
           page: 1,
           pageSize: 10,
           totalPages: 0,
           totalSize: 0,
-          data: [],
-        },
+          data: []
+        }
       };
     }
   },
@@ -232,10 +202,7 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
     isRevoke?: boolean;
   }): Promise<KnowledgeDataItem | null> {
     try {
-      const res = await $axios.post(
-        `${api.lawyer.getRuleSourceDetail}`,
-        toFormData(params)
-      );
+      const res = await $axios.post(`${api.lawyer.getRuleSourceDetail}`, toFormData(params));
       if (res.data?.data) {
         // 检查返回的数据是否为数组，如果是数组则取第一个元素
         const data = res.data.data;
@@ -247,7 +214,7 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
       }
       return null;
     } catch (error) {
-      console.error("Error fetching rule source detail:", error);
+      console.error('Error fetching rule source detail:', error);
       return null;
     }
   },
@@ -268,19 +235,16 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
     effectDate?: string;
   }): Promise<{ success: boolean; message?: string }> {
     try {
-      const res = await $axios.post(
-        `${api.lawyer.updateRuleSourceDetail}`,
-        toFormData(params)
-      );
+      const res = await $axios.post(`${api.lawyer.updateRuleSourceDetail}`, toFormData(params));
       return {
         success: res.data?.success || false,
-        message: res.data?.message || "更新成功",
+        message: res.data?.message || '更新成功'
       };
     } catch (error) {
-      console.error("Error updating rule source detail:", error);
+      console.error('Error updating rule source detail:', error);
       return {
         success: false,
-        message: "更新失败，请重试",
+        message: '更新失败，请重试'
       };
     }
   },
@@ -298,147 +262,117 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
   // empId - 员工ID（用于收藏功能，从store获取）
   async getRuleSourceList(params: RuleSourceQueryParams) {
     try {
-      const res = await $axios.post(
-        `${api.lawyer.getRuleSourceList}`,
-        toFormData(params)
-      );
+      const res = await $axios.post(`${api.lawyer.getRuleSourceList}`, toFormData(params));
       // 返回完整的响应结构，包含分页信息
       return res.data;
     } catch (error) {
-      console.error("Error fetching rule source list:", error);
+      console.error('Error fetching rule source list:', error);
       return {
         status: 500,
-        message: "获取数据失败",
+        message: '获取数据失败',
         success: false,
         data: {
           page: 1,
           pageSize: 10,
           totalPages: 0,
           totalSize: 0,
-          data: [],
-        },
+          data: []
+        }
       };
     }
   },
 
-  async getRuleUpdateList(
-    params: RuleUpdateQueryParams
-  ): Promise<RuleUpdateListResponse> {
+  async getRuleUpdateList(params: RuleUpdateQueryParams): Promise<RuleUpdateListResponse> {
     try {
-      const res = await $axios.post(
-        `${api.lawyer.getRuleUpdateList}`,
-        toFormData(params)
-      );
+      const res = await $axios.post(`${api.lawyer.getRuleUpdateList}`, toFormData(params));
       // 返回完整的响应结构，包含分页信息
       return res.data;
     } catch (error) {
-      console.error("Error fetching rule update list:", error);
+      console.error('Error fetching rule update list:', error);
       return {
         status: 500,
-        message: "获取数据失败",
+        message: '获取数据失败',
         success: false,
         data: {
           pageNum: 1,
           pageSize: 10,
           totalPages: 0,
           totalSize: 0,
-          data: [],
-        },
+          data: []
+        }
       };
     }
   },
 
   async initData(params: QueryParams = {}) {
     try {
-      const res = await $axios.post(
-        `${api.lawyer.initData}`,
-        toFormData(params)
-      );
+      const res = await $axios.post(`${api.lawyer.initData}`, toFormData(params));
       if (res.data?.data) {
         return res.data.data;
       }
       return {};
     } catch (error) {
-      console.error("Error initializing data:", error);
+      console.error('Error initializing data:', error);
       return {};
     }
   },
 
   async saveOrCancelCollect(params: CollectParams) {
     try {
-      const res = await $axios.post(
-        `${api.lawyer.saveOrCancelCollect}`,
-        toFormData(params)
-      );
+      const res = await $axios.post(`${api.lawyer.saveOrCancelCollect}`, toFormData(params));
       return res.data?.success || false;
     } catch (error) {
-      console.error("Error saving or canceling collect:", error);
+      console.error('Error saving or canceling collect:', error);
       return false;
     }
   },
 
   async updateTimeLinessSchedule(params: QueryParams) {
     try {
-      const res = await $axios.post(
-        `${api.lawyer.updateTimeLinessSchedule}`,
-        toFormData(params)
-      );
+      const res = await $axios.post(`${api.lawyer.updateTimeLinessSchedule}`, toFormData(params));
       return res.data?.success || false;
     } catch (error) {
-      console.error("Error updating timeliness schedule:", error);
+      console.error('Error updating timeliness schedule:', error);
       return false;
     }
   },
 
   async uploadRuleSource(params: UploadParams) {
     try {
-      const res = await $axios.post(
-        `${api.lawyer.uploadRuleSource}`,
-        toFormData(params)
-      );
+      const res = await $axios.post(`${api.lawyer.uploadRuleSource}`, toFormData(params));
       return res.data?.success || false;
     } catch (error) {
-      console.error("Error uploading rule source:", error);
+      console.error('Error uploading rule source:', error);
       return false;
     }
   },
 
   async getAdmin(params: QueryParams = {}): Promise<boolean> {
     try {
-      const res = await $axios.post(
-        `${api.lawyer.getAdmin}`,
-        toFormData(params)
-      );
+      const res = await $axios.post(`${api.lawyer.getAdmin}`, toFormData(params));
       // 根据接口返回格式，管理员权限在 res.data.data 中
       return res.data?.data === true;
     } catch (error) {
-      console.error("Error checking admin permission:", error);
+      console.error('Error checking admin permission:', error);
       return false;
     }
   },
 
-  async getLegalCategory(
-    params: LegalCategoryParams
-  ): Promise<LegalCategoryItem[]> {
+  async getLegalCategory(params: LegalCategoryParams): Promise<LegalCategoryItem[]> {
     try {
-      const res = await $axios.post(
-        `${api.lawyer.getLegalCategory}`,
-        toFormData(params)
-      );
+      const res = await $axios.post(`${api.lawyer.getLegalCategory}`, toFormData(params));
       return res.data?.data || [];
     } catch (error) {
-      console.error("Error fetching legal category:", error);
+      console.error('Error fetching legal category:', error);
       return [];
     }
   },
 
   // 获取部门数据
-  async getDepartmentData(
-    params: { current: number; size: number } = { current: 1, size: 999 }
-  ) {
+  async getDepartmentData(params: { current: number; size: number } = { current: 1, size: 999 }) {
     try {
       // 临时使用mock数据，后续可以切换到真实接口
-      const { department } = await import("~/mock/dep.js");
+      const { department } = await import('~/mock/dep.js');
       return department.records;
 
       // 真实接口调用（暂时注释）
@@ -448,27 +382,24 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
       // );
       // return res.data?.records || [];
     } catch (error) {
-      console.error("Error fetching department data:", error);
+      console.error('Error fetching department data:', error);
       return [];
     }
   },
   // ==================== 人工审核相关方法 ====================
   async approveToDoRule(params: ApprovalParams) {
     try {
-      const res = await $axios.post(
-        `${api.lawyer.approveToDoRule}`,
-        toFormData(params)
-      );
+      const res = await $axios.post(`${api.lawyer.approveToDoRule}`, toFormData(params));
 
       // 检查业务逻辑是否成功
       if (res.data?.success !== true) {
-        const errorMsg = res.data?.message || res.data?.msg || "审核操作失败";
+        const errorMsg = res.data?.message || res.data?.msg || '审核操作失败';
         throw new Error(errorMsg);
       }
 
       return true;
     } catch (error) {
-      console.error("Error approving todo rule:", error);
+      console.error('Error approving todo rule:', error);
       // 直接重新抛出异常，让调用方处理
       throw error;
     }
@@ -476,13 +407,10 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
 
   async deleteToDoRule(params: DeleteRuleParams) {
     try {
-      const res = await $axios.post(
-        `${api.lawyer.deleteToDoRule}`,
-        toFormData(params)
-      );
+      const res = await $axios.post(`${api.lawyer.deleteToDoRule}`, toFormData(params));
       return res.data?.success || false;
     } catch (error) {
-      console.error("Error deleting todo rule:", error);
+      console.error('Error deleting todo rule:', error);
       return false;
     }
   },
@@ -494,26 +422,23 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
           `${api.lawyer.exportExcel}`,
           toFormData(params as Record<string, unknown>),
           {
-            responseType: "blob",
+            responseType: 'blob'
           }
         );
         if (res.data) return { data: res.data, headers: res.headers };
         return null;
       } else {
-        throw new Error("缺少必要的导出参数：需要提供 ids 数组");
+        throw new Error('缺少必要的导出参数：需要提供 ids 数组');
       }
     } catch (error) {
-      console.error("导出Excel错误:", error);
+      console.error('导出Excel错误:', error);
       return null;
     }
   },
 
   async getToDoRuleDetail(params: { id: string }) {
     try {
-      const res = await $axios.post(
-        `${api.lawyer.getToDoRuleDetail}`,
-        toFormData(params)
-      );
+      const res = await $axios.post(`${api.lawyer.getToDoRuleDetail}`, toFormData(params));
 
       if (res.data?.data) {
         return res.data.data;
@@ -522,26 +447,26 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
       // 如果接口返回空数据，返回默认结构
       return {
         newFileVersion: null,
-        effectDate: "",
-        newFileContent: "",
-        categoryMain: "",
-        newPublishTime: "",
-        oldFileContent: "",
-        checkResult: "",
-        currentMaxFileVersion: 0,
+        effectDate: '',
+        newFileContent: '',
+        categoryMain: '',
+        newPublishTime: '',
+        oldFileContent: '',
+        checkResult: '',
+        currentMaxFileVersion: 0
       };
     } catch (error) {
-      console.error("Error fetching todo rule detail:", error);
+      console.error('Error fetching todo rule detail:', error);
       // 返回一个符合 FileCompareDetail 类型的空对象
       return {
         newFileVersion: null,
-        effectDate: "",
-        newFileContent: "",
-        categoryMain: "",
-        newPublishTime: "",
-        oldFileContent: "",
-        checkResult: "",
-        currentMaxFileVersion: 0,
+        effectDate: '',
+        newFileContent: '',
+        categoryMain: '',
+        newPublishTime: '',
+        oldFileContent: '',
+        checkResult: '',
+        currentMaxFileVersion: 0
       };
     }
   },
@@ -549,33 +474,31 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
   // 智能规则列表获取方法 - 根据使用场景自动选择合适的接口
   async getRuleList(
     params: CheckRuleQueryParams = {},
-    useCase: "homepage" | "management" = "management"
+    useCase: 'homepage' | 'management' = 'management'
   ) {
     try {
       // 根据使用场景选择接口：
       // homepage: 首页待办列表，使用 getTodoRuleList
       // management: 人工审核管理页面，使用 getCheckRuleList
       const apiEndpoint =
-        useCase === "homepage"
-          ? api.lawyer.getTodoRuleList
-          : api.lawyer.getCheckRuleList;
+        useCase === 'homepage' ? api.lawyer.getTodoRuleList : api.lawyer.getCheckRuleList;
 
       const res = await $axios.post(apiEndpoint, toFormData(params));
 
-      if (useCase === "management") {
+      if (useCase === 'management') {
         // 人工审核页面返回完整的分页响应结构
         return (
           res.data || {
             status: 500,
-            message: "获取数据失败",
+            message: '获取数据失败',
             success: false,
             data: {
               records: [],
               total: 0,
               size: params.pageSize || 10,
               current: params.page || 1,
-              pages: 0,
-            },
+              pages: 0
+            }
           }
         );
       } else {
@@ -587,87 +510,78 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
       }
     } catch (error) {
       console.error(`Error fetching rule list (${useCase}):`, error);
-      if (useCase === "management") {
+      if (useCase === 'management') {
         return {
           status: 500,
-          message: "获取数据失败",
+          message: '获取数据失败',
           success: false,
           data: {
             records: [],
             total: 0,
             size: params.pageSize || 10,
             current: params.page || 1,
-            pages: 0,
-          },
+            pages: 0
+          }
         };
       }
       return [];
     }
   },
   // ==================== 爬取统计相关方法 ====================
-  async getCrawlHtmlList(
-    params: CrawlStatisticsQueryParams
-  ): Promise<CrawlStatisticsResponse> {
+  async getCrawlHtmlList(params: CrawlStatisticsQueryParams): Promise<CrawlStatisticsResponse> {
     const defaultData = {
       total: 0,
       size: params.size || 10,
       current: params.current || 1,
-      records: [],
+      records: []
     };
 
     try {
       const res = await $axios.post(api.lawyer.getCrawlHtmlList, params);
       return (
         res.data || {
-          status: "error",
-          message: "No data received",
+          status: 'error',
+          message: 'No data received',
           success: false,
           timestamp: Date.now(),
-          data: defaultData,
+          data: defaultData
         }
       );
     } catch (error) {
-      console.error("Error fetching crawl html list:", error);
+      console.error('Error fetching crawl html list:', error);
       return {
         status: 201,
-        message: error instanceof Error ? error.message : "Unknown error",
+        message: error instanceof Error ? error.message : 'Unknown error',
         success: false,
         timestamp: Date.now(),
-        data: defaultData,
+        data: defaultData
       };
     }
   },
 
-  async executeCrawlTask(
-    params: ExecuteCrawlTaskParams
-  ): Promise<ExecuteCrawlTaskResponse> {
+  async executeCrawlTask(params: ExecuteCrawlTaskParams): Promise<ExecuteCrawlTaskResponse> {
     const defaultResponse = {
       status: 201,
-      message: "No response received",
+      message: 'No response received',
       success: false,
       timestamp: Date.now(),
-      data: "",
+      data: ''
     };
 
     try {
-      const res = await $axios.post(
-        api.lawyer.executeCrawlTask,
-        toFormData(params)
-      );
+      const res = await $axios.post(api.lawyer.executeCrawlTask, toFormData(params));
       return res.data || defaultResponse;
     } catch (error) {
-      console.error("Error executing crawl task:", error);
+      console.error('Error executing crawl task:', error);
       return {
         ...defaultResponse,
-        message: error instanceof Error ? error.message : "Unknown error",
+        message: error instanceof Error ? error.message : 'Unknown error'
       };
     }
   },
-  async getCrawlHistory(
-    params: CrawlHistoryQueryParams
-  ): Promise<CrawlHistoryResponse> {
+  async getCrawlHistory(params: CrawlHistoryQueryParams): Promise<CrawlHistoryResponse> {
     const defaultData = {
-      countId: "",
+      countId: '',
       current: params.current || 1,
       hitCount: true,
       maxLimit: 0,
@@ -676,7 +590,7 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
       records: [],
       searchCount: true,
       size: params.size || 10,
-      total: 0,
+      total: 0
     };
 
     try {
@@ -684,46 +598,44 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
       return (
         res.data || {
           status: 500,
-          message: "No data received",
+          message: 'No data received',
           success: false,
           timestamp: Date.now(),
-          data: defaultData,
+          data: defaultData
         }
       );
     } catch (error) {
-      console.error("Error fetching crawl history:", error);
+      console.error('Error fetching crawl history:', error);
       return {
         status: 500,
-        message: error instanceof Error ? error.message : "Unknown error",
+        message: error instanceof Error ? error.message : 'Unknown error',
         success: false,
         timestamp: Date.now(),
-        data: defaultData,
+        data: defaultData
       };
     }
   },
 
-  async updateCrawlStatus(
-    params: UpdateCrawlStatusParams
-  ): Promise<UpdateCrawlStatusResponse> {
+  async updateCrawlStatus(params: UpdateCrawlStatusParams): Promise<UpdateCrawlStatusResponse> {
     try {
       const res = await $axios.post(api.lawyer.updateCrawlStatus, params);
       return (
         res.data || {
           status: 500,
-          message: "No data received",
+          message: 'No data received',
           success: false,
           timestamp: Date.now(),
-          data: "",
+          data: ''
         }
       );
     } catch (error) {
-      console.error("Error updating crawl status:", error);
+      console.error('Error updating crawl status:', error);
       return {
         status: 500,
-        message: error instanceof Error ? error.message : "Unknown error",
+        message: error instanceof Error ? error.message : 'Unknown error',
         success: false,
         timestamp: Date.now(),
-        data: "",
+        data: ''
       };
     }
   },
@@ -737,29 +649,27 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
       return (
         res.data || {
           status: 500,
-          message: "No data received",
+          message: 'No data received',
           success: false,
           timestamp: Date.now(),
-          data: "",
+          data: ''
         }
       );
     } catch (error) {
-      console.error("Error updating crawl status (simple):", error);
+      console.error('Error updating crawl status (simple):', error);
       return {
         status: 500,
-        message: error instanceof Error ? error.message : "Unknown error",
+        message: error instanceof Error ? error.message : 'Unknown error',
         success: false,
         timestamp: Date.now(),
-        data: "",
+        data: ''
       };
     }
   },
 
-  async getTaskHistory(
-    params: TaskHistoryQueryParams
-  ): Promise<TaskHistoryResponse> {
+  async getTaskHistory(params: TaskHistoryQueryParams): Promise<TaskHistoryResponse> {
     const defaultData = {
-      countId: "",
+      countId: '',
       current: params.pageNum || 1,
       hitCount: true,
       maxLimit: 0,
@@ -769,31 +679,28 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
       records: [],
       searchCount: true,
       size: params.pageSize || 10,
-      total: 0,
+      total: 0
     };
 
     try {
-      const res = await $axios.post(
-        api.lawyer.getTaskHistory,
-        toFormData(params)
-      );
+      const res = await $axios.post(api.lawyer.getTaskHistory, toFormData(params));
       return (
         res.data || {
           status: 500,
-          message: "No data received",
+          message: 'No data received',
           success: false,
           timestamp: Date.now(),
-          data: defaultData,
+          data: defaultData
         }
       );
     } catch (error) {
-      console.error("Error getting task history:", error);
+      console.error('Error getting task history:', error);
       return {
         status: 500,
-        message: error instanceof Error ? error.message : "Unknown error",
+        message: error instanceof Error ? error.message : 'Unknown error',
         success: false,
         timestamp: Date.now(),
-        data: defaultData,
+        data: defaultData
       };
     }
   },
@@ -803,33 +710,31 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
   ): Promise<CrawlCheckRuleListResponse> {
     try {
       const res = await $axios.post(api.lawyer.getCrawlCheckRuleList, null, {
-        params: { id: params.id },
+        params: { id: params.id }
       });
       return (
         res.data || {
           status: 500,
-          message: "No data received",
+          message: 'No data received',
           success: false,
           timestamp: Date.now(),
-          data: [],
+          data: []
         }
       );
     } catch (error) {
-      console.error("Error getting crawl check rule list:", error);
+      console.error('Error getting crawl check rule list:', error);
       return {
         status: 500,
-        message: error instanceof Error ? error.message : "Unknown error",
+        message: error instanceof Error ? error.message : 'Unknown error',
         success: false,
         timestamp: Date.now(),
-        data: [],
+        data: []
       };
     }
   },
 
   // ==================== 爬取配置相关方法 ====================
-  async getCrawlConfigList(
-    params: CrawlConfigQueryParams
-  ): Promise<CrawlConfigResponse> {
+  async getCrawlConfigList(params: CrawlConfigQueryParams): Promise<CrawlConfigResponse> {
     const defaultData = {
       total: 0,
       size: params.size || 10,
@@ -840,7 +745,7 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
       countId: null,
       maxLimit: null,
       searchCount: true,
-      pages: 0,
+      pages: 0
     };
 
     try {
@@ -848,92 +753,86 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
       return (
         res.data || {
           status: 500,
-          message: "No data received",
+          message: 'No data received',
           success: false,
           timestamp: Date.now(),
-          data: defaultData,
+          data: defaultData
         }
       );
     } catch (error) {
-      console.error("Error fetching crawl config list:", error);
+      console.error('Error fetching crawl config list:', error);
       return {
         status: 500,
-        message: error instanceof Error ? error.message : "Unknown error",
+        message: error instanceof Error ? error.message : 'Unknown error',
         success: false,
         timestamp: Date.now(),
-        data: defaultData,
+        data: defaultData
       };
     }
   },
 
-  async addCrawlConfig(
-    params: AddCrawlConfigParams
-  ): Promise<CrawlConfigOperationResponse> {
+  async addCrawlConfig(params: AddCrawlConfigParams): Promise<CrawlConfigOperationResponse> {
     const defaultResponse = {
       status: 500,
-      message: "No response received",
+      message: 'No response received',
       success: false,
       timestamp: Date.now(),
-      data: "",
+      data: ''
     };
 
     try {
       const res = await $axios.post(api.lawyer.addCrawlConfig, params);
       return res.data || defaultResponse;
     } catch (error) {
-      console.error("Error adding crawl config:", error);
+      console.error('Error adding crawl config:', error);
       return {
         ...defaultResponse,
-        message: error instanceof Error ? error.message : "Unknown error",
+        message: error instanceof Error ? error.message : 'Unknown error'
       };
     }
   },
 
-  async updateCrawlConfig(
-    params: UpdateCrawlConfigParams
-  ): Promise<CrawlConfigOperationResponse> {
+  async updateCrawlConfig(params: UpdateCrawlConfigParams): Promise<CrawlConfigOperationResponse> {
     const defaultResponse = {
       status: 500,
-      message: "No response received",
+      message: 'No response received',
       success: false,
       timestamp: Date.now(),
-      data: "",
+      data: ''
     };
 
     try {
       const res = await $axios.post(api.lawyer.updateCrawlConfig, params);
       return res.data || defaultResponse;
     } catch (error) {
-      console.error("Error updating crawl config:", error);
+      console.error('Error updating crawl config:', error);
       return {
         ...defaultResponse,
-        message: error instanceof Error ? error.message : "Unknown error",
+        message: error instanceof Error ? error.message : 'Unknown error'
       };
     }
   },
 
-  async deleteCrawlConfig(
-    params: DeleteCrawlConfigParams
-  ): Promise<CrawlConfigOperationResponse> {
+  async deleteCrawlConfig(params: DeleteCrawlConfigParams): Promise<CrawlConfigOperationResponse> {
     const defaultResponse = {
       status: 500,
-      message: "No response received",
+      message: 'No response received',
       success: false,
       timestamp: Date.now(),
-      data: "",
+      data: ''
     };
 
     try {
       const res = await $axios.post(api.lawyer.deleteCrawlConfig, null, {
-        params: { id: params.id },
+        params: { id: params.id }
       });
       return res.data || defaultResponse;
     } catch (error) {
-      console.error("Error deleting crawl config:", error);
+      console.error('Error deleting crawl config:', error);
       return {
         ...defaultResponse,
-        message: error instanceof Error ? error.message : "Unknown error",
+        message: error instanceof Error ? error.message : 'Unknown error'
       };
     }
-  },
+  }
 });
