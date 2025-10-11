@@ -368,6 +368,21 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
     }
   },
 
+  // 导出Word文档
+  async exportWord(params: { copies: string }) {
+    try {
+      const res = await $axios.post(`${api.lawyer.exportWord}`, null, {
+        params: { copies: params.copies },
+        responseType: 'blob'
+      });
+      if (res.data) return { data: res.data, headers: res.headers };
+      return null;
+    } catch (error) {
+      console.error('Error exporting word:', error);
+      throw error;
+    }
+  },
+
   // 获取部门数据
   async getDepartmentData(params: { current: number; size: number } = { current: 1, size: 999 }) {
     try {

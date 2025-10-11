@@ -25,6 +25,7 @@
           @filter-change="onFilterChange"
           @search-input-clear="onSearchInputClear"
           :isAdmin="isAdmin"
+          @show-export-modal="showExportModal"
         />
 
         <!-- 文档列表 -->
@@ -59,6 +60,23 @@
         @complete="handleUploadComplete"
         @upload-success="handleUploadSuccess"
       />
+
+      <!-- 导出Word模态框 -->
+      <a-modal
+        v-model="exportModalVisible"
+        title="导出Word文档"
+        :width="400"
+        @ok="handleExportConfirm"
+        @cancel="handleExportCancel"
+      >
+        <div style="padding: 20px 0">
+          <p style="margin-bottom: 16px; color: rgba(0, 0, 0, 0.65)">请选择要导出的册数：</p>
+          <a-checkbox-group v-model="selectedCopies">
+            <a-checkbox value="上"> 上册 </a-checkbox>
+            <a-checkbox value="下"> 下册 </a-checkbox>
+          </a-checkbox-group>
+        </div>
+      </a-modal>
     </div>
   </div>
 </template>
@@ -80,6 +98,7 @@
   } from '~/model/LawyerModel';
 
   import { downloadFileWithMessage } from '~/utils/personal';
+  import { formatDate } from '~/utils/date';
 
   @Component({ name: 'lawyer-knowledge-index-component' })
   export default class LawyerKnowledgeIndexComponent extends Vue {
@@ -87,7 +106,7 @@
     searchKeyword: string = '';
     searchLoading: boolean = false;
     filterSource: string = '';
-    sortOrder: string = 'desc';
+    sortOrder: string = '';
     topicCategory: string[] = [];
     timelinessFilter: string = '';
     effectivenessLevelFilter: string = '';
@@ -111,6 +130,8 @@
     categoryData: LegalCategoryItem[] = []; // 存储从接口获取的分类数据
     isAddMode: boolean = false; // 是否为新增模式
     departmentOptions: DepartmentOption[] = []; // 存储部门数据
+    exportModalVisible: boolean = false; // 导出模态框显示状态
+    selectedCopies: string[] = ['上', '下']; // 默认选中上册和下册
 
     get uploadConfig(): KnowledgeUploadConfig {
       return {
@@ -431,6 +452,80 @@
       this.loadDocuments();
     }
 
+    showExportModal(): void {
+      this.exportModalVisible = true;
+      this.selectedCopies = ['上', '下']; // 重置为默认选中
+    }
+
+    handleExportCancel(): void {
+      this.exportModalVisible = false;
+    }
+
+    async handleExportConfirm(): Promise<void> {
+      if (this.selectedCopies.length === 0) {
+        this.$message.warning('请至少选择一个册数');
+        return;
+      }
+
+      let hideLoading = null;
+      try {
+        hideLoading = this.$message.loading(
+          `正在导出，共${this.selectedCopies.length}册，请稍候...`,
+          0
+        );
+
+        let successCount = 0;
+        let failCount = 0;
+
+        // 获取当前日期，格式为 YYYYMMDD
+        const currentDate = formatDate(new Date(), 'yyyyMMdd');
+
+        // 循环下载每一册
+        for (const copy of this.selectedCopies) {
+          try {
+            const result = await this.$roadLawyerService.exportWord({
+              copies: copy
+            });
+
+            if (result && result.data) {
+              downloadFileWithMessage(result, {
+                fileName: `保险资金运用相关法律法规及规范性文件汇编（${copy}册）_${currentDate}.docx`,
+                showMessage: false, // 单个下载不显示提示，统一在最后显示
+                messageService: this.$message
+              });
+              successCount++;
+            } else {
+              failCount++;
+              console.error(`导出${copy}册失败：无返回数据`);
+            }
+          } catch (error) {
+            failCount++;
+            console.error(`导出${copy}册失败:`, error);
+          }
+        }
+
+        if (hideLoading) {
+          hideLoading();
+        }
+
+        // 显示最终结果
+        if (successCount === this.selectedCopies.length) {
+          this.$message.success(`成功导出${successCount}册`);
+          this.exportModalVisible = false;
+        } else if (successCount > 0) {
+          this.$message.warning(`成功导出${successCount}册，失败${failCount}册`);
+        } else {
+          this.$message.error('导出失败，请重试');
+        }
+      } catch (error) {
+        if (hideLoading) {
+          hideLoading();
+        }
+        console.error('导出失败:', error);
+        this.$message.error('导出失败，请检查网络连接后重试');
+      }
+    }
+
     removeDocument(doc: KnowledgeDataItem): void {
       this.$confirm({
         title: '确定要移除文档吗？',
@@ -648,9 +743,8 @@
         if (this.filterSource) {
           params.legalSource = this.filterSource;
         }
-        if (this.sortOrder) {
-          params.publishDateSort = this.sortOrder;
-        }
+        // 始终传递排序参数，空字符串表示按相关度排序
+        params.publishDateSort = this.sortOrder;
         if (this.publishDate) {
           // 处理发布时间筛选
           params.publishDateStr = this.publishDate;

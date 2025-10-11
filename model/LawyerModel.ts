@@ -395,6 +395,9 @@ export interface RoadLawyerService {
   getAdmin: (params?: QueryParams) => Promise<boolean>;
   getLegalCategory: (params: LegalCategoryParams) => Promise<LegalCategoryItem[]>;
   getDepartmentData: (params?: { current: number; size: number }) => Promise<DepartmentItem[]>;
+  exportWord: (params: {
+    copies: string;
+  }) => Promise<{ data: Blob; headers: ResponseHeaders } | null>;
 
   // ==================== 人工审核相关方法 ====================
   approveToDoRule: (params: ApprovalParams) => Promise<boolean>;

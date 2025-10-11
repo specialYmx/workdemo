@@ -1,4 +1,4 @@
-import Vue from "vue";
+import Vue from 'vue';
 import {
   Button,
   Card,
@@ -35,8 +35,9 @@ import {
   Switch,
   message,
   ConfigProvider,
-} from "ant-design-vue";
-import zhCN from "ant-design-vue/lib/locale-provider/zh_CN";
+  Checkbox
+} from 'ant-design-vue';
+import zhCN from 'ant-design-vue/lib/locale-provider/zh_CN';
 
 // 注册组件
 Vue.use(Button);
@@ -73,6 +74,7 @@ Vue.use(Upload);
 Vue.use(Progress);
 Vue.use(Switch);
 Vue.use(ConfigProvider);
+Vue.use(Checkbox);
 
 // 设置中文本地化
 Vue.prototype.$antLocale = zhCN;

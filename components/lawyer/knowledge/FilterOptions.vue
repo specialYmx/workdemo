@@ -26,6 +26,16 @@
       >
         {{ btn.text }}{{ btn.count ? ` (${btn.count})` : '' }}
       </a-button>
+      <!-- 导出按钮 - 只在法规汇编页面显示 -->
+      <a-button
+        v-if="categoryName === '法规汇编'"
+        type="default"
+        icon="download"
+        size="large"
+        @click="showExportModal"
+      >
+        导出
+      </a-button>
       <!-- 新增按钮 - 只有管理员可见 -->
       <a-button
         v-if="isAdmin"
@@ -118,6 +128,7 @@
       <!-- 排序方式 -->
       <div class="lawyer-filter-group">
         <a-select :value="sortOrder" placeholder="排序方式" @change="onSortOrderChange">
+          <a-select-option value=""> 按相关度排序  </a-select-option>
           <a-select-option value="desc"> 按发布日期 (新→旧) </a-select-option>
           <a-select-option value="asc"> 按发布日期 (旧→新) </a-select-option>
         </a-select>
@@ -166,8 +177,8 @@
           :allow-clear="true"
           @change="onAppendixChange"
         >
-          <a-select-option value="true">是</a-select-option>
-          <a-select-option value="false">否</a-select-option>
+          <a-select-option value="true">仅附录</a-select-option>
+          <a-select-option value="false">非附录</a-select-option>
         </a-select>
       </div>
     </div>
@@ -340,6 +351,11 @@
     @Emit('show-add-document-modal')
     showAddDocumentModal(): void {
       // 触发显示新增文档模态框事件
+    }
+
+    @Emit('show-export-modal')
+    showExportModal(): void {
+      // 触发显示导出模态框事件
     }
   }
 </script>
