@@ -17,8 +17,8 @@ import {
   TaskHistoryQueryParams,
   TaskHistoryResponse,
   CrawlCheckRuleListParams,
-  CrawlCheckRuleListResponse,
-} from "~/model/LawyerConfigModel";
+  CrawlCheckRuleListResponse
+} from '~/model/LawyerConfigModel';
 
 // 法律合规智能系统数据模型
 
@@ -53,7 +53,7 @@ export interface DocumentChange {
   section?: string;
   position?: string;
   sectionDisplay?: string; // 展示用的原始章节文本（如“第一章”“第四条”）
-  type: "add" | "delete" | "modify" | "info";
+  type: 'add' | 'delete' | 'modify' | 'info';
   oldText?: string;
   newText?: string;
 }
@@ -165,7 +165,7 @@ export interface QueryParams extends BaseQueryParams {
   pageSize?: number;
   keyword?: string;
   sortBy?: string;
-  sortOrder?: "asc" | "desc";
+  sortOrder?: 'asc' | 'desc';
   // 添加员工ID参数
   empId?: string;
 }
@@ -220,15 +220,15 @@ export interface ApprovalParams extends MixedMap {
 export interface ExportParams {
   ids?: string[];
   id?: string;
-  format?: "excel" | "pdf";
+  format?: 'excel' | 'pdf';
 }
 
 // HTTP响应头接口
 export interface ResponseHeaders {
   [key: string]: string | string[] | undefined;
-  "content-disposition"?: string;
-  "content-type"?: string;
-  "content-length"?: string;
+  'content-disposition'?: string;
+  'content-type'?: string;
+  'content-length'?: string;
 }
 
 // ==================== 大家智库相关数据模型 ====================
@@ -323,6 +323,7 @@ export interface BaseAuditRuleItem {
 // 人工审核列表项接口（基于真实数据结构）
 export interface ToDoRuleItem extends BaseAuditRuleItem {
   checkTime: string | null; // 审核时间（待审核时可能为null）
+  categoryId?: string; // 分类ID，用于审核权限验证
 }
 
 // 已完成审核列表项接口（基于真实数据结构）
@@ -352,9 +353,7 @@ export interface RoadLawyerService {
   // ==================== 首页统计相关方法 ====================
   getCheckCompleteList: (params?: QueryParams) => Promise<CompletedRuleItem[]>;
   getUpdateCount: (params?: QueryParams) => Promise<number>;
-  getUpdateTimeLinessCount: (
-    params?: QueryParams
-  ) => Promise<TimelinessCountData>;
+  getUpdateTimeLinessCount: (params?: QueryParams) => Promise<TimelinessCountData>;
   getWebSiteRatio: (params?: QueryParams) => Promise<WebsiteRatioData>;
   exportStatisticExcel: (params: {
     condition: string;
@@ -387,71 +386,40 @@ export interface RoadLawyerService {
     categorySub?: string;
     effectDate?: string;
   }) => Promise<{ success: boolean; message?: string }>;
-  getRuleSourceList: (
-    params: RuleSourceQueryParams
-  ) => Promise<RuleSourceListResponse>;
-  getRuleUpdateList: (
-    params: RuleUpdateQueryParams
-  ) => Promise<RuleUpdateListResponse>;
+  getRuleSourceList: (params: RuleSourceQueryParams) => Promise<RuleSourceListResponse>;
+  getRuleUpdateList: (params: RuleUpdateQueryParams) => Promise<RuleUpdateListResponse>;
   initData: (params?: QueryParams) => Promise<boolean>;
   saveOrCancelCollect: (params: CollectParams) => Promise<boolean>;
   updateTimeLinessSchedule: (params: QueryParams) => Promise<boolean>;
   uploadRuleSource: (params: UploadParams) => Promise<boolean>;
   getAdmin: (params?: QueryParams) => Promise<boolean>;
-  getLegalCategory: (
-    params: LegalCategoryParams
-  ) => Promise<LegalCategoryItem[]>;
-  getDepartmentData: (params?: {
-    current: number;
-    size: number;
-  }) => Promise<DepartmentItem[]>;
+  getLegalCategory: (params: LegalCategoryParams) => Promise<LegalCategoryItem[]>;
+  getDepartmentData: (params?: { current: number; size: number }) => Promise<DepartmentItem[]>;
 
   // ==================== 人工审核相关方法 ====================
   approveToDoRule: (params: ApprovalParams) => Promise<boolean>;
   deleteToDoRule: (params: DeleteRuleParams) => Promise<boolean>;
-  exportExcel: (
-    params: ExportParams
-  ) => Promise<{ data: Blob; headers: ResponseHeaders }>;
+  exportExcel: (params: ExportParams) => Promise<{ data: Blob; headers: ResponseHeaders }>;
   getToDoRuleDetail: (params: { id: string }) => Promise<FileCompareDetail>;
   getRuleList: (
     params?: CheckRuleQueryParams,
-    useCase?: "homepage" | "management"
+    useCase?: 'homepage' | 'management'
   ) => Promise<ToDoRuleItem[] | CheckRuleListResponse>;
   // ==================== 爬取统计相关方法 ====================
-  getCrawlHtmlList: (
-    params: CrawlStatisticsQueryParams
-  ) => Promise<CrawlStatisticsResponse>;
-  executeCrawlTask: (
-    params: ExecuteCrawlTaskParams
-  ) => Promise<ExecuteCrawlTaskResponse>;
-  getCrawlHistory: (
-    params: CrawlHistoryQueryParams
-  ) => Promise<CrawlHistoryResponse>;
-  updateCrawlStatus: (
-    params: UpdateCrawlStatusParams
-  ) => Promise<UpdateCrawlStatusResponse>;
+  getCrawlHtmlList: (params: CrawlStatisticsQueryParams) => Promise<CrawlStatisticsResponse>;
+  executeCrawlTask: (params: ExecuteCrawlTaskParams) => Promise<ExecuteCrawlTaskResponse>;
+  getCrawlHistory: (params: CrawlHistoryQueryParams) => Promise<CrawlHistoryResponse>;
+  updateCrawlStatus: (params: UpdateCrawlStatusParams) => Promise<UpdateCrawlStatusResponse>;
   updateCrawlStatusSimple: (
     params: UpdateCrawlStatusSimpleParams
   ) => Promise<UpdateCrawlStatusResponse>;
-  getTaskHistory: (
-    params: TaskHistoryQueryParams
-  ) => Promise<TaskHistoryResponse>;
-  getCrawlCheckRuleList: (
-    params: CrawlCheckRuleListParams
-  ) => Promise<CrawlCheckRuleListResponse>;
+  getTaskHistory: (params: TaskHistoryQueryParams) => Promise<TaskHistoryResponse>;
+  getCrawlCheckRuleList: (params: CrawlCheckRuleListParams) => Promise<CrawlCheckRuleListResponse>;
   // ==================== 爬取配置相关方法 ====================
-  getCrawlConfigList: (
-    params: CrawlConfigQueryParams
-  ) => Promise<CrawlConfigResponse>;
-  addCrawlConfig: (
-    params: AddCrawlConfigParams
-  ) => Promise<CrawlConfigOperationResponse>;
-  updateCrawlConfig: (
-    params: UpdateCrawlConfigParams
-  ) => Promise<CrawlConfigOperationResponse>;
-  deleteCrawlConfig: (
-    params: DeleteCrawlConfigParams
-  ) => Promise<CrawlConfigOperationResponse>;
+  getCrawlConfigList: (params: CrawlConfigQueryParams) => Promise<CrawlConfigResponse>;
+  addCrawlConfig: (params: AddCrawlConfigParams) => Promise<CrawlConfigOperationResponse>;
+  updateCrawlConfig: (params: UpdateCrawlConfigParams) => Promise<CrawlConfigOperationResponse>;
+  deleteCrawlConfig: (params: DeleteCrawlConfigParams) => Promise<CrawlConfigOperationResponse>;
 }
 
 // ==================== 图表数据相关类型定义 ====================
