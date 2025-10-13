@@ -108,7 +108,7 @@ export interface CrawlConfigItem {
   searchTemplate?: string;
   keywords?: string[];
   invalidKeywords?: string[]; // 无效关键词
-  columnName?: string; // 列名
+  columnName?: string[]; // 列名
   remarks?: string;
   enabled: 0 | 1; // 0-禁用, 1-启用
   crawlStartDate?: string; // 爬取起始时间
@@ -163,7 +163,7 @@ export interface AddCrawlConfigParams {
   searchTemplate?: string;
   keywords?: string[];
   invalidKeywords?: string[]; // 无效关键词
-  columnName?: string; // 列名
+  columnName?: string[]; // 列名
   remarks?: string;
   enabled: number;
   crawlStartDate?: string; // 爬取起始时间
@@ -180,7 +180,7 @@ export interface UpdateCrawlConfigParams {
   searchTemplate?: string;
   keywords?: string[];
   invalidKeywords?: string[]; // 无效关键词
-  columnName?: string; // 列名
+  columnName?: string[]; // 列名
   remarks?: string;
   enabled: number;
   crawlStartDate?: string; // 爬取起始时间

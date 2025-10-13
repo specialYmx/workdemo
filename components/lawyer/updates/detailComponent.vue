@@ -188,14 +188,10 @@
       };
 
       try {
-        // 调用接口获取文档详情
-        //   const result = await this.$roadLawyerService.getToDoRuleDetail({
-        //     id: docId as string,
-        //   });
         const result: any = await this.$roadLawyerService.getRuleSourceDetail({
           searchId: docId as string
         });
-        if (result && (result.oldFileContent || result.newFileContent)) {
+        if (result && (result.oldFileContent || result.fileContent)) {
           // 构建标签数组，包含一级和二级分类
           const tags: string[] = [];
           if (result.categoryMain) tags.push(result.categoryMain);
@@ -241,8 +237,8 @@
             tags: [],
             originalVersion: '',
             newVersion: '',
-            originalContent: 'error',
-            newContent: 'error',
+            originalContent: '暂无数据',
+            newContent: '暂无数据',
             changes: []
           };
           this.$message.error('文件缺失或暂无对比结果，请联系管理员');

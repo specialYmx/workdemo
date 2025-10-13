@@ -61,21 +61,9 @@
           :row-key="record => record.id"
           @change="handleTableChange"
         >
-          <!-- 网站代码列 -->
-          <template slot="websiteCode" slot-scope="text">
-            <span>{{ text }}</span>
-          </template>
-
-          <!-- 网站名称列 -->
-          <template slot="websiteName" slot-scope="text">
-            <span>{{ text }}</span>
-          </template>
-
-          <!-- 网站URL列 -->
           <template slot="websiteUrl" slot-scope="text">
-            <span>{{ text }}</span>
+            <a :href="text" target="_blank">{{ text }}</a>
           </template>
-
           <!-- 关键词列 -->
           <template slot="keywords" slot-scope="text">
             <div v-if="text && text.length > 0" class="lawyer-keywords-container">
@@ -204,12 +192,20 @@
                 placeholder="请输入无效关键词，按回车添加"
                 style="width: 100%"
                 :max-tag-count="3"
-                :max-tag-placeholder="getInvalidKeywordsMaxTagPlaceholder"
+                :max-tag-placeholder="getMaxTagPlaceholder"
                 :max-tag-text-length="8"
               />
             </a-form-model-item>
-            <a-form-model-item label="列名" prop="columnName">
-              <a-input v-model="formData.columnName" placeholder="请输入列名" />
+            <a-form-model-item label="栏目名" prop="columnName">
+              <a-select
+                v-model="formData.columnName"
+                mode="tags"
+                placeholder="请输入栏目名，按回车添加"
+                style="width: 100%"
+                :max-tag-count="3"
+                :max-tag-placeholder="getMaxTagPlaceholder"
+                :max-tag-text-length="8"
+              />
             </a-form-model-item>
             <a-form-model-item label="备注" prop="remarks">
               <a-textarea v-model="formData.remarks" placeholder="请输入备注（可选）" :rows="2" />
@@ -288,7 +284,7 @@
       searchTemplate: '',
       keywords: [] as string[],
       invalidKeywords: [] as string[], // 无效关键词
-      columnName: '', // 列名
+      columnName: [] as string[], // 栏目名
       remarks: '',
       enabled: true,
       crawlStartDate: null as string | null // 爬取起始时间
@@ -333,7 +329,8 @@
         dataIndex: 'websiteUrl',
         key: 'websiteUrl',
         scopedSlots: { customRender: 'websiteUrl' },
-        ellipsis: true
+        ellipsis: true,
+        width: 100
       },
       {
         title: '关键词',
@@ -350,10 +347,10 @@
         width: 200
       },
       {
-        title: '列名',
+        title: '栏目名',
         dataIndex: 'columnName',
         key: 'columnName',
-        scopedSlots: { customRender: 'columnName' },
+        scopedSlots: { customRender: 'keywords' },
         width: 120
       },
       {
@@ -477,6 +474,16 @@
       await this.loadConfigList();
     }
 
+    // 清除表单验证
+    clearFormValidate(): void {
+      this.$nextTick(() => {
+        const formRef = this.$refs.formModel as FormModel;
+        if (formRef && formRef.clearValidate) {
+          formRef.clearValidate([]);
+        }
+      });
+    }
+
     // 显示新增模态框
     showAddModal(): void {
       this.editingRecord = null;
@@ -490,17 +497,12 @@
         searchTemplate: '',
         keywords: [],
         invalidKeywords: [],
-        columnName: '',
+        columnName: [],
         remarks: '',
         enabled: true,
         crawlStartDate: null as string | null
       };
-      this.$nextTick(() => {
-        const formRef = this.$refs.formModel as FormModel;
-        if (formRef && formRef.clearValidate) {
-          formRef.clearValidate([]);
-        }
-      });
+      this.clearFormValidate();
     }
 
     // 编辑配置
@@ -516,17 +518,12 @@
         searchTemplate: record.searchTemplate || '',
         keywords: record.keywords || [],
         invalidKeywords: record.invalidKeywords || [],
-        columnName: record.columnName || '',
+        columnName: record.columnName || [],
         remarks: record.remarks || '',
         enabled: record.enabled === 1,
         crawlStartDate: record.crawlStartDate || null
       };
-      this.$nextTick(() => {
-        const formRef = this.$refs.formModel as FormModel;
-        if (formRef && formRef.clearValidate) {
-          formRef.clearValidate([]);
-        }
-      });
+      this.clearFormValidate();
     }
 
     // 切换启用状态
@@ -609,7 +606,7 @@
           searchTemplate: this.formData.searchTemplate || '',
           keywords: this.formData.keywords || [],
           invalidKeywords: this.formData.invalidKeywords || [],
-          columnName: this.formData.columnName || '',
+          columnName: this.formData.columnName || [],
           remarks: this.formData.remarks || '',
           enabled: this.formData.enabled ? 1 : 0,
           crawlStartDate: this.formData.crawlStartDate || undefined
@@ -657,12 +654,7 @@
 
     // 多选标签超出时的占位符
     getMaxTagPlaceholder(omittedValues: string[]): string {
-      return `+${omittedValues.length}个关键词`;
-    }
-
-    // 无效关键词多选标签超出时的占位符
-    getInvalidKeywordsMaxTagPlaceholder(omittedValues: string[]): string {
-      return `+${omittedValues.length}个无效关键词`;
+      return `+${omittedValues.length}个`;
     }
 
     // 获取要显示的关键词（前3个）
