@@ -59,6 +59,7 @@
           :pagination="pagination"
           :loading="tableLoading"
           :row-key="record => record.id"
+          :scroll="{ x: 1500 }"
           @change="handleTableChange"
         >
           <template slot="websiteUrl" slot-scope="text">
@@ -123,7 +124,9 @@
       :title="modalTitle"
       :visible="modalVisible"
       width="90%"
+      :dialog-style="{ top: '20px' }"
       :confirm-loading="modalLoading"
+      class="modalBodyH152"
       ok-text="确认"
       cancel-text="取消"
       @ok="handleModalOk"
@@ -170,6 +173,13 @@
                 value-format="YYYY-MM-DD HH:mm:ss"
               />
             </a-form-model-item>
+            <a-form-model-item label="启用状态" prop="enabled">
+              <a-switch
+                v-model="formData.enabled"
+                checked-children="启用"
+                un-checked-children="禁用"
+              />
+            </a-form-model-item>
           </a-col>
 
           <!-- 右栏 -->
@@ -211,18 +221,7 @@
               <a-textarea v-model="formData.remarks" placeholder="请输入备注（可选）" :rows="2" />
             </a-form-model-item>
             <a-form-model-item label="搜索模板" prop="searchTemplate">
-              <a-textarea
-                v-model="formData.searchTemplate"
-                placeholder="请输入搜索模板（可选）"
-                :rows="3"
-              />
-            </a-form-model-item>
-            <a-form-model-item label="启用状态" prop="enabled">
-              <a-switch
-                v-model="formData.enabled"
-                checked-children="启用"
-                un-checked-children="禁用"
-              />
+              <a-textarea v-model="formData.searchTemplate" placeholder="请输入搜索模板（可选）" />
             </a-form-model-item>
           </a-col>
         </a-row>
@@ -314,37 +313,39 @@
         title: '网站代码',
         dataIndex: 'websiteCode',
         key: 'websiteCode',
-        scopedSlots: { customRender: 'websiteCode' },
-        width: 120
+        width: 120,
+        fixed: 'left',
+        ellipsis: true
       },
       {
         title: '网站名称',
         dataIndex: 'websiteName',
         key: 'websiteName',
-        scopedSlots: { customRender: 'websiteName' },
-        width: 150
+        width: 140,
+        fixed: 'left',
+        ellipsis: true
       },
       {
         title: '网站URL',
         dataIndex: 'websiteUrl',
         key: 'websiteUrl',
         scopedSlots: { customRender: 'websiteUrl' },
-        ellipsis: true,
-        width: 100
+        width: 200,
+        ellipsis: true
       },
       {
         title: '关键词',
         dataIndex: 'keywords',
         key: 'keywords',
         scopedSlots: { customRender: 'keywords' },
-        width: 200
+        width: 180
       },
       {
         title: '无效关键词',
         dataIndex: 'invalidKeywords',
         key: 'invalidKeywords',
         scopedSlots: { customRender: 'keywords' },
-        width: 200
+        width: 150
       },
       {
         title: '栏目名',
@@ -354,22 +355,22 @@
         width: 120
       },
       {
-        title: '最大页面限制',
+        title: '页面限制',
         dataIndex: 'maxPageLimit',
         key: 'maxPageLimit',
-        width: 120,
-        align: 'center'
-      },
-      {
-        title: '启用状态',
-        dataIndex: 'enabled',
-        key: 'enabled',
-        scopedSlots: { customRender: 'enabled' },
         width: 100,
         align: 'center'
       },
       {
-        title: '爬取起始时间',
+        title: '状态',
+        dataIndex: 'enabled',
+        key: 'enabled',
+        scopedSlots: { customRender: 'enabled' },
+        width: 80,
+        align: 'center'
+      },
+      {
+        title: '起始时间',
         dataIndex: 'crawlStartDate',
         key: 'crawlStartDate',
         scopedSlots: { customRender: 'crawlStartDate' },
@@ -393,6 +394,7 @@
         key: 'action',
         scopedSlots: { customRender: 'action' },
         width: 120,
+        fixed: 'right',
         align: 'center'
       }
     ];
