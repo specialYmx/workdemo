@@ -20,8 +20,6 @@ import {
   CrawlCheckRuleListResponse
 } from '~/model/LawyerConfigModel';
 
-// 法律合规智能系统数据模型
-
 // 饼图系列数据
 export interface PieChartSeries {
   data: PieChartDataItem[];
@@ -97,14 +95,19 @@ export interface DocumentViewerData {
   categoryId?: string;
 }
 
-// 文档比较数据
-export interface DocumentCompareData {
+// 文档比较基础字段
+export interface DocumentCompareBaseFields {
   id: string;
   title: string;
   status: string;
-  checkStatus?: string; // 原始审核状态
+  checkStatus?: string;
   tags?: string[];
   effectDate?: string | null;
+  changes: DocumentChange[];
+}
+
+// 文档比较数据
+export interface DocumentCompareData extends DocumentCompareBaseFields {
   newFileVersion?: number | null;
   oldFileVersion?: number | null;
   currentMaxFileVersion?: number | null;
@@ -113,7 +116,6 @@ export interface DocumentCompareData {
   oldPublishTime?: string;
   newPublishTime?: string;
   modifiedDate?: string;
-  changes: DocumentChange[];
 }
 
 // 审核提交数据
@@ -159,15 +161,18 @@ export interface MixedMap {
 // 基础查询参数接口
 export interface BaseQueryParams extends MixedMap {}
 
-// 通用查询参数接口（继承基础参数）
-export interface QueryParams extends BaseQueryParams {
+// 分页参数（可复用）
+export interface PaginationParams {
   page?: number;
   pageSize?: number;
+}
+
+// 通用查询参数接口（继承基础参数）
+export interface QueryParams extends BaseQueryParams, PaginationParams {
   keyword?: string;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
-  // 添加员工ID参数
-  empId?: string;
+  empId?: string; // 员工ID参数
 }
 
 // ==================== 专用参数接口 ====================
@@ -190,15 +195,20 @@ export interface CollectParams extends MixedMap {
   collect: boolean;
 }
 
+// 文档分类字段（可复用）
+export interface DocumentCategoryFields {
+  categoryId?: string;
+  categoryMain?: string;
+  categorySub?: string;
+  effectivenessLevel?: string;
+  legalSource?: string;
+}
+
 // 文件上传参数
-export interface UploadParams {
+export interface UploadParams extends DocumentCategoryFields {
   id?: string; // 更新时的文档ID，新增时可选
   file: File;
   timeLiness?: string; // 时效性
-  effectivenessLevel?: string; // 效力位阶
-  categoryId?: string; // 分类ID
-  categoryMain?: string; // 主分类
-  legalSource?: string; // 来源
   publishDateStr?: string; // 发布时间
   department?: string | string[]; // 部门（支持字符串数组）
   appendix?: boolean; // 附件标识
@@ -207,13 +217,10 @@ export interface UploadParams {
 }
 
 // 审核操作参数
-export interface ApprovalParams extends MixedMap {
+export interface ApprovalParams extends MixedMap, DocumentCategoryFields {
   id: string;
   approvalComment: string;
   effectDateStr?: string | null;
-  categoryMain?: string;
-  categorySub?: string;
-  categoryId?: string; // 专题分类ID - 跟大家智库的逻辑一样
 }
 
 // 导出参数
@@ -233,47 +240,57 @@ export interface ResponseHeaders {
 
 // ==================== 大家智库相关数据模型 ====================
 
-// 法规数据基础接口（公共字段）
-export interface BaseRuleItem {
+// 核心文档字段（所有文档类型共用）
+export interface CoreDocumentFields {
   id: string;
   ruleName: string;
   websiteName: string;
-  legalSource?: string;
-  createdTimeStr: string;
-  createdTimestamp: number;
-  categoryMain: string;
-  categorySub: string;
+  legalSource?: string | null;
+  documentNo?: string | null; // 发文字号
+  url: string | null;
+  categoryMain: string | null;
+  categorySub: string | null;
   categoryId?: string; // 分类ID，用于新的分类系统
+  effectivenessLevel: string | null;
+  filePathTxt: string | null;
+  filePathOther: string | null;
+  fileVersion: number;
+  checkStatus: string | null;
+  diffResultId: string | null;
+}
+
+// 时间相关字段
+export interface DocumentTimeFields {
+  createdTime?: string | null;
+  createdTimeStr?: string;
+  createdTimestamp?: number;
+  publishTime?: string | null;
+  publishDateStr?: string;
+  publishDateTimestamp?: number;
+  effectDate?: string | null;
+  effectDateStr?: string | null;
+  effectDateTimestamp?: number | null;
+  updateTime?: string | null;
+  updateTimeStr?: string | null;
+  updateTimestamp?: number | null;
+  modifyDateStr?: string | null;
+  modifyDateTimestamp?: number | null;
+  revokeDateStr?: string | null;
+  revokeDateTimestamp?: number | null;
+  checkTime?: string | null;
+}
+
+// 法规数据基础接口（公共字段）
+export interface BaseRuleItem extends CoreDocumentFields, DocumentTimeFields {
   timeLiness: string;
   fileContent: string;
-  publishDateStr: string;
-  publishDateTimestamp: number;
-  effectDateStr: string | null;
-  effectDateTimestamp: number | null;
-  modifyDateStr: string | null;
-  modifyDateTimestamp: number | null;
-  revokeDateStr: string | null;
-  revokeDateTimestamp: number | null;
-  filePathTxt: string | null;
-  filePathOther: string;
-  fileVersion: number;
-  updateTimeStr: string | null;
-  updateTime: string | null;
-  updateTimestamp: number | null;
   summary: string;
   readCount: number;
-  url: string | null;
-  checkStatus: string | null;
-  checkTime: string | null;
   compilationType: string | null;
-  effectivenessLevel: string;
   topicCategory: string | null;
-  diffResultId: string | null;
   initDataFlag: 0 | 1;
   deleted: number;
-  // 新增字段
   department?: string | string[] | null; // 责任部门（支持字符串数组）
-  documentNo?: string | null; // 发文字号
   appendix?: boolean; // 是否附录
   assemblyCategoryMain?: string; // 组装分类主字段
   dataSource?: string; // 数据来源："1"-爬取数据，"2"-人工审核数据
@@ -282,39 +299,18 @@ export interface BaseRuleItem {
 
 // 法规文档信息（基于真实API数据结构）
 export interface KnowledgeDataItem extends BaseRuleItem {
-  createdTime: string | null;
-  publishTime: string | null;
-  effectDate: string | null;
   isCollect?: boolean; // 收藏状态字段
 }
 
 // 法规更新列表项接口（基于真实API数据结构）
 export interface RuleUpdateItem extends BaseRuleItem {
   currentMaxFileVersion: number | null;
-  documentNo: string | null;
 }
 
 // ==================== 人工审核相关数据模型 ====================
 
-export interface BaseAuditRuleItem {
-  id: string;
-  diffResultId: string | null;
-  ruleName: string;
-  documentNo: string | null; // 文号，如："银保监发〔2021〕47号"
-  websiteName: string; // 网站名称，如："中国政府网"
-  legalSource: string | null; // 发布机构，如："国家金融监督管理总局"
-  url: string;
-  publishTime: string | null; // 发布时间，如："2025-08-06"
-  effectDate: string | null; // 生效日期，如："2021-12-08"
-  categoryMain: string | null; // 主分类
-  categorySub: string | null; // 子分类
-  effectivenessLevel: string | null; // 效力层级，如："部门规章规范性文件"
-  filePathTxt: string | null; // txt文件路径
-  filePathOther: string | null; // 其他文件路径，如docx
-  fileVersion: number; // 文件版本号
-  updateTime: string | null; // 更新时间
-  checkStatus: string; // 审核状态，如："待审核"、"已通过"、"已驳回"
-  createdTime: string; // 创建时间，如："2025-08-13T19:14:27"
+// 审核特有字段
+export interface AuditSpecificFields {
   currentMaxFileVersion: number; // 当前最大文件版本
   parentId: string | null; // 父级ID
   ruleType: string | null; // 规则类型，如："notice_node"
@@ -322,10 +318,18 @@ export interface BaseAuditRuleItem {
   noticeContent: string | null; // 通知内容，JSON字符串格式
 }
 
+// 人工审核基础接口（复用核心字段）
+export interface BaseAuditRuleItem extends CoreDocumentFields, AuditSpecificFields {
+  publishTime: string | null; // 发布时间
+  effectDate: string | null; // 生效日期
+  updateTime: string | null; // 更新时间
+  checkStatus: string; // 审核状态，如："待审核"、"已通过"、"已驳回"
+  createdTime: string; // 创建时间
+}
+
 // 人工审核列表项接口（基于真实数据结构）
 export interface ToDoRuleItem extends BaseAuditRuleItem {
   checkTime: string | null; // 审核时间（待审核时可能为null）
-  categoryId?: string; // 分类ID，用于审核权限验证
 }
 
 // 已完成审核列表项接口（基于真实数据结构）
@@ -335,20 +339,25 @@ export interface CompletedRuleItem extends BaseAuditRuleItem {
 
 // ==================== 通用数据模型 ====================
 
-export interface FileCompareDetail {
+// 文档版本字段
+export interface DocumentVersionFields {
   newFileVersion: number | null;
+  oldFileVersion?: number | null;
+  currentMaxFileVersion: number;
+}
+
+// 文件比较详情
+export interface FileCompareDetail extends DocumentVersionFields {
+  id?: string;
   effectDate: string | null;
   newFileContent: string;
-  categoryMain: string;
-  categorySub?: string; // 添加二级分类
-  newPublishTime: string;
   oldFileContent: string;
-  oldFileVersion?: number | null; // 修改前文档版本
-  oldPublishTime?: string; // 修改前文档发布时间
+  categoryMain: string;
+  categorySub?: string;
+  newPublishTime: string;
+  oldPublishTime?: string;
   checkResult: string;
-  currentMaxFileVersion: number;
-  id?: string; // 添加ID
-  checkStatus?: string; // 添加审核状态
+  checkStatus?: string;
 }
 // 法律合规智能系统服务接口定义
 export interface RoadLawyerService {
@@ -625,20 +634,13 @@ export interface KnowledgeUploadConfig {
 // 文档变更项
 export type ChangeItem = DocumentChange;
 
-// 文档比较页面数据
-export interface DocumentComparePageData {
-  id: string;
-  title: string;
-  status: string;
-  checkStatus?: string; // 原始审核状态
-  tags: string[];
+// 文档比较页面数据（复用基础字段）
+export interface DocumentComparePageData extends DocumentCompareBaseFields {
   originalVersion: string;
   newVersion: string | number;
   originalContent: string;
   newContent: string;
-  changes: ChangeItem[];
   modifiedDate?: string;
-  effectDate?: string | null;
   oldFileVersion?: string | number | null;
   oldPublishTime?: string | null;
   newFileVersion?: string | number | null;
@@ -672,13 +674,10 @@ export interface RuleSourceListResponse {
 }
 
 // 法规更新查询参数
-export interface RuleUpdateQueryParams extends BaseQueryParams {
+export interface RuleUpdateQueryParams extends BaseQueryParams, PaginationParams {
   query?: string;
   field?: string;
   categoryId?: string; // 分类ID参数
-  // 分页参数
-  page?: number;
-  pageSize?: number;
 }
 // 法规更新列表响应结构
 export interface RuleUpdateListResponse {
@@ -713,36 +712,27 @@ export interface CheckRuleListResponse {
   };
 }
 // 法规来源查询参数
-export interface RuleSourceQueryParams extends BaseQueryParams {
+export interface RuleSourceQueryParams
+  extends BaseQueryParams,
+    PaginationParams,
+    DocumentCategoryFields {
   query?: string;
   keyWord?: string;
   timeLiness?: string;
-  effectivenessLevel?: string;
-  categoryMain?: string;
-  categorySub?: string;
-  categoryId?: string;
-  legalSource?: string;
   publishDateSort?: string;
   publishDateStr?: string;
   collect?: boolean;
-  // 新增字段
   appendix?: boolean;
   department?: string | string[];
   documentNo?: string;
   empId: string;
-  // 分页参数
-  page?: number;
-  pageSize?: number;
 }
 
 // 审核查询参数
-export interface CheckRuleQueryParams extends BaseQueryParams {
+export interface CheckRuleQueryParams extends BaseQueryParams, PaginationParams {
   condition?: string;
   checkStatus?: string | string[];
   category?: string;
-  // 分页参数
-  page?: number;
-  pageSize?: number;
 }
 
 // 时间线统计数据

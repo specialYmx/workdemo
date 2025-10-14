@@ -439,18 +439,20 @@
       });
     }
 
-    // 查找标签在级联选项中的路径
+    // 查找标签在级联选项中的路径 - 支持按名称或ID查找
     findTagPath(tags?: string[]): string[] {
       if (!tags || tags.length === 0) return [];
 
       // 如果有两个标签，尝试匹配父子关系
       if (tags.length >= 2) {
         const [firstTag, secondTag]: [string, string] = [tags[0], tags[1]];
+
+        // 先按名称查找
         for (const option of this.tagOptions) {
-          if (option.value === firstTag && option.children) {
+          if ((option.label === firstTag || option.value === firstTag) && option.children) {
             for (const child of option.children) {
-              if (child.value === secondTag) {
-                return [firstTag, secondTag];
+              if (child.label === secondTag || child.value === secondTag) {
+                return [option.value, child.value];
               }
             }
           }
@@ -460,17 +462,17 @@
       // 如果只有一个标签或者没有找到匹配的父子关系
       const currentTag: string = tags[0];
 
-      // 先检查是否为一级标签
+      // 先检查是否为一级标签（按名称或ID）
       for (const option of this.tagOptions) {
-        if (option.value === currentTag) {
-          return [currentTag];
+        if (option.label === currentTag || option.value === currentTag) {
+          return [option.value];
         }
 
-        // 检查是否为二级标签
+        // 检查是否为二级标签（按名称或ID）
         if (option.children) {
           for (const child of option.children) {
-            if (child.value === currentTag) {
-              return [option.value, currentTag];
+            if (child.label === currentTag || child.value === currentTag) {
+              return [option.value, child.value];
             }
           }
         }

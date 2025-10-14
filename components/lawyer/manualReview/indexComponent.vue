@@ -3,45 +3,43 @@
     <div class="lawyer-page-container">
       <!-- 整体卡片容器 -->
       <div class="lawyer-main-card">
-        <!-- 页面标题 -->
-        <h1 class="lawyer-page-title">人工审核与数据管理</h1>
+        <a-row :gutter="16">
+          <a-col :span="6">
+            <!-- 页面标题 -->
+            <h4 class="lawyer-page-title">人工审核与数据管理</h4>
+          </a-col>
+          <a-col :span="12" :offset="6" class="tx-r">
+            <!-- 搜索筛选和操作区域 -->
+            <div class="lawyer-controls-row">
+              <a-input-search
+                v-model.trim="searchText"
+                placeholder="搜索标题、文号、来源..."
+                class="lawyer-search-input"
+                @search="onSearch"
+              />
 
-        <!-- 搜索筛选和操作区域 -->
-        <div class="lawyer-controls-row">
-          <a-input-search
-            v-model.trim="searchText"
-            placeholder="搜索标题、文号、来源..."
-            class="lawyer-search-input"
-            @search="onSearch"
-          />
-
-          <div class="lawyer-filter-select">
-            <a-select
-              v-model="filterType"
-              placeholder="请选择分类"
-              allow-clear
-              @change="onFilterChange"
-            >
-              <a-select-option value="">全部分类</a-select-option>
-              <a-select-option
-                v-for="option in typeOptions"
-                :key="option.value"
-                :value="option.value"
+              <div class="lawyer-filter-cascader">
+                <a-cascader
+                  v-model="filterTypePath"
+                  :options="categoryOptions"
+                  placeholder="请选择分类"
+                  :show-search="true"
+                  :change-on-select="true"
+                  allow-clear
+                  style="width: 100%; text-align: left"
+                  @change="onFilterChange"
+                />
+              </div>
+              <a-button
+                class="lawyer-btn-export"
+                :disabled="selectedRowKeys.length === 0"
+                @click="exportData"
               >
-                {{ option.label }}
-              </a-select-option>
-            </a-select>
-          </div>
-
-          <a-button
-            class="lawyer-btn-export"
-            :disabled="selectedRowKeys.length === 0"
-            @click="exportData"
-          >
-            导出选中数据 ({{ selectedRowKeys.length }})
-          </a-button>
-        </div>
-
+                导出选中数据 ({{ selectedRowKeys.length }})
+              </a-button>
+            </div>
+          </a-col>
+        </a-row>
         <!-- 文档列表表格 -->
         <div class="lawyer-table-wrapper">
           <!-- 暂无数据状态 -->
@@ -110,8 +108,14 @@
 <script lang="ts">
   import { Component, Vue, Watch } from 'nuxt-property-decorator';
   import { formatDate } from '~/utils/date';
-  import { ToDoRuleItem, FilterOption, StatusMap, RowSelectionConfig } from '~/model/LawyerModel';
-  import { categoryOptions } from '~/enums/Lawyer';
+  import {
+    ToDoRuleItem,
+    FilterOption,
+    StatusMap,
+    RowSelectionConfig,
+    LegalCategoryItem,
+    CascaderOption
+  } from '~/model/LawyerModel';
   import { downloadFileWithMessage } from '~/utils/personal';
   import { CustomColumn, CustomPagination } from '~/model/CommonModel';
 
@@ -120,6 +124,7 @@
     // 搜索和筛选
     searchText: string = '';
     filterType: string = '';
+    filterTypePath: string[] = [];
     // 表格加载状态
     tableLoading: boolean = false;
     // 表格勾选相关
@@ -143,8 +148,10 @@
       pageSizeOptions: ['10', '20', '50', '100']
     };
 
-    // 文档类型选项（从常量文件导入）
-    typeOptions: FilterOption[] = categoryOptions;
+    // 文档类型选项（从接口获取）
+    typeOptions: FilterOption[] = [];
+    // 级联选择器选项
+    categoryOptions: CascaderOption[] = [];
 
     // 表格行选择配置
     get rowSelection(): RowSelectionConfig<ToDoRuleItem> {
@@ -241,6 +248,9 @@
       // 设置初始筛选状态
       this.setInitialFilters();
 
+      // 加载分类数据
+      await this.loadCategoryOptions();
+
       // 加载文档数据
       await this.loadDocuments();
 
@@ -303,6 +313,62 @@
     // 组件销毁时的清理
     beforeDestroy(): void {
       this.isDestroyed = true;
+    }
+
+    // 加载分类数据 - 获取全部分类数据用于筛选
+    async loadCategoryOptions(): Promise<void> {
+      try {
+        const categories: LegalCategoryItem[] = await this.$roadLawyerService.getLegalCategory({
+          // 不传 id 参数，获取全部专题分类数据
+        });
+
+        if (categories && categories.length > 0) {
+          // 生成级联选择器数据
+          this.categoryOptions = this.convertToCascaderOptions(categories);
+          // 保留扁平化数据用于兼容性
+          this.typeOptions = this.convertToFilterOptions(categories);
+        } else {
+          console.warn('未获取到分类数据');
+          this.categoryOptions = [];
+          this.typeOptions = [];
+        }
+      } catch (error) {
+        console.error('加载专题分类数据失败:', error);
+        this.categoryOptions = [];
+        this.typeOptions = [];
+      }
+    }
+
+    // 将API数据转换为级联选择器格式
+    convertToCascaderOptions(categories: LegalCategoryItem[]): CascaderOption[] {
+      return categories.map(
+        (category: LegalCategoryItem): CascaderOption => ({
+          value: category.name, // 使用名称作为value，与后端API保持一致
+          label: category.name,
+          children: this.convertToCascaderOptions(category.children || [])
+        })
+      );
+    }
+
+    // 将API数据转换为筛选选项格式 - 扁平化所有分类
+    convertToFilterOptions(categories: LegalCategoryItem[]): FilterOption[] {
+      const options: FilterOption[] = [];
+
+      const addCategory = (category: LegalCategoryItem) => {
+        // 添加当前分类
+        options.push({
+          label: category.name,
+          value: category.name
+        });
+
+        // 递归添加子分类
+        if (category.children && category.children.length > 0) {
+          category.children.forEach(child => addCategory(child));
+        }
+      };
+
+      categories.forEach(category => addCategory(category));
+      return options;
     }
 
     // 加载文档数据
@@ -382,9 +448,12 @@
       await this.loadDocuments();
     }
 
-    // 筛选方法
-    async onFilterChange(value: string): Promise<void> {
-      this.filterType = value;
+    // 筛选方法 - 处理级联选择器的值
+    async onFilterChange(value: string[]): Promise<void> {
+      // 级联选择器返回的是路径数组，取最后一个值作为筛选条件
+      this.filterType = value && value.length > 0 ? value[value.length - 1] : '';
+      this.filterTypePath = value || [];
+
       // 筛选时重置到第一页
       this.currentPagination.current = 1;
       await this.loadDocuments();
@@ -623,9 +692,7 @@
       width: 30%;
     }
 
-    .lawyer-filter-select {
-      width: 150px;
-    }
+
 
     .lawyer-btn-export {
       margin-left: auto;
