@@ -8,7 +8,6 @@ You can directly use them in pages and other components without the need to impo
 
 - `<CommonAiChat>` | `<common-ai-chat>` (components/common/AiChat.vue)
 - `<LawyerIndexComponent>` | `<lawyer-index-component>` (components/lawyer/indexComponent.vue)
-- `<LawyerCrawlStatisticsIndexComponent>` | `<lawyer-crawl-statistics-index-component>` (components/lawyer/crawlStatistics/indexComponent.vue)
 - `<LawyerCommonChartComponent>` | `<lawyer-common-chart-component>` (components/lawyer/common/ChartComponent.vue)
 - `<LawyerCommonDivTextSearch>` | `<lawyer-common-div-text-search>` (components/lawyer/common/DivTextSearch.vue)
 - `<LawyerCommonDocumentAIChat>` | `<lawyer-common-document-a-i-chat>` (components/lawyer/common/DocumentAIChat.vue)
@@ -16,6 +15,7 @@ You can directly use them in pages and other components without the need to impo
 - `<LawyerCrawlConfigIndexComponent>` | `<lawyer-crawl-config-index-component>` (components/lawyer/crawlConfig/indexComponent.vue)
 - `<LawyerDocumentCompare>` | `<lawyer-document-compare>` (components/lawyer/document/DocumentCompare.vue)
 - `<LawyerDocumentViewer>` | `<lawyer-document-viewer>` (components/lawyer/document/DocumentViewer.vue)
+- `<LawyerCrawlStatisticsIndexComponent>` | `<lawyer-crawl-statistics-index-component>` (components/lawyer/crawlStatistics/indexComponent.vue)
 - `<LawyerIndexDashboardOverview>` | `<lawyer-index-dashboard-overview>` (components/lawyer/index/DashboardOverview.vue)
 - `<LawyerIndexLatestUpdates>` | `<lawyer-index-latest-updates>` (components/lawyer/index/LatestUpdates.vue)
 - `<LawyerIndexReviewTable>` | `<lawyer-index-review-table>` (components/lawyer/index/ReviewTable.vue)
