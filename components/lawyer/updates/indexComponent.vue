@@ -73,9 +73,7 @@
                   </span>
                 </div>
                 <div class="lawyer-flex lawyer-gap-sm">
-                  <a
-                    class="lawyer-action-btn lawyer-btn-primary"
-                    @click.prevent="viewUpdate(item.id)"
+                  <a class="lawyer-action-btn lawyer-btn-primary" @click.prevent="viewUpdate(item)"
                     >查看详情</a
                   >
                   <a class="lawyer-action-btn" @click.prevent="downloadUpdate(item.id, item.title)"
@@ -242,28 +240,62 @@
           source: item.legalSource || '未知来源',
           category: item.categoryMain || '其他',
           type,
-          tags
+          tags,
+          dataSource: item.dataSource, // 数据来源
+          updateStatus: item.updateStatus, // 更新状态
+          ruleName: item.ruleName // 法规名称
         };
       });
     }
 
-    viewUpdate(id: string): void {
-      // 查找对应的更新项以获取废止状态
-      const updateItem: RuleUpdateItem | undefined = this.rawUpdates.find(
-        (item: RuleUpdateItem) => item.id === id
-      );
-      const isRevoke: boolean = !!(updateItem?.revokeDateTimestamp || updateItem?.revokeDateStr);
-      const query: RouteQuery = {
-        id,
-        pageTitle: updateItem?.ruleName || '法规更新详情',
-        source: this.$route.path, // 传递来源页面路径，用于控制显示逻辑和返回行为
-        ...(isRevoke ? { isRevoke: 'true' } : {})
+    async viewUpdate(item: UpdateItem): Promise<void> {
+      const dataSource: string = item.dataSource || '';
+      const updateStatus: string = item.updateStatus || '';
+
+      // 统一的跳转逻辑
+      const navigateToDetail = (): void => {
+        const query: RouteQuery = {
+          id: item.id,
+          pageTitle: item.ruleName || item.title || '法规更新详情',
+          source: this.$route.path,
+          dataSource
+        };
+
+        this.$router.push({
+          path: '/lawyerUpdate/detail',
+          query
+        });
       };
 
-      this.$router.push({
-        path: '/lawyerUpdate/detail',
-        query
-      });
+      // 判断是否可以跳转
+      if (dataSource === '1') {
+        // 爬取数据，需要判断 updateStatus
+        if (updateStatus === '1') {
+          // 列表中已经是 "1"，直接跳转
+          navigateToDetail();
+        } else {
+          // 列表中不是 "1"，调用接口获取最新的 updateStatus
+          try {
+            const result = await this.$roadLawyerService.getRuleSourceDetail({
+              searchId: item.id
+            });
+
+            if (result && result.updateStatus === '1') {
+              // 最新状态为 "1"，允许跳转
+              navigateToDetail();
+            } else {
+              // 最新状态还不是 "1"，提示用户
+              this.$message.warning('还未生成对比结果，请稍等');
+            }
+          } catch (error) {
+            console.error('获取详情失败:', error);
+            this.$message.error('获取详情失败，请重试');
+          }
+        }
+      } else if (dataSource === '2') {
+        // 人工审核数据，直接跳转
+        navigateToDetail();
+      }
     }
 
     async downloadUpdate(id: string, title: string): Promise<void> {

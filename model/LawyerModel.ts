@@ -276,6 +276,8 @@ export interface BaseRuleItem {
   documentNo?: string | null; // 发文字号
   appendix?: boolean; // 是否附录
   assemblyCategoryMain?: string; // 组装分类主字段
+  dataSource?: string; // 数据来源："1"-爬取数据，"2"-人工审核数据
+  updateStatus?: string; // 更新状态："1"-已生成对比结果，"0"或其他-未生成
 }
 
 // 法规文档信息（基于真实API数据结构）
@@ -569,6 +571,9 @@ export interface UpdateItem {
   category: string;
   type: string;
   tags: string[];
+  dataSource?: string; // 数据来源："1"-爬取数据，"2"-人工审核数据
+  updateStatus?: string; // 更新状态："1"-已生成对比结果，"0"或其他-未生成
+  ruleName?: string; // 法规名称，用于路由传参
 }
 
 // 筛选选项

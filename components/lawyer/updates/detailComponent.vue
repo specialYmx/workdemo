@@ -8,7 +8,7 @@
   import { Component, Vue } from 'nuxt-property-decorator';
   import { DocumentComparePageData, ChangeItem } from '@/model/LawyerModel';
 
-  @Component({ name: 'lawyer-manual-review-detail-component' })
+  @Component({ name: 'lawyer-update-detail-component' })
   export default class LawyerUpdateDetailComponent extends Vue {
     // 对比数据
     documentData: DocumentComparePageData = {
@@ -161,23 +161,23 @@
       return null;
     }
 
-    // 获取文档对比数据
-    async fetchDocumentData(): Promise<void> {
-      const docId = this.$route.query.id;
-      const pageTitle = this.$route.query.pageTitle;
-      const checkStatus = this.$route.query.checkStatus; // 从路由参数获取审核状态
-      if (!docId) return;
-      this.loading = true;
-      this.documentData = {
-        id: docId as string,
-        title: (pageTitle as string) || '正在加载文档...',
+    // 创建基础文档数据结构
+    private createBaseDocumentData(
+      docId: string,
+      pageTitle: string,
+      checkStatus: string,
+      content: string = '正在加载数据...'
+    ): DocumentComparePageData {
+      return {
+        id: docId,
+        title: pageTitle || '正在加载文档...',
         status: 'pending',
-        checkStatus: (checkStatus as string) || '待审核', // 使用路由参数中的审核状态
+        checkStatus: checkStatus || '待审核',
         tags: [],
         originalVersion: '',
         newVersion: '',
-        originalContent: '正在加载数据...',
-        newContent: '正在加载数据...',
+        originalContent: content,
+        newContent: content,
         changes: [],
         oldFileVersion: null,
         oldPublishTime: null,
@@ -186,23 +186,37 @@
         effectDate: null,
         currentMaxFileVersion: 0
       };
+    }
+
+    // 获取文档对比数据
+    async fetchDocumentData(): Promise<void> {
+      const docId = this.$route.query.id;
+      const pageTitle = this.$route.query.pageTitle as string;
+      const checkStatus = this.$route.query.checkStatus as string;
+      const dataSource = this.$route.query.dataSource as string;
+
+      if (!docId) return;
+
+      this.loading = true;
+      // 设置初始加载状态
+      this.documentData = this.createBaseDocumentData(docId as string, pageTitle, checkStatus);
 
       try {
-        const result: any = await this.$roadLawyerService.getRuleSourceDetail({
-          searchId: docId as string
-        });
-        if (result && (result.oldFileContent || result.fileContent)) {
-          // 构建标签数组，包含一级和二级分类
-          const tags: string[] = [];
-          if (result.categoryMain) tags.push(result.categoryMain);
+        // 根据 dataSource 调用不同的接口
+        const result: any = await (dataSource === '2'
+          ? this.$roadLawyerService.getToDoRuleDetail({ id: docId as string })
+          : this.$roadLawyerService.getRuleSourceDetail({ searchId: docId as string }));
 
-          if (result.categorySub) tags.push(result.categorySub);
+        // 处理数据
+        if (result && (result.oldFileContent || result.newFileContent)) {
+          // 构建标签数组
+          const tags: string[] = [result.categoryMain, result.categorySub].filter(Boolean);
 
-          // 处理文档数据 - 使用从URL参数获取的标题
+          // 更新文档数据
           this.documentData = {
-            id: docId as string,
+            ...this.createBaseDocumentData(docId as string, pageTitle, checkStatus),
             title:
-              (pageTitle as string) ||
+              pageTitle ||
               `${result.categoryMain || ''}${result.categorySub ? '/' + result.categorySub : ''}`,
             status:
               result.checkStatus === '1'
@@ -210,13 +224,12 @@
                 : result.checkStatus === '2'
                 ? 'rejected'
                 : 'pending',
-            checkStatus: (checkStatus as string) || '待审核', // 使用路由参数中的审核状态
-            tags, // 使用包含一级和二级分类的标签数组
+            tags,
             originalVersion: '原始版本',
             newVersion: result.newFileVersion || '修订版本',
             originalContent: result.oldFileContent || '',
-            newContent: result.fileContent || '',
-            changes: this.formatChanges(result.fileContentDifference),
+            newContent: result.newFileContent || '',
+            changes: this.formatChanges(result.checkResult),
             modifiedDate: result.newPublishTime || result.effectDate,
             effectDate: result.effectDate,
             oldFileVersion: result.oldFileVersion,
@@ -226,50 +239,28 @@
             currentMaxFileVersion: result.currentMaxFileVersion || 0
           };
         } else {
-          // 检查组件是否已销毁
-          if (this.isDestroyed) return;
           // 数据为空
-          this.documentData = {
-            id: docId as string,
-            title: (pageTitle as string) || '未找到文档数据',
-            status: 'pending',
-            checkStatus: (checkStatus as string) || '待审核',
-            tags: [],
-            originalVersion: '',
-            newVersion: '',
-            originalContent: '暂无数据',
-            newContent: '暂无数据',
-            changes: []
-          };
+          if (this.isDestroyed) return;
+          this.documentData = this.createBaseDocumentData(
+            docId as string,
+            pageTitle || '未找到文档数据',
+            checkStatus,
+            '暂无数据'
+          );
           this.$message.error('文件缺失或暂无对比结果，请联系管理员');
         }
       } catch (error) {
-        // 检查组件是否已销毁
+        // 错误处理
         if (this.isDestroyed) return;
         console.error('获取文档对比数据失败:', error);
         this.$message.error('获取文档对比数据失败，请重试');
-
-        // 显示错误状态
-        this.documentData = {
-          id: docId as string,
-          title: (pageTitle as string) || '加载失败',
-          status: 'pending',
-          checkStatus: (checkStatus as string) || '待审核',
-          tags: [],
-          originalVersion: '',
-          newVersion: '',
-          originalContent: '加载失败，请重试',
-          newContent: '加载失败，请重试',
-          changes: [],
-          oldFileVersion: null,
-          oldPublishTime: null,
-          newFileVersion: null,
-          newPublishTime: null,
-          effectDate: null,
-          currentMaxFileVersion: 0
-        };
+        this.documentData = this.createBaseDocumentData(
+          docId as string,
+          pageTitle || '加载失败',
+          checkStatus,
+          '加载失败，请重试'
+        );
       } finally {
-        // 检查组件是否已销毁
         if (!this.isDestroyed) {
           this.loading = false;
         }
