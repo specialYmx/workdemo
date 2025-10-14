@@ -553,8 +553,9 @@
         }
       } catch (error) {
         console.error('切换状态失败:', error);
-        // 异常时回滚到原始状态
+        // 异常时回滚到原始状态并强制更新UI
         record.enabled = originalState;
+        this.$forceUpdate();
         this.$message.error('操作失败，请重试');
       } finally {
         this.$set(record, 'switchLoading', false);
@@ -610,7 +611,7 @@
           invalidKeywords: this.formData.invalidKeywords || [],
           columnName: this.formData.columnName || [],
           remarks: this.formData.remarks || '',
-          enabled: this.formData.enabled ? 1 : 0,
+          enabled: (this.formData.enabled ? 1 : 0) as 0 | 1,
           crawlStartDate: this.formData.crawlStartDate || undefined
         };
         let response: CrawlConfigOperationResponse;
@@ -660,7 +661,10 @@
     }
 
     // 获取要显示的关键词（前3个）
-    getDisplayKeywords(keywords: string[]): string[] {
+    getDisplayKeywords(keywords?: string[] | null): string[] {
+      if (!keywords || !Array.isArray(keywords)) {
+        return [];
+      }
       return keywords.slice(0, 3);
     }
 

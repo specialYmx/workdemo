@@ -6,17 +6,21 @@ export type ProcessStatus = '爬取成功' | '爬取失败' | '爬取中';
 
 // ==================== 爬取统计相关数据模型 ====================
 
-// 爬取数据项
-export interface CrawlDataItem {
+// 爬取基础信息（公共字段）
+export interface BaseCrawlItem {
   id: string;
   websiteCode: string;
   websiteName: string;
   articleTitle: string;
   detailUrl: string;
-  attachments: string | null;
   processStatus: ProcessStatus;
-  extractStatus?: string; // 对比状态
   publishDate: string;
+}
+
+// 爬取数据项
+export interface CrawlDataItem extends BaseCrawlItem {
+  attachments: string | null;
+  extractStatus?: string; // 对比状态
   detailHtml: string;
   fireCrawlContent: string;
   fireCrawlHtml: string;
@@ -68,16 +72,9 @@ export interface ExecuteCrawlTaskResponse {
 }
 
 // 修改爬取状态参数（完整参数，保留兼容性）
-export interface UpdateCrawlStatusParams {
-  id: string;
-  articleTitle: string;
-  attachments?: string;
-  detailUrl: string;
+export interface UpdateCrawlStatusParams extends BaseCrawlItem {
+  attachments?: string | null;
   extractStatus?: string;
-  processStatus: ProcessStatus;
-  publishDate: string;
-  websiteCode: string;
-  websiteName: string;
 }
 
 // 修改爬取状态参数（简化版，仅状态字段）
@@ -98,9 +95,8 @@ export interface UpdateCrawlStatusResponse {
 
 // ==================== 爬取配置相关数据模型 ====================
 
-// 爬取配置项
-export interface CrawlConfigItem {
-  id: number;
+// 爬取配置基础信息（公共字段）
+export interface BaseCrawlConfig {
   websiteCode: string;
   websiteName: string;
   websiteUrl: string;
@@ -113,6 +109,11 @@ export interface CrawlConfigItem {
   enabled: 0 | 1; // 0-禁用, 1-启用
   crawlStartDate?: string; // 爬取起始时间
   createdBy?: string;
+}
+
+// 爬取配置项
+export interface CrawlConfigItem extends BaseCrawlConfig {
+  id: number;
   createdTime?: string;
   updateTime?: string;
   switchLoading?: boolean; // 开关加载状态（前端使用）
@@ -155,36 +156,11 @@ export interface CrawlConfigResponse {
 }
 
 // 新增爬取配置参数
-export interface AddCrawlConfigParams {
-  websiteCode: string;
-  websiteName: string;
-  websiteUrl: string;
-  maxPageLimit: number;
-  searchTemplate?: string;
-  keywords?: string[];
-  invalidKeywords?: string[]; // 无效关键词
-  columnName?: string[]; // 列名
-  remarks?: string;
-  enabled: number;
-  crawlStartDate?: string; // 爬取起始时间
-  createdBy?: string;
-}
+export interface AddCrawlConfigParams extends BaseCrawlConfig {}
 
 // 更新爬取配置参数
-export interface UpdateCrawlConfigParams {
+export interface UpdateCrawlConfigParams extends BaseCrawlConfig {
   id: number;
-  websiteCode: string;
-  websiteName: string;
-  websiteUrl: string;
-  maxPageLimit: number;
-  searchTemplate?: string;
-  keywords?: string[];
-  invalidKeywords?: string[]; // 无效关键词
-  columnName?: string[]; // 列名
-  remarks?: string;
-  enabled: number;
-  crawlStartDate?: string; // 爬取起始时间
-  createdBy?: string;
   createdTime?: string;
   updateTime?: string;
 }
