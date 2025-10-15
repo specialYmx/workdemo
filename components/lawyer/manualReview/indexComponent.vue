@@ -590,10 +590,13 @@
     // 提交审核
     async submitReview(action: string, document: ToDoRuleItem): Promise<void> {
       try {
-        // 调用统一的审核接口，通过approvalComment传递状态
+        // 调用统一的审核接口，传递与详情页面一致的参数
         await this.$roadLawyerService.approveToDoRule({
           id: document?.id || '',
-          approvalComment: action === 'approve' ? '已通过' : '已驳回'
+          approvalComment: action === 'approve' ? '已通过' : '已驳回',
+          effectDateStr: document.effectDate || null, // 施行日期
+          categoryMain: document.categoryMain || null, // 分类名称
+          categoryId: document.categoryId || null // 分类ID
         });
 
         // 显示成功消息
@@ -691,8 +694,6 @@
     .lawyer-search-input {
       width: 30%;
     }
-
-
 
     .lawyer-btn-export {
       margin-left: auto;

@@ -473,10 +473,13 @@
       try {
         console.log('开始审核操作:', { recordId: record.id, action });
 
-        // 调用统一的审核接口 - service层已处理所有错误情况
+        // 调用统一的审核接口，传递与详情页面一致的参数
         await this.$roadLawyerService.approveToDoRule({
           id: record.id,
-          approvalComment: action === 'approve' ? '已通过' : '已驳回'
+          approvalComment: action === 'approve' ? '已通过' : '已驳回',
+          effectDateStr: record.effectDate || null, // 施行日期
+          categoryMain: record.categoryMain || null, // 分类名称
+          categoryId: record.categoryId || null // 分类ID
         });
 
         // 显示成功消息
