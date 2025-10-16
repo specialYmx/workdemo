@@ -85,12 +85,7 @@
           <template slot="createdTime" slot-scope="text">
             {{ formatTime(text) }}
           </template>
-
-          <!-- 更新时间列 -->
-          <template slot="updateTime" slot-scope="text">
-            {{ formatTime(text, 'yyyy-MM-dd') }}
-          </template>
-
+          
           <!-- 操作列 -->
           <template slot="action" slot-scope="text, record">
             <div class="lawyer-action-buttons">
@@ -349,7 +344,7 @@
         title: '更新时间',
         dataIndex: 'updateTime',
         key: 'updateTime',
-        scopedSlots: { customRender: 'updateTime' },
+        scopedSlots: { customRender: 'createdTime' },
 
         sorter: true
       },

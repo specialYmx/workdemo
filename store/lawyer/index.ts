@@ -1,5 +1,5 @@
-import { Module, VuexModule, Mutation, Action, getModule } from 'vuex-module-decorators'
-import { store } from '../index'
+import { Module, VuexModule, Mutation, getModule } from 'vuex-module-decorators';
+import { store } from '../index';
 
 interface RefreshFlagsState {
   manualReviewList: boolean;
@@ -25,40 +25,20 @@ class LawyerModule extends VuexModule implements LawyerState {
     updatesList: false
   };
 
-  get needRefresh() {
-    return (pageName: string): boolean => {
-      return this.refreshFlags[pageName] || false;
+  @Mutation
+  markPageRefresh(pageName: string): void {
+    this.refreshFlags = {
+      ...this.refreshFlags,
+      [pageName]: true
     };
   }
 
   @Mutation
-  SET_REFRESH_FLAG(pageName: string): void {
-    if (Object.prototype.hasOwnProperty.call(this.refreshFlags, pageName)) {
-      this.refreshFlags = {
-        ...this.refreshFlags,
-        [pageName]: true
-      };
-    }
-  }
-
-  @Mutation
-  CLEAR_REFRESH_FLAG(pageName: string): void {
-    if (Object.prototype.hasOwnProperty.call(this.refreshFlags, pageName)) {
-      this.refreshFlags = {
-        ...this.refreshFlags,
-        [pageName]: false
-      };
-    }
-  }
-
-  @Action
-  markPageRefresh(pageName: string): void {
-    this.SET_REFRESH_FLAG(pageName);
-  }
-
-  @Action
   clearPageRefresh(pageName: string): void {
-    this.CLEAR_REFRESH_FLAG(pageName);
+    this.refreshFlags = {
+      ...this.refreshFlags,
+      [pageName]: false
+    };
   }
 }
 
