@@ -118,7 +118,7 @@
   } from '~/model/LawyerModel';
   import { downloadFileWithMessage } from '~/utils/personal';
   import { CustomColumn, CustomPagination } from '~/model/CommonModel';
-
+  import { LawyerStoreModule } from '~/store/lawyer';
   @Component({ name: 'lawyer-manual-review-index-component' })
   export default class LawyerManualReviewIndexComponent extends Vue {
     // 搜索和筛选
@@ -258,6 +258,19 @@
       this.hasInitialized = true;
     }
 
+    // 在列表页的 activated 钩子中
+    async activated(): Promise<void> {
+      // 检查 lawyer store 中的刷新标记
+      const refreshFlags = LawyerStoreModule?.refreshFlags;
+      if (refreshFlags && refreshFlags.manualReviewList) {
+        console.log('检测到需要刷新数据');
+        await this.loadDocuments();
+
+        // 清除刷新标记
+        LawyerStoreModule.clearPageRefresh('manualReviewList');
+        this.$message.success('数据已更新');
+      }
+    }
     // 监听路由变化
     @Watch('$route', { immediate: true, deep: true })
     async onRouteChange(to, from): Promise<void> {

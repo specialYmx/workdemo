@@ -122,6 +122,7 @@
           :key="index"
           class="ml-8"
           :type="action.type"
+          :loading="submitting"
           @click="action.handler"
         >
           {{ action.text }}
@@ -184,6 +185,7 @@
   @Component({ name: 'document-compare' })
   export default class DocumentCompare extends Vue {
     @Prop({ required: true }) document!: DocumentCompareData;
+    @Prop({ default: false }) submitting!: boolean;
 
     // 标签编辑相关
     tagEditVisible: boolean = false;
@@ -388,6 +390,11 @@
 
     // 处理通过审核
     handleApprove(): Promise<void> {
+      // 防止重复提交
+      if (this.submitting) {
+        return;
+      }
+
       // 检查是否允许审核
       if (!this.checkReviewStatusAndShowError()) {
         return;
@@ -414,6 +421,11 @@
 
     // 处理驳回审核
     handleReject(): Promise<void> {
+      // 防止重复提交
+      if (this.submitting) {
+        return;
+      }
+
       // 检查是否允许审核
       if (!this.checkReviewStatusAndShowError()) {
         return;

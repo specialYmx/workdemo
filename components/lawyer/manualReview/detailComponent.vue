@@ -2,6 +2,7 @@
   <div ref="documentComparePageContainer" class="lawyer-manual-review-detail-wrapper">
     <lawyer-document-compare
       :document="documentData"
+      :submitting="submitting"
       @go-back="goBack"
       @submit-review="handleReviewSubmit"
       @update-document="handleUpdateDocument"
@@ -12,7 +13,7 @@
 <script lang="ts">
   import { Component, Vue } from 'nuxt-property-decorator';
   import { DocumentComparePageData, ChangeItem, ReviewSubmitData } from '@/model/LawyerModel';
-
+  import { LawyerStoreModule } from '~/store/lawyer';
   @Component({ name: 'lawyer-manual-review-detail-component' })
   export default class LawyerManualReviewDetailComponent extends Vue {
     // 对比数据
@@ -29,6 +30,8 @@
     };
 
     loading: boolean = false;
+    // 审核提交中的状态
+    submitting: boolean = false;
     // 组件销毁标志
     private isDestroyed: boolean = false;
     // 返回上一页
@@ -57,11 +60,18 @@
         effectDateStr?: string | null;
       }
     ): Promise<void> {
+      // 防止重复提交
+      if (this.submitting) {
+        return;
+      }
+
       const { action, categoryMain, categoryId, effectDateStr } = reviewData;
 
       try {
-        // 调用API
+        // 设置提交中状态
+        this.submitting = true;
 
+        // 调用API
         await this.$roadLawyerService.approveToDoRule({
           id: this.documentData.id,
           approvalComment: action === 'approve' ? '已通过' : '已驳回',
@@ -77,6 +87,9 @@
 
         this.$message.success(`${action === 'approve' ? '通过' : '驳回'}操作成功！`);
 
+        // 标记列表页需要刷新
+        LawyerStoreModule.markPageRefresh('manualReviewList');
+        console.log('markPageRefresh', LawyerStoreModule.refreshFlags);
         // 审核后返回列表页
         this.goBack();
       } catch (error) {
@@ -85,6 +98,11 @@
 
         console.error('审核操作失败:', error);
         this.$message.error('审核操作失败，请重试');
+      } finally {
+        // 无论成功或失败，都要重置提交状态
+        if (!this.isDestroyed) {
+          this.submitting = false;
+        }
       }
     }
 
