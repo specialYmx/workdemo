@@ -1,9 +1,9 @@
 {
-  "LawyerIndexComponent": {
-    "description": "Auto imported from components/lawyer/indexComponent.vue"
-  },
   "CommonAiChat": {
     "description": "Auto imported from components/common/AiChat.vue"
+  },
+  "LawyerIndexComponent": {
+    "description": "Auto imported from components/lawyer/indexComponent.vue"
   },
   "LawyerCommonChartComponent": {
     "description": "Auto imported from components/lawyer/common/ChartComponent.vue"
@@ -17,11 +17,11 @@
   "LawyerCommonFileUploadModal": {
     "description": "Auto imported from components/lawyer/common/FileUploadModal.vue"
   },
-  "LawyerCrawlStatisticsIndexComponent": {
-    "description": "Auto imported from components/lawyer/crawlStatistics/indexComponent.vue"
-  },
   "LawyerCrawlConfigIndexComponent": {
     "description": "Auto imported from components/lawyer/crawlConfig/indexComponent.vue"
+  },
+  "LawyerCrawlStatisticsIndexComponent": {
+    "description": "Auto imported from components/lawyer/crawlStatistics/indexComponent.vue"
   },
   "LawyerDocumentCompare": {
     "description": "Auto imported from components/lawyer/document/DocumentCompare.vue"

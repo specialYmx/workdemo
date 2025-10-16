@@ -6,14 +6,14 @@ You can directly use them in pages and other components without the need to impo
 
 **Tip:** If a component is conditionally rendered with `v-if` and is big, it is better to use `Lazy` or `lazy-` prefix to lazy load.
 
-- `<LawyerIndexComponent>` | `<lawyer-index-component>` (components/lawyer/indexComponent.vue)
 - `<CommonAiChat>` | `<common-ai-chat>` (components/common/AiChat.vue)
+- `<LawyerIndexComponent>` | `<lawyer-index-component>` (components/lawyer/indexComponent.vue)
 - `<LawyerCommonChartComponent>` | `<lawyer-common-chart-component>` (components/lawyer/common/ChartComponent.vue)
 - `<LawyerCommonDivTextSearch>` | `<lawyer-common-div-text-search>` (components/lawyer/common/DivTextSearch.vue)
 - `<LawyerCommonDocumentAIChat>` | `<lawyer-common-document-a-i-chat>` (components/lawyer/common/DocumentAIChat.vue)
 - `<LawyerCommonFileUploadModal>` | `<lawyer-common-file-upload-modal>` (components/lawyer/common/FileUploadModal.vue)
-- `<LawyerCrawlStatisticsIndexComponent>` | `<lawyer-crawl-statistics-index-component>` (components/lawyer/crawlStatistics/indexComponent.vue)
 - `<LawyerCrawlConfigIndexComponent>` | `<lawyer-crawl-config-index-component>` (components/lawyer/crawlConfig/indexComponent.vue)
+- `<LawyerCrawlStatisticsIndexComponent>` | `<lawyer-crawl-statistics-index-component>` (components/lawyer/crawlStatistics/indexComponent.vue)
 - `<LawyerDocumentCompare>` | `<lawyer-document-compare>` (components/lawyer/document/DocumentCompare.vue)
 - `<LawyerDocumentViewer>` | `<lawyer-document-viewer>` (components/lawyer/document/DocumentViewer.vue)
 - `<LawyerIndexDashboardOverview>` | `<lawyer-index-dashboard-overview>` (components/lawyer/index/DashboardOverview.vue)
