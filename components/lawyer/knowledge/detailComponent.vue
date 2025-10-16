@@ -10,8 +10,8 @@
 
 <script lang="ts">
   import { Component, Vue } from 'nuxt-property-decorator';
-
   import { KnowledgeDataItem, DocumentViewerData } from '~/model/LawyerModel';
+  import { LawyerStoreModule } from '~/store/lawyer';
 
   @Component({ name: 'lawyer-knowledge-detail-component' })
   export default class LawyerKnowledgeDetailComponent extends Vue {
@@ -101,6 +101,13 @@
       if (statusData.publishDateStr !== undefined) {
         this.document.publishDateStr = statusData.publishDateStr;
         this.document.date = statusData.publishDateStr; // 同时更新date字段
+      }
+
+      // 根据来源页面标记对应的列表页需要刷新
+      const sourcePath = this.$route.query.source as string;
+      if (sourcePath) {
+        // 使用来源路径作为刷新标记的key，确保只刷新对应的页面
+        LawyerStoreModule.markPageRefresh(sourcePath);
       }
     }
 

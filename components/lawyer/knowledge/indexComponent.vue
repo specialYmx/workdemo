@@ -96,9 +96,9 @@
     LegalCategoryItem,
     DepartmentOption
   } from '~/model/LawyerModel';
-
   import { downloadFileWithMessage } from '~/utils/personal';
   import { formatDate } from '~/utils/date';
+  import { LawyerStoreModule } from '~/store/lawyer';
 
   @Component({ name: 'lawyer-knowledge-index-component' })
   export default class LawyerKnowledgeIndexComponent extends Vue {
@@ -236,6 +236,21 @@
       await this.loadLegalCategory();
       await this.loadDepartmentData();
       this.loadDocuments();
+    }
+
+    async activated(): Promise<void> {
+      // 检查当前页面路径是否需要刷新
+      const currentPath = this.$route.path;
+      const refreshFlags = LawyerStoreModule?.refreshFlags;
+
+      if (refreshFlags && refreshFlags[currentPath]) {
+        console.log(`检测到 ${this.categoryName} 需要刷新数据`);
+        await this.loadDocuments();
+
+        // 清除刷新标记
+        LawyerStoreModule.clearPageRefresh(currentPath);
+        this.$message.success('数据已更新');
+      }
     }
 
     async checkAdminPermission(): Promise<void> {
