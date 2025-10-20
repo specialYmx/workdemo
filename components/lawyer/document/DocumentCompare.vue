@@ -386,8 +386,8 @@
       this.emitGoBack();
     }
 
-    // 处理通过审核
-    handleApprove(): Promise<void> {
+    // 通用审核处理方法（根据动作进行差异化校验与确认）
+    handleReview(action: 'approve' | 'reject'): void {
       // 防止重复提交
       if (this.submitting) {
         return;
@@ -398,55 +398,42 @@
         return;
       }
 
-      // 检查分类标签和施行日期
+      const isApprove = action === 'approve';
+      // 通过需要检查分类标签与施行日期；驳回无需检查
+      //   if (isApprove && !this.checkTagsAndEffectDate()) {
+      //     return;
+      //   }
       if (!this.checkTagsAndEffectDate()) {
         return;
       }
+      const title = isApprove ? '确认通过' : '确认驳回';
+      const content = isApprove ? '确定要通过此文档的审核吗？' : '确定要驳回此文档吗？';
+      const okText = isApprove ? '确认通过' : '确认驳回';
+      const okType = isApprove ? 'primary' : 'danger';
 
       this.$confirm({
-        title: '确认通过',
-        content: '确定要通过此文档的审核吗？',
-        okText: '确认通过',
+        title,
+        content,
+        okText,
+        okType,
         cancelText: '取消',
         onOk: () => {
           this.emitSubmitReview({
-            action: 'approve',
+            action,
             comment: ''
           });
         }
       });
     }
 
+    // 处理通过审核
+    handleApprove(): void {
+      this.handleReview('approve');
+    }
+
     // 处理驳回审核
-    handleReject(): Promise<void> {
-      // 防止重复提交
-      if (this.submitting) {
-        return;
-      }
-
-      // 检查是否允许审核
-      if (!this.checkReviewStatusAndShowError()) {
-        return;
-      }
-
-      // 检查分类标签和施行日期
-      if (!this.checkTagsAndEffectDate()) {
-        return;
-      }
-
-      this.$confirm({
-        title: '确认驳回',
-        content: '确定要驳回此文档吗？',
-        okText: '确认驳回',
-        okType: 'danger',
-        cancelText: '取消',
-        onOk: () => {
-          this.emitSubmitReview({
-            action: 'reject',
-            comment: ''
-          });
-        }
-      });
+    handleReject(): void {
+      this.handleReview('reject');
     }
 
     // 查找标签在级联选项中的路径 - 使用深度优先搜索算法
