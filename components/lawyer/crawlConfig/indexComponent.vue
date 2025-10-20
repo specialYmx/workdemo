@@ -191,7 +191,6 @@
                 placeholder="请输入关键词，按回车添加"
                 style="width: 100%"
                 :max-tag-count="3"
-                :max-tag-placeholder="getMaxTagPlaceholder"
                 :max-tag-text-length="8"
               />
             </a-form-model-item>
@@ -202,7 +201,6 @@
                 placeholder="请输入无效关键词，按回车添加"
                 style="width: 100%"
                 :max-tag-count="3"
-                :max-tag-placeholder="getMaxTagPlaceholder"
                 :max-tag-text-length="8"
               />
             </a-form-model-item>
@@ -213,7 +211,6 @@
                 placeholder="请输入栏目名，按回车添加"
                 style="width: 100%"
                 :max-tag-count="3"
-                :max-tag-placeholder="getMaxTagPlaceholder"
                 :max-tag-text-length="8"
               />
             </a-form-model-item>
@@ -232,6 +229,7 @@
 
 <script lang="ts">
   import { Component, Vue } from 'nuxt-property-decorator';
+  import { CreateElement, VNode } from 'vue';
   import { FormModel } from 'ant-design-vue';
   import { formatDate } from '~/utils/date';
   import {
@@ -653,11 +651,6 @@
         return '-';
       }
       return formatDate(timeStr, 'yyyy-MM-dd hh:mm:ss');
-    }
-
-    // 多选标签超出时的占位符
-    getMaxTagPlaceholder(omittedValues: string[]): string {
-      return `+${omittedValues.length}个`;
     }
 
     // 获取要显示的关键词（前3个）

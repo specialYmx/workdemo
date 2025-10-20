@@ -265,12 +265,10 @@
       if (!this.document) return '';
       const tags: string[] = this.document.tags || [];
       if (tags.length === 0) return '';
-
-      // 将ID转换为名称
+      // 将ID转换为名称，支持多级分类
       const tagNames = tags.map(tagId => this.getCategoryNameById(tagId) || tagId);
-
-      if (tagNames.length === 1) return tagNames[0];
-      return `${tagNames[0]}/${tagNames[1]}`;
+      // 使用 / 连接所有级别的分类
+      return tagNames.join('/');
     }
 
     // 审核操作按钮
@@ -451,46 +449,41 @@
       });
     }
 
-    // 查找标签在级联选项中的路径 - 支持按名称或ID查找
-    findTagPath(tags?: string[]): string[] {
-      if (!tags || tags.length === 0) return [];
+    // 查找标签在级联选项中的路径 - 使用深度优先搜索算法
+    findTagPath(tagIds?: string[]): string[] {
+      if (!tagIds || tagIds.length === 0) return [];
 
-      // 如果有两个标签，尝试匹配父子关系
-      if (tags.length >= 2) {
-        const [firstTag, secondTag]: [string, string] = [tags[0], tags[1]];
+      // 深度优先搜索查找ID路径
+      const findPath = (options: CascaderOption[], targetIds: string[]): string[] | null => {
+        for (const option of options) {
+          // 如果当前节点匹配目标ID数组的第一个
+          if (option.value === targetIds[0]) {
+            // 如果只剩一个目标ID，说明找到完整路径
+            if (targetIds.length === 1) {
+              return [option.value];
+            }
 
-        // 先按名称查找
-        for (const option of this.tagOptions) {
-          if ((option.label === firstTag || option.value === firstTag) && option.children) {
-            for (const child of option.children) {
-              if (child.label === secondTag || child.value === secondTag) {
-                return [option.value, child.value];
+            // 如果还有更多目标ID，继续在子节点中查找
+            if (option.children && option.children.length > 0) {
+              const childPath = findPath(option.children, targetIds.slice(1));
+              if (childPath) {
+                return [option.value, ...childPath];
               }
             }
           }
-        }
-      }
 
-      // 如果只有一个标签或者没有找到匹配的父子关系
-      const currentTag: string = tags[0];
-
-      // 先检查是否为一级标签（按名称或ID）
-      for (const option of this.tagOptions) {
-        if (option.label === currentTag || option.value === currentTag) {
-          return [option.value];
-        }
-
-        // 检查是否为二级标签（按名称或ID）
-        if (option.children) {
-          for (const child of option.children) {
-            if (child.label === currentTag || child.value === currentTag) {
-              return [option.value, child.value];
+          // 如果当前节点不匹配，但有子节点，递归查找子树
+          if (option.children && option.children.length > 0) {
+            const path = findPath(option.children, targetIds);
+            if (path) {
+              return [option.value, ...path];
             }
           }
         }
-      }
+        return null;
+      };
 
-      return [];
+      return findPath(this.tagOptions, tagIds) || [];
     }
 
     // 显示标签编辑模态框
