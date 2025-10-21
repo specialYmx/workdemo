@@ -313,8 +313,8 @@
 
     // 获取版本和内容状态信息
     private getVersionStatus(): {
-    hasContentError: boolean;
-  } {
+      hasContentError: boolean;
+    } {
       return {
         hasContentError: this.documentColumns.some(
           col => col.content === 'error' || col.content === '加载失败，请刷新页面重试'
