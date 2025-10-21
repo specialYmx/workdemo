@@ -400,12 +400,10 @@
 
       const isApprove = action === 'approve';
       // 通过需要检查分类标签与施行日期；驳回无需检查
-      //   if (isApprove && !this.checkTagsAndEffectDate()) {
-      //     return;
-      //   }
-      if (!this.checkTagsAndEffectDate()) {
-        return;
-      }
+        if (isApprove && !this.checkTagsAndEffectDate()) {
+          return;
+        }
+
       const title = isApprove ? '确认通过' : '确认驳回';
       const content = isApprove ? '确定要通过此文档的审核吗？' : '确定要驳回此文档吗？';
       const okText = isApprove ? '确认通过' : '确认驳回';
