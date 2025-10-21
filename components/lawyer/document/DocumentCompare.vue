@@ -47,7 +47,7 @@
 
       <div class="lawyer-compare-main-container">
         <!-- 文档列 -->
-        <div v-for="(col, index) in documentColumns" :key="index" class="lawyer-document-column">
+        <div v-for="col in documentColumns" :key="col.title" class="lawyer-document-column">
           <div class="lawyer-column-header">
             {{ col.title }}
             （<span v-if="col.version">{{ col.version }}</span
@@ -81,7 +81,11 @@
           <div class="review-content">
             <div v-if="document.changes.length === 0" class="no-changes">暂无数据</div>
 
-            <div v-for="(change, index) in document.changes" :key="index" class="change-item">
+            <div
+              v-for="(change, index) in document.changes"
+              :key="`${change.type}-${index}`"
+              class="change-item"
+            >
               <!-- 处理特殊信息类型 -->
               <div v-if="change.type === 'info'" class="info-message">
                 <a-icon type="info-circle" class="info-icon" />
@@ -118,8 +122,8 @@
       <!-- 审核按钮固定在右下角 - 只有来自人工审核页面时才显示 -->
       <div v-if="shouldShowReviewButtons && isFromManualReviewPage" class="tx-r">
         <a-button
-          v-for="(action, index) in reviewActions"
-          :key="index"
+          v-for="action in reviewActions"
+          :key="action.text"
           class="ml-8"
           :type="action.type"
           :loading="submitting"
@@ -400,9 +404,9 @@
 
       const isApprove = action === 'approve';
       // 通过需要检查分类标签与施行日期；驳回无需检查
-        if (isApprove && !this.checkTagsAndEffectDate()) {
-          return;
-        }
+      if (isApprove && !this.checkTagsAndEffectDate()) {
+        return;
+      }
 
       const title = isApprove ? '确认通过' : '确认驳回';
       const content = isApprove ? '确定要通过此文档的审核吗？' : '确定要驳回此文档吗？';
