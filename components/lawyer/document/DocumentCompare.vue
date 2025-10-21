@@ -199,6 +199,9 @@
     // 标签选项数据
     tagOptions: CascaderOption[] = [];
 
+    // 分类ID到名称的映射缓存，用于优化查询性能
+    private categoryMap: Map<string, string> = new Map();
+
     // 判断是否来自人工审核页面
     get isFromManualReviewPage(): boolean {
       const sourcePath = this.$route.query.source as string;
@@ -223,15 +226,29 @@
 
         if (categories && categories.length > 0) {
           this.tagOptions = this.convertToCascaderOptions(categories);
+          // 构建分类ID到名称的映射缓存
+          this.buildCategoryMap(categories);
           console.log('转换后的级联选择器数据:', this.tagOptions);
         } else {
           console.warn('未获取到分类数据');
           this.tagOptions = [];
+          this.categoryMap.clear();
         }
       } catch (error) {
         console.error('加载专题分类数据失败:', error);
         this.tagOptions = [];
+        this.categoryMap.clear();
       }
+    }
+
+    // 构建分类ID到名称的映射缓存
+    private buildCategoryMap(categories: LegalCategoryItem[]): void {
+      categories.forEach(category => {
+        this.categoryMap.set(category.id, category.name);
+        if (category.children && category.children.length > 0) {
+          this.buildCategoryMap(category.children);
+        }
+      });
     }
 
     // 将API数据转换为级联选择器格式
@@ -245,23 +262,9 @@
       );
     }
 
-    // 根据分类ID获取分类名称
+    // 根据分类ID获取分类名称（使用缓存提升性能）
     getCategoryNameById(categoryId: string): string {
-      const findCategoryName = (options: CascaderOption[], id: string): string => {
-        for (const option of options) {
-          if (option.value === id) {
-            return option.label;
-          }
-          if (option.children && option.children.length > 0) {
-            const childName = findCategoryName(option.children, id);
-            if (childName) {
-              return childName;
-            }
-          }
-        }
-        return '';
-      };
-      return findCategoryName(this.tagOptions, categoryId);
+      return this.categoryMap.get(categoryId) || '';
     }
 
     // 显示标签（合并为单个标签）- 将ID转换为名称显示
@@ -309,7 +312,9 @@
     }
 
     // 获取版本和内容状态信息
-    private getVersionStatus() {
+    private getVersionStatus(): {
+    hasContentError: boolean;
+  } {
       return {
         hasContentError: this.documentColumns.some(
           col => col.content === 'error' || col.content === '加载失败，请刷新页面重试'
@@ -443,7 +448,13 @@
       if (!tagIds || tagIds.length === 0) return [];
 
       // 深度优先搜索查找ID路径
-      const findPath = (options: CascaderOption[], targetIds: string[]): string[] | null => {
+      const findPath = (
+        options: CascaderOption[] | undefined,
+        targetIds: string[]
+      ): string[] | null => {
+        // 添加空值检查，避免undefined或空数组导致的错误
+        if (!options || options.length === 0) return null;
+
         for (const option of options) {
           // 如果当前节点匹配目标ID数组的第一个
           if (option.value === targetIds[0]) {

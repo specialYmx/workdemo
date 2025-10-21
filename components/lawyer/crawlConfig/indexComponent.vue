@@ -55,7 +55,7 @@
 
         <a-table
           :columns="columns"
-          :data-source="configList"
+          :data-source="processedConfigList"
           :pagination="pagination"
           :loading="tableLoading"
           :row-key="record => record.id"
@@ -69,13 +69,13 @@
           <template slot="keywords" slot-scope="text">
             <div v-if="text && text.length > 0" class="lawyer-keywords-container">
               <a-tag
-                v-for="(keyword, index) in getDisplayKeywords(text)"
+                v-for="(keyword, index) in text.slice(0, 3)"
                 :key="`${keyword}-${index}`"
                 color="blue"
                 class="lawyer-keyword-tag"
                 :title="keyword"
               >
-                {{ truncateKeyword(keyword) }}
+                {{ keyword }}
               </a-tag>
               <a-tag
                 v-if="text.length > 3"
@@ -333,21 +333,21 @@
       },
       {
         title: '关键词',
-        dataIndex: 'keywords',
+        dataIndex: 'displayKeywords',
         key: 'keywords',
         scopedSlots: { customRender: 'keywords' },
         width: 180
       },
       {
         title: '无效关键词',
-        dataIndex: 'invalidKeywords',
+        dataIndex: 'displayInvalidKeywords',
         key: 'invalidKeywords',
         scopedSlots: { customRender: 'keywords' },
         width: 150
       },
       {
         title: '栏目名',
-        dataIndex: 'columnName',
+        dataIndex: 'displayColumnName',
         key: 'columnName',
         scopedSlots: { customRender: 'keywords' },
         width: 120
@@ -399,6 +399,26 @@
 
     get modalTitle(): string {
       return this.editingRecord ? '编辑配置' : '新增配置';
+    }
+
+    // 计算属性：预处理表格数据，避免在模板中重复调用方法
+    get processedConfigList(): Array<
+      CrawlConfigItem & {
+        displayKeywords: string[];
+        displayInvalidKeywords: string[];
+        displayColumnName: string[];
+      }
+    > {
+      return this.configList.map(item => ({
+        ...item,
+        displayKeywords: this.getDisplayKeywords(item.keywords).map(k => this.truncateKeyword(k)),
+        displayInvalidKeywords: this.getDisplayKeywords(item.invalidKeywords).map(k =>
+          this.truncateKeyword(k)
+        ),
+        displayColumnName: this.getDisplayKeywords(item.columnName).map(k =>
+          this.truncateKeyword(k)
+        )
+      }));
     }
 
     // 组件挂载时加载数据
