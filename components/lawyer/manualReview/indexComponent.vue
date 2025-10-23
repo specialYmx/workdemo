@@ -576,12 +576,6 @@
 
     // 审核驳回
     rejectDocument(document: ToDoRuleItem): void {
-      // 首先检查 categoryId
-      if (!document.categoryId) {
-        this.$message.warning('该数据缺少分类信息，无法进行审核操作');
-        return;
-      }
-
       // 检查审核状态
       if (!this.canReviewItem(document)) {
         this.$message.warning('当前状态不允许审核');

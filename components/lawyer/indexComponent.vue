@@ -450,12 +450,6 @@
 
     // 审核驳回
     rejectReview(record: ToDoRuleItem): void {
-      // 验证分类信息
-      if (!record.categoryId) {
-        this.$message.warning('该数据缺少分类信息，无法进行审核操作');
-        return;
-      }
-
       this.$confirm({
         title: '确认驳回',
         content: `确定要驳回文档"${record.ruleName}"吗？`,
