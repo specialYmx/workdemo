@@ -101,12 +101,17 @@
     @Prop({ required: true }) docActions!: Record<string, DocumentAction[]>;
     @Prop({ default: '' }) searchKeyword!: string;
     highlightKeyword(text: string, keyword: string): string {
-      if (!keyword) return text;
+      if (!text) return text;
+
+      // 移除Markdown格式的图片链接
+      let processedText = text.replace(/!\[.*?\]\(.*?\)/g, '');
+
+      if (!keyword) return processedText;
 
       // 转义特殊字符
       const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const regex = new RegExp(`(${escapedKeyword})`, 'gi');
-      return text.replace(regex, '<span class="lawyer-keyword-highlight">$1</span>');
+      return processedText.replace(regex, '<span class="lawyer-keyword-highlight">$1</span>');
     }
     get paginationConfig() {
       return {
