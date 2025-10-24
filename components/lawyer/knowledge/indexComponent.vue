@@ -54,7 +54,6 @@
         :website-options="websiteOptions"
         :category-options="topicCategoryOptions"
         :department-options="departmentOptions"
-        :document-data="currentDocumentData"
         :config="uploadConfig"
         @cancel="handleUploadCancel"
         @complete="handleUploadComplete"
@@ -125,7 +124,6 @@
     uploadModalVisible: boolean = false;
     currentUploadDocId: string = '';
     currentUploadDocTitle: string = '';
-    currentDocumentData: any = {}; // 当前文档数据，用于回显
     isAdmin: boolean = false;
     categoryData: LegalCategoryItem[] = []; // 存储从接口获取的分类数据
     isAddMode: boolean = false; // 是否为新增模式
@@ -342,7 +340,7 @@
         {
           text: '上传更新',
           class: 'lawyer-btn-upload',
-          handler: () => this.uploadDocument(doc.id, doc.ruleName, doc)
+          handler: () => this.uploadDocument(doc.id, doc.ruleName)
         },
         {
           text: '移除',
@@ -437,12 +435,11 @@
       }
     }
 
-    uploadDocument(docId: string, docTitle: string, docData?: KnowledgeDataItem): void {
+    uploadDocument(docId: string, docTitle: string): void {
       this.isAddMode = false;
       this.uploadModalVisible = true;
       this.currentUploadDocId = docId;
       this.currentUploadDocTitle = docTitle;
-      this.currentDocumentData = docData || {};
     }
 
     showAddDocumentModal(): void {
@@ -450,7 +447,6 @@
       this.uploadModalVisible = true;
       this.currentUploadDocId = '';
       this.currentUploadDocTitle = '';
-      this.currentDocumentData = {}; // 清空文档数据
     }
 
     handleUploadCancel(): void {

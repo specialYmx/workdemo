@@ -270,7 +270,6 @@
     @Prop({ default: () => [] }) websiteOptions!: FilterOption[]; // 来源选项
     @Prop({ default: () => [] }) categoryOptions!: CascaderOption[]; // 分类选项
     @Prop({ default: () => [] }) departmentOptions!: DepartmentOption[]; // 部门选项
-    @Prop({ default: () => ({}) }) documentData!: any; // 文档数据，用于回显
 
     // 上传配置
     @Prop({
@@ -352,7 +351,6 @@
     onVisibleChange(newVal: boolean): void {
       if (newVal) {
         this.resetFormData();
-        this.fillFormData(); // 回显数据
       } else {
         this.resetState();
       }
@@ -486,136 +484,16 @@
         categoryPath: [],
         legalSource: undefined,
         publishDate: undefined,
+        effectDate: undefined,
         department: [],
         documentNo: undefined,
         appendix: false
       };
     }
 
-    // 填充表单数据（用于回显）
-    fillFormData(): void {
-      if (!this.documentData || !this.isUpdate) return;
-
-      // 回显时效性
-      if (this.documentData.timeLiness) {
-        this.formData.timeLiness = this.documentData.timeLiness;
-      }
-
-      // 回显效力位阶
-      if (this.documentData.effectivenessLevel) {
-        this.formData.effectivenessLevel = this.documentData.effectivenessLevel;
-      }
-
-      // 回显来源
-      if (this.documentData.legalSource) {
-        this.formData.legalSource = this.documentData.legalSource;
-      }
-
-      // 回显发布时间
-      if (this.documentData.publishDateStr) {
-        this.formData.publishDate = this.documentData.publishDateStr;
-      }
-
-      // 回显生效时间 - 确保不是无效的日期字符串
-      const effectDate = this.documentData.effectDate || this.documentData.effectDateStr;
-      if (
-        effectDate &&
-        effectDate !== '暂无' &&
-        effectDate !== 'undefined' &&
-        effectDate !== 'null'
-      ) {
-        // 验证是否为有效的日期格式
-        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-        if (dateRegex.test(effectDate)) {
-          this.formData.effectDate = effectDate;
-        } else {
-          this.formData.effectDate = undefined;
-        }
-      } else {
-        this.formData.effectDate = undefined;
-      }
-
-      // 回显部门
-      if (this.documentData.department) {
-        // 兼容字符串和数组格式
-        if (Array.isArray(this.documentData.department)) {
-          this.formData.department = this.documentData.department;
-        } else if (typeof this.documentData.department === 'string') {
-          // 如果是字符串，转换为数组（支持逗号分隔的字符串）
-          this.formData.department = this.documentData.department
-            .split(',')
-            .map((dept: string) => dept.trim())
-            .filter((dept: string) => dept);
-        } else {
-          this.formData.department = [];
-        }
-      } else {
-        this.formData.department = [];
-      }
-
-      // 回显文档编号
-      if (this.documentData.documentNo) {
-        this.formData.documentNo = this.documentData.documentNo;
-      }
-
-      // 回显分类 - 优先使用categoryId，其次使用categoryMain/categorySub
-      if (this.documentData.categoryId) {
-        // 如果有categoryId，需要找到完整的路径
-        const categoryPath = this.getCategoryPathById(this.documentData.categoryId);
-        this.formData.categoryPath = categoryPath;
-      } else if (this.documentData.categoryMain) {
-        // 兼容旧数据：根据分类名称获取分类ID
-        const categoryPath = [this.getCategoryIdByName(this.documentData.categoryMain)];
-        if (this.documentData.categorySub) {
-          categoryPath.push(this.getCategoryIdByName(this.documentData.categorySub));
-        }
-        this.formData.categoryPath = categoryPath;
-      }
-
-      // 回显是否附录
-      if (this.documentData.appendix !== undefined) {
-        this.formData.appendix = this.documentData.appendix;
-      }
-    }
-
     // 根据分类ID获取分类名称（使用缓存提升性能）
     getCategoryNameById(categoryId: string): string {
       return this.categoryMap.get(categoryId) || '';
-    }
-
-    // 根据分类名称获取分类ID（反向查找，用于兼容旧数据）
-    getCategoryIdByName(categoryName: string): string {
-      // 使用 Map 的反向查找
-      for (const [id, name] of this.categoryMap.entries()) {
-        if (name === categoryName) {
-          return id;
-        }
-      }
-      return '';
-    }
-
-    // 根据分类ID获取完整的分类路径
-    getCategoryPathById(categoryId: string): string[] {
-      const findCategoryPath = (
-        options: CascaderOption[],
-        id: string,
-        path: string[] = []
-      ): string[] | null => {
-        for (const option of options) {
-          const currentPath = [...path, option.value];
-          if (option.value === id) {
-            return currentPath;
-          }
-          if (option.children && option.children.length > 0) {
-            const childPath = findCategoryPath(option.children, id, currentPath);
-            if (childPath) {
-              return childPath;
-            }
-          }
-        }
-        return null;
-      };
-      return findCategoryPath(this.categoryOptions, categoryId) || [];
     }
 
     // 根据当前路由获取默认的分类ID
