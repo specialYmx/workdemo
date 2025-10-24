@@ -259,7 +259,7 @@
     DepartmentOption
   } from '~/model/LawyerModel';
 
-  @Component
+  @Component({ name: 'FileUploadModal' })
   export default class FileUploadModal extends Vue {
     @Prop({ default: false }) visible!: boolean;
     @Prop({ default: '上传文件' }) title!: string;
@@ -286,6 +286,9 @@
     uploadProgress: number = 0;
     errorMessage: string = '';
     progressTimer: NodeJS.Timeout | null = null;
+
+    // 分类ID到名称的映射缓存，用于优化查询性能
+    private categoryMap: Map<string, string> = new Map();
 
     // 表单数据
     formData: {
@@ -353,6 +356,28 @@
       } else {
         this.resetState();
       }
+    }
+
+    // 监听分类选项变化，重新构建映射缓存
+    @Watch('categoryOptions', { immediate: true, deep: true })
+    onCategoryOptionsChange(newVal: CascaderOption[]): void {
+      if (newVal && newVal.length > 0) {
+        this.buildCategoryMapFromCascader(newVal);
+      }
+    }
+
+    // 构建分类ID到名称的映射缓存（从级联选择器格式构建）
+    private buildCategoryMapFromCascader(options: CascaderOption[]): void {
+      this.categoryMap.clear();
+      const buildMap = (opts: CascaderOption[]): void => {
+        opts.forEach(option => {
+          this.categoryMap.set(option.value, option.label);
+          if (option.children && option.children.length > 0) {
+            buildMap(option.children);
+          }
+        });
+      };
+      buildMap(options);
     }
 
     // antd-vue Upload 组件的 beforeUpload 钩子
@@ -553,42 +578,20 @@
       }
     }
 
-    // 根据分类ID获取分类名称
+    // 根据分类ID获取分类名称（使用缓存提升性能）
     getCategoryNameById(categoryId: string): string {
-      const findCategoryName = (options: CascaderOption[], id: string): string => {
-        for (const option of options) {
-          if (option.value === id) {
-            return option.label;
-          }
-          if (option.children && option.children.length > 0) {
-            const childName = findCategoryName(option.children, id);
-            if (childName) {
-              return childName;
-            }
-          }
-        }
-        return '';
-      };
-      return findCategoryName(this.categoryOptions, categoryId);
+      return this.categoryMap.get(categoryId) || '';
     }
 
-    // 根据分类名称获取分类ID
+    // 根据分类名称获取分类ID（反向查找，用于兼容旧数据）
     getCategoryIdByName(categoryName: string): string {
-      const findCategoryId = (options: CascaderOption[], name: string): string => {
-        for (const option of options) {
-          if (option.label === name) {
-            return option.value;
-          }
-          if (option.children && option.children.length > 0) {
-            const childId = findCategoryId(option.children, name);
-            if (childId) {
-              return childId;
-            }
-          }
+      // 使用 Map 的反向查找
+      for (const [id, name] of this.categoryMap.entries()) {
+        if (name === categoryName) {
+          return id;
         }
-        return '';
-      };
-      return findCategoryId(this.categoryOptions, categoryName);
+      }
+      return '';
     }
 
     // 根据分类ID获取完整的分类路径
@@ -613,6 +616,25 @@
         return null;
       };
       return findCategoryPath(this.categoryOptions, categoryId) || [];
+    }
+
+    // 根据当前路由获取默认的分类ID
+    getCategoryIdByRoute(): string | undefined {
+      const routePath = this.$route.path;
+      if (routePath.includes('/institutionLibrary')) {
+        return '3'; // 制度库
+      } else if (routePath.includes('/punishmentCompilation')) {
+        return '1'; // 处罚汇编
+      } else if (routePath.includes('/regulationCompilation')) {
+        return '2'; // 法规汇编
+      } else if (routePath.includes('/newRegulationInterpretation')) {
+        return '310'; // 新规解读
+      } else if (routePath.includes('/researchCollection')) {
+        return '311'; // 研究集锦
+      } else if (routePath.includes('/legalComplianceQuarterly')) {
+        return '312'; // 法律合规季刊
+      }
+      return undefined; // 大家智库页面使用全量数据
     }
 
     removeSelectedFile(index?: number): void {
@@ -723,17 +745,31 @@
             uploadParams.department = this.formData.department;
             uploadParams.documentNo = this.formData.documentNo;
 
-            // 处理分类路径
+            // 处理分类和 categoryId（支持多级分类，如制度库的五级分类）
+            let finalCategoryId: string | undefined;
+
+            // 优先使用用户选择的分类
             if (this.formData.categoryPath && this.formData.categoryPath.length > 0) {
-              // 使用分类ID作为categoryId，使用分类名称作为categoryMain和categorySub
-              uploadParams.categoryMain = this.getCategoryNameById(this.formData.categoryPath[0]);
-              if (this.formData.categoryPath.length > 1) {
-                uploadParams.categorySub = this.getCategoryNameById(this.formData.categoryPath[1]);
-                // 如果有子分类，使用子分类ID作为 categoryId
-                uploadParams.categoryId = this.formData.categoryPath[1];
-              } else {
-                // 如果只有主分类，使用主分类ID作为 categoryId
-                uploadParams.categoryId = this.formData.categoryPath[0];
+              // 新逻辑：无论多少级分类，都使用最后一级作为最终分类
+              // categoryMain = 最终选择的分类名称（最后一级）
+              // categoryId = 最终选择的分类ID（最后一级）
+              const lastCategoryId =
+                this.formData.categoryPath[this.formData.categoryPath.length - 1];
+              finalCategoryId = lastCategoryId;
+              uploadParams.categoryMain = this.getCategoryNameById(lastCategoryId);
+              uploadParams.categoryId = lastCategoryId;
+
+              console.log('用户选择的分类路径:', this.formData.categoryPath);
+              console.log('最终分类 ID:', lastCategoryId, '名称:', uploadParams.categoryMain);
+            }
+
+            // 如果用户没有选择分类，使用当前页面路由对应的默认分类ID
+            if (!finalCategoryId) {
+              finalCategoryId = this.getCategoryIdByRoute();
+              if (finalCategoryId) {
+                uploadParams.categoryId = finalCategoryId;
+                uploadParams.categoryMain = this.getCategoryNameById(finalCategoryId);
+                console.log('使用页面默认 categoryId:', finalCategoryId);
               }
             }
           }
