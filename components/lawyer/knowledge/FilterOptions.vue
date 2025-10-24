@@ -37,8 +37,9 @@
         导出
       </a-button>
       <!-- 新增按钮 - 只有管理员可见 -->
+      <!-- v-if="isAdmin" -->
       <a-button
-        v-if="isAdmin"
+      
         type="primary"
         icon="plus"
         size="large"
