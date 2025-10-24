@@ -55,7 +55,7 @@
 
         <a-table
           :columns="columns"
-          :data-source="processedConfigList"
+          :data-source="configList"
           :pagination="pagination"
           :loading="tableLoading"
           :row-key="record => record.id"
@@ -66,16 +66,16 @@
             <a :href="text" target="_blank">{{ text }}</a>
           </template>
           <!-- 关键词列 -->
-          <template slot="keywords" slot-scope="text">
+          <template slot="keywords" slot-scope="text, record">
             <div v-if="text && text.length > 0" class="lawyer-keywords-container">
               <a-tag
-                v-for="(keyword, index) in text.slice(0, 3)"
+                v-for="(keyword, index) in getDisplayKeywords(text)"
                 :key="`${keyword}-${index}`"
                 color="blue"
                 class="lawyer-keyword-tag"
                 :title="keyword"
               >
-                {{ keyword }}
+                {{ truncateKeyword(keyword) }}
               </a-tag>
               <a-tag
                 v-if="text.length > 3"
@@ -92,7 +92,7 @@
           <!-- 启用状态列 -->
           <template slot="enabled" slot-scope="text, record">
             <a-switch
-              :checked="text === 1"
+              :checked="record.enabled === 1"
               :loading="record.switchLoading"
               @change="checked => toggleEnabled(record, checked)"
             />
@@ -229,7 +229,6 @@
 
 <script lang="ts">
   import { Component, Vue } from 'nuxt-property-decorator';
-  import { CreateElement, VNode } from 'vue';
   import { FormModel } from 'ant-design-vue';
   import { formatDate } from '~/utils/date';
   import {
@@ -333,21 +332,21 @@
       },
       {
         title: '关键词',
-        dataIndex: 'displayKeywords',
+        dataIndex: 'keywords',
         key: 'keywords',
         scopedSlots: { customRender: 'keywords' },
         width: 180
       },
       {
         title: '无效关键词',
-        dataIndex: 'displayInvalidKeywords',
+        dataIndex: 'invalidKeywords',
         key: 'invalidKeywords',
         scopedSlots: { customRender: 'keywords' },
         width: 150
       },
       {
         title: '栏目名',
-        dataIndex: 'displayColumnName',
+        dataIndex: 'columnName',
         key: 'columnName',
         scopedSlots: { customRender: 'keywords' },
         width: 120
@@ -399,26 +398,6 @@
 
     get modalTitle(): string {
       return this.editingRecord ? '编辑配置' : '新增配置';
-    }
-
-    // 计算属性：预处理表格数据，避免在模板中重复调用方法
-    get processedConfigList(): Array<
-      CrawlConfigItem & {
-        displayKeywords: string[];
-        displayInvalidKeywords: string[];
-        displayColumnName: string[];
-      }
-    > {
-      return this.configList.map(item => ({
-        ...item,
-        displayKeywords: this.getDisplayKeywords(item.keywords).map(k => this.truncateKeyword(k)),
-        displayInvalidKeywords: this.getDisplayKeywords(item.invalidKeywords).map(k =>
-          this.truncateKeyword(k)
-        ),
-        displayColumnName: this.getDisplayKeywords(item.columnName).map(k =>
-          this.truncateKeyword(k)
-        )
-      }));
     }
 
     // 组件挂载时加载数据
@@ -548,9 +527,7 @@
 
     // 切换启用状态
     async toggleEnabled(record: CrawlConfigItem, checked: boolean): Promise<void> {
-      // 保存原始状态，用于失败时回滚
       const originalState = record.enabled;
-      // 设置开关加载状态
       this.$set(record, 'switchLoading', true);
 
       try {
@@ -565,15 +542,12 @@
           record.enabled = checked ? 1 : 0;
           this.$message.success(`已${checked ? '启用' : '禁用'}配置`);
         } else {
-          // 请求失败时回滚到原始状态
           record.enabled = originalState;
           this.$message.error(response.message || '操作失败');
         }
       } catch (error) {
         console.error('切换状态失败:', error);
-        // 异常时回滚到原始状态并强制更新UI
         record.enabled = originalState;
-        this.$forceUpdate();
         this.$message.error('操作失败，请重试');
       } finally {
         this.$set(record, 'switchLoading', false);

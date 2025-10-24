@@ -85,7 +85,7 @@
           <template slot="createdTime" slot-scope="text">
             {{ formatTime(text) }}
           </template>
-          
+
           <!-- 操作列 -->
           <template slot="action" slot-scope="text, record">
             <div class="lawyer-action-buttons">
@@ -158,10 +158,6 @@
             {{ text }}
           </a-tag>
         </template>
-        <!-- 施行日期列 -->
-        <template slot="effectDate" slot-scope="text">
-          {{ formatTime(text) }}
-        </template>
         <!-- 创建时间列 -->
         <template slot="createdTime" slot-scope="text">
           {{ formatTime(text) }}
@@ -174,7 +170,7 @@
       v-model="editModalVisible"
       title="修改状态"
       width="500px"
-      :confirmLoading="editLoading"
+      :confirm-loading="editLoading"
       @ok="handleEditSubmit"
       @cancel="handleEditCancel"
     >
@@ -261,6 +257,7 @@
       processStatus: '',
       extractStatus: ''
     };
+
     // 表单验证规则
     editFormRules = {
       processStatus: [{ required: true, message: '请选择处理状态', trigger: 'change' }]
@@ -275,6 +272,7 @@
       showQuickJumper: true,
       showTotal: (total: number) => `共 ${total} 条记录`
     };
+
     historyPagination = {
       pageSize: 10,
       showSizeChanger: true,
@@ -487,7 +485,6 @@
         title: '施行日期',
         dataIndex: 'effectDate',
         key: 'effectDate',
-        scopedSlots: { customRender: 'effectDate' },
         width: 120
       },
       {
@@ -605,6 +602,7 @@
       };
       return colorMap[status] || '#d9d9d9';
     }
+
     // 获取审核状态样式类（使用全局样式）
     getCheckStatusClass(status: string | null): string {
       const classMap = {
@@ -733,7 +731,7 @@
       this.checkRuleLoading = true;
       try {
         const params: CrawlCheckRuleListParams = {
-          id: id
+          id
         };
 
         const response = await this.$roadLawyerService.getCrawlCheckRuleList(params);
@@ -758,8 +756,8 @@
       this.crawlHistoryLoading = true;
       try {
         const params: CrawlHistoryQueryParams = {
-          detailId: detailId,
-          logType: logType,
+          detailId,
+          logType,
           current: 1,
           size: 10 // 显示更多历史记录
         };
