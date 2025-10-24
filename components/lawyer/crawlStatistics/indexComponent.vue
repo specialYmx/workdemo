@@ -25,6 +25,7 @@
             <a-col :span="4">
               <div class="lawyer-width-100">
                 <a-select v-model="searchParams.processStatus" placeholder="处理状态" allow-clear>
+                  <a-select-option value="未爬取"> 未爬取 </a-select-option>
                   <a-select-option value="爬取成功"> 爬取成功 </a-select-option>
                   <a-select-option value="爬取失败"> 爬取失败 </a-select-option>
                   <a-select-option value="爬取中"> 爬取中 </a-select-option>
@@ -183,6 +184,7 @@
       >
         <a-form-model-item label="处理状态" prop="processStatus">
           <a-select v-model="editFormData.processStatus" placeholder="请选择处理状态">
+            <a-select-option value="未爬取">未爬取</a-select-option>
             <a-select-option value="爬取成功">爬取成功</a-select-option>
             <a-select-option value="爬取失败">爬取失败</a-select-option>
             <a-select-option value="爬取中">爬取中</a-select-option>
@@ -595,6 +597,7 @@
     // 获取状态颜色
     getStatusColor(status: string): string {
       const colorMap: { [key: string]: string } = {
+        未爬取: '#d9d9d9',
         爬取成功: '#52c41a',
         爬取失败: '#ff4d4f',
         爬取中: '#1890ff',
@@ -627,6 +630,7 @@
     // 获取处理状态颜色
     getProcessStatusColor(status: ProcessStatus): string {
       const colorMap: { [key: string]: string } = {
+        未爬取: '#d9d9d9',
         爬取中: '#1890ff',
         爬取成功: '#52c41a',
         爬取失败: '#ff4d4f'

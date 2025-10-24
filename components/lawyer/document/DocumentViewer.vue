@@ -699,6 +699,12 @@
     async downloadDocument(): Promise<void> {
       let hideLoading = null;
       try {
+        // 根据来源页面决定文件格式：法规汇编页面下载word，其他页面下载pdf
+        const sourcePath = this.$route.query.source as string;
+        const routePath = sourcePath || this.$route.path;
+        const isRegulationCompilation = routePath.includes('/regulationCompilation');
+        const fileExtension = isRegulationCompilation ? 'docx' : 'pdf';
+
         hideLoading = this.$message.loading(`正在准备下载: ${this.document.title}`, 0);
 
         const result = await this.$roadLawyerService.downloadRuleFile({
@@ -711,7 +717,7 @@
 
         if (result) {
           downloadFileWithMessage(result, {
-            fileName: `${this.document.title}.docx`,
+            fileName: `${this.document.title}.${fileExtension}`,
             showMessage: true,
             messageService: this.$message
           });

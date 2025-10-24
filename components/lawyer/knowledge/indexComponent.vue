@@ -373,6 +373,10 @@
     async downloadDocument(doc: KnowledgeDataItem): Promise<void> {
       let hideLoading = null;
       try {
+        // 根据页面类型决定文件格式：法规汇编页面下载word，其他页面下载pdf
+        const isRegulationCompilation = this.categoryName === '法规汇编';
+        const fileExtension = isRegulationCompilation ? 'docx' : 'pdf';
+
         hideLoading = this.$message.loading(`正在准备下载: ${doc.ruleName}`, 0);
 
         const result = await this.$roadLawyerService.downloadRuleFile({
@@ -382,7 +386,7 @@
         hideLoading();
 
         downloadFileWithMessage(result, {
-          fileName: `${doc.ruleName}.docx`,
+          fileName: `${doc.ruleName}.${fileExtension}`,
           showMessage: true,
           messageService: this.$message
         });
