@@ -383,6 +383,23 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
     }
   },
 
+  // 获取预览链接
+  async getPreviewUrl(params: { id: string }): Promise<string> {
+    try {
+      // TODO: 临时注释掉真实接口，等待权限配置完成
+      // const res = await $axios.get(`${api.lawyer.getPreviewUrl}`, {
+      //   params: { id: params.id }
+      // });
+      // return res.data?.data || '';
+
+      // 临时返回固定 URL
+      return 'https://www.baidu.com/';
+    } catch (error) {
+      console.error('Error getting preview url:', error);
+      return '';
+    }
+  },
+
   // 获取部门数据
   async getDepartmentData(params: { current: number; size: number } = { current: 1, size: 999 }) {
     try {

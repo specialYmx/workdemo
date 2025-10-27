@@ -42,7 +42,16 @@
             </div>
 
             <!-- 文档内容 -->
-            <lawyer-common-div-text-search>
+            <!-- 如果是 iframe 模式，不需要文本搜索功能 -->
+            <template v-if="document.dataSource === '1' && document.iframeUrl">
+              <iframe
+                :src="document.iframeUrl"
+                class="lawyer-iframe-preview"
+                frameborder="0"
+              ></iframe>
+            </template>
+            <!-- 否则使用 markdown 预览，并包含文本搜索功能 -->
+            <lawyer-common-div-text-search v-else>
               <div
                 ref="documentContent"
                 class="lawyer-document-content lawyer-scrollable lawyer-markdown-content"
@@ -749,7 +758,7 @@
 
     // 处理响应数据
     onBtnEnter(item: string) {
-      const aiChat = this.$refs.aiChat as CommonAiChat;
+      const aiChat = this.$refs.aiChat as any;
       const chatList = aiChat.chatList;
       const { tempTxt, newChatList } = getFetchFormat(item, this.tempTxt, chatList);
       this.tempTxt = tempTxt;
@@ -1004,6 +1013,14 @@
       overflow: hidden; // 移除滚动，避免与内层DivTextSearch冲突
       min-height: 0; // 确保可以滚动
       // 移除max-height，让它自然适应容器高度
+    }
+
+    .lawyer-iframe-preview {
+      width: 100%;
+      height: 100%;
+      flex: 1;
+      border: none;
+      min-height: 0;
     }
 
     // 编辑弹窗样式

@@ -93,6 +93,8 @@ export interface DocumentViewerData {
   categoryMain?: string;
   categorySub?: string;
   categoryId?: string;
+  dataSource?: string; // 数据来源："1"-爬取数据，"2"-人工审核数据
+  iframeUrl?: string; // iframe预览链接
 }
 
 // 文档比较基础字段
@@ -409,6 +411,7 @@ export interface RoadLawyerService {
   exportWord: (params: {
     copies: string;
   }) => Promise<{ data: Blob; headers: ResponseHeaders } | null>;
+  getPreviewUrl: (params: { id: string }) => Promise<string>;
 
   // ==================== 人工审核相关方法 ====================
   approveToDoRule: (params: ApprovalParams) => Promise<boolean>;

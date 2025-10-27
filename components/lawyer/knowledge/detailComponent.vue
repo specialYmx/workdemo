@@ -27,7 +27,9 @@
       views: 0,
       content: '正在加载文档内容...',
       isRevoke: false,
-      timeLiness: ''
+      timeLiness: '',
+      dataSource: '',
+      iframeUrl: ''
     };
 
     loading: boolean = false;
@@ -142,6 +144,8 @@
             // 保留所有需要的字段
             effectivenessLevel: result.effectivenessLevel,
             tags: result.topicCategory ? [result.topicCategory] : [],
+            dataSource: result.dataSource || this.document.dataSource, // 保留数据来源
+            iframeUrl: this.document.iframeUrl || '', // 保留 iframe URL
             ...result // 保留原始数据的所有字段
           };
         } else {
@@ -162,12 +166,16 @@
     async mounted(): Promise<void> {
       const docId = this.$route.query.id;
       const pageTitle = this.$route.query.pageTitle;
-      console.log('文档ID:', docId);
-      console.log('页面标题:', pageTitle);
-
+      const iframeUrl = this.$route.query.iframeUrl;
       // 如果有 pageTitle 参数，先设置标题
       if (pageTitle && typeof pageTitle === 'string') {
         this.document.title = pageTitle;
+      }
+
+      // 如果有 iframeUrl 参数，设置预览链接和数据类型
+      if (iframeUrl && typeof iframeUrl === 'string') {
+        this.document.iframeUrl = iframeUrl;
+        this.document.dataSource = '1';
       }
 
       // 从路由查询参数中获取isRevoke状态

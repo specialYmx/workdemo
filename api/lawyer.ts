@@ -23,6 +23,7 @@ export default {
   getAIRobotAnswer: '/legal/getAIRobotAnswer', // 大家智库-AI问答  searchId文件id  userId用户的empid默认从store的id取 question输入问题  enableNetworkQuery是否联网搜索(可选参数)
   getAdmin: '/legal/getAdmin', // 获取管理员权限状态
   exportWord: '/legal/exportWord', // 导出Word文档 参数：copies (上/下)
+  getPreviewUrl: '/legal/preview/url', // 获取iframe预览链接 参数：id
 
   // ==================== 人工审核相关接口 (rule-to-do-controller) ====================
   approveToDoRule: '/legal/approveToDoRule', // 审核接口（通过approvalComment传递状态）

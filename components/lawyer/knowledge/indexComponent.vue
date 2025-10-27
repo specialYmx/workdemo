@@ -353,7 +353,7 @@
       return actions;
     }
 
-    viewDocument(doc: KnowledgeDataItem): void {
+    async viewDocument(doc: KnowledgeDataItem): Promise<void> {
       this.$message.info(`正在打开: ${doc.ruleName}`);
       const isRevoke: boolean = !!(doc.revokeDateTimestamp || doc.revokeDateStr);
       const query: RouteQuery = {
@@ -362,6 +362,19 @@
         source: this.$route.path, // 传递来源页面路径，用于详情页面正确获取专题分类
         ...(isRevoke ? { isRevoke: 'true' } : {})
       };
+
+      // 如果数据来源为爬取数据("1")，则获取预览链接
+      if (doc.dataSource === '1') {
+        try {
+          const previewUrl = await this.$roadLawyerService.getPreviewUrl({ id: doc.id });
+          if (previewUrl) {
+            query.iframeUrl = previewUrl;
+          }
+        } catch (error) {
+          console.error('获取预览链接失败:', error);
+        }
+      }
+
       this.$router.push({
         path: '/lawyerKnowledge/detail',
         query
