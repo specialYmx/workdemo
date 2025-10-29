@@ -584,9 +584,7 @@
       display: flex;
       flex-direction: column;
       background: var(--lawyer-surface);
-      padding: 10px;
       overflow: hidden;
-      border-radius: 5px;
     }
 
     .lawyer-header-actions {
@@ -647,30 +645,11 @@
     }
 
     .lawyer-column-content {
-      padding: 20px;
       overflow-y: auto;
       flex: 1; // 使用flex占据剩余空间
       min-height: 0; // 允许收缩
       white-space: pre-wrap; // 保留换行符
       word-break: break-word; // 长单词换行
-
-      h2,
-      h3 {
-        color: var(--lawyer-primary);
-        font-weight: 600;
-        margin-top: 16px;
-      }
-
-      h2 {
-        font-size: 18px;
-        margin-top: 20px;
-        padding-bottom: 8px;
-        border-bottom: 1px solid rgba(var(--lawyer-primary-rgb), 0.2);
-      }
-
-      h3 {
-        font-size: 16px;
-      }
     }
 
     .lawyer-compare-header {
@@ -713,12 +692,6 @@
             display: inline-flex;
             align-items: center;
             gap: 4px;
-
-            &:hover {
-              opacity: 0.8;
-              transform: translateY(-1px);
-            }
-
             .lawyer-tag-edit-icon {
               font-size: 10px;
               opacity: 0.7;
@@ -735,7 +708,6 @@
 
     // 通用版本信息样式
     .version-info {
-      font-size: 14px;
       color: #666;
       font-weight: normal;
       margin-left: 8px;
@@ -748,7 +720,6 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      font-size: 14px;
       color: #333;
     }
 
@@ -792,7 +763,6 @@
     }
 
     .change-detail {
-      font-size: 14px;
       line-height: 1.6;
     }
 
@@ -822,8 +792,6 @@
       border: 1px solid #b7eb8f;
       border-radius: 6px;
       color: #52c41a;
-      font-size: 14px;
-
       .info-icon {
         font-size: 16px;
         color: #52c41a;
@@ -867,7 +835,6 @@
         align-items: center;
         gap: 16px;
         margin-bottom: 20px;
-
         label {
           font-weight: 500;
           color: #333;
