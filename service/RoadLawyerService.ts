@@ -16,7 +16,8 @@ import {
   RuleSourceQueryParams,
   CheckRuleQueryParams,
   LegalCategoryParams,
-  LegalCategoryItem
+  LegalCategoryItem,
+  RuleDetailItem
 } from '~/model/LawyerModel';
 import {
   CrawlStatisticsQueryParams,
@@ -865,6 +866,35 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
         ...defaultResponse,
         message: error instanceof Error ? error.message : 'Unknown error'
       };
+    }
+  },
+  // ==================== AI对比相关方法 ====================
+  async getRuleDetailList(): Promise<RuleDetailItem[]> {
+    try {
+      const res = await $axios.post(api.lawyer.getRuleDetailList);
+      const responseData = res.data || { data: [] };
+      return (responseData.data || []).map((item: RuleDetailItem) => ({
+        id: item.id,
+        fileContent: item.fileContent,
+        ruleName: item.ruleName,
+        publishDateStr: item.publishDateStr
+      }));
+    } catch (error) {
+      console.error('Error fetching rule detail list:', error);
+      return [];
+    }
+  },
+
+  async generateComparison(params: { oldId: string; newId: string }): Promise<string> {
+    try {
+      const res = await $axios.post(api.lawyer.generateComparison, null, {
+        params
+      });
+      const responseData = res.data || {};
+      return responseData.data || '';
+    } catch (error) {
+      console.error('Error generating comparison:', error);
+      throw error;
     }
   }
 });

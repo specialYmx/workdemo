@@ -1,4 +1,4 @@
-import {
+﻿import {
   CrawlStatisticsQueryParams,
   CrawlStatisticsResponse,
   ExecuteCrawlTaskParams,
@@ -87,7 +87,7 @@ export interface DocumentViewerData {
   department?: string | string[];
   documentNo?: string;
   appendix?: boolean;
-  publishDateStr?: string;
+  publishDateStr: string;
   effectDateStr?: string;
   topicCategory?: string;
   categoryMain?: string;
@@ -211,7 +211,7 @@ export interface UploadParams extends DocumentCategoryFields {
   id?: string; // 更新时的文档ID，新增时可选
   file: File;
   timeLiness?: string; // 时效性
-  publishDateStr?: string; // 发布时间
+  publishDateStr: string; // 发布时间
   department?: string | string[]; // 部门（支持字符串数组）
   appendix?: boolean; // 附件标识
   documentNo?: string; // 文档编号
@@ -267,7 +267,7 @@ export interface DocumentTimeFields {
   createdTimeStr?: string;
   createdTimestamp?: number;
   publishTime?: string | null;
-  publishDateStr?: string;
+  publishDateStr: string;
   publishDateTimestamp?: number;
   effectDate?: string | null;
   effectDateStr?: string | null;
@@ -392,7 +392,7 @@ export interface RoadLawyerService {
     categoryId?: string;
     categoryMain?: string;
     legalSource?: string;
-    publishDateStr?: string;
+    publishDateStr: string;
     department?: string | string[];
     appendix?: boolean;
     documentNo?: string;
@@ -412,6 +412,8 @@ export interface RoadLawyerService {
     copies: string;
   }) => Promise<{ data: Blob; headers: ResponseHeaders } | null>;
   getPreviewUrl: (params: { id: string }) => Promise<string>;
+  getRuleDetailList: () => Promise<RuleDetailItem[]>;
+  generateComparison: (params: { oldId: string; newId: string }) => Promise<string>;
 
   // ==================== 人工审核相关方法 ====================
   approveToDoRule: (params: ApprovalParams) => Promise<boolean>;
@@ -585,7 +587,7 @@ export interface UpdateItem {
   tags: string[];
   dataSource?: string; // 数据来源："1"-爬取数据，"2"-人工审核数据
   updateStatus?: string; // 更新状态："1"-已生成对比结果，"0"或其他-未生成
-  ruleName?: string; // 法规名称，用于路由传参
+  ruleName: string; // 法规名称，用于路由传参
 }
 
 // 筛选选项
@@ -723,7 +725,7 @@ export interface RuleSourceQueryParams
   keyWord?: string;
   timeLiness?: string;
   publishDateSort?: string;
-  publishDateStr?: string;
+  publishDateStr: string;
   collect?: boolean;
   appendix?: boolean;
   department?: string | string[];
@@ -748,6 +750,14 @@ export interface TimelinessCountData {
 // 网站比例数据
 export interface WebsiteRatioData {
   [websiteName: string]: number;
+}
+
+// 规则详情项（用于getRuleDetailList下拉框选项）- 只需id和fileContent两个关键字段
+export interface RuleDetailItem {
+  id: string;
+  fileContent: string;
+  ruleName: string;
+  publishDateStr: string;
 }
 
 // 表格行选择配置（恢复，避免依赖 CommonModel，且不使用 any）

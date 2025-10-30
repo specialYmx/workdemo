@@ -54,6 +54,21 @@
             ><span v-if="col.version && col.date"> - </span
             ><span v-if="col.date">{{ col.date }}</span
             >）
+            <a-select
+              v-if="col.title === '修改前文档' && isFromManualReviewPage"
+              v-model="selectedRuleId"
+              placeholder="选择其他制度文档对比"
+              :loading="ruleLoading"
+              :disabled="comparisonLoading"
+              show-search
+              option-filter-prop="children"
+              style="width: 280px !important"
+              @change="handleRuleChange"
+            >
+              <a-select-option v-for="rule in ruleDetailList" :key="rule.id" :value="rule.id">
+                {{ rule.ruleName }}（{{ rule.publishDateStr }}）
+              </a-select-option>
+            </a-select>
           </div>
           <div class="lawyer-column-content">
             <v-md-preview :text="col.content || '暂无数据'" />
@@ -183,18 +198,25 @@
     DocumentColumn,
     CascaderOption,
     ReviewSubmitData,
-    LegalCategoryItem
+    LegalCategoryItem,
+    RuleDetailItem
   } from '~/model/LawyerModel';
 
   @Component({ name: 'document-compare' })
   export default class DocumentCompare extends Vue {
     @Prop({ required: true }) document!: DocumentCompareData;
     @Prop({ default: false }) submitting!: boolean;
+    @Prop({ default: () => [] }) ruleDetailList!: RuleDetailItem[];
+    @Prop({ default: false }) ruleLoading!: boolean;
+    @Prop({ default: false }) comparisonLoading!: boolean;
 
     // 标签编辑相关
     tagEditVisible: boolean = false;
     tempSelectedTagPath: string[] = [];
     tempEffectDate: string | null = null;
+
+    // 规则选择
+    selectedRuleId: string = '';
 
     // 标签选项数据
     tagOptions: CascaderOption[] = [];
@@ -532,6 +554,11 @@
       this.tagEditVisible = false;
     }
 
+    // 处理规则选择变更
+    handleRuleChange(ruleId: string): void {
+      this.emitRuleSelected(ruleId);
+    }
+
     // Emit 装饰器方法
     @Emit('go-back')
     emitGoBack(): void {
@@ -571,6 +598,11 @@
       effectDate: string | null;
     } {
       return updateData;
+    }
+
+    @Emit('rule-selected')
+    emitRuleSelected(ruleId: string): string {
+      return ruleId;
     }
   }
 </script>

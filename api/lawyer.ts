@@ -1,4 +1,4 @@
-export default {
+﻿export default {
   // ==================== 首页统计相关接口 (rule-statistic-controller) ====================
   getCheckCompleteList: '/legal/getCheckCompleteList', // 获取检查完成列表
   getUpdateCount: '/legal/getUpdateCount', // 获取更新数量 参数：condition : month|quarter|year
@@ -8,7 +8,7 @@ export default {
   exportStatisticExcel: '/legal/exportStatisticExcel', // 导出Excel报告 参数：condition : month|quarter|year
 
   // ==================== 大家智库相关接口 (rule-source-controller) ====================
-  getLegalCategory: '/legal/getLegalCategory', // 获取专题分类  参数 如id:'2'，id:'3'等，空值表示获取全量数据
+  getLegalCategory: '/legal/getLegalCategory', // 获取专题分类  参数 如id:'2'、id:'3'等，空值表示获取全量数据
   getDepartmentData: '/auth/role/inquireRoles', // 获取部门数据 参数传{current：1，size:999固定这样传参}为了获取所有的部门数据
   deleteRuleSource: '/legal/deleteRuleSource', // 删除法规资源
   downloadRuleFile: '/legal/download', // 下载法规文件
@@ -45,5 +45,9 @@ export default {
   getCrawlConfigList: '/legal/crawl/getConfigList', // 获取爬取配置列表
   addCrawlConfig: '/legal/crawl/addConfig', // 新增爬取配置
   updateCrawlConfig: '/legal/crawl/updateConfig', // 更新爬取配置
-  deleteCrawlConfig: '/legal/crawl/deleteConfig' // 删除爬取配置
+  deleteCrawlConfig: '/legal/crawl/deleteConfig', // 删除爬取配置
+
+  // ==================== AI对比相关接口 ====================
+  getRuleDetailList: '/legal/getRuleDetailList', // 获取规则详情列表
+  generateComparison: '/legal/generateComparison' // 生成对比结果
 } as Record<string, string>;

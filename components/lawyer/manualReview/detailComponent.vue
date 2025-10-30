@@ -1,18 +1,27 @@
-<template>
+﻿<template>
   <div ref="documentComparePageContainer" class="lawyer-manual-review-detail-wrapper">
     <lawyer-document-compare
       :document="documentData"
       :submitting="submitting"
+      :rule-detail-list="ruleDetailList"
+      :rule-loading="ruleLoading"
+      :comparison-loading="comparisonLoading"
       @go-back="goBack"
       @submit-review="handleReviewSubmit"
       @update-document="handleUpdateDocument"
+      @rule-selected="handleRuleSelected"
     />
   </div>
 </template>
 
 <script lang="ts">
   import { Component, Vue } from 'nuxt-property-decorator';
-  import { DocumentComparePageData, ChangeItem, ReviewSubmitData } from '@/model/LawyerModel';
+  import {
+    DocumentComparePageData,
+    ChangeItem,
+    ReviewSubmitData,
+    RuleDetailItem
+  } from '@/model/LawyerModel';
   import { LawyerStoreModule } from '~/store/lawyer';
   @Component({ name: 'lawyer-manual-review-detail-component' })
   export default class LawyerManualReviewDetailComponent extends Vue {
@@ -34,6 +43,77 @@
     submitting: boolean = false;
     // 组件销毁标志
     private isDestroyed: boolean = false;
+    // 规则列表相关
+    ruleDetailList: RuleDetailItem[] = [];
+    ruleLoading: boolean = false;
+    comparisonLoading: boolean = false;
+
+    // 加载规则详情列表
+    async loadRuleDetailList(): Promise<void> {
+      try {
+        this.ruleLoading = true;
+        this.ruleDetailList = await this.$roadLawyerService.getRuleDetailList();
+      } catch (error) {
+        if (this.isDestroyed) return;
+        console.error('加载规则列表失败:', error);
+        this.$message.error('加载制度文档列表失败');
+        this.ruleDetailList = [];
+      } finally {
+        if (!this.isDestroyed) {
+          this.ruleLoading = false;
+        }
+      }
+    }
+
+    // 处理规则选择
+    async handleRuleSelected(selectedRuleId: string): Promise<void> {
+      if (!selectedRuleId || this.comparisonLoading) {
+        return;
+      }
+
+      const currentDocId = this.documentData.id;
+      if (!currentDocId) {
+        this.$message.error('当前文档ID缺失');
+        return;
+      }
+
+      // 查找选中的规则详情
+      const selectedRule = this.ruleDetailList.find(rule => rule.id === selectedRuleId);
+      if (!selectedRule) {
+        this.$message.error('未找到选中的制度文档');
+        return;
+      }
+
+      try {
+        this.comparisonLoading = true;
+        this.$message.info('正在进行AI对比，请稍候...');
+
+        // 更新修改前文档的内容
+        this.documentData.originalContent = selectedRule.fileContent;
+
+        // 调用生成对比接口
+        const checkResult = await this.$roadLawyerService.generateComparison({
+          oldId: selectedRuleId,
+          newId: currentDocId
+        });
+
+        if (this.isDestroyed) return;
+
+        // 更新对比结果
+        this.documentData.changes = this.formatChanges(checkResult);
+
+        this.$message.success(`与"${selectedRule.ruleName}"的对比完成！`);
+      } catch (error) {
+        if (this.isDestroyed) return;
+        console.error('生成对比失败:', error);
+        this.$message.error('生成对比失败，请重试');
+      } finally {
+        if (!this.isDestroyed) {
+          this.comparisonLoading = false;
+        }
+      }
+    }
+
     // 返回上一页
     goBack(): void {
       const sourcePath = this.$route.query.source as string;
@@ -349,6 +429,8 @@
     created(): void {
       // 在created钩子中获取数据
       this.fetchDocumentData();
+      // 加载规则列表
+      this.loadRuleDetailList();
     }
 
     // 组件销毁前清理
