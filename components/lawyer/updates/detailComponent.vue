@@ -209,8 +209,8 @@
 
         // 处理数据
         if (result && (result.oldFileContent || result.newFileContent)) {
-          // 构建标签数组
-          const tags: string[] = [result.categoryMain, result.categorySub].filter(Boolean);
+          // 仅使用分类ID，交给对比组件回溯完整路径
+          const tags: string[] = result.categoryId ? [result.categoryId] : [];
 
           // 更新文档数据
           this.documentData = {

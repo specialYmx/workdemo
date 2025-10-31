@@ -357,6 +357,7 @@ export interface FileCompareDetail extends DocumentVersionFields {
   oldFileContent: string;
   categoryMain: string;
   categorySub?: string;
+  categoryId?: string; // 新分类系统ID（若存在则优先使用）
   newPublishTime: string;
   oldPublishTime?: string;
   checkResult: string;

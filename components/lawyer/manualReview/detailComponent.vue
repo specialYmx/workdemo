@@ -342,10 +342,8 @@
           id: docId as string
         });
         if (result && (result.oldFileContent || result.newFileContent)) {
-          // 构建标签数组，包含一级和二级分类
-          const tags: string[] = [];
-          if (result.categoryMain) tags.push(result.categoryMain);
-          if (result.categorySub) tags.push(result.categorySub);
+0          // 仅使用分类ID（不再兼容中文名称）
+          const tags: string[] = result.categoryId ? [result.categoryId] : [];
 
           // 处理文档数据 - 使用从URL参数获取的标题
           this.documentData = {
@@ -439,7 +437,7 @@
       this.isDestroyed = true;
     }
   }
-  export default LawyerManualReviewDetailComponent
+  export default LawyerManualReviewDetailComponent;
 </script>
 
 <style lang="less">

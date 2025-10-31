@@ -221,9 +221,10 @@
     // 标签选项数据
     tagOptions: CascaderOption[] = [];
 
-    // 分类ID到名称、名称到ID的映射缓存，用于优化查询性能
+    // 分类ID到名称的映射缓存，用于显示
     private categoryMap: Map<string, string> = new Map();
-    private categoryNameMap: Map<string, string> = new Map();
+    // 分类加载版本计数：加载完成后自增，用于触发计算属性重算
+    categoriesVersion: number = 0;
 
     // 判断是否来自人工审核页面
     get isFromManualReviewPage(): boolean {
@@ -250,26 +251,23 @@
           // 不传 id 参数，获取全部专题分类数据
         });
 
-        console.log('获取到的分类数据:', categories);
-
         if (categories && categories.length > 0) {
           this.tagOptions = this.convertToCascaderOptions(categories);
           // 构建分类ID到名称的映射缓存
           this.categoryMap.clear();
-          this.categoryNameMap.clear();
           this.buildCategoryMap(categories);
-          console.log('转换后的级联选择器数据:', this.tagOptions);
+          this.categoriesVersion++;
         } else {
           console.warn('未获取到分类数据');
           this.tagOptions = [];
           this.categoryMap.clear();
-          this.categoryNameMap.clear();
+          this.categoriesVersion++;
         }
       } catch (error) {
         console.error('加载专题分类数据失败:', error);
         this.tagOptions = [];
         this.categoryMap.clear();
-        this.categoryNameMap.clear();
+        this.categoriesVersion++;
       }
     }
 
@@ -277,9 +275,6 @@
     private buildCategoryMap(categories: LegalCategoryItem[]): void {
       categories.forEach(category => {
         this.categoryMap.set(category.id, category.name);
-        if (category.name && !this.categoryNameMap.has(category.name)) {
-          this.categoryNameMap.set(category.name, category.id);
-        }
         if (category.children && category.children.length > 0) {
           this.buildCategoryMap(category.children);
         }
@@ -297,72 +292,32 @@
       );
     }
 
+    // 通过叶子ID在级联树中回溯完整路径（返回ID数组），未找到则返回空数组
+    private findFullPathById(targetId: string): string[] {
+      const dfs = (options: CascaderOption[] | undefined, path: string[]): string[] => {
+        if (!options || options.length === 0) return [];
+        for (const option of options) {
+          const nextPath = [...path, String(option.value)];
+          if (String(option.value) === String(targetId)) {
+            return nextPath;
+          }
+          const child = dfs(option.children, nextPath);
+          if (child.length > 0) return child;
+        }
+        return [];
+      };
+      return dfs(this.tagOptions, []);
+    }
+
     // 根据分类ID获取分类名称（使用缓存提升性能）
     getCategoryNameById(categoryId: string): string {
       return this.categoryMap.get(categoryId) || '';
     }
 
-    // 根据分类名称获取分类ID
-    private getCategoryIdByName(categoryName: string): string {
-      return this.categoryNameMap.get(categoryName) || '';
-    }
-
-    // 根据标签名称序列查找对应的ID路径
-    private findPathByLabels(labels: string[]): string[] {
-      if (!labels || labels.length === 0 || this.tagOptions.length === 0) return [];
-      return this.findPathByLabelsRecursive(this.tagOptions, labels, 0);
-    }
-
-    private findPathByLabelsRecursive(
-      options: CascaderOption[],
-      targetLabels: string[],
-      depth: number
-    ): string[] {
-      for (const option of options || []) {
-        if (option.label === targetLabels[depth]) {
-          const currentPath = [String(option.value)];
-          if (depth === targetLabels.length - 1) {
-            return currentPath;
-          }
-          if (option.children && option.children.length > 0) {
-            const childPath = this.findPathByLabelsRecursive(
-              option.children,
-              targetLabels,
-              depth + 1
-            );
-            if (childPath.length > 0) {
-              return [...currentPath, ...childPath];
-            }
-          }
-        }
-      }
-      return [];
-    }
-
-    // 将标签数组统一转换为分类ID路径（兼容名称形式）
+    // 将标签数组（ID）规范化为 ID 路径（不再支持名称）
     private resolveTagsToIds(tags: string[]): string[] {
       if (!tags || tags.length === 0) return [];
-
-      const normalizedTags = tags.filter(tag => !!tag);
-      if (normalizedTags.length === 0) return [];
-
-      const allAreIds = normalizedTags.every(tag => this.categoryMap.has(tag));
-      if (allAreIds) {
-        return [...normalizedTags];
-      }
-
-      const pathByLabels = this.findPathByLabels(normalizedTags);
-      if (pathByLabels.length === normalizedTags.length) {
-        return pathByLabels;
-      }
-
-      return normalizedTags.map(tag => {
-        if (this.categoryMap.has(tag)) {
-          return tag;
-        }
-        const id = this.getCategoryIdByName(tag);
-        return id || tag;
-      });
+      return tags.filter(tag => !!tag).map(tag => String(tag));
     }
 
     // 显示标签（合并为单个标签）- 将ID转换为名称显示
@@ -370,7 +325,16 @@
       if (!this.document) return '';
       const tags: string[] = this.document.tags || [];
       if (tags.length === 0) return '';
-      const resolvedTags = this.resolveTagsToIds(tags);
+      // 分类未加载完成时不显示（或可返回占位文案）
+      if (this.categoriesVersion === 0) return '';
+      let resolvedTags = this.resolveTagsToIds(tags);
+      // 若仅有一个叶子ID，尝试回溯完整路径用于展示
+      if (resolvedTags.length === 1 && this.tagOptions && this.tagOptions.length > 0) {
+        const fullPath = this.findFullPathById(resolvedTags[0]);
+        if (fullPath.length > 0) {
+          resolvedTags = fullPath;
+        }
+      }
       if (resolvedTags.length === 0) return '';
       // 将ID转换为名称，支持多级分类
       const tagNames = resolvedTags.map(tagId => this.getCategoryNameById(tagId) || tagId);
@@ -543,49 +507,6 @@
       this.handleReview('reject');
     }
 
-    // 查找标签在级联选项中的路径 - 使用深度优先搜索算法
-    findTagPath(tagIds?: string[]): string[] {
-      if (!tagIds || tagIds.length === 0) return [];
-
-      // 深度优先搜索查找ID路径
-      const findPath = (
-        options: CascaderOption[] | undefined,
-        targetIds: string[]
-      ): string[] | null => {
-        // 添加空值检查，避免undefined或空数组导致的错误
-        if (!options || options.length === 0) return null;
-
-        for (const option of options) {
-          // 如果当前节点匹配目标ID数组的第一个
-          if (option.value === targetIds[0]) {
-            // 如果只剩一个目标ID，说明找到完整路径
-            if (targetIds.length === 1) {
-              return [option.value];
-            }
-
-            // 如果还有更多目标ID，继续在子节点中查找
-            if (option.children && option.children.length > 0) {
-              const childPath = findPath(option.children, targetIds.slice(1));
-              if (childPath) {
-                return [option.value, ...childPath];
-              }
-            }
-          }
-
-          // 如果当前节点不匹配，但有子节点，递归查找子树
-          if (option.children && option.children.length > 0) {
-            const path = findPath(option.children, targetIds);
-            if (path) {
-              return [option.value, ...path];
-            }
-          }
-        }
-        return null;
-      };
-
-      return findPath(this.tagOptions, tagIds) || [];
-    }
-
     // 显示标签编辑模态框
     showTagEditModal(): void {
       // 检查文档状态，只有待审核状态才能编辑
@@ -594,25 +515,25 @@
         return;
       }
 
-      this.tempSelectedTagPath = this.findTagPath(this.document.tags || []);
+      // 统一解析为 ID 路径（支持多级），若仅有叶子ID则回溯完整路径用于级联回显
+      const current = this.resolveTagsToIds(this.document.tags || []);
+      if (current.length === 1 && this.tagOptions && this.tagOptions.length > 0) {
+        const fullPath = this.findFullPathById(current[0]);
+        this.tempSelectedTagPath = fullPath.length > 0 ? fullPath : current;
+      } else {
+        this.tempSelectedTagPath = current;
+      }
       this.tempEffectDate = this.document.effectDate || null;
       this.tagEditVisible = true;
     }
 
     // 处理标签编辑确认
     handleTagEditConfirm(): void {
-      // 生成显示标签 - 将ID转换为名称显示
-      let tagDisplay: string = '';
-      if (this.tempSelectedTagPath.length === 1) {
-        const categoryName = this.getCategoryNameById(this.tempSelectedTagPath[0]);
-        tagDisplay = categoryName || this.tempSelectedTagPath[0];
-      } else if (this.tempSelectedTagPath.length >= 2) {
-        const firstName = this.getCategoryNameById(this.tempSelectedTagPath[0]);
-        const secondName = this.getCategoryNameById(this.tempSelectedTagPath[1]);
-        tagDisplay = `${firstName || this.tempSelectedTagPath[0]}/${
-          secondName || this.tempSelectedTagPath[1]
-        }`;
-      }
+      // 多级通用：将所选 ID 路径映射为名称并用 / 连接
+      const tagNames = (this.tempSelectedTagPath || []).map(
+        id => this.getCategoryNameById(id) || id
+      );
+      const tagDisplay = tagNames.join('/');
 
       // 通过事件通知父组件更新文档数据
       this.emitUpdateDocument({
@@ -655,21 +576,9 @@
 
       if (this.document.tags && this.document.tags.length > 0) {
         const resolvedTags = this.resolveTagsToIds(this.document.tags);
-        // 使用最后一个标签作为最终选择的分类
         const lastResolvedTag = resolvedTags[resolvedTags.length - 1];
-        if (lastResolvedTag && this.categoryMap.has(lastResolvedTag)) {
-          categoryId = lastResolvedTag;
-          categoryMain = this.getCategoryNameById(lastResolvedTag) || lastResolvedTag;
-        } else {
-          const fallbackOriginalTag = this.document.tags[this.document.tags.length - 1];
-          const fallbackId = this.getCategoryIdByName(fallbackOriginalTag);
-          if (fallbackId) {
-            categoryId = fallbackId;
-            categoryMain = this.getCategoryNameById(fallbackId) || fallbackOriginalTag;
-          } else {
-            categoryMain = fallbackOriginalTag;
-          }
-        }
+        categoryId = lastResolvedTag;
+        categoryMain = this.getCategoryNameById(lastResolvedTag) || lastResolvedTag;
       }
 
       const effectDateStr = this.document.effectDate;
