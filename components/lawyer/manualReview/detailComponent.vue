@@ -24,7 +24,7 @@
   } from '@/model/LawyerModel';
   import { LawyerStoreModule } from '~/store/lawyer';
   @Component({ name: 'lawyer-manual-review-detail-component' })
-  export default class LawyerManualReviewDetailComponent extends Vue {
+  class LawyerManualReviewDetailComponent extends Vue {
     // 对比数据
     documentData: DocumentComparePageData = {
       id: '',
@@ -372,7 +372,8 @@
             oldPublishTime: result.oldPublishTime,
             newFileVersion: result.newFileVersion,
             newPublishTime: result.newPublishTime,
-            currentMaxFileVersion: result.currentMaxFileVersion || 0
+            currentMaxFileVersion: result.currentMaxFileVersion || 0,
+            completed: result.completed
           };
         } else {
           // 检查组件是否已销毁
@@ -438,6 +439,7 @@
       this.isDestroyed = true;
     }
   }
+  export default LawyerManualReviewDetailComponent
 </script>
 
 <style lang="less">

@@ -118,6 +118,7 @@ export interface DocumentCompareData extends DocumentCompareBaseFields {
   oldPublishTime?: string;
   newPublishTime?: string;
   modifiedDate?: string;
+  completed?: string; // AI对比是否完成，"0"表示未完成
 }
 
 // 审核提交数据
@@ -360,6 +361,7 @@ export interface FileCompareDetail extends DocumentVersionFields {
   oldPublishTime?: string;
   checkResult: string;
   checkStatus?: string;
+  completed?: string; // AI对比是否完成，"0"表示未完成
 }
 // 法律合规智能系统服务接口定义
 export interface RoadLawyerService {
@@ -651,6 +653,7 @@ export interface DocumentComparePageData extends DocumentCompareBaseFields {
   newFileVersion?: string | number | null;
   newPublishTime?: string | null;
   currentMaxFileVersion?: number;
+  completed?: string; // AI对比是否完成，"0"表示未完成
 }
 
 // 状态映射

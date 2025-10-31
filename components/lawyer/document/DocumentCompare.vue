@@ -59,7 +59,7 @@
               v-model="selectedRuleId"
               placeholder="选择其他制度文档对比"
               :loading="ruleLoading"
-              :disabled="comparisonLoading"
+              :disabled="comparisonLoading || isAiComparisonNotCompleted"
               show-search
               option-filter-prop="children"
               style="width: 280px !important"
@@ -203,7 +203,7 @@
   } from '~/model/LawyerModel';
 
   @Component({ name: 'document-compare' })
-  export default class DocumentCompare extends Vue {
+  class DocumentCompare extends Vue {
     @Prop({ required: true }) document!: DocumentCompareData;
     @Prop({ default: false }) submitting!: boolean;
     @Prop({ default: () => [] }) ruleDetailList!: RuleDetailItem[];
@@ -221,13 +221,19 @@
     // 标签选项数据
     tagOptions: CascaderOption[] = [];
 
-    // 分类ID到名称的映射缓存，用于优化查询性能
+    // 分类ID到名称、名称到ID的映射缓存，用于优化查询性能
     private categoryMap: Map<string, string> = new Map();
+    private categoryNameMap: Map<string, string> = new Map();
 
     // 判断是否来自人工审核页面
     get isFromManualReviewPage(): boolean {
       const sourcePath = this.$route.query.source as string;
       return sourcePath && sourcePath.includes('/manualReview');
+    }
+
+    // 判断AI对比是否未完成（completed === "0"）
+    get isAiComparisonNotCompleted(): boolean {
+      return this.document.completed === '0';
     }
 
     // 组件挂载时加载专题分类数据
@@ -249,17 +255,21 @@
         if (categories && categories.length > 0) {
           this.tagOptions = this.convertToCascaderOptions(categories);
           // 构建分类ID到名称的映射缓存
+          this.categoryMap.clear();
+          this.categoryNameMap.clear();
           this.buildCategoryMap(categories);
           console.log('转换后的级联选择器数据:', this.tagOptions);
         } else {
           console.warn('未获取到分类数据');
           this.tagOptions = [];
           this.categoryMap.clear();
+          this.categoryNameMap.clear();
         }
       } catch (error) {
         console.error('加载专题分类数据失败:', error);
         this.tagOptions = [];
         this.categoryMap.clear();
+        this.categoryNameMap.clear();
       }
     }
 
@@ -267,6 +277,9 @@
     private buildCategoryMap(categories: LegalCategoryItem[]): void {
       categories.forEach(category => {
         this.categoryMap.set(category.id, category.name);
+        if (category.name && !this.categoryNameMap.has(category.name)) {
+          this.categoryNameMap.set(category.name, category.id);
+        }
         if (category.children && category.children.length > 0) {
           this.buildCategoryMap(category.children);
         }
@@ -289,13 +302,78 @@
       return this.categoryMap.get(categoryId) || '';
     }
 
+    // 根据分类名称获取分类ID
+    private getCategoryIdByName(categoryName: string): string {
+      return this.categoryNameMap.get(categoryName) || '';
+    }
+
+    // 根据标签名称序列查找对应的ID路径
+    private findPathByLabels(labels: string[]): string[] {
+      if (!labels || labels.length === 0 || this.tagOptions.length === 0) return [];
+      return this.findPathByLabelsRecursive(this.tagOptions, labels, 0);
+    }
+
+    private findPathByLabelsRecursive(
+      options: CascaderOption[],
+      targetLabels: string[],
+      depth: number
+    ): string[] {
+      for (const option of options || []) {
+        if (option.label === targetLabels[depth]) {
+          const currentPath = [String(option.value)];
+          if (depth === targetLabels.length - 1) {
+            return currentPath;
+          }
+          if (option.children && option.children.length > 0) {
+            const childPath = this.findPathByLabelsRecursive(
+              option.children,
+              targetLabels,
+              depth + 1
+            );
+            if (childPath.length > 0) {
+              return [...currentPath, ...childPath];
+            }
+          }
+        }
+      }
+      return [];
+    }
+
+    // 将标签数组统一转换为分类ID路径（兼容名称形式）
+    private resolveTagsToIds(tags: string[]): string[] {
+      if (!tags || tags.length === 0) return [];
+
+      const normalizedTags = tags.filter(tag => !!tag);
+      if (normalizedTags.length === 0) return [];
+
+      const allAreIds = normalizedTags.every(tag => this.categoryMap.has(tag));
+      if (allAreIds) {
+        return [...normalizedTags];
+      }
+
+      const pathByLabels = this.findPathByLabels(normalizedTags);
+      if (pathByLabels.length === normalizedTags.length) {
+        return pathByLabels;
+      }
+
+      return normalizedTags.map(tag => {
+        if (this.categoryMap.has(tag)) {
+          return tag;
+        }
+        const id = this.getCategoryIdByName(tag);
+        return id || tag;
+      });
+    }
+
     // 显示标签（合并为单个标签）- 将ID转换为名称显示
     get displayTag(): string {
       if (!this.document) return '';
       const tags: string[] = this.document.tags || [];
       if (tags.length === 0) return '';
+      const resolvedTags = this.resolveTagsToIds(tags);
+      if (resolvedTags.length === 0) return '';
       // 将ID转换为名称，支持多级分类
-      const tagNames = tags.map(tagId => this.getCategoryNameById(tagId) || tagId);
+      const tagNames = resolvedTags.map(tagId => this.getCategoryNameById(tagId) || tagId);
       // 使用 / 连接所有级别的分类
       return tagNames.join('/');
     }
@@ -576,10 +654,22 @@
       let categoryId: string | undefined;
 
       if (this.document.tags && this.document.tags.length > 0) {
+        const resolvedTags = this.resolveTagsToIds(this.document.tags);
         // 使用最后一个标签作为最终选择的分类
-        const lastTagIndex = this.document.tags.length - 1;
-        categoryId = this.document.tags[lastTagIndex];
-        categoryMain = this.getCategoryNameById(categoryId) || categoryId;
+        const lastResolvedTag = resolvedTags[resolvedTags.length - 1];
+        if (lastResolvedTag && this.categoryMap.has(lastResolvedTag)) {
+          categoryId = lastResolvedTag;
+          categoryMain = this.getCategoryNameById(lastResolvedTag) || lastResolvedTag;
+        } else {
+          const fallbackOriginalTag = this.document.tags[this.document.tags.length - 1];
+          const fallbackId = this.getCategoryIdByName(fallbackOriginalTag);
+          if (fallbackId) {
+            categoryId = fallbackId;
+            categoryMain = this.getCategoryNameById(fallbackId) || fallbackOriginalTag;
+          } else {
+            categoryMain = fallbackOriginalTag;
+          }
+        }
       }
 
       const effectDateStr = this.document.effectDate;
@@ -605,6 +695,8 @@
       return ruleId;
     }
   }
+
+  export default DocumentCompare;
 </script>
 
 <style lang="less">
