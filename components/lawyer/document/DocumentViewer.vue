@@ -708,11 +708,15 @@
     async downloadDocument(): Promise<void> {
       let hideLoading = null;
       try {
-        // 根据来源页面决定文件格式：法规汇编页面下载word，其他页面下载pdf
+        // 根据文档分类或来源页面决定文件格式：法规汇编下载 docx，其他下载 pdf
         const sourcePath = this.$route.query.source as string;
         const routePath = sourcePath || this.$route.path;
-        const isRegulationCompilation = routePath.includes('/regulationCompilation');
-        const fileExtension = isRegulationCompilation ? 'docx' : 'pdf';
+        const assemblyCategoryMain: string | undefined = this.document.assemblyCategoryMain;
+        const isRegulationByAssembly =
+          typeof assemblyCategoryMain === 'string' && assemblyCategoryMain.includes('法规汇编');
+        const isRegulationByRoute = routePath.includes('/regulationCompilation');
+        const isRegulation = isRegulationByAssembly || isRegulationByRoute;
+        const fileExtension = isRegulation ? 'docx' : 'pdf';
 
         hideLoading = this.$message.loading(`正在准备下载: ${this.document.title}`, 0);
 

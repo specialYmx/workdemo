@@ -384,9 +384,14 @@
     async downloadDocument(doc: KnowledgeDataItem): Promise<void> {
       let hideLoading = null;
       try {
-        // 根据页面类型决定文件格式：法规汇编页面下载word，其他页面下载pdf
-        const isRegulationCompilation = this.categoryName === '法规汇编';
-        const fileExtension = isRegulationCompilation ? 'docx' : 'pdf';
+        // 根据文档分类或当前页面决定文件格式：法规汇编下载 docx，其他下载 pdf
+        const assemblyCategoryMain: string | undefined = doc.assemblyCategoryMain;
+        const isRegulationByAssembly =
+          typeof assemblyCategoryMain === 'string' && assemblyCategoryMain.includes('法规汇编');
+        const routePath = this.$route.path || '';
+        const isRegulationByRoute = routePath.includes('/regulationCompilation');
+        const isRegulationDoc = isRegulationByAssembly || isRegulationByRoute;
+        const fileExtension = isRegulationDoc ? 'docx' : 'pdf';
 
         hideLoading = this.$message.loading(`正在准备下载: ${doc.ruleName}`, 0);
 

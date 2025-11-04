@@ -93,6 +93,7 @@ export interface DocumentViewerData {
   categoryMain?: string;
   categorySub?: string;
   categoryId?: string;
+  assemblyCategoryMain?: string;
   dataSource?: string; // 数据来源："1"-爬取数据，"2"-人工审核数据
   iframeUrl?: string; // iframe预览链接
 }
@@ -729,7 +730,7 @@ export interface RuleSourceQueryParams
   keyWord?: string;
   timeLiness?: string;
   publishDateSort?: string;
-  publishDateStr: string;
+  publishDateStr?: string;
   collect?: boolean;
   appendix?: boolean;
   department?: string | string[];
