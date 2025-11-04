@@ -58,6 +58,7 @@
           :pagination="pagination"
           :loading="tableLoading"
           :row-key="record => record.id"
+          :scroll="{ x: 1500 }"
           @change="handleTableChange"
         >
           <!-- 处理状态列 -->
@@ -352,7 +353,7 @@
         title: '操作',
         key: 'action',
         scopedSlots: { customRender: 'action' },
-        width: 200,
+        width: 235,
         fixed: 'right'
       }
     ];
@@ -519,14 +520,13 @@
           publishDate: this.searchParams.publishDate || undefined,
           processStatus: this.searchParams.processStatus || undefined
         };
-
-        // 调用真实API
         const response = await this.$roadLawyerService.getCrawlHtmlList(apiParams);
 
         if (response.success && response.data) {
           this.dataList = response.data.records;
           this.pagination.total = response.data.total;
           this.pagination.current = response.data.current;
+          this.pagination.pageSize = this.searchParams.size;
         } else {
           this.dataList = [];
           this.pagination.total = 0;
@@ -569,6 +569,7 @@
     async onReset(): Promise<void> {
       this.resetSearchParams();
       this.pagination.current = 1;
+      this.pagination.pageSize = 10;
       await this.loadData();
     }
 
@@ -578,8 +579,11 @@
       _filters: unknown,
       sorter: { field?: string; order?: string }
     ): Promise<void> {
+      // 同步更新搜索参数和分页配置
       this.searchParams.current = pagination.current;
       this.searchParams.size = pagination.pageSize;
+      this.pagination.current = pagination.current;
+      this.pagination.pageSize = pagination.pageSize;
 
       // 处理排序参数
       if (sorter.field) {
