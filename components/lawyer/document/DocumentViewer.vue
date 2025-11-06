@@ -248,7 +248,7 @@
     fetchParams: BodyInit | null = null;
     fetchUrl: string = api.lawyer.getAIRobotAnswer;
     splitTxt: string = `End\n\n`;
-    tempTxt: string = '';
+    tempText: string = '';
 
     // 编辑状态相关
     editModalVisible: boolean = false;
@@ -494,42 +494,11 @@
 
       // 回显发布时间 - 确保不是无效的日期字符串
       const publishDate = this.document.date;
-      if (
-        publishDate &&
-        publishDate !== '暂无' &&
-        publishDate !== 'undefined' &&
-        publishDate !== 'null'
-      ) {
-        // 验证是否为有效的日期格式
-        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-        if (dateRegex.test(publishDate)) {
-          this.formData.publishDate = publishDate;
-        } else {
-          this.formData.publishDate = undefined;
-        }
-      } else {
-        this.formData.publishDate = undefined;
-      }
+      this.formData.publishDate = publishDate || undefined;
 
       // 回显生效时间 - 确保不是无效的日期字符串
       const effectiveDate = this.document.effectiveDate;
-      if (
-        effectiveDate &&
-        effectiveDate !== '暂无' &&
-        effectiveDate !== 'undefined' &&
-        effectiveDate !== 'null'
-      ) {
-        // 验证是否为有效的日期格式
-        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-        if (dateRegex.test(effectiveDate)) {
-          this.formData.effectDate = effectiveDate;
-        } else {
-          this.formData.effectDate = undefined;
-        }
-      } else {
-        this.formData.effectDate = undefined;
-      }
-
+      this.formData.effectDate = effectiveDate || undefined;
       // 回显责任部门
       if (this.document.department) {
         // 兼容字符串和数组格式
@@ -760,15 +729,15 @@
       });
 
       // 清空上条文本
-      this.tempTxt = '';
+      this.tempText = '';
     }
 
     // 处理响应数据
     onBtnEnter(item: string) {
       const aiChat = this.$refs.aiChat as any;
       const chatList = aiChat.chatList;
-      const { tempTxt, newChatList } = getFetchFormat(item, this.tempTxt, chatList);
-      this.tempTxt = tempTxt;
+      const { tempTxt, newChatList } = getFetchFormat(item, this.tempText, chatList);
+      this.tempText = tempTxt;
       this.responseChatList = newChatList;
     }
 

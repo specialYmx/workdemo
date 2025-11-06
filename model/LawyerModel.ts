@@ -256,7 +256,6 @@ export interface CoreDocumentFields {
   categorySub: string | null;
   categoryId?: string; // 分类ID，用于新的分类系统
   effectivenessLevel: string | null;
-  filePathTxt: string | null;
   filePathOther: string | null;
   fileVersion: number;
   checkStatus: string | null;
@@ -292,8 +291,6 @@ export interface BaseRuleItem extends CoreDocumentFields, DocumentTimeFields {
   readCount: number;
   compilationType: string | null;
   topicCategory: string | null;
-  initDataFlag: 0 | 1;
-  deleted: number;
   department?: string | string[] | null; // 责任部门（支持字符串数组）
   appendix?: boolean; // 是否附录
   assemblyCategoryMain?: string; // 组装分类主字段
