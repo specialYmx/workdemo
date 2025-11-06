@@ -8,10 +8,11 @@
   import { Component, Vue } from 'nuxt-property-decorator';
 
   @Component({ layout: 'page', middleware: 'auth' })
-  export default class LegalComplianceQuarterly312Page extends Vue {
+  class LegalComplianceQuarterly312Page extends Vue {
     // 页面头部配置
     head(): { title: string } {
       return { title: '法律合规季刊 - 法律合规智能系统' };
     }
   }
+  export default LegalComplianceQuarterly312Page;
 </script>

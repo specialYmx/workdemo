@@ -68,7 +68,7 @@
   import { BaseRuleItem, RouteQuery } from '~/model/LawyerModel';
 
   @Component({ name: 'latest-updates' })
-  export default class LatestUpdates extends Vue {
+  class LatestUpdates extends Vue {
     @Prop({ type: Array, default: () => [] }) updates!: BaseRuleItem[];
     @Prop({ type: Boolean, default: false }) loading!: boolean;
 
@@ -218,6 +218,7 @@
     @Emit('view-detail')
     viewDetail(item: BaseRuleItem) {}
   }
+  export default LatestUpdates;
 </script>
 
 <style lang="less">

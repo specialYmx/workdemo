@@ -98,7 +98,7 @@
   import { DocumentViewerData, AiMessage } from '~/model/LawyerModel';
 
   @Component
-  export default class DocumentAIChat extends Vue {
+  class DocumentAIChat extends Vue {
     @Prop({ required: true }) document!: DocumentViewerData;
 
     // AI助手相关状态
@@ -405,6 +405,7 @@
       }
     }
   }
+  export default DocumentAIChat;
 </script>
 
 <style lang="less">

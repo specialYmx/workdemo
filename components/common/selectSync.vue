@@ -37,7 +37,7 @@
      label: string;
    }
    @Component
-   export default class SelectSyncComponent extends Vue {
+   class SelectSyncComponent extends Vue {
      @Model('change')
      value: SelectValue | SelectValue[] | string | string[];
 
@@ -159,9 +159,10 @@
        } else {
          // 合并已有的数据和新传入的数据，避免重复项
          const valueSet = new Set(this.dataList.map(item => item.value));
-         this.dataList = [...this.dataList, ...newVal.filter(item => !valueSet.has(item.value))];
-       }
-     }
-   }
+        this.dataList = [...this.dataList, ...newVal.filter(item => !valueSet.has(item.value))];
+      }
+    }
+  }
+  export default SelectSyncComponent;
  
 </script>

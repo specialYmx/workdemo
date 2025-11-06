@@ -236,7 +236,7 @@
       CommonAiChat
     }
   })
-  export default class DocumentViewer extends Vue {
+  class DocumentViewer extends Vue {
     @Prop({ required: true }) document!: DocumentViewerData;
 
     // AI助手相关
@@ -805,6 +805,7 @@
       return statusData;
     }
   }
+  export default DocumentViewer;
 </script>
 
 <style lang="less">

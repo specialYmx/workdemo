@@ -120,7 +120,7 @@
   import { CustomColumn, CustomPagination } from '~/model/CommonModel';
   import { LawyerStoreModule } from '~/store/lawyer';
   @Component({ name: 'lawyer-manual-review-index-component' })
-  export default class LawyerManualReviewIndexComponent extends Vue {
+  class LawyerManualReviewIndexComponent extends Vue {
     // 搜索和筛选
     searchText: string = '';
     filterType: string = '';
@@ -668,6 +668,7 @@
       }
     }
   }
+  export default LawyerManualReviewIndexComponent;
 </script>
 
 <style lang="less">

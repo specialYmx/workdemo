@@ -92,7 +92,7 @@
   import { KnowledgeDataItem, DocumentAction } from '~/model/LawyerModel';
 
   @Component({ name: 'lawyer-knowledge-document-list' })
-  export default class LawyerKnowledgeDocumentList extends Vue {
+  class LawyerKnowledgeDocumentList extends Vue {
     @Prop({ required: true }) loading!: boolean;
     @Prop({ required: true }) documents!: KnowledgeDataItem[];
     @Prop({ required: true }) currentPage!: number;
@@ -143,6 +143,7 @@
       return { action, doc };
     }
   }
+  export default LawyerKnowledgeDocumentList;
 </script>
 
 <style lang="less">

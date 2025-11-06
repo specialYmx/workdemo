@@ -70,7 +70,7 @@
   import { CustomColumn } from '~/model/CommonModel';
 
   @Component
-  export default class ReviewTable extends Vue {
+  class ReviewTable extends Vue {
     @Prop({ type: Array, default: () => [] }) reviews!: ToDoRuleItem[];
     @Prop({ type: Boolean, default: false }) loading!: boolean;
 
@@ -156,6 +156,7 @@
       this.$emit('reject', record);
     }
   }
+  export default ReviewTable;
 </script>
 
 <style lang="less">

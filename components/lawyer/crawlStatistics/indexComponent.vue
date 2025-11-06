@@ -219,7 +219,7 @@
   } from '~/model/LawyerConfigModel';
 
   @Component({ name: 'lawyer-crawl-statistics-index-component' })
-  export default class CrawlStatisticsComponent extends Vue {
+  class CrawlStatisticsComponent extends Vue {
     // 搜索参数
     searchParams: CrawlStatisticsQueryParams = {
       websiteCode: '',
@@ -872,6 +872,7 @@
       }
     }
   }
+  export default CrawlStatisticsComponent;
 </script>
 
 <style lang="less" scoped>

@@ -148,7 +148,7 @@
   } from '~/model/LawyerModel';
 
   @Component({})
-  export default class DashboardOverview extends Vue {
+  class DashboardOverview extends Vue {
     @Prop({ type: Number, default: 0 }) monthlyUpdateCount!: number;
     @Prop({ type: Number, default: 0 }) pendingReviewCount!: number;
     @Prop({ type: Array, default: () => [] }) recentReviews!: CompletedRuleItem[];
@@ -372,6 +372,7 @@
     @Emit('view-reviews')
     viewReviews() {}
   }
+  export default DashboardOverview;
 </script>
 
 <style lang="less">

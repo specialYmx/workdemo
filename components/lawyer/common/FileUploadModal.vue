@@ -260,7 +260,7 @@
   } from '~/model/LawyerModel';
 
   @Component({ name: 'FileUploadModal' })
-  export default class FileUploadModal extends Vue {
+  class FileUploadModal extends Vue {
     @Prop({ default: false }) visible!: boolean;
     @Prop({ default: '上传文件' }) title!: string;
     @Prop({ default: '' }) documentId!: string;
@@ -744,6 +744,7 @@
       // 无需返回值
     }
   }
+  export default FileUploadModal;
 </script>
 
 <style lang="less">

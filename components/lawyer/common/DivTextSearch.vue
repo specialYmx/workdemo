@@ -38,7 +38,7 @@
   @Component({
     name: 'DivTextSearch'
   })
-  export default class DivTextSearch extends Vue {
+  class DivTextSearch extends Vue {
     searchTerm: string = '';
     lastSearchTerm: string = '';
     highlightCount: number = 0;
@@ -244,6 +244,7 @@
       }
     }
   }
+  export default DivTextSearch;
 </script>
 
 <style lang="less">

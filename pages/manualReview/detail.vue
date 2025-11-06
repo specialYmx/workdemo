@@ -8,7 +8,7 @@
   import { Component, Vue } from 'nuxt-property-decorator';
 
   @Component({ layout: 'page', middleware: 'auth' })
-  export default class ManualReviewDetailPage extends Vue {
+  class ManualReviewDetailPage extends Vue {
     // 页面头部配置
     head(): { title: string } {
       return {
@@ -16,4 +16,5 @@
       };
     }
   }
+  export default ManualReviewDetailPage;
 </script>

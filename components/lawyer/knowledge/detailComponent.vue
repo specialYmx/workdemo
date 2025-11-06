@@ -14,7 +14,7 @@
   import { LawyerStoreModule } from '~/store/lawyer';
 
   @Component({ name: 'lawyer-knowledge-detail-component' })
-  export default class LawyerKnowledgeDetailComponent extends Vue {
+  class LawyerKnowledgeDetailComponent extends Vue {
     // 文档数据
     document: DocumentViewerData = {
       id: '',
@@ -193,6 +193,7 @@
       }
     }
   }
+  export default LawyerKnowledgeDetailComponent;
 </script>
 
 <style lang="less">

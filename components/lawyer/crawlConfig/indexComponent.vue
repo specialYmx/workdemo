@@ -241,7 +241,7 @@
   @Component({
     name: 'crawl-config-index-component'
   })
-  export default class CrawlConfigIndexComponent extends Vue {
+  class CrawlConfigIndexComponent extends Vue {
     // 数据状态
     configList: CrawlConfigItem[] = [];
     tableLoading: boolean = false;
@@ -664,6 +664,7 @@
       return keyword.length > maxLength ? keyword.substring(0, maxLength) + '...' : keyword;
     }
   }
+  export default CrawlConfigIndexComponent;
 </script>
 
 <style lang="less" scoped>

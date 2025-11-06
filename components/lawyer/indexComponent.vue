@@ -66,7 +66,7 @@
   import { downloadFileWithMessage } from '~/utils/personal';
 
   @Component({ name: 'index-component' })
-  export default class IndexComponent extends Vue {
+  class IndexComponent extends Vue {
     // 数据加载状态
     chartLoading: IndexPageChartLoading = {
       trend: true,
@@ -527,6 +527,7 @@
       }
     }
   }
+  export default IndexComponent;
 </script>
 
 <style lang="less">

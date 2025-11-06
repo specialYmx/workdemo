@@ -47,7 +47,7 @@
   import { CustomPagination, CustomColumn } from '~/model/CommonModel';
   import { formatDate } from '~/utils/date';
   @Component({ name: 'lawyer-task-history-index-component' })
-  export default class TaskHistoryIndexComponent extends Vue {
+  class TaskHistoryIndexComponent extends Vue {
     // 搜索参数
     searchParams: TaskHistoryQueryParams = {
       taskName: '',
@@ -184,6 +184,7 @@
       }
     }
   }
+  export default TaskHistoryIndexComponent;
 </script>
 
 <style lang="less" scoped>

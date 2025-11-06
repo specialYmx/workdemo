@@ -32,7 +32,7 @@
   import debounce from 'lodash/debounce';
 
   @Component
-  export default class BigSelectComponent extends Vue {
+  class BigSelectComponent extends Vue {
     @Prop({ required: true })
     public text: string | string[] | number | number[];
 
@@ -174,4 +174,5 @@
       }
     }
   }
+  export default BigSelectComponent;
 </script>

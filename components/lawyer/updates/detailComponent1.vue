@@ -14,7 +14,7 @@
   import { KnowledgeDataItem, DocumentViewerData } from '~/model/LawyerModel';
 
   @Component({ name: 'lawyer-updates-detail-components' })
-  export default class LawyerUpdatesDetailComponents extends Vue {
+  class LawyerUpdatesDetailComponents extends Vue {
     // 文档数据
     document: DocumentViewerData = {
       id: '',
@@ -188,6 +188,7 @@
       }
     }
   }
+  export default LawyerUpdatesDetailComponents;
 </script>
 
 <style lang="less">

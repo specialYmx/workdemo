@@ -197,7 +197,7 @@
   } from '~/model/LawyerModel';
 
   @Component({ name: 'lawyer-knowledge-filter-options' })
-  export default class LawyerKnowledgeFilterOptions extends Vue {
+  class LawyerKnowledgeFilterOptions extends Vue {
     @Prop({ required: true }) categoryName!: string;
     @Prop({ required: true }) isAdmin!: boolean;
     @Prop({ required: true }) searchText!: string;
@@ -359,6 +359,7 @@
       // 触发显示导出模态框事件
     }
   }
+  export default LawyerKnowledgeFilterOptions;
 </script>
 
 <style lang="less" scoped>

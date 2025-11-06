@@ -100,7 +100,7 @@
   import { LawyerStoreModule } from '~/store/lawyer';
 
   @Component({ name: 'lawyer-knowledge-index-component' })
-  export default class LawyerKnowledgeIndexComponent extends Vue {
+  class LawyerKnowledgeIndexComponent extends Vue {
     searchText: string = '';
     searchKeyword: string = '';
     searchLoading: boolean = false;
@@ -819,6 +819,7 @@
       }
     }
   }
+  export default LawyerKnowledgeIndexComponent;
 </script>
 
 <style lang="less">

@@ -36,7 +36,7 @@
   import { ChartData, LegendItem, PieChartDataItem } from '~/model/LawyerModel';
 
   @Component({ name: 'source-distribution' })
-  export default class SourceDistribution extends Vue {
+  class SourceDistribution extends Vue {
     @Prop({ type: Object, default: () => ({}) }) chartData!: ChartData;
     @Prop({ type: Array, default: () => [] }) legendItems!: LegendItem[];
     @Prop({ type: Boolean, default: false }) loading!: boolean;
@@ -143,6 +143,7 @@
       };
     }
   }
+  export default SourceDistribution;
 </script>
 
 <style lang="less">

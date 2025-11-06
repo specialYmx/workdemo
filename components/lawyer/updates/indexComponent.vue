@@ -119,7 +119,7 @@
   import { downloadFileWithMessage } from '~/utils/personal';
 
   @Component({ name: 'lawyer-updates-index-component' })
-  export default class LawyerUpdatesIndexComponent extends Vue {
+  class LawyerUpdatesIndexComponent extends Vue {
     currentPage: number = 1;
     pageSize: number = 10;
     loading: boolean = false;
@@ -448,6 +448,7 @@
       return point.substring(colonIndex + 1).trim();
     }
   }
+  export default LawyerUpdatesIndexComponent;
 </script>
 
 <style lang="less">
