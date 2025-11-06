@@ -119,7 +119,7 @@
 
       // 删除条款
       if (item.includes('删除条款：')) {
-        const contentText = item.substring(item.indexOf('删除条款：') + 6).trim();
+        const contentText = item.substring(item.indexOf('删除条款：') + 5).trim();
         const displayMatch = contentText.match(/^(第.+?[章条])/);
         return {
           type: 'delete',
