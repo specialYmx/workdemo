@@ -645,14 +645,12 @@ export type ChangeItem = DocumentChange;
 
 // 文档比较页面数据（复用基础字段）
 export interface DocumentComparePageData extends DocumentCompareBaseFields {
-  originalVersion: string;
-  newVersion: string | number;
   originalContent: string;
   newContent: string;
   modifiedDate?: string;
-  oldFileVersion?: string | number | null;
+  oldFileVersion?: number;
   oldPublishTime?: string | null;
-  newFileVersion?: string | number | null;
+  newFileVersion?: number;
   newPublishTime?: string | null;
   currentMaxFileVersion?: number;
   completed?: string; // AI对比是否完成，"0"表示未完成

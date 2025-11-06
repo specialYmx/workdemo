@@ -31,8 +31,6 @@
       title: '',
       status: 'pending',
       tags: [],
-      originalVersion: '',
-      newVersion: '',
       originalContent: '',
       newContent: '',
       changes: []
@@ -323,14 +321,10 @@
         status: 'pending',
         checkStatus: (checkStatus as string) || '待审核', // 使用路由参数中的审核状态
         tags: [],
-        originalVersion: '',
-        newVersion: '',
         originalContent: '暂无数据',
         newContent: '暂无数据',
         changes: [],
-        oldFileVersion: null,
         oldPublishTime: null,
-        newFileVersion: null,
         newPublishTime: null,
         effectDate: null,
         currentMaxFileVersion: 0
@@ -342,7 +336,7 @@
           id: docId as string
         });
         if (result && (result.oldFileContent || result.newFileContent)) {
-0          // 仅使用分类ID（不再兼容中文名称）
+          // 仅使用分类ID（不再兼容中文名称）
           const tags: string[] = result.categoryId ? [result.categoryId] : [];
 
           // 处理文档数据 - 使用从URL参数获取的标题
@@ -359,8 +353,6 @@
                 : 'pending',
             checkStatus: (checkStatus as string) || '待审核', // 使用路由参数中的审核状态
             tags, // 使用包含一级和二级分类的标签数组
-            originalVersion: '原始版本',
-            newVersion: result.newFileVersion || '修订版本',
             originalContent: result.oldFileContent || '',
             newContent: result.newFileContent || '',
             changes: this.formatChanges(result.checkResult),
@@ -383,8 +375,6 @@
             status: 'pending',
             checkStatus: (checkStatus as string) || '待审核',
             tags: [],
-            originalVersion: '',
-            newVersion: '',
             originalContent: 'error',
             newContent: 'error',
             changes: []
@@ -404,14 +394,10 @@
           status: 'pending',
           checkStatus: (checkStatus as string) || '待审核',
           tags: [],
-          originalVersion: '',
-          newVersion: '',
           originalContent: 'error',
           newContent: 'error',
           changes: [],
-          oldFileVersion: null,
           oldPublishTime: null,
-          newFileVersion: null,
           newPublishTime: null,
           effectDate: null,
           currentMaxFileVersion: 0

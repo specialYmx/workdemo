@@ -52,12 +52,7 @@
         <template slot="action" slot-scope="text, record">
           <div class="lawyer-action-links">
             <a class="lawyer-link-view" @click="viewDetail(record)"> 查看 </a>
-            <template
-              v-if="
-                (record.checkStatus === '待审核' || record.checkStatus === null) &&
-                canReviewItem(record)
-              "
-            >
+            <template v-if="record.checkStatus === '待审核' || record.checkStatus === null">
               <a class="lawyer-link-approve" @click="approveItem(record)"> 通过 </a>
               <a class="lawyer-link-reject" @click="rejectItem(record)"> 驳回 </a>
             </template>
@@ -134,16 +129,6 @@
         已过期: 'lawyer-status-rejected'
       };
       return classMap[status || ''] || 'lawyer-status-pending';
-    }
-
-    // 检查是否可以审核（版本检查和分类ID检查）
-    canReviewItem(record: ToDoRuleItem): boolean {
-      if (record.fileVersion === undefined || record.currentMaxFileVersion === undefined) {
-        return true;
-      }
-      const newVersion: number = Number(record.fileVersion || record.fileVersion || 0);
-      const maxVersion: number = Number(record.currentMaxFileVersion || 0);
-      return newVersion >= maxVersion;
     }
 
     // 格式化时间显示

@@ -9,15 +9,13 @@
   import { DocumentComparePageData, ChangeItem } from '@/model/LawyerModel';
 
   @Component({ name: 'lawyer-update-detail-component' })
-  export default class LawyerUpdateDetailComponent extends Vue {
+  class LawyerUpdateDetailComponent extends Vue {
     // 对比数据
     documentData: DocumentComparePageData = {
       id: '',
       title: '',
       status: 'pending',
       tags: [],
-      originalVersion: '',
-      newVersion: '',
       originalContent: '',
       newContent: '',
       changes: []
@@ -174,14 +172,10 @@
         status: 'pending',
         checkStatus: checkStatus || '待审核',
         tags: [],
-        originalVersion: '',
-        newVersion: '',
         originalContent: content,
         newContent: content,
         changes: [],
-        oldFileVersion: null,
         oldPublishTime: null,
-        newFileVersion: null,
         newPublishTime: null,
         effectDate: null,
         currentMaxFileVersion: 0
@@ -225,8 +219,6 @@
                 ? 'rejected'
                 : 'pending',
             tags,
-            originalVersion: '原始版本',
-            newVersion: result.newFileVersion || '修订版本',
             originalContent: result.oldFileContent || '',
             newContent: result.newFileContent || '',
             changes: this.formatChanges(result.checkResult),
@@ -278,6 +270,7 @@
       this.isDestroyed = true;
     }
   }
+  export default LawyerUpdateDetailComponent;
 </script>
 
 <style lang="less">
