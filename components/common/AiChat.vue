@@ -109,7 +109,7 @@
   import { ChatListType } from '~/model/chatModel';
 
   @Component
-  class AiChatComponent extends Vue {
+   class AiChatComponent extends Vue {
     @Prop({ default: 'AI问答' })
     public title: string;
 
@@ -364,7 +364,7 @@
       }
     }
   }
-  export default AiChatComponent;
+  export default AiChatComponent
 </script>
 <style lang="less" scoped>
   .audio-wrapper {

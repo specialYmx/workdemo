@@ -167,11 +167,11 @@
           // 根据周期和具体值生成不同的X轴标签
           if (this.trendChartPeriod === 'month') {
             // 选择了月度+具体月份：显示该月的每一天
-            const daysInMonth = new Date(
-              new Date().getFullYear(),
-              this.trendChartValue - 1,
-              0
-            ).getDate();
+            const rawMonth = Number(this.trendChartValue);
+            const month = Number.isFinite(rawMonth)
+              ? Math.min(12, Math.max(1, rawMonth))
+              : new Date().getMonth() + 1;
+            const daysInMonth = new Date(new Date().getFullYear(), month, 0).getDate();
             const actualLength = Math.min(dataLength, daysInMonth);
             for (let i = 1; i <= actualLength; i++) {
               xAxisData.push(`${i}日`);
@@ -348,9 +348,9 @@
         });
 
         // 处理新的响应结构
-        if (response && response.success && response.data && response.data.data) {
+        if (response?.success && response?.data?.data) {
           this.latestUpdates = response.data.data;
-        } else if (response && Array.isArray(response)) {
+        } else if (Array.isArray(response)) {
           // 兼容旧的数组格式返回
           this.latestUpdates = response.slice(0, 5);
         } else {
