@@ -94,11 +94,12 @@
                 @click="onEnter(textarea)"
               />
               <!-- 发送
-              </a-button> -->
+                </a-button> -->
             </a-tooltip>
           </a-col>
         </a-row>
       </a-row>
+      <div v-if="!oldFooterStyle" class="tx-c tip">本回答由AI生成，内容仅供参考，请仔细甄别。</div>
     </div>
   </a-card>
 </template>
@@ -265,7 +266,6 @@
         const accessToken = localStorage.getItem('accessToken');
         const token = accessToken && JSON.parse(accessToken)[basePath];
         this.abortController = new AbortController();
-
         const response = await fetch(`${this.$axios.BASE_URL}${this.fetchUrl}`, {
           method: 'POST', // 这里明确设置 POST 方法
           headers: {
@@ -370,7 +370,11 @@
   .audio-wrapper {
     height: 100%;
   }
-
+  .tip {
+    line-height: normal;
+    font-size: 12px;
+    color: #7d828c;
+  }
   // 滚动条
   ::-webkit-scrollbar {
     position: relative;
@@ -381,29 +385,23 @@
     position: relative;
     background-color: #f1f1f1;
   }
-
   ::-webkit-scrollbar-thumb {
     position: relative;
     background-color: rgb(201, 201, 201);
     border-radius: 16px;
   }
-
   .noColor {
     background: rgba(232, 232, 232, 1);
-
     :deep(p) {
       margin-bottom: 4px;
     }
   }
-
   :deep(.ant-card-head) {
     padding: 0 0 0 10px;
-
     .ant-card-head-title {
       padding: 0;
     }
   }
-
   :deep(.ant-card-body) {
     padding: 0;
     height: calc(100% - 50px);
@@ -416,14 +414,12 @@
   .chatList {
     overflow: hidden;
     position: relative;
-
     // height: calc(100% - 45px);
     .chat-scroll {
       position: relative;
       height: 100%;
       overflow: hidden;
       padding: 0 10px;
-
       > div:first-child {
         margin-top: 10px;
       }
@@ -432,7 +428,6 @@
     .flex {
       line-height: normal;
       margin: 0 0 10px 0;
-
       :deep(.ant-avatar) {
         flex-shrink: 0;
       }
@@ -447,7 +442,6 @@
     display: inline-block;
     padding: 6px;
     border-radius: 8px;
-
     .markdown-body:deep(.github-markdown-body) {
       padding: 0 !important;
     }
@@ -457,12 +451,10 @@
     display: flex;
     line-height: 30px;
     padding: 0 10px;
-
     .sendButton {
       margin-left: 6px;
     }
   }
-
   .reportFooter {
     margin-left: 4px;
     margin-right: 4px;
@@ -471,7 +463,6 @@
     border: 1px solid #ebeef2;
     background-color: #f3f4f6;
     box-sizing: border-box;
-
     /deep/textarea.ant-input {
       border: none;
       background: none;
@@ -479,7 +470,6 @@
       overflow-y: scroll !important;
       height: 50px !important;
     }
-
     .reportFooterButton {
       text-align: right;
 
@@ -488,19 +478,16 @@
         background: rgba(0, 122, 255, 0.2) !important;
         color: #4d6bfe !important;
       }
-
       :deep(.ant-btn-round.ant-btn-sm) {
         border-color: #6f6f6f;
         color: #a1a1a1;
         font-size: 12px;
       }
-
       :deep(.ant-btn-icon-only.ant-btn-sm) {
         font-size: 12px;
       }
     }
   }
-
   .reverse {
     flex-direction: row-reverse;
   }
