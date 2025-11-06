@@ -48,6 +48,7 @@
                 :src="document.iframeUrl"
                 class="lawyer-iframe-preview"
                 frameborder="0"
+                sandbox="allow-same-origin allow-scripts"
               ></iframe>
             </template>
             <!-- 否则使用 markdown 预览，并包含文本搜索功能 -->
@@ -727,14 +728,16 @@
         if (hideLoading) {
           hideLoading();
         }
-
-        if (result) {
-          downloadFileWithMessage(result, {
-            fileName: `${this.document.title}.${fileExtension}`,
-            showMessage: true,
-            messageService: this.$message
-          });
+        if (!(result instanceof Blob)) {
+          this.$message.error('下载失败，文件数据无效');
+          return;
         }
+
+        downloadFileWithMessage(result, {
+          fileName: `${this.document.title}.${fileExtension}`,
+          showMessage: true,
+          messageService: this.$message
+        });
       } catch (error) {
         if (hideLoading) {
           hideLoading();
