@@ -38,13 +38,7 @@
       </a-button>
       <!-- 新增按钮 - 只有管理员可见 -->
       <!-- v-if="isAdmin" -->
-      <a-button
-      
-        type="primary"
-        icon="plus"
-        size="large"
-        @click="showAddDocumentModal"
-      >
+      <a-button type="primary" icon="plus" size="large" @click="showAddDocumentModal">
         新增文档
       </a-button>
     </div>
@@ -129,7 +123,7 @@
       <!-- 排序方式 -->
       <div class="lawyer-filter-group">
         <a-select :value="sortOrder" placeholder="排序方式" @change="onSortOrderChange">
-          <a-select-option value=""> 按相关度排序  </a-select-option>
+          <a-select-option value=""> 按相关度排序 </a-select-option>
           <a-select-option value="desc"> 按发布日期 (新→旧) </a-select-option>
           <a-select-option value="asc"> 按发布日期 (旧→新) </a-select-option>
         </a-select>
