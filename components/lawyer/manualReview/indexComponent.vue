@@ -133,6 +133,10 @@
     // 表格筛选状态
     tableFilters: { [key: string]: string[] } = {};
 
+    // 排序状态（仅允许一列生效）
+    createdTimeSort: 'asc' | 'desc' | '' = '';
+    effectDateSort: 'asc' | 'desc' | '' = '';
+
     // 组件销毁标志
     private isDestroyed: boolean = false;
     // 初始化标志，避免重复加载数据
@@ -166,7 +170,7 @@
       };
     }
 
-    // 表格列配置（使用 any 以避免对 CommonModel.ts 的依赖）
+    // 表格列配置（服务端排序）
     get columns(): CustomColumn[] {
       return [
         {
@@ -187,7 +191,9 @@
         {
           title: '来源',
           dataIndex: 'legalSource',
-          key: 'legalSource'
+          key: 'legalSource',
+          width: 150,
+          ellipsis: true
         },
         {
           title: '提交时间',
@@ -195,11 +201,12 @@
           key: 'createdTime',
           width: 160,
           scopedSlots: { customRender: 'createdTime' },
-          sorter: (a: ToDoRuleItem, b: ToDoRuleItem) => {
-            const timeA = a.createdTime ? new Date(a.createdTime).getTime() : 0;
-            const timeB = b.createdTime ? new Date(b.createdTime).getTime() : 0;
-            return timeA - timeB;
-          }
+          sorter: true,
+          sortOrder: this.createdTimeSort
+            ? this.createdTimeSort === 'asc'
+              ? 'ascend'
+              : 'descend'
+            : null
         },
         {
           title: '施行日期',
@@ -207,18 +214,19 @@
           key: 'effectDate',
           width: 160,
           scopedSlots: { customRender: 'effectDate' },
-          sorter: (a: ToDoRuleItem, b: ToDoRuleItem) => {
-            const timeA = a.effectDate ? new Date(a.effectDate).getTime() : 0;
-            const timeB = b.effectDate ? new Date(b.effectDate).getTime() : 0;
-            return timeA - timeB;
-          }
+          sorter: true,
+          sortOrder: this.effectDateSort
+            ? this.effectDateSort === 'asc'
+              ? 'ascend'
+              : 'descend'
+            : null
         },
         {
           title: '状态',
           dataIndex: 'checkStatus',
           key: 'checkStatus',
           scopedSlots: { customRender: 'status' },
-          width: 120,
+          width: 100,
           filters: [
             { text: '待审核', value: '待审核' },
             { text: '已通过', value: '已通过' },
@@ -234,7 +242,7 @@
             customRender: 'action'
           },
           title: '操作',
-          width: 180
+          width: 200
         }
       ];
     }
@@ -393,16 +401,16 @@
       this.selectedRows = [];
 
       try {
-        // 构建查询参数，包含分页信息
+        // 构建查询参数，包含分页信息 + 排序（仅传递当前生效的排序字段）
         const params = {
           condition: this.searchText || '',
           checkStatus: this.getApiCheckStatus(),
           category: this.filterType || '',
           page: this.currentPagination.current,
-          pageSize: this.currentPagination.pageSize
+          pageSize: this.currentPagination.pageSize,
+          createdTimeSort: this.createdTimeSort,
+          effectDateSort:this.effectDateSort
         };
-
-        console.log('查询参数:', params);
 
         // 调用后端分页接口
         const response = await this.$roadLawyerService.getRuleList(params, 'management');
@@ -484,7 +492,8 @@
     // 表格变化事件
     async handleTableChange(
       pagination: CustomPagination,
-      filters: Record<string, string[]>
+      filters: Record<string, string[]>,
+      sorter?: { order?: 'ascend' | 'descend'; columnKey?: string; field?: string }
     ): Promise<void> {
       // 更新分页信息
       this.currentPagination = {
@@ -495,6 +504,34 @@
 
       // 更新筛选状态
       this.tableFilters = filters || {};
+
+      // 更新排序状态（仅允许一列排序）
+      let nextCreatedTimeSort: 'asc' | 'desc' | '' = '';
+      let nextEffectDateSort: 'asc' | 'desc' | '' = '';
+
+      if (sorter && sorter.order) {
+        const order: 'asc' | 'desc' = sorter.order === 'ascend' ? 'asc' : 'desc';
+        const columnKey = sorter.columnKey || sorter.field;
+
+        if (columnKey === 'createdTime') {
+          nextCreatedTimeSort = order;
+          nextEffectDateSort = '';
+        } else if (columnKey === 'effectDate') {
+          nextEffectDateSort = order;
+          nextCreatedTimeSort = '';
+        }
+      }
+
+      const sortChanged =
+        this.createdTimeSort !== nextCreatedTimeSort || this.effectDateSort !== nextEffectDateSort;
+
+      this.createdTimeSort = nextCreatedTimeSort;
+      this.effectDateSort = nextEffectDateSort;
+
+      // 排序变化时重置到第 1 页
+      if (sortChanged) {
+        this.currentPagination.current = 1;
+      }
 
       // 重新加载数据
       await this.loadDocuments();
