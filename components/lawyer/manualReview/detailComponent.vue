@@ -10,6 +10,7 @@
       @submit-review="handleReviewSubmit"
       @update-document="handleUpdateDocument"
       @rule-selected="handleRuleSelected"
+      @rule-clear="handleRuleClear"
     />
   </div>
 </template>
@@ -105,6 +106,43 @@
         if (this.isDestroyed) return;
         console.error('生成对比失败:', error);
         this.$message.error('生成对比失败，请重试');
+      } finally {
+        if (!this.isDestroyed) {
+          this.comparisonLoading = false;
+        }
+      }
+    }
+
+    // 处理规则清空
+    async handleRuleClear(): Promise<void> {
+      const currentDocId = this.documentData.id;
+      if (!currentDocId) {
+        this.$message.error('当前文档ID缺失');
+        return;
+      }
+
+      try {
+        this.comparisonLoading = true;
+        this.$message.info('正在清除对比结果，请稍候...');
+
+        // 调用清除对比接口
+        const success = await this.$roadLawyerService.deleteComparison({
+          id: currentDocId
+        });
+
+        if (this.isDestroyed) return;
+
+        if (success) {
+          // 清除成功后，重新加载文档数据恢复到原始对比状态
+          await this.fetchDocumentData();
+          this.$message.success('对比结果已清除');
+        } else {
+          this.$message.error('清除对比结果失败');
+        }
+      } catch (error) {
+        if (this.isDestroyed) return;
+        console.error('清除对比失败:', error);
+        this.$message.error('清除对比失败，请重试');
       } finally {
         if (!this.isDestroyed) {
           this.comparisonLoading = false;
@@ -303,9 +341,15 @@
         };
       }
 
-      // 未匹配的项
+      // 未匹配的项 - 直接显示原始内容
       console.warn('无法解析的变更项:', item);
-      return null;
+      return {
+        type: 'info',
+        position: '',
+        sectionDisplay: '原始数据',
+        oldText: '',
+        newText: item
+      };
     }
 
     // 获取文档对比数据

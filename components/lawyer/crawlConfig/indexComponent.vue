@@ -194,11 +194,11 @@
                 :max-tag-text-length="8"
               />
             </a-form-model-item>
-            <a-form-model-item label="无效关键词" prop="invalidKeywords">
+            <a-form-model-item label="屏蔽词" prop="invalidKeywords">
               <a-select
                 v-model="formData.invalidKeywords"
                 mode="tags"
-                placeholder="请输入无效关键词，按回车添加"
+                placeholder="请输入屏蔽词，按回车添加"
                 style="width: 100%"
                 :max-tag-count="3"
                 :max-tag-text-length="8"
@@ -279,7 +279,7 @@
       maxPageLimit: 100,
       searchTemplate: '',
       keywords: [] as string[],
-      invalidKeywords: [] as string[], // 无效关键词
+      invalidKeywords: [] as string[], // 屏蔽词
       columnName: [] as string[], // 栏目名
       remarks: '',
       enabled: true,
@@ -338,7 +338,7 @@
         width: 180
       },
       {
-        title: '无效关键词',
+        title: '屏蔽词',
         dataIndex: 'invalidKeywords',
         key: 'invalidKeywords',
         scopedSlots: { customRender: 'keywords' },

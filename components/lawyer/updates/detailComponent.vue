@@ -154,9 +154,15 @@
         };
       }
 
-      // 未匹配的项
+      // 未匹配的项 - 直接显示原始内容
       console.warn('无法解析的变更项:', item);
-      return null;
+      return {
+        type: 'info',
+        position: '',
+        sectionDisplay: '原始数据',
+        oldText: '',
+        newText: item
+      };
     }
 
     // 创建基础文档数据结构

@@ -896,5 +896,17 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
       console.error('Error generating comparison:', error);
       throw error;
     }
+  },
+
+  async deleteComparison(params: { id: string }): Promise<boolean> {
+    try {
+      const res = await $axios.post(api.lawyer.deleteComparison, null, {
+        params
+      });
+      return res.data?.success || false;
+    } catch (error) {
+      console.error('Error deleting comparison:', error);
+      return false;
+    }
   }
 });

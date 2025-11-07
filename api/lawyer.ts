@@ -49,5 +49,6 @@
 
   // ==================== AI对比相关接口 ====================
   getRuleDetailList: '/legal/getRuleDetailList', // 获取规则详情列表
-  generateComparison: '/legal/generateComparison' // 生成对比结果
+  generateComparison: '/legal/generateComparison', // 生成对比结果
+  deleteComparison: '/legal/deleteComparison' // 清除对比结果
 } as Record<string, string>;

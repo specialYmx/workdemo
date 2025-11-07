@@ -415,6 +415,7 @@ export interface RoadLawyerService {
   getPreviewUrl: (params: { id: string }) => Promise<string>;
   getRuleDetailList: () => Promise<RuleDetailItem[]>;
   generateComparison: (params: { oldId: string; newId: string }) => Promise<string>;
+  deleteComparison: (params: { id: string }) => Promise<boolean>;
 
   // ==================== 人工审核相关方法 ====================
   approveToDoRule: (params: ApprovalParams) => Promise<boolean>;

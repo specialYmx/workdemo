@@ -59,7 +59,10 @@
               v-model="selectedRuleId"
               placeholder="选择其他制度文档对比"
               :loading="ruleLoading"
-              :disabled="comparisonLoading || isAiComparisonNotCompleted"
+              :disabled="
+                comparisonLoading || isAiComparisonNotCompleted || document.checkStatus !== '待审核'
+              "
+              :allow-clear="!!selectedRuleId"
               show-search
               option-filter-prop="children"
               style="width: 280px !important"
@@ -104,9 +107,12 @@
               <!-- 处理特殊信息类型 -->
               <div v-if="change.type === 'info'" class="info-message">
                 <a-icon type="info-circle" class="info-icon" />
-                <span v-if="change.position === '无旧版文件'"> 无旧版文档数据 </span>
-                <span v-else-if="change.position === '无新版文件'"> 无新版文档数据 </span>
-                <span v-else>{{ change.position }}</span>
+                <div v-if="change.position === '无旧版文件'">无旧版文档数据</div>
+                <div v-else-if="change.position === '无新版文件'">无新版文档数据</div>
+                <div v-else>
+                  <div class="info-title">{{ change.position }}</div>
+                  <div v-if="change.newText" class="info-content">{{ change.newText }}</div>
+                </div>
               </div>
 
               <!-- 正常变更内容 -->
@@ -553,9 +559,15 @@
       this.tagEditVisible = false;
     }
 
-    // 处理规则选择变更
-    handleRuleChange(ruleId: string): void {
-      this.emitRuleSelected(ruleId);
+    // 处理规则选择变更（包含清空逻辑）
+    handleRuleChange(ruleId: string | undefined): void {
+      if (ruleId === undefined) {
+        // 清空时触发清空事件（因为allow-clear已经控制了按钮显示，所以能触发说明之前有值）
+        this.emitRuleClear();
+      } else {
+        // 选择规则时触发选择事件
+        this.emitRuleSelected(ruleId);
+      }
     }
 
     // Emit 装饰器方法
@@ -602,6 +614,11 @@
     @Emit('rule-selected')
     emitRuleSelected(ruleId: string): string {
       return ruleId;
+    }
+
+    @Emit('rule-clear')
+    emitRuleClear(): void {
+      // 无需返回值
     }
   }
 
@@ -820,14 +837,13 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 12px 16px;
-      background-color: #f6ffed;
-      border: 1px solid #b7eb8f;
+      padding: 4px;
+      background-color: #fffbe6;
       border-radius: 6px;
-      color: #52c41a;
+      border: 1px solid #ffe58f;
       .info-icon {
         font-size: 16px;
-        color: #52c41a;
+        color: #faad14;
       }
     }
 
