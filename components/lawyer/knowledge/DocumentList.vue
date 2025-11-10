@@ -218,9 +218,16 @@
     }
 
     .lawyer-document-icon {
-      font-size: 24px;
+      width: 40px;
+      height: 40px;
+      background: rgba(var(--lawyer-primary-rgb), 0.1);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      color: var(--lawyer-primary);
       flex-shrink: 0;
-      margin-top: 4px;
     }
 
     .lawyer-document-main-content {
@@ -270,8 +277,11 @@
       color: var(--lawyer-text-secondary);
       line-height: 1.5;
       display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .lawyer-document-footer {
