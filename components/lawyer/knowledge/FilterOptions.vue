@@ -45,7 +45,7 @@
 
     <div class="lawyer-filter-options">
       <!-- 时效性选择器 -->
-      <div class="lawyer-filter-group">
+      <div v-if="filterConfig.showTimeliness" class="lawyer-filter-group">
         <a-select
           :value="timelinessFilter || undefined"
           style="width: 100%"
@@ -63,7 +63,7 @@
         </a-select>
       </div>
       <!-- 效力位阶选择器 -->
-      <div class="lawyer-filter-group">
+      <div v-if="filterConfig.showEffectivenessLevel" class="lawyer-filter-group">
         <a-select
           :value="effectivenessLevelFilter || undefined"
           style="width: 100%"
@@ -81,8 +81,9 @@
         </a-select>
       </div>
       <!-- 分类级联选择器 -->
-      <div class="lawyer-filter-group">
+      <div v-if="filterConfig.showCategory" class="lawyer-filter-group">
         <a-cascader
+          class="lawyer-category-cascader"
           :value="topicCategory"
           change-on-select
           :options="topicCategoryOptions"
@@ -92,7 +93,7 @@
         />
       </div>
       <!-- 来源筛选 -->
-      <div class="lawyer-filter-group">
+      <div v-if="filterConfig.showSource" class="lawyer-filter-group">
         <a-select
           :value="filterSource || undefined"
           style="width: 100%"
@@ -110,7 +111,7 @@
         </a-select>
       </div>
       <!-- 发布时间筛选 -->
-      <div class="lawyer-filter-group">
+      <div v-if="filterConfig.showPublishDate" class="lawyer-filter-group">
         <a-date-picker
           :value="publishDate"
           placeholder="发布时间"
@@ -121,7 +122,7 @@
         />
       </div>
       <!-- 排序方式 -->
-      <div class="lawyer-filter-group">
+      <div v-if="filterConfig.showSortOrder" class="lawyer-filter-group">
         <a-select :value="sortOrder" placeholder="排序方式" @change="onSortOrderChange">
           <a-select-option value=""> 按相关度排序 </a-select-option>
           <a-select-option value="desc"> 按发布日期 (新→旧) </a-select-option>
@@ -130,7 +131,7 @@
       </div>
 
       <!-- 发文字号 -->
-      <div class="lawyer-filter-group">
+      <div v-if="filterConfig.showDocumentNumber" class="lawyer-filter-group">
         <a-input
           :value="documentNumberFilter"
           placeholder="发文字号"
@@ -141,7 +142,7 @@
         />
       </div>
       <!-- 责任部门 -->
-      <div class="lawyer-filter-group">
+      <div v-if="filterConfig.showDepartment" class="lawyer-filter-group">
         <a-select
           :value="departmentFilter || undefined"
           style="width: 100%"
@@ -164,7 +165,7 @@
         </a-select>
       </div>
       <!-- 是否附录 -->
-      <div class="lawyer-filter-group">
+      <div v-if="filterConfig.showAppendix" class="lawyer-filter-group">
         <a-select
           :value="isAppendixFilter || undefined"
           style="width: 100%"
@@ -208,6 +209,69 @@
     @Prop({ required: true }) websiteOptions!: WebsiteOption[];
     @Prop({ required: true }) topicCategoryOptions!: CascaderOption[];
     @Prop({ required: true }) departmentOptions!: DepartmentOption[];
+
+    // 根据当前路由判断页面类型，返回筛选条件显示配置
+    get filterConfig(): {
+      showTimeliness: boolean;
+      showEffectivenessLevel: boolean;
+      showCategory: boolean;
+      showSource: boolean;
+      showPublishDate: boolean;
+      showSortOrder: boolean;
+      showDocumentNumber: boolean;
+      showDepartment: boolean;
+      showAppendix: boolean;
+    } {
+      const routePath = this.$route.path;
+
+      // 新规解读、处罚汇编、研究集锦、法规合规季刊：只显示"分类"、"发布时间"、"排序方式"
+      if (
+        routePath.includes('/newRegulationInterpretation') ||
+        routePath.includes('/punishmentCompilation') ||
+        routePath.includes('/researchCollection') ||
+        routePath.includes('/legalComplianceQuarterly')
+      ) {
+        return {
+          showTimeliness: false,
+          showEffectivenessLevel: false,
+          showCategory: true,
+          showSource: false,
+          showPublishDate: true,
+          showSortOrder: true,
+          showDocumentNumber: false,
+          showDepartment: false,
+          showAppendix: false
+        };
+      }
+
+      // 制度库：去掉"时效性"、"效力位阶"、"来源"
+      if (routePath.includes('/institutionLibrary')) {
+        return {
+          showTimeliness: false,
+          showEffectivenessLevel: false,
+          showCategory: true,
+          showSource: false,
+          showPublishDate: true,
+          showSortOrder: true,
+          showDocumentNumber: true,
+          showDepartment: true,
+          showAppendix: true
+        };
+      }
+
+      // 法规汇编、大家智库：保持所有筛选条件
+      return {
+        showTimeliness: true,
+        showEffectivenessLevel: true,
+        showCategory: true,
+        showSource: true,
+        showPublishDate: true,
+        showSortOrder: true,
+        showDocumentNumber: true,
+        showDepartment: true,
+        showAppendix: true
+      };
+    }
 
     // 发文字号输入处理 - 仅更新值，不触发搜索
     @Emit('update:documentNumberFilter')
@@ -406,8 +470,11 @@
     margin-bottom: 24px;
 
     .lawyer-filter-group {
-      flex: 1;
-      flex-basis: 200px;
+      min-width: 200px;
+    }
+
+    .lawyer-category-cascader {
+      width: 320px;
     }
   }
 </style>

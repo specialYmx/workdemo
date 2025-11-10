@@ -92,6 +92,8 @@
         :width="1000"
         ok-text="确认"
         cancel-text="取消"
+        :dialog-style="{ top: '20px' }"
+        class="modalBodyH152"
         :get-container="() => $refs.documentViewerContainer"
         @ok="handleEditConfirm"
         @cancel="handleEditCancel"
@@ -100,112 +102,115 @@
           <a-form-model
             ref="form"
             :model="formData"
-            :label-col="{ span: 8 }"
-            :wrapper-col="{ span: 16 }"
+            :label-col="{ span: 5 }"
+            :wrapper-col="{ span: 19 }"
           >
-            <a-row :gutter="16">
-              <a-col :span="12">
-                <!-- 时效性 -->
-                <a-form-model-item label="时效性" prop="timeLiness">
-                  <a-select v-model="formData.timeLiness" placeholder="请选择时效性">
-                    <a-select-option value="待生效">待生效</a-select-option>
-                    <a-select-option value="已施行">已施行</a-select-option>
-                    <a-select-option value="已修订">已修订</a-select-option>
-                    <a-select-option value="已废止">已废止</a-select-option>
-                  </a-select>
-                </a-form-model-item>
+            <!-- 时效性 -->
+            <a-form-model-item v-if="fieldConfig.showTimeliness" label="时效性" prop="timeLiness">
+              <a-select v-model="formData.timeLiness" placeholder="请选择时效性">
+                <a-select-option value="待生效">待生效</a-select-option>
+                <a-select-option value="已施行">已施行</a-select-option>
+                <a-select-option value="已修订">已修订</a-select-option>
+                <a-select-option value="已废止">已废止</a-select-option>
+              </a-select>
+            </a-form-model-item>
 
-                <!-- 分类 -->
-                <a-form-model-item label="分类" prop="categoryPath">
-                  <a-cascader
-                    v-model="formData.categoryPath"
-                    :options="tagOptions"
-                    placeholder="请选择分类"
-                    :show-search="true"
-                    :change-on-select="true"
-                    style="width: 100%"
-                  />
-                </a-form-model-item>
+            <!-- 分类 -->
+            <a-form-model-item v-if="fieldConfig.showCategory" label="分类" prop="categoryPath">
+              <a-cascader
+                v-model="formData.categoryPath"
+                :options="tagOptions"
+                placeholder="请选择分类"
+                :show-search="true"
+                :change-on-select="true"
+                style="width: 100%"
+              />
+            </a-form-model-item>
 
-                <!-- 发布时间 -->
-                <a-form-model-item label="发布时间" prop="publishDate">
-                  <a-date-picker
-                    v-model="formData.publishDate"
-                    style="width: 100%"
-                    placeholder="请选择发布时间"
-                    format="YYYY-MM-DD"
-                    value-format="YYYY-MM-DD"
-                  />
-                </a-form-model-item>
+            <!-- 发布时间 -->
+            <a-form-model-item
+              v-if="fieldConfig.showPublishDate"
+              label="发布时间"
+              prop="publishDate"
+            >
+              <a-date-picker
+                v-model="formData.publishDate"
+                style="width: 100%"
+                placeholder="请选择发布时间"
+                format="YYYY-MM-DD"
+                value-format="YYYY-MM-DD"
+              />
+            </a-form-model-item>
 
-                <!-- 发文字号 -->
-                <a-form-model-item label="发文字号" prop="documentNo">
-                  <a-input v-model="formData.documentNo" placeholder="请输入发文字号" />
-                </a-form-model-item>
-                <!-- 是否附录 -->
-                <a-form-model-item label="是否附录" prop="appendix">
-                  <a-switch v-model="formData.appendix" />
-                  <span style="margin-left: 8px; color: #666; font-size: 12px">
-                    {{ formData.appendix ? '是' : '否' }}
-                  </span>
-                </a-form-model-item>
-              </a-col>
-              <a-col :span="12">
-                <!-- 效力位阶 -->
-                <a-form-model-item label="效力位阶" prop="effectivenessLevel">
-                  <a-select v-model="formData.effectivenessLevel" placeholder="请选择效力位阶">
-                    <a-select-option value="法律法规">法律法规</a-select-option>
-                    <a-select-option value="部门规章规范性文件">部门规章规范性文件</a-select-option>
-                    <a-select-option value="自律规则">自律规则</a-select-option>
-                    <a-select-option value="其他">其他</a-select-option>
-                  </a-select>
-                </a-form-model-item>
+            <!-- 发文字号 -->
+            <a-form-model-item v-if="fieldConfig.showDocumentNo" label="发文字号" prop="documentNo">
+              <a-input v-model="formData.documentNo" placeholder="请输入发文字号" />
+            </a-form-model-item>
+            <!-- 是否附录 -->
+            <a-form-model-item v-if="fieldConfig.showAppendix" label="是否附录" prop="appendix">
+              <a-switch v-model="formData.appendix" />
+              <span style="margin-left: 8px; color: #666; font-size: 12px">
+                {{ formData.appendix ? '是' : '否' }}
+              </span>
+            </a-form-model-item>
 
-                <!-- 来源 -->
-                <a-form-model-item label="来源" prop="legalSource">
-                  <a-select v-model="formData.legalSource" placeholder="请选择来源">
-                    <a-select-option
-                      v-for="option in websiteOptions"
-                      :key="option.value"
-                      :value="option.value"
-                    >
-                      {{ option.label }}
-                    </a-select-option>
-                  </a-select>
-                </a-form-model-item>
+            <!-- 效力位阶 -->
+            <a-form-model-item
+              v-if="fieldConfig.showEffectivenessLevel"
+              label="效力位阶"
+              prop="effectivenessLevel"
+            >
+              <a-select v-model="formData.effectivenessLevel" placeholder="请选择效力位阶">
+                <a-select-option value="法律法规">法律法规</a-select-option>
+                <a-select-option value="部门规章规范性文件">部门规章规范性文件</a-select-option>
+                <a-select-option value="自律规则">自律规则</a-select-option>
+                <a-select-option value="其他">其他</a-select-option>
+              </a-select>
+            </a-form-model-item>
 
-                <!-- 生效时间 -->
-                <a-form-model-item label="生效时间" prop="effectDate">
-                  <a-date-picker
-                    v-model="formData.effectDate"
-                    style="width: 100%"
-                    placeholder="请选择生效时间"
-                    format="YYYY-MM-DD"
-                    value-format="YYYY-MM-DD"
-                  />
-                </a-form-model-item>
+            <!-- 来源 -->
+            <a-form-model-item v-if="fieldConfig.showSource" label="来源" prop="legalSource">
+              <a-select v-model="formData.legalSource" placeholder="请选择来源">
+                <a-select-option
+                  v-for="option in websiteOptions"
+                  :key="option.value"
+                  :value="option.value"
+                >
+                  {{ option.label }}
+                </a-select-option>
+              </a-select>
+            </a-form-model-item>
 
-                <!-- 责任部门 -->
-                <a-form-model-item label="责任部门" prop="department">
-                  <a-select
-                    v-model="formData.department"
-                    mode="multiple"
-                    placeholder="请选择责任部门"
-                    :allow-clear="true"
-                    :max-tag-count="2"
-                    max-tag-placeholder="..."
-                  >
-                    <a-select-option
-                      v-for="option in departmentOptions"
-                      :key="option.id"
-                      :value="option.value"
-                    >
-                      {{ option.label }}
-                    </a-select-option>
-                  </a-select>
-                </a-form-model-item>
-              </a-col>
-            </a-row>
+            <!-- 生效时间 -->
+            <a-form-model-item v-if="fieldConfig.showEffectDate" label="生效时间" prop="effectDate">
+              <a-date-picker
+                v-model="formData.effectDate"
+                style="width: 100%"
+                placeholder="请选择生效时间"
+                format="YYYY-MM-DD"
+                value-format="YYYY-MM-DD"
+              />
+            </a-form-model-item>
+
+            <!-- 责任部门 -->
+            <a-form-model-item v-if="fieldConfig.showDepartment" label="责任部门" prop="department">
+              <a-select
+                v-model="formData.department"
+                mode="multiple"
+                placeholder="请选择责任部门"
+                :allow-clear="true"
+                :max-tag-count="2"
+                max-tag-placeholder="..."
+              >
+                <a-select-option
+                  v-for="option in departmentOptions"
+                  :key="option.id"
+                  :value="option.value"
+                >
+                  {{ option.label }}
+                </a-select-option>
+              </a-select>
+            </a-form-model-item>
           </a-form-model>
         </div>
       </a-modal>
@@ -411,6 +416,72 @@
           children: this.convertToCascaderOptions(category.children || [])
         })
       );
+    }
+
+    // 根据当前路由判断页面类型，返回表单字段显示配置
+    get fieldConfig(): {
+      showTimeliness: boolean;
+      showEffectivenessLevel: boolean;
+      showCategory: boolean;
+      showSource: boolean;
+      showPublishDate: boolean;
+      showEffectDate: boolean;
+      showDocumentNo: boolean;
+      showDepartment: boolean;
+      showAppendix: boolean;
+    } {
+      const routePath = this.$route.path;
+      // 优先从路由参数获取来源页面信息
+      const sourcePath = this.$route.query.source as string;
+      const finalPath = sourcePath || routePath;
+
+      // 新规解读、处罚汇编、研究集锦、法规合规季刊：只显示"分类"、"发布时间"
+      if (
+        finalPath.includes('/newRegulationInterpretation') ||
+        finalPath.includes('/punishmentCompilation') ||
+        finalPath.includes('/researchCollection') ||
+        finalPath.includes('/legalComplianceQuarterly')
+      ) {
+        return {
+          showTimeliness: false,
+          showEffectivenessLevel: false,
+          showCategory: true,
+          showSource: false,
+          showPublishDate: true,
+          showEffectDate: false,
+          showDocumentNo: false,
+          showDepartment: false,
+          showAppendix: false
+        };
+      }
+
+      // 制度库：去掉"时效性"、"效力位阶"、"来源"
+      if (finalPath.includes('/institutionLibrary')) {
+        return {
+          showTimeliness: false,
+          showEffectivenessLevel: false,
+          showCategory: true,
+          showSource: false,
+          showPublishDate: true,
+          showEffectDate: true,
+          showDocumentNo: true,
+          showDepartment: true,
+          showAppendix: true
+        };
+      }
+
+      // 法规汇编、大家智库：保持所有字段
+      return {
+        showTimeliness: true,
+        showEffectivenessLevel: true,
+        showCategory: true,
+        showSource: true,
+        showPublishDate: true,
+        showEffectDate: true,
+        showDocumentNo: true,
+        showDepartment: true,
+        showAppendix: true
+      };
     }
 
     // 文档元数据项
@@ -696,10 +767,6 @@
 
         if (hideLoading) {
           hideLoading();
-        }
-        if (!(result instanceof Blob)) {
-          this.$message.error('下载失败，文件数据无效');
-          return;
         }
 
         downloadFileWithMessage(result, {
