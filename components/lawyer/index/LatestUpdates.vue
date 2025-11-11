@@ -98,9 +98,10 @@
         return '暂无详细描述';
       }
 
-      return item.fileContent.length > 200
-        ? item.fileContent.substring(0, 200) + '...'
-        : item.fileContent;
+      // 移除Markdown格式的图片链接
+      const processed = item.fileContent.replace(/!\[.*?\]\(.*?\)/g, '');
+
+      return processed.length > 200 ? processed.substring(0, 200) + '...' : processed;
     }
 
     // 获取更新标签

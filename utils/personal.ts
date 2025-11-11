@@ -77,7 +77,7 @@ export const downloadFileWithMessage = (
         if (matches && matches[1]) {
           const backendFileName = decodeURI(matches[1].replace(/['"]/g, '')).trim();
           // 检查后端返回的文件名是否有效（不为空、null、undefined等）
-          if (!backendFileName) {
+          if (backendFileName) {
             fileName = backendFileName;
           }
         }

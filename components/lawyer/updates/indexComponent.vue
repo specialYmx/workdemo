@@ -202,7 +202,10 @@
         return '暂无详细描述';
       }
 
-      return fileContent.length > 200 ? fileContent.substring(0, 200) + '...' : fileContent;
+      // 移除Markdown格式的图片链接
+      const processed = fileContent.replace(/!\[.*?\]\(.*?\)/g, '');
+
+      return processed.length > 200 ? processed.substring(0, 200) + '...' : processed;
     }
 
     // 将真实API数据转换为页面显示格式
