@@ -363,8 +363,8 @@
         ...(isRevoke ? { isRevoke: 'true' } : {})
       };
 
-      // 如果数据来源为爬取数据("1")，则获取预览链接
-      if (doc.dataSource === '1') {
+      // 只要数据来源不等于“2”，则获取预览链接以使用 iframe 预览
+      if (doc.dataSource !== '2') {
         try {
           const previewUrl = await this.$roadLawyerService.getPreviewUrl({ id: doc.id });
           if (previewUrl) {

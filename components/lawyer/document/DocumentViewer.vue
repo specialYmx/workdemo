@@ -43,7 +43,7 @@
 
             <!-- 文档内容 -->
             <!-- 如果是 iframe 模式，不需要文本搜索功能 -->
-            <template v-if="document.dataSource === '1' && document.iframeUrl">
+            <template v-if="document.dataSource !== '2' && document.iframeUrl">
               <iframe
                 :src="document.iframeUrl"
                 class="lawyer-iframe-preview"
