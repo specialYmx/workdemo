@@ -246,7 +246,9 @@
           tags,
           dataSource: item.dataSource, // 数据来源
           updateStatus: item.updateStatus, // 更新状态
-          ruleName: item.ruleName // 法规名称
+          ruleName: item.ruleName, // 法规名称
+          // 旧版本文档ID（若后端提供则透传，用于 iframe 对比）
+          oldId: item.oldId
         };
       });
     }
@@ -261,7 +263,9 @@
           id: item.id,
           pageTitle: item.ruleName || item.title || '法规更新详情',
           source: this.$route.path,
-          dataSource
+          dataSource,
+          // 若列表项包含旧版本ID，则一并传递，便于详情页直接获取 iframe
+          ...(item.oldId ? { oldId: item.oldId } : {})
         };
 
         this.$router.push({

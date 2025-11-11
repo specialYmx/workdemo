@@ -74,7 +74,17 @@
             </a-select>
           </div>
           <div class="lawyer-column-content">
-            <v-md-preview :text="col.content || '暂无数据'" />
+            <template v-if="col.iframeUrl">
+              <iframe
+                :src="col.iframeUrl"
+                class="lawyer-iframe-preview"
+                frameborder="0"
+                sandbox="allow-same-origin allow-scripts"
+              ></iframe>
+            </template>
+            <template v-else>
+              <v-md-preview :text="col.content || '暂无数据'" />
+            </template>
           </div>
         </div>
 
@@ -449,13 +459,15 @@
           title: '修改前文档',
           version: this.document.oldFileVersion ? `V${this.document.oldFileVersion}` : undefined,
           date: this.document.oldPublishTime || '',
-          content: this.document.originalContent || '暂无数据'
+          content: this.document.originalContent || '暂无数据',
+          iframeUrl: this.document.originalIframeUrl
         },
         {
           title: '修改后文档',
           version: this.document.newFileVersion ? `V${this.document.newFileVersion}` : undefined,
           date: this.document.modifiedDate || this.document.newPublishTime || '',
-          content: this.document.newContent || '暂无数据'
+          content: this.document.newContent || '暂无数据',
+          iframeUrl: this.document.newIframeUrl
         }
       ];
     }
@@ -700,6 +712,13 @@
       min-height: 0; // 允许收缩
       white-space: pre-wrap; // 保留换行符
       word-break: break-word; // 长单词换行
+    }
+    .lawyer-iframe-preview {
+      width: 100%;
+      height: 100%;
+      border: none;
+      min-height: 0;
+      display: block;
     }
 
     .lawyer-compare-header {

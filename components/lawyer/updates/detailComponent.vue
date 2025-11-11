@@ -167,13 +167,13 @@
 
     // 创建基础文档数据结构
     private createBaseDocumentData(
-      docId: string,
+      documentId: string,
       pageTitle: string,
       checkStatus: string,
       content: string = '正在加载数据...'
     ): DocumentComparePageData {
       return {
-        id: docId,
+        id: documentId,
         title: pageTitle || '正在加载文档...',
         status: 'pending',
         checkStatus: checkStatus || '待审核',
@@ -190,62 +190,92 @@
 
     // 获取文档对比数据
     async fetchDocumentData(): Promise<void> {
-      const docId = this.$route.query.id;
+      const documentId = this.$route.query.id;
       const pageTitle = this.$route.query.pageTitle as string;
       const checkStatus = this.$route.query.checkStatus as string;
       const dataSource = this.$route.query.dataSource as string;
+      const oldId = this.$route.query.oldId as string;
 
-      if (!docId) return;
+      if (!documentId) return;
 
       this.loading = true;
       // 设置初始加载状态
-      this.documentData = this.createBaseDocumentData(docId as string, pageTitle, checkStatus);
+      this.documentData = this.createBaseDocumentData(documentId as string, pageTitle, checkStatus);
 
       try {
-        // 根据 dataSource 调用不同的接口
-        const result: any = await (dataSource === '2'
-          ? this.$roadLawyerService.getToDoRuleDetail({ id: docId as string })
-          : this.$roadLawyerService.getRuleSourceDetail({ searchId: docId as string }));
+        if (dataSource === '2') {
+          // 人工审核：使用对比接口，展示 Markdown
+          const result: any = await this.$roadLawyerService.getToDoRuleDetail({
+            id: documentId as string
+          });
+          if (result && (result.oldFileContent || result.newFileContent)) {
+            const tags: string[] = result.categoryId ? [result.categoryId] : [];
+            this.documentData = {
+              ...this.createBaseDocumentData(documentId as string, pageTitle, checkStatus),
+              title:
+                pageTitle ||
+                `${result.categoryMain || ''}${result.categorySub ? '/' + result.categorySub : ''}`,
+              status:
+                result.checkStatus === '1'
+                  ? 'approved'
+                  : result.checkStatus === '2'
+                  ? 'rejected'
+                  : 'pending',
+              tags,
+              originalContent: result.oldFileContent || '',
+              newContent: result.newFileContent || '',
+              changes: this.formatChanges(result.checkResult),
+              modifiedDate: result.newPublishTime || result.effectDate,
+              effectDate: result.effectDate,
+              oldFileVersion: result.oldFileVersion,
+              oldPublishTime: result.oldPublishTime,
+              newFileVersion: result.newFileVersion,
+              newPublishTime: result.newPublishTime,
+              currentMaxFileVersion: result.currentMaxFileVersion || 0
+            };
+          } else {
+            if (this.isDestroyed) return;
+            this.documentData = this.createBaseDocumentData(
+              documentId as string,
+              pageTitle || '未找到文档数据',
+              checkStatus,
+              '暂无数据'
+            );
+            this.$message.error('文件缺失或暂无对比结果，请联系管理员');
+          }
+        } else {
+          // 明细：改为 iframe 预览两端（旧/新）
+          const result: any = await this.$roadLawyerService.getRuleSourceDetail({
+            searchId: documentId as string
+          });
+          const tags: string[] = result?.categoryId ? [result.categoryId] : [];
+          // 并行获取旧/新预览链接（旧ID来自路由参数）
+          const [oldIframeUrl, newIframeUrl] = await Promise.all([
+            oldId ? this.$roadLawyerService.getPreviewUrl({ id: oldId }) : Promise.resolve(''),
+            this.$roadLawyerService.getPreviewUrl({ id: documentId as string })
+          ]);
+          console.log('oldIframeUrl', oldIframeUrl, 'newIframeUrl', newIframeUrl);
 
-        // 处理数据
-        if (result && (result.oldFileContent || result.newFileContent)) {
-          // 仅使用分类ID，交给对比组件回溯完整路径
-          const tags: string[] = result.categoryId ? [result.categoryId] : [];
-
-          // 更新文档数据
           this.documentData = {
-            ...this.createBaseDocumentData(docId as string, pageTitle, checkStatus),
+            ...this.createBaseDocumentData(documentId as string, pageTitle, checkStatus, ''),
             title:
               pageTitle ||
-              `${result.categoryMain || ''}${result.categorySub ? '/' + result.categorySub : ''}`,
-            status:
-              result.checkStatus === '1'
-                ? 'approved'
-                : result.checkStatus === '2'
-                ? 'rejected'
-                : 'pending',
+              `${result?.categoryMain || ''}${result?.categorySub ? '/' + result.categorySub : ''}`,
+            status: 'pending',
             tags,
-            originalContent: result.oldFileContent || '',
-            newContent: result.newFileContent || '',
-            changes: this.formatChanges(result.checkResult),
-            modifiedDate: result.newPublishTime || result.effectDate,
-            effectDate: result.effectDate,
-            oldFileVersion: result.oldFileVersion,
-            oldPublishTime: result.oldPublishTime,
-            newFileVersion: result.newFileVersion,
-            newPublishTime: result.newPublishTime,
-            currentMaxFileVersion: result.currentMaxFileVersion || 0
+            // 使用 iframe 展示，不再使用 markdown 内容
+            originalContent: '',
+            newContent: '',
+            originalIframeUrl: oldIframeUrl || '',
+            newIframeUrl: newIframeUrl || '',
+            modifiedDate: result?.newPublishTime || result?.effectDate || '',
+            effectDate: result?.effectDate || null,
+            oldFileVersion: result?.oldFileVersion,
+            oldPublishTime: result?.oldPublishTime || null,
+            newFileVersion: result?.newFileVersion,
+            newPublishTime: result?.newPublishTime || null,
+            currentMaxFileVersion: result?.currentMaxFileVersion || 0
           };
-        } else {
-          // 数据为空
-          if (this.isDestroyed) return;
-          this.documentData = this.createBaseDocumentData(
-            docId as string,
-            pageTitle || '未找到文档数据',
-            checkStatus,
-            '暂无数据'
-          );
-          this.$message.error('文件缺失或暂无对比结果，请联系管理员');
         }
       } catch (error) {
         // 错误处理
@@ -253,7 +283,7 @@
         console.error('获取文档对比数据失败:', error);
         this.$message.error('获取文档对比数据失败，请重试');
         this.documentData = this.createBaseDocumentData(
-          docId as string,
+          documentId as string,
           pageTitle || '加载失败',
           checkStatus,
           '加载失败，请重试'

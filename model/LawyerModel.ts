@@ -116,6 +116,9 @@ export interface DocumentCompareData extends DocumentCompareBaseFields {
   currentMaxFileVersion?: number | null;
   originalContent?: string;
   newContent?: string;
+  // 当使用 iframe 预览时的链接（对应修改前/修改后）
+  originalIframeUrl?: string;
+  newIframeUrl?: string;
   oldPublishTime?: string;
   newPublishTime?: string;
   modifiedDate?: string;
@@ -306,6 +309,7 @@ export interface KnowledgeDataItem extends BaseRuleItem {
 // 法规更新列表项接口（基于真实API数据结构）
 export interface RuleUpdateItem extends BaseRuleItem {
   currentMaxFileVersion: number | null;
+  oldId?: string; // 旧版本文档ID（用于 iframe 对比）
 }
 
 // ==================== 人工审核相关数据模型 ====================
@@ -507,7 +511,8 @@ export interface DocumentColumn {
   title: string;
   version?: string;
   date?: string;
-  content: string;
+  content?: string;
+  iframeUrl?: string;
 }
 
 // 级联选择器选项（统一接口）
@@ -590,6 +595,7 @@ export interface UpdateItem {
   dataSource?: string; // 数据来源："1"-爬取数据，"2"-人工审核数据
   updateStatus?: string; // 更新状态："1"-已生成对比结果，"0"或其他-未生成
   ruleName: string; // 法规名称，用于路由传参
+  oldId?: string; // 旧版本文档ID（用于 iframe 对比）
 }
 
 // 筛选选项
@@ -645,6 +651,9 @@ export type ChangeItem = DocumentChange;
 export interface DocumentComparePageData extends DocumentCompareBaseFields {
   originalContent: string;
   newContent: string;
+  // 当使用 iframe 预览时的链接（对应修改前/修改后）
+  originalIframeUrl?: string;
+  newIframeUrl?: string;
   modifiedDate?: string;
   oldFileVersion?: number;
   oldPublishTime?: string | null;
