@@ -244,8 +244,14 @@
 
     // 判断是否来自人工审核页面
     get isFromManualReviewPage(): boolean {
-      const sourcePath = this.$route.query.source as string;
-      return sourcePath && sourcePath.includes('/manualReview');
+      // 优先根据当前路由路径判断是否位于人工审核相关页面
+      const currentPath = (this.$route.path as string) || '';
+      if (currentPath.includes('/manualReview')) {
+        return true;
+      }
+      // 兼容旧的通过 query.source 传递来源的逻辑
+      const sourcePath = (this.$route.query.source as string) || '';
+      return !!sourcePath && sourcePath.includes('/manualReview');
     }
 
     // 判断AI对比是否未完成（completed === "0"）
