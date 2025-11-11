@@ -71,6 +71,12 @@
               <a-select-option v-for="rule in ruleDetailList" :key="rule.id" :value="rule.id">
                 {{ rule.ruleName }}（{{ rule.publishDateStr }}）
               </a-select-option>
+              <a-icon
+                v-if="showManualClearIcon"
+                slot="suffixIcon"
+                type="close-circle"
+                @click.stop="handleManualClear"
+              />
             </a-select>
           </div>
           <div class="lawyer-column-content">
@@ -581,11 +587,37 @@
     handleRuleChange(ruleId: string | undefined): void {
       if (ruleId === undefined) {
         // 清空时触发清空事件（因为allow-clear已经控制了按钮显示，所以能触发说明之前有值）
+        this.selectedRuleId = '';
         this.emitRuleClear();
       } else {
         // 选择规则时触发选择事件
+        this.selectedRuleId = ruleId;
         this.emitRuleSelected(ruleId);
       }
+    }
+
+    // 是否已存在旧数据：仅依据 oldFileContent（originalContent）
+    get hasExistingOldData(): boolean {
+      const content = this.document && this.document.originalContent;
+      return !!content && content !== '暂无数据' && content !== 'error';
+    }
+
+    // 无选中值但后端已有旧内容时，展示自定义清空图标
+    get showManualClearIcon(): boolean {
+      return (
+        this.isFromManualReviewPage &&
+        this.hasExistingOldData &&
+        !this.selectedRuleId &&
+        this.document.checkStatus === '待审核' &&
+        !this.comparisonLoading &&
+        !this.isAiComparisonNotCompleted
+      );
+    }
+
+    // 手动清空（模拟 allow-clear 行为）
+    handleManualClear(): void {
+      this.selectedRuleId = '';
+      this.emitRuleClear();
     }
 
     // Emit 装饰器方法
