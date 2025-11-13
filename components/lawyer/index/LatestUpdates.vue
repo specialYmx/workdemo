@@ -65,7 +65,7 @@
 
 <script lang="ts">
   import { Component, Vue, Prop, Emit } from 'nuxt-property-decorator';
-  import { BaseRuleItem, RouteQuery } from '~/model/LawyerModel';
+  import type { BaseRuleItem, RouteQuery } from '~/model/LawyerModel';
 
   @Component({ name: 'latest-updates' })
   class LatestUpdates extends Vue {

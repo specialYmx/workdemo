@@ -33,7 +33,7 @@
 <script lang="ts">
   import { Component, Vue, Prop } from 'nuxt-property-decorator';
   import { EChartOption } from 'echarts';
-  import { ChartData, LegendItem, PieChartDataItem } from '~/model/LawyerModel';
+  import type { ChartData, LegendItem, PieChartDataItem } from '~/model/LawyerModel';
 
   @Component({ name: 'source-distribution' })
   class SourceDistribution extends Vue {

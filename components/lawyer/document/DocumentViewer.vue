@@ -222,7 +222,7 @@
   import { Component, Vue, Prop, Emit } from 'nuxt-property-decorator';
   import { v4 as uuidv4 } from 'uuid';
   import { downloadFileWithMessage } from '~/utils/personal';
-  import {
+  import type {
     DocumentViewerData,
     DocumentMetaItem,
     CascaderOption,

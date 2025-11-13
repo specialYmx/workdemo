@@ -11,7 +11,7 @@
 <script lang="ts">
   import { Component, Vue } from 'nuxt-property-decorator';
 
-  import { KnowledgeDataItem, DocumentViewerData } from '~/model/LawyerModel';
+  import type { KnowledgeDataItem, DocumentViewerData } from '~/model/LawyerModel';
 
   @Component({ name: 'lawyer-updates-detail-components' })
   class LawyerUpdatesDetailComponents extends Vue {

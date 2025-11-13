@@ -66,8 +66,8 @@
 <script lang="ts">
   import { Component, Vue, Prop, Emit } from 'nuxt-property-decorator';
   import moment from 'moment';
-  import { ToDoRuleItem, ReviewStatusClassMap } from '~/model/LawyerModel';
-  import { CustomColumn } from '~/model/CommonModel';
+  import type { ToDoRuleItem, ReviewStatusClassMap } from '~/model/LawyerModel';
+  import type { CustomColumn } from '~/model/CommonModel';
 
   @Component
   class ReviewTable extends Vue {

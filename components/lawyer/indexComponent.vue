@@ -50,7 +50,7 @@
 
 <script lang="ts">
   import { Component, Vue } from 'nuxt-property-decorator';
-  import {
+  import type {
     CompletedRuleItem,
     ToDoRuleItem,
     BaseRuleItem,

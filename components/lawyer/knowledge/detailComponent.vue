@@ -10,7 +10,7 @@
 
 <script lang="ts">
   import { Component, Vue } from 'nuxt-property-decorator';
-  import { KnowledgeDataItem, DocumentViewerData } from '~/model/LawyerModel';
+  import type { KnowledgeDataItem, DocumentViewerData } from '~/model/LawyerModel';
   import { LawyerStoreModule } from '~/store/lawyer';
 
   @Component({ name: 'lawyer-knowledge-detail-component' })

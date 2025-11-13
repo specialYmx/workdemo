@@ -108,7 +108,7 @@
 <script lang="ts">
   import { Component, Vue, Watch } from 'nuxt-property-decorator';
   import { formatDate } from '~/utils/date';
-  import {
+  import type {
     ToDoRuleItem,
     FilterOption,
     StatusMap,
@@ -117,7 +117,7 @@
     CascaderOption
   } from '~/model/LawyerModel';
   import { downloadFileWithMessage } from '~/utils/personal';
-  import { CustomColumn, CustomPagination } from '~/model/CommonModel';
+  import type { CustomColumn, CustomPagination } from '~/model/CommonModel';
   import { LawyerStoreModule } from '~/store/lawyer';
   @Component({ name: 'lawyer-manual-review-index-component' })
   class LawyerManualReviewIndexComponent extends Vue {

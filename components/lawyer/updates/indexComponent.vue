@@ -110,7 +110,7 @@
 
 <script lang="ts">
   import { Component, Vue } from 'nuxt-property-decorator';
-  import {
+  import type {
     RuleUpdateItem,
     UpdateItem,
     RuleUpdateQueryParams,

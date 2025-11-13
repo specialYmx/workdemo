@@ -95,7 +95,7 @@
   import { Component, Vue, Prop } from 'nuxt-property-decorator';
   import debounce from 'lodash/debounce';
   import api from '~/api';
-  import { DocumentViewerData, AiMessage } from '~/model/LawyerModel';
+  import type { DocumentViewerData, AiMessage } from '~/model/LawyerModel';
 
   @Component
   class DocumentAIChat extends Vue {

@@ -254,7 +254,7 @@
 
 <script lang="ts">
   import { Component, Vue, Prop, Watch, Emit } from 'nuxt-property-decorator';
-  import {
+  import type {
     UploadConfig,
     UploadSuccessData,
     UploadErrorData,

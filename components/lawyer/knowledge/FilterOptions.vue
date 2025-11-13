@@ -183,7 +183,7 @@
 
 <script lang="ts">
   import { Component, Vue, Prop, Emit } from 'nuxt-property-decorator';
-  import {
+  import type {
     WebsiteOption,
     FilterOption,
     CascaderOption,

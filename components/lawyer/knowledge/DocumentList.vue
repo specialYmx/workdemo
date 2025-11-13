@@ -89,7 +89,7 @@
 
 <script lang="ts">
   import { Component, Vue, Prop, Emit } from 'nuxt-property-decorator';
-  import { KnowledgeDataItem, DocumentAction } from '~/model/LawyerModel';
+  import type { KnowledgeDataItem, DocumentAction } from '~/model/LawyerModel';
 
   @Component({ name: 'lawyer-knowledge-document-list' })
   class LawyerKnowledgeDocumentList extends Vue {

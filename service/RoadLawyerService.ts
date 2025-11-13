@@ -1,6 +1,6 @@
 import { AxiosInstance } from 'axios';
 import api from '~/api/index';
-import {
+import type {
   RoadLawyerService,
   KnowledgeDataItem,
   QueryParams,
@@ -19,7 +19,7 @@ import {
   LegalCategoryItem,
   RuleDetailItem
 } from '~/model/LawyerModel';
-import {
+import type {
   CrawlStatisticsQueryParams,
   CrawlStatisticsResponse,
   ExecuteCrawlTaskParams,

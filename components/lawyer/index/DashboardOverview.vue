@@ -139,7 +139,7 @@
   import { Component, Vue, Prop, Emit } from 'nuxt-property-decorator';
   import { EChartOption } from 'echarts';
   import moment from 'moment';
-  import {
+  import type {
     CompletedRuleItem,
     TimeOption,
     TrendChartData,
