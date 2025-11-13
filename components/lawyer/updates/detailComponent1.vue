@@ -27,7 +27,8 @@
       views: 0,
       content: '正在加载文档内容...',
       isRevoke: false,
-      timeLiness: ''
+      timeLiness: '',
+      publishDateStr:""
     };
 
     loading: boolean = false;

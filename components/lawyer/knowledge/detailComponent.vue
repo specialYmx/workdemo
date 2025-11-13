@@ -29,7 +29,8 @@
       isRevoke: false,
       timeLiness: '',
       dataSource: '',
-      iframeUrl: ''
+      iframeUrl: '',
+      publishDateStr: ''
     };
 
     loading: boolean = false;
