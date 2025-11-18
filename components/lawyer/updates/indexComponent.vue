@@ -47,9 +47,17 @@
               </p>
 
               <!-- AI智能解读 -->
-              <div v-if="item.summary && item.summaryArray.length" class="lawyer-ai-summary">
+              <div
+                v-if="item.summary && (isQuarterlyJournal(item) || item.summaryArray.length)"
+                class="lawyer-ai-summary"
+              >
                 <h4>AI智能解读主要变更点：</h4>
-                <ul>
+                <!-- 季刊类：直接展示原始摘要文本，保留换行 -->
+                <pre v-if="isQuarterlyJournal(item)" class="lawyer-ai-summary__rich"
+                  >{{ item.summary }}
+                </pre>
+                <!-- 其他类型：保持原有列表展示逻辑 -->
+                <ul v-else>
                   <li v-for="(point, index) in item.summaryArray" :key="index">
                     <span>
                       <strong v-if="getSummaryTitle(point)">{{ getSummaryTitle(point) }}：</strong
@@ -244,6 +252,7 @@
           category: item.categoryMain || '其他',
           type,
           tags,
+          assemblyCategoryMain: item.assemblyCategoryMain,
           dataSource: item.dataSource, // 数据来源
           updateStatus: item.updateStatus, // 更新状态
           ruleName: item.ruleName, // 法规名称
@@ -352,6 +361,17 @@
       this.currentCategoryId = categoryId;
       this.currentPage = 1; // 切换分类时重置为第一页
       await this.loadUpdates(); // 重新加载数据
+    }
+
+    // 是否为法律合规季刊类数据（按组装分类主字段模糊判断，兼容后续子类，如“法律合规观察季刊/XXX”）
+    isQuarterlyJournal(item: UpdateItem): boolean {
+      const category = (item.assemblyCategoryMain || '').trim();
+      if (!category) {
+        return false;
+      }
+
+      const keywords = ['法律合规观察季刊', '法律合规季刊'];
+      return keywords.some(keyword => category.includes(keyword));
     }
 
     getTagClass(index: number = 0): string {
@@ -680,6 +700,9 @@
             display: block;
           }
         }
+      }
+      .lawyer-ai-summary__rich {
+        white-space: pre-wrap;
       }
     }
 

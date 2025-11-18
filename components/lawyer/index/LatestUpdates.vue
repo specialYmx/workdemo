@@ -32,9 +32,17 @@
             </p>
 
             <!-- AI智能解读 -->
-            <div v-if="item.summary && item.parsedSummary.length" class="lawyer-ai-summary">
+            <div
+              v-if="item.summary && (isQuarterlyJournal(item) || item.parsedSummary.length)"
+              class="lawyer-ai-summary"
+            >
               <h4>AI智能解读主要变更点：</h4>
-              <ul>
+              <!-- 季刊类：直接展示原始摘要文本，保留换行 -->
+              <pre v-if="isQuarterlyJournal(item)" class="lawyer-ai-summary__rich"
+                >{{ item.summary }}
+              </pre>
+              <!-- 其他类型：保持原有列表展示逻辑 -->
+              <ul v-else>
                 <li v-for="(point, index) in item.parsedSummary" :key="index">
                   <span>
                     <strong v-if="getSummaryTitle(point)">{{ getSummaryTitle(point) }}：</strong
@@ -109,6 +117,17 @@
       const mainCategory = item.assemblyCategoryMain || item.categoryMain || '';
       const subCategory = item.categorySub || '';
       return [mainCategory, subCategory].filter(Boolean);
+    }
+
+    // 是否为法律合规季刊类数据（按组装分类主字段模糊判断，兼容后续子类，如“法律合规观察季刊/XXX”）
+    isQuarterlyJournal(item: BaseRuleItem): boolean {
+      const category = (item.assemblyCategoryMain || '').trim();
+      if (!category) {
+        return false;
+      }
+
+      const keywords = ['法律合规观察季刊', '法律合规季刊'];
+      return keywords.some(keyword => category.includes(keyword));
     }
 
     getTagClass(index: number): string {
@@ -318,6 +337,9 @@
           display: block;
         }
       }
+    }
+    .lawyer-ai-summary__rich {
+      white-space: pre-wrap;
     }
   }
 

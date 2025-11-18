@@ -592,6 +592,7 @@ export interface UpdateItem {
   category: string;
   type: string;
   tags: string[];
+  assemblyCategoryMain?: string; // 组装分类主字段（用于识别季刊类数据）
   dataSource?: string; // 数据来源："1"-爬取数据，"2"-人工审核数据
   updateStatus?: string; // 更新状态："1"-已生成对比结果，"0"或其他-未生成
   ruleName: string; // 法规名称，用于路由传参
