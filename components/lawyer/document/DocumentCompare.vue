@@ -65,7 +65,7 @@
               :allow-clear="!!selectedRuleId"
               show-search
               option-filter-prop="children"
-              style="width: 280px !important"
+              style="width: 170px !important"
               @change="handleRuleChange"
             >
               <a-select-option v-for="rule in ruleDetailList" :key="rule.id" :value="rule.id">

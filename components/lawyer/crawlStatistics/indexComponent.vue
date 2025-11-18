@@ -78,6 +78,11 @@
             </span>
           </template>
 
+          <!-- 描述列 -->
+          <template slot="latestDescription" slot-scope="text">
+            <span style="color: #ff4d4f">{{ text || '-' }}</span>
+          </template>
+
           <!-- 发布日期列 -->
           <template slot="publishDate" slot-scope="text">
             {{ formatTime(text, 'yyyy-MM-dd') }}
@@ -325,6 +330,14 @@
         key: 'extractStatus',
         scopedSlots: { customRender: 'extractStatus' },
         width: 100
+      },
+      {
+        title: '描述',
+        dataIndex: 'latestDescription',
+        key: 'latestDescription',
+        scopedSlots: { customRender: 'latestDescription' },
+        width: 200,
+        ellipsis: true
       },
       {
         title: '文章发布日期',
