@@ -228,6 +228,11 @@
       ];
     }
 
+    created(): void {
+      // 根据不同页面设置默认排序方式：
+      this.sortOrder = this.getDefaultSortOrderByRoute();
+    }
+
     async mounted(): Promise<void> {
       await this.checkAdminPermission();
       await this.loadWebsiteOptions();
@@ -701,6 +706,24 @@
         return '312'; // 法律合规季刊
       }
       return undefined; // 大家智库页面使用全量数据
+    }
+
+    // 根据当前路由为不同页面设置默认排序方式
+    getDefaultSortOrderByRoute(): string {
+      const routePath = this.$route.path || '';
+
+      const publishDateDescDefaultRoutes: string[] = [
+        '/regulationCompilation',
+        '/punishmentCompilation',
+        '/researchCollection',
+        '/legalComplianceQuarterly',
+        '/newRegulationInterpretation'
+      ];
+      if (publishDateDescDefaultRoutes.some(path => routePath.includes(path))) {
+        return 'desc';
+      }
+      // 默认仍然按相关度排序（与原有行为一致）
+      return '';
     }
 
     convertToCascaderOptions(categories: LegalCategoryItem[]): CascaderOption[] {
