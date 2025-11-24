@@ -134,14 +134,6 @@
     onShowSizeChange(current: number, size: number): { current: number; size: number } {
       return { current, size };
     }
-
-    @Emit('document-action')
-    onDocumentAction(
-      action: string,
-      doc: KnowledgeDataItem
-    ): { action: string; doc: KnowledgeDataItem } {
-      return { action, doc };
-    }
   }
   export default LawyerKnowledgeDocumentList;
 </script>

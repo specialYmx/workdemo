@@ -38,7 +38,6 @@
           :doc-actions="documentActions"
           @page-change="onPageChange"
           @show-size-change="onShowSizeChange"
-          @document-action="handleDocumentAction"
           :search-keyword="searchKeyword"
         />
       </div>
@@ -609,18 +608,6 @@
       this.currentPage = 1;
       // 后端分页，需要重新请求API
       await this.loadDocuments();
-    }
-
-    handleDocumentAction(payload: { action: string; doc: KnowledgeDataItem }): void {
-      const { action, doc } = payload;
-      switch (action) {
-        case 'view':
-          this.viewDocument(doc);
-          break;
-        case 'download':
-          this.downloadDocument(doc);
-          break;
-      }
     }
 
     async loadWebsiteOptions(): Promise<void> {
