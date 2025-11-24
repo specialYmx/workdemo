@@ -523,8 +523,6 @@
 
     // 显示编辑模态框
     showEditModal(): void {
-      console.log('🚀 ~ DocumentViewer ~ showEditModal ~ this.document:', this.document);
-
       // 初始化表单数据
       this.fillFormData();
       this.editModalVisible = true;
@@ -537,28 +535,13 @@
 
       // 回显效力位阶
       this.formData.effectivenessLevel = this.document.effectivenessLevel || undefined;
-
       // 回显分类
       this.formData.categoryPath = [];
 
-      // 尝试从不同的字段获取分类信息
-      // 优先使用categoryId字段（如果存在）
+      // 基于后端约定：categoryId 一定存在，直接根据 ID 回显完整分类路径
       if (this.document.categoryId) {
-        // 如果有categoryId，需要找到完整的分类路径
         const categoryPath = this.getCategoryPathById(this.document.categoryId);
         this.formData.categoryPath = categoryPath;
-      } else if (this.document.categoryMain) {
-        // 新逻辑：categoryMain现在是最终选择的分类名称，不再是父级
-        // 根据categoryMain的名称获取对应的分类ID和完整路径
-        const categoryPath = this.getCategoryPathByName(this.document.categoryMain);
-        this.formData.categoryPath = categoryPath;
-      } else if (this.document.topicCategory) {
-        // 如果有topicCategory字段，尝试根据名称获取完整路径
-        const categoryPath = this.getCategoryPathByName(this.document.topicCategory);
-        this.formData.categoryPath = categoryPath;
-      } else if (this.document.tags && this.document.tags.length > 0) {
-        // 如果tags字段存在，直接使用（假设已经是ID）
-        this.formData.categoryPath = [...this.document.tags];
       }
       // 回显来源
       this.formData.legalSource = this.document.legalSource || this.document.publisher || undefined;
@@ -719,30 +702,6 @@
         return [];
       };
       return findCategoryPath(this.tagOptions, categoryId);
-    }
-
-    // 根据分类名称获取完整的分类路径（包含所有父级）
-    getCategoryPathByName(categoryName: string): string[] {
-      const findCategoryPath = (
-        options: CascaderOption[],
-        name: string,
-        path: string[] = []
-      ): string[] => {
-        for (const option of options) {
-          const currentPath = [...path, option.value];
-          if (option.label === name) {
-            return currentPath;
-          }
-          if (option.children && option.children.length > 0) {
-            const childPath = findCategoryPath(option.children, name, currentPath);
-            if (childPath.length > 0) {
-              return childPath;
-            }
-          }
-        }
-        return [];
-      };
-      return findCategoryPath(this.tagOptions, categoryName);
     }
 
     // 下载文档
