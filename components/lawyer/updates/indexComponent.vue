@@ -52,9 +52,9 @@
                 class="lawyer-ai-summary"
               >
                 <h4>AI智能解读主要变更点：</h4>
-                <!-- 季刊类：直接展示原始摘要文本，保留换行 -->
+                <!-- 季刊类：直接展示原始摘要文本（去掉首尾方括号），保留换行 -->
                 <pre v-if="isQuarterlyJournal(item)" class="lawyer-ai-summary__rich"
-                  >{{ item.summary }}
+                  >{{ getQuarterlySummaryContent(item.summary) }}
                 </pre>
                 <!-- 其他类型：保持原有列表展示逻辑 -->
                 <ul v-else>
@@ -372,6 +372,21 @@
 
       const keywords = ['法律合规观察季刊', '法律合规季刊'];
       return keywords.some(keyword => category.includes(keyword));
+    }
+
+    // 季刊类摘要文本展示：仅去掉首尾方括号，保留原始换行和内容
+    getQuarterlySummaryContent(summary?: string): string {
+      if (!summary) {
+        return '';
+      }
+      let content = summary.trim();
+      if (content.startsWith('[')) {
+        content = content.slice(1);
+      }
+      if (content.endsWith(']')) {
+        content = content.slice(0, -1);
+      }
+      return content.trim();
     }
 
     getTagClass(index: number = 0): string {
