@@ -579,13 +579,13 @@
             });
             if (success) {
               this.$message.success(`文档"${doc.ruleName}"已移除`);
-              setTimeout(async () => {
+              this.$nextTick(async () => {
                 // 如果删除的是当前页最后一条数据且不是第一页，则跳转到前一页
                 if (shouldGoToPreviousPage) {
                   this.currentPage -= 1;
                 }
                 await this.loadDocuments();
-              }, 500);
+              });
             } else {
               this.$message.error('删除失败，请重试');
             }

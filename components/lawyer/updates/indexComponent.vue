@@ -183,11 +183,6 @@
           if (response.data.pageNum) {
             this.currentPage = response.data.pageNum;
           }
-        } else if (response && Array.isArray(response)) {
-          // 兼容旧的数组格式返回
-          this.rawUpdates = response;
-          this.allUpdates = this.transformRawDataToDisplayFormat(response);
-          this.totalDocuments = response.length;
         } else {
           this.rawUpdates = [];
           this.allUpdates = [];
