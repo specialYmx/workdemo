@@ -303,76 +303,62 @@
       ];
     }
 
-    @Emit('update:timelinessFilter')
-    onTimelinessChange(value: string | undefined): string {
+    // 通用的筛选变更处理：将空值统一转换为空字符串并触发筛选刷新
+    private handleStringFilterChange(value: string | undefined | null): string {
       const result = value || '';
       this.$nextTick(() => {
         this.filterChange();
       });
       return result;
+    }
+
+    // 通用的筛选变更处理：保持原值类型，仅负责触发筛选刷新
+    private handleFilterChange<T>(value: T): T {
+      this.$nextTick(() => {
+        this.filterChange();
+      });
+      return value;
+    }
+
+    @Emit('update:timelinessFilter')
+    onTimelinessChange(value: string | undefined): string {
+      return this.handleStringFilterChange(value);
     }
 
     @Emit('update:effectivenessLevelFilter')
     onEffectivenessLevelChange(value: string | undefined): string {
-      const result = value || '';
-      this.$nextTick(() => {
-        this.filterChange();
-      });
-      return result;
+      return this.handleStringFilterChange(value);
     }
 
     @Emit('update:topicCategory')
     onTopicCategoryChange(value: string[]): string[] {
-      this.$nextTick(() => {
-        this.filterChange();
-      });
-      return value;
+      return this.handleFilterChange(value);
     }
 
     @Emit('update:filterSource')
     onFilterSourceChange(value: string | undefined): string {
-      const result = value || '';
-      this.$nextTick(() => {
-        this.filterChange();
-      });
-      return result;
+      return this.handleStringFilterChange(value);
     }
 
     @Emit('update:publishDate')
     onPublishDateChange(value: string | null | undefined): string {
-      // 将null/undefined转换为空字符串，避免Vue props验证警告
-      const result = value || '';
-      this.$nextTick(() => {
-        this.filterChange();
-      });
-      return result;
+      // 将 null/undefined 转换为空字符串，避免 Vue props 验证警告
+      return this.handleStringFilterChange(value);
     }
 
     @Emit('update:sortOrder')
     onSortOrderChange(value: string): string {
-      this.$nextTick(() => {
-        this.filterChange();
-      });
-      return value;
+      return this.handleFilterChange(value);
     }
 
     @Emit('update:departmentFilter')
     onDepartmentChange(value: string | undefined): string {
-      const result = value || '';
-      this.$nextTick(() => {
-        this.filterChange();
-      });
-      return result;
+      return this.handleStringFilterChange(value);
     }
 
     @Emit('update:isAppendixFilter')
     onAppendixChange(value: string | undefined): string {
-      const result = value || '';
-
-      this.$nextTick(() => {
-        this.filterChange();
-      });
-      return result;
+      return this.handleStringFilterChange(value);
     }
 
     @Emit('filter-change')

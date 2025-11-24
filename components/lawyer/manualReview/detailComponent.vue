@@ -34,7 +34,8 @@
       tags: [],
       originalContent: '',
       newContent: '',
-      changes: []
+      changes: [],
+      effectDate: null
     };
 
     loading: boolean = false;
@@ -87,9 +88,6 @@
         this.comparisonLoading = true;
         this.$message.info('正在进行AI对比，请稍候...');
 
-        // 更新修改前文档的内容
-        this.documentData.originalContent = selectedRule.fileContent;
-
         // 调用生成对比接口
         const checkResult = await this.$roadLawyerService.generateComparison({
           oldId: selectedRuleId,
@@ -98,7 +96,8 @@
 
         if (this.isDestroyed) return;
 
-        // 更新对比结果
+        // 接口成功后再更新原文内容与对比结果，避免接口失败导致数据不一致
+        this.documentData.originalContent = selectedRule.fileContent;
         this.documentData.changes = this.formatChanges(checkResult);
 
         this.$message.success(`与"${selectedRule.ruleName}"的对比完成！`);

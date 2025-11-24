@@ -723,25 +723,6 @@
       );
     }
 
-    // 根据分类ID获取分类名称
-    getCategoryNameById(categoryId: string): string {
-      const findCategoryName = (categories: LegalCategoryItem[], id: string): string => {
-        for (const category of categories) {
-          if (category.id === id) {
-            return category.name;
-          }
-          if (category.children && category.children.length > 0) {
-            const childName = findCategoryName(category.children, id);
-            if (childName) {
-              return childName;
-            }
-          }
-        }
-        return '';
-      };
-      return findCategoryName(this.categoryData, categoryId);
-    }
-
     async loadDocuments(searchType: 'normal' | 'exact' | 'default' = 'exact'): Promise<void> {
       this.listLoading = true;
       try {
@@ -769,13 +750,8 @@
           params.effectivenessLevel = this.effectivenessLevelFilter;
         }
         if (this.topicCategory && this.topicCategory.length > 0) {
-          // 使用分类ID而不是名称
-          params.categoryId = this.topicCategory[this.topicCategory.length - 1]; // 使用最后一级的ID
-          // 为了兼容性，仍然传递名称字段（如果后端需要）
-          params.categoryMain = this.getCategoryNameById(this.topicCategory[0]);
-          if (this.topicCategory.length > 1) {
-            params.categorySub = this.getCategoryNameById(this.topicCategory[1]);
-          }
+          // 使用分类ID而不是名称，仅传递最后一级的 ID 作为筛选条件
+          params.categoryId = this.topicCategory[this.topicCategory.length - 1];
         } else {
           // 当用户没有选择专题分类时，根据当前页面设置固定的categoryId
           const fixedCategoryId = this.getCategoryIdByRoute();
@@ -807,14 +783,10 @@
         }
         params.collect = this.isFavoritesMode;
         const response = await this.$roadLawyerService.getRuleSourceList(params);
-        // 根据 mock 数据结构处理响应
+        // 根据分页数据结构处理响应
         if (response && response.success && response.data) {
           this.allDocuments = response.data.data || [];
           this.totalDocuments = response.data.totalSize || 0;
-        } else if (response && Array.isArray(response)) {
-          // 兼容旧的数组格式返回
-          this.allDocuments = response;
-          this.totalDocuments = response.length;
         } else {
           this.allDocuments = [];
           this.totalDocuments = 0;
