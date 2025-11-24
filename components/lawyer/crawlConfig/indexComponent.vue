@@ -251,9 +251,7 @@
       websiteCode: '',
       websiteName: '',
       keyword: '',
-      enabled: undefined,
-      current: 1,
-      size: 10
+      enabled: undefined
     };
 
     // 分页配置
@@ -457,9 +455,7 @@
         websiteCode: '',
         websiteName: '',
         keyword: '',
-        enabled: undefined,
-        current: 1,
-        size: 10
+        enabled: undefined
       };
       this.pagination.current = 1;
       this.loadConfigList();
