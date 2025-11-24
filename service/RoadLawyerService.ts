@@ -41,7 +41,7 @@ import type {
   CrawlCheckRuleListResponse
 } from '~/model/LawyerConfigModel';
 // 将对象转换为FormData的辅助函数
-const toFormData = (obj: Record<string, unknown>): FormData => {
+const toFormData = (obj: unknown): FormData => {
   const formData = new FormData();
 
   if (!obj || typeof obj !== 'object') {
@@ -66,7 +66,7 @@ const toFormData = (obj: Record<string, unknown>): FormData => {
     }
   };
 
-  Object.entries(obj).forEach(([key, value]) => {
+  Object.entries(obj as Record<string, unknown>).forEach(([key, value]) => {
     // 跳过null和undefined值
     if (value === null || value === undefined) {
       return;
@@ -224,7 +224,7 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
   async updateRuleSourceDetail(params: {
     searchId: string;
     timeLiness?: string;
-    effectivenessLevel?: string;
+    effectivenessLevel?: string | null;
     categoryId?: string;
     categoryMain?: string;
     legalSource?: string;

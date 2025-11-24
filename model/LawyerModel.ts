@@ -217,10 +217,10 @@ export interface UploadParams extends DocumentCategoryFields {
   file: File;
   timeLiness?: string; // 时效性
   publishDateStr: string; // 发布时间
+  effectDate?: string; // 生效时间
   department?: string | string[]; // 部门（支持字符串数组）
   appendix?: boolean; // 附件标识
   documentNo?: string; // 文档编号
-  [key: string]: File | string | string[] | number | boolean | undefined;
 }
 
 // 审核操作参数
@@ -393,7 +393,7 @@ export interface RoadLawyerService {
   updateRuleSourceDetail: (params: {
     searchId: string;
     timeLiness?: string;
-    effectivenessLevel?: string;
+    effectivenessLevel?: string | null;
     categoryId?: string;
     categoryMain?: string;
     legalSource?: string;
