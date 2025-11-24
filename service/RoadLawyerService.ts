@@ -112,9 +112,9 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
     }
   },
 
-  async getUpdateTimeLinessCount(params: QueryParams = {}) {
+  async getUpdateTimelinessCount(params: QueryParams = {}) {
     try {
-      const res = await $axios.post(`${api.lawyer.getUpdateTimeLinessCount}`, toFormData(params));
+      const res = await $axios.post(`${api.lawyer.getUpdateTimelinessCount}`, toFormData(params));
       if (res.data?.data) {
         return res.data.data;
       }

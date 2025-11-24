@@ -295,7 +295,6 @@
       maxPageLimit: [
         { required: true, message: '请输入最大页面限制', trigger: 'blur' },
         {
-          type: 'number',
           min: 1,
           max: 10000,
           message: '请输入1-10000之间的数字',

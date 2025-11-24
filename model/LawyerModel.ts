@@ -371,7 +371,7 @@ export interface RoadLawyerService {
   // ==================== 首页统计相关方法 ====================
   getCheckCompleteList: (params?: QueryParams) => Promise<CompletedRuleItem[]>;
   getUpdateCount: (params?: QueryParams) => Promise<number>;
-  getUpdateTimeLinessCount: (params?: QueryParams) => Promise<TimelinessCountData>;
+  getUpdateTimelinessCount: (params?: QueryParams) => Promise<TimelinessCountData>;
   getWebSiteRatio: (params?: QueryParams) => Promise<WebsiteRatioData>;
   exportStatisticExcel: (params: {
     condition: string;

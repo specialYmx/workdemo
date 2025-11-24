@@ -2,7 +2,7 @@
   // ==================== 首页统计相关接口 (rule-statistic-controller) ====================
   getCheckCompleteList: '/legal/getCheckCompleteList', // 获取检查完成列表
   getUpdateCount: '/legal/getUpdateCount', // 获取更新数量 参数：condition : month|quarter|year
-  getUpdateTimeLinessCount: '/legal/getUpdateTimeLinessCount', // 获取更新及时性统计 参数：condition : month|quarter|year
+  getUpdateTimelinessCount: '/legal/getUpdateTimeLinessCount', // 获取更新及时性统计 参数：condition : month|quarter|year
   getWebSiteRatio: '/legal/getWebSiteRatio', // 获取网站比例统计
   getTodoRuleList: '/legal/getToDoRuleList', // 获取待办列表
   exportStatisticExcel: '/legal/exportStatisticExcel', // 导出Excel报告 参数：condition : month|quarter|year

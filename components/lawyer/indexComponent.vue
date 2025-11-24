@@ -150,7 +150,7 @@
       this.chartLoading.trend = true;
       try {
         // 调用真实API获取数据
-        const updateTimelinessData = await this.$roadLawyerService.getUpdateTimeLinessCount({
+        const updateTimelinessData = await this.$roadLawyerService.getUpdateTimelinessCount({
           condition: this.trendChartPeriod,
           value: this.trendChartValue
         });
