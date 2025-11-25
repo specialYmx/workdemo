@@ -579,6 +579,12 @@ export interface IndexPageListLoading {
 // 颜色映射
 export type SourceColorMap = StringMap;
 
+// 摘要解析结果
+export interface SummaryPoint {
+  title: string;
+  content: string;
+}
+
 // 更新项（法规更新列表显示）
 export interface UpdateItem {
   id: string;
@@ -586,7 +592,7 @@ export interface UpdateItem {
   description: string;
   fileContent?: string;
   summary?: string;
-  summaryArray: string[]; // 处理的摘要数组
+  summaryArray: SummaryPoint[]; // 解析后的摘要数组，包含标题和内容
   date: string;
   source: string;
   category: string;

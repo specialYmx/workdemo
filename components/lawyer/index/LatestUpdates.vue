@@ -45,8 +45,7 @@
               <ul v-else>
                 <li v-for="(point, index) in item.parsedSummary" :key="index">
                   <span>
-                    <strong v-if="getSummaryTitle(point)">{{ getSummaryTitle(point) }}：</strong
-                    >{{ getSummaryContent(point) }}
+                    <strong v-if="point.title">{{ point.title }}：</strong>{{ point.content }}
                   </span>
                 </li>
               </ul>
@@ -73,7 +72,7 @@
 
 <script lang="ts">
   import { Component, Vue, Prop, Emit } from 'nuxt-property-decorator';
-  import type { BaseRuleItem, RouteQuery } from '~/model/LawyerModel';
+  import type { BaseRuleItem, SummaryPoint } from '~/model/LawyerModel';
 
   @Component({ name: 'latest-updates' })
   class LatestUpdates extends Vue {
@@ -154,20 +153,23 @@
       return 'lawyer-tag-sub';
     }
 
-    // 解析summary数组字符串
-    parseSummaryArray(summaryStr: string): string[] {
+    // 解析summary数组字符串，一次性提取标题和内容
+    parseSummaryArray(summaryStr: string): SummaryPoint[] {
       if (!summaryStr) {
         return [];
       }
+
+      // 解析字符串数组
+      let items: string[] = [];
 
       // 首先尝试使用 JSON.parse 安全解析数组字符串
       try {
         const parsed = JSON.parse(summaryStr);
         if (Array.isArray(parsed)) {
-          return parsed.filter(Boolean);
+          items = parsed.filter(Boolean);
+        } else {
+          throw new Error('Parsed result is not an array');
         }
-        // 解析成功但不是数组，抛出异常进入手动解析流程
-        throw new Error('Parsed result is not an array');
       } catch {
         // JSON.parse 失败或结果不是数组，使用手动解析逻辑作为回退方案
         try {
@@ -178,7 +180,6 @@
           }
 
           // 按逗号分割，但要考虑引号内的逗号
-          const items: string[] = [];
           let currentItem = '';
           let inQuotes = false;
 
@@ -205,45 +206,26 @@
             items.push(currentItem.trim());
           }
 
-          return items.filter(Boolean);
+          items = items.filter(Boolean);
         } catch (error) {
           console.warn('解析summary失败，使用最简单的分割方式:', error);
           // 最后的回退：简单按逗号分割
-          return summaryStr
+          items = summaryStr
             .replace(/^\[|\]$/g, '')
             .split(',')
             .map(item => item.trim())
             .filter(Boolean);
         }
       }
-    }
 
-    // 获取摘要标题（冒号前的内容）
-    getSummaryTitle(point: string): string {
-      if (!point) {
-        return '';
-      }
-
-      const colonIndex = point.indexOf(':');
-      if (colonIndex === -1) {
-        return '';
-      }
-
-      return point.substring(0, colonIndex).trim();
-    }
-
-    // 获取摘要内容（冒号后的内容）
-    getSummaryContent(point: string): string {
-      if (!point) {
-        return '';
-      }
-
-      const colonIndex = point.indexOf(':');
-      if (colonIndex === -1) {
-        return point;
-      }
-
-      return point.substring(colonIndex + 1).trim();
+      // 一次性提取每个条目的标题和内容
+      return items.map(point => {
+        const colonIndex = point.indexOf(':');
+        return {
+          title: colonIndex === -1 ? '' : point.substring(0, colonIndex).trim(),
+          content: colonIndex === -1 ? point : point.substring(colonIndex + 1).trim()
+        };
+      });
     }
 
     // 组件事件定义

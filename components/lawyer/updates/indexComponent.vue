@@ -60,8 +60,8 @@
                 <ul v-else>
                   <li v-for="(point, index) in item.summaryArray" :key="index">
                     <span>
-                      <strong v-if="getSummaryTitle(point)">{{ getSummaryTitle(point) }}：</strong
-                      >{{ getSummaryContent(point) }}
+                      <strong v-if="point.title">{{ point.title }}：</strong
+                      >{{ point.content }}
                     </span>
                   </li>
                 </ul>
@@ -122,7 +122,8 @@
     RuleUpdateItem,
     UpdateItem,
     RuleUpdateQueryParams,
-    RouteQuery
+    RouteQuery,
+    SummaryPoint
   } from '~/model/LawyerModel';
   import { downloadFileWithMessage } from '~/utils/personal';
 
@@ -137,7 +138,7 @@
     currentCategoryId: string | null = null; // 当前选中的分类ID
 
     // 分类数据
-    categoryList = [
+    categoryList : {id: string | null; name: string}[]= [
       { id: null, name: '全部更新' },
       { id: '2', name: '法律汇编' },
       { id: '310', name: '新规解读' },
@@ -232,8 +233,8 @@
         // 生成描述 - 优先使用fileContent并进行字数省略
         const description: string = this.getUpdateDescription(item.fileContent);
 
-        // 预处理摘要数组，避免模板中重复计算
-        const summaryArray: string[] = this.parseSummaryArray(item.summary || '');
+        // 预处理摘要数组，一次性提取标题和内容，避免模板中重复计算
+        const summaryArray: SummaryPoint[] = this.parseSummaryArray(item.summary || '');
 
         return {
           id: item.id,
@@ -394,19 +395,23 @@
       return 'lawyer-tag-sub';
     }
 
-    // 解析summary数组字符串
-    parseSummaryArray(summaryStr: string): string[] {
+    // 解析summary数组字符串，一次性提取标题和内容
+    parseSummaryArray(summaryStr: string): SummaryPoint[] {
       if (!summaryStr) {
         return [];
       }
+
+      // 解析字符串数组
+      let items: string[] = [];
 
       // 首先尝试使用 JSON.parse 安全解析数组字符串
       try {
         const parsed = JSON.parse(summaryStr);
         if (Array.isArray(parsed)) {
-          return parsed.filter(Boolean);
+          items = parsed.filter(Boolean);
+        } else {
+          throw new Error('Parsed result is not an array');
         }
-        throw new Error('Parsed result is not an array');
       } catch {
         // JSON.parse 失败，使用手动解析逻辑作为回退方案
         try {
@@ -417,7 +422,6 @@
           }
 
           // 按逗号分割，但要考虑引号内的逗号
-          const items: string[] = [];
           let currentItem = '';
           let inQuotes = false;
 
@@ -444,45 +448,26 @@
             items.push(currentItem.trim());
           }
 
-          return items.filter(Boolean);
+          items = items.filter(Boolean);
         } catch (error) {
           console.warn('解析summary失败，使用最简单的分割方式:', error);
           // 最后的回退：简单按逗号分割
-          return summaryStr
+          items = summaryStr
             .replace(/^\[|\]$/g, '')
             .split(',')
             .map(item => item.trim())
             .filter(Boolean);
         }
       }
-    }
 
-    // 获取摘要标题（冒号前的内容）
-    getSummaryTitle(point: string): string {
-      if (!point) {
-        return '';
-      }
-
-      const colonIndex = point.indexOf(':');
-      if (colonIndex === -1) {
-        return '';
-      }
-
-      return point.substring(0, colonIndex).trim();
-    }
-
-    // 获取摘要内容（冒号后的内容）
-    getSummaryContent(point: string): string {
-      if (!point) {
-        return '';
-      }
-
-      const colonIndex = point.indexOf(':');
-      if (colonIndex === -1) {
-        return point;
-      }
-
-      return point.substring(colonIndex + 1).trim();
+      // 一次性提取每个条目的标题和内容
+      return items.map(point => {
+        const colonIndex = point.indexOf(':');
+        return {
+          title: colonIndex === -1 ? '' : point.substring(0, colonIndex).trim(),
+          content: colonIndex === -1 ? point : point.substring(colonIndex + 1).trim()
+        };
+      });
     }
   }
   export default LawyerUpdatesIndexComponent;
