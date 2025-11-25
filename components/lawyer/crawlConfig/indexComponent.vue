@@ -65,8 +65,8 @@
           <template slot="websiteUrl" slot-scope="text">
             <a :href="text" target="_blank">{{ text }}</a>
           </template>
-          <!-- 关键词列 -->
-          <template slot="keywords" slot-scope="text, record">
+          <!-- 标签列（关键词、屏蔽词、栏目名通用） -->
+          <template slot="tagList" slot-scope="text, record">
             <div v-if="text && text.length > 0" class="lawyer-keywords-container">
               <a-tag
                 v-for="(keyword, index) in getDisplayKeywords(text)"
@@ -293,6 +293,7 @@
       maxPageLimit: [
         { required: true, message: '请输入最大页面限制', trigger: 'blur' },
         {
+          type: 'number',
           min: 1,
           max: 10000,
           message: '请输入1-10000之间的数字',
@@ -331,21 +332,21 @@
         title: '关键词',
         dataIndex: 'keywords',
         key: 'keywords',
-        scopedSlots: { customRender: 'keywords' },
+        scopedSlots: { customRender: 'tagList' },
         width: 180
       },
       {
         title: '屏蔽词',
         dataIndex: 'invalidKeywords',
         key: 'invalidKeywords',
-        scopedSlots: { customRender: 'keywords' },
+        scopedSlots: { customRender: 'tagList' },
         width: 150
       },
       {
         title: '栏目名',
         dataIndex: 'columnName',
         key: 'columnName',
-        scopedSlots: { customRender: 'keywords' },
+        scopedSlots: { customRender: 'tagList' },
         width: 120
       },
       {

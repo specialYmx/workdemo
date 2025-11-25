@@ -781,7 +781,7 @@
       effectivenessLevel?: string;
       effectDate?: string;
       legalSource?: string;
-      department?: string | string[];
+      department?: string[];
       documentNo?: string;
       appendix?: boolean;
       publishDateStr?: string;
