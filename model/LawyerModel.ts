@@ -109,21 +109,26 @@ export interface DocumentCompareBaseFields {
   changes: DocumentChange[];
 }
 
-// 文档比较数据
-export interface DocumentCompareData extends DocumentCompareBaseFields {
-  newFileVersion?: number | null;
-  oldFileVersion?: number | null;
-  currentMaxFileVersion?: number | null;
+// 文档比较公共字段
+export interface DocumentCompareCommonFields {
   originalContent?: string;
   newContent?: string;
   // 当使用 iframe 预览时的链接（对应修改前/修改后）
   originalIframeUrl?: string;
   newIframeUrl?: string;
-  oldPublishTime?: string;
-  newPublishTime?: string;
   modifiedDate?: string;
   completed?: string; // AI对比是否完成，"0"表示未完成
+  oldFileVersion?: number | null;
+  newFileVersion?: number | null;
+  currentMaxFileVersion?: number | null;
+  oldPublishTime?: string | null;
+  newPublishTime?: string | null;
 }
+
+// 文档比较数据
+export interface DocumentCompareData
+  extends DocumentCompareBaseFields,
+    DocumentCompareCommonFields {}
 
 // 审核提交数据
 export interface ReviewSubmitData {
@@ -654,20 +659,13 @@ export interface KnowledgeUploadConfig {
 // 文档变更项
 export type ChangeItem = DocumentChange;
 
-// 文档比较页面数据（复用基础字段）
-export interface DocumentComparePageData extends DocumentCompareBaseFields {
+// 文档比较页面数据（复用基础字段和公共字段）
+export interface DocumentComparePageData
+  extends DocumentCompareBaseFields,
+    DocumentCompareCommonFields {
+  // 覆盖为必需字段
   originalContent: string;
   newContent: string;
-  // 当使用 iframe 预览时的链接（对应修改前/修改后）
-  originalIframeUrl?: string;
-  newIframeUrl?: string;
-  modifiedDate?: string;
-  oldFileVersion?: number;
-  oldPublishTime?: string | null;
-  newFileVersion?: number;
-  newPublishTime?: string | null;
-  currentMaxFileVersion?: number;
-  completed?: string; // AI对比是否完成，"0"表示未完成
 }
 
 // 状态映射
