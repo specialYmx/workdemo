@@ -221,7 +221,7 @@ export interface UploadParams extends DocumentCategoryFields {
   id?: string; // 更新时的文档ID，新增时可选
   file: File;
   timeLiness?: string; // 时效性
-  publishDateStr: string; // 发布时间
+  publishDateStr?: string; // 发布时间
   effectDate?: string; // 生效时间
   department?: string | string[]; // 部门（支持字符串数组）
   appendix?: boolean; // 附件标识

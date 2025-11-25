@@ -260,7 +260,8 @@
     UploadErrorData,
     CascaderOption,
     FilterOption,
-    DepartmentOption
+    DepartmentOption,
+    UploadParams
   } from '~/model/LawyerModel';
 
   @Component({ name: 'FileUploadModal' })
@@ -288,7 +289,7 @@
     uploadSuccess: boolean = false;
     uploadProgress: number = 0;
     errorMessage: string = '';
-    progressTimer: number|NodeJS.Timeout | null = null;
+    progressTimer: number | NodeJS.Timeout | null = null;
 
     // 分类ID到名称的映射缓存，用于优化查询性能
     private categoryMap: Map<string, string> = new Map();
@@ -672,7 +673,7 @@
           currentFileProgress = 0;
 
           // 准备上传参数
-          const uploadParams: any = {
+          const uploadParams: UploadParams = {
             file
           };
 

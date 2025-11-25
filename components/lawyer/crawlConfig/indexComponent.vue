@@ -63,7 +63,7 @@
           @change="handleTableChange"
         >
           <template slot="websiteUrl" slot-scope="text">
-            <a :href="text" target="_blank">{{ text }}</a>
+            <a :href="safeUrl(text)" target="_blank">{{ text }}</a>
           </template>
           <!-- 标签列（关键词、屏蔽词、栏目名通用） -->
           <template slot="tagList" slot-scope="text, record">
@@ -423,7 +423,7 @@
         const response = await this.$roadLawyerService.getCrawlConfigList(params);
 
         if (response.success && response.data) {
-          this.configList = response.data.records.map((item: CrawlConfigItem) => ({
+          this.configList =(response.data.records || []).map((item: CrawlConfigItem) => ({
             ...item,
             switchLoading: false // 添加开关加载状态
           }));
@@ -658,6 +658,24 @@
       }
       const maxLength = 8;
       return keyword.length > maxLength ? keyword.substring(0, maxLength) + '...' : keyword;
+    }
+
+    // 安全过滤URL，防止XSS攻击
+    safeUrl(url: string): string {
+      if (!url) {
+        return '';
+      }
+      const trimmedUrl = url.trim().toLowerCase();
+      // 只允许http和https协议
+      if (trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://')) {
+        return url.trim();
+      }
+      // 如果没有协议前缀，默认添加http://
+      if (!/^[a-z]+:/i.test(trimmedUrl)) {
+        return `http://${url.trim()}`;
+      }
+      // 其他协议（如javascript:, data:等）返回空字符串
+      return '';
     }
   }
   export default CrawlConfigIndexComponent;
