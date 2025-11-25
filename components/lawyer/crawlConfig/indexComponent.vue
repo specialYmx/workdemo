@@ -423,7 +423,7 @@
         const response = await this.$roadLawyerService.getCrawlConfigList(params);
 
         if (response.success && response.data) {
-          this.configList =(response.data.records || []).map((item: CrawlConfigItem) => ({
+          this.configList = (response.data.records || []).map((item: CrawlConfigItem) => ({
             ...item,
             switchLoading: false // 添加开关加载状态
           }));
