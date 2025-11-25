@@ -35,7 +35,11 @@
 
           <!-- 已选择文件列表 -->
           <div v-if="selectedFiles.length > 0" class="lawyer-files-container">
-            <div v-for="(file, index) in selectedFiles" :key="index" class="lawyer-file-info">
+            <div
+              v-for="(file, index) in selectedFiles"
+              :key="`${file.name}-${file.size}`"
+              class="lawyer-file-info"
+            >
               <a-icon type="file-text" />
               <span class="lawyer-file-name"
                 >{{ file.name }} ({{ formatFileSize(file.size) }})</span
@@ -645,12 +649,6 @@
         let completedFiles = 0;
         let currentFileProgress = 0;
 
-        console.log('上传参数:', {
-          id: this.documentId,
-          totalFiles,
-          files: this.selectedFiles.map(f => ({ name: f.name, size: f.size }))
-        });
-
         // 上传进度处理
         this.progressTimer = setInterval(() => {
           // 模拟当前文件的上传进度
@@ -666,8 +664,6 @@
         // 遍历上传所有文件
         for (let i = 0; i < this.selectedFiles.length; i++) {
           const file = this.selectedFiles[i];
-
-          console.log(`正在上传第 ${i + 1}/${totalFiles} 个文件: ${file.name}`);
 
           // 重置当前文件进度
           currentFileProgress = 0;
@@ -704,9 +700,6 @@
               finalCategoryId = lastCategoryId;
               uploadParams.categoryMain = this.getCategoryNameById(lastCategoryId);
               uploadParams.categoryId = lastCategoryId;
-
-              console.log('用户选择的分类路径:', this.formData.categoryPath);
-              console.log('最终分类 ID:', lastCategoryId, '名称:', uploadParams.categoryMain);
             }
 
             // 如果用户没有选择分类，使用当前页面路由对应的默认分类ID
@@ -715,12 +708,9 @@
               if (finalCategoryId) {
                 uploadParams.categoryId = finalCategoryId;
                 uploadParams.categoryMain = this.getCategoryNameById(finalCategoryId);
-                console.log('使用页面默认 categoryId:', finalCategoryId);
               }
             }
           }
-
-          console.log('上传参数:', uploadParams);
 
           // 调用真实的后端接口
           const success: boolean = await this.$roadLawyerService.uploadRuleSource(uploadParams);
