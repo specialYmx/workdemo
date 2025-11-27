@@ -60,8 +60,7 @@
                 <ul v-else>
                   <li v-for="(point, index) in item.summaryArray" :key="index">
                     <span>
-                      <strong v-if="point.title">{{ point.title }}：</strong
-                      >{{ point.content }}
+                      <strong v-if="point.title">{{ point.title }}：</strong>{{ point.content }}
                     </span>
                   </li>
                 </ul>
@@ -138,7 +137,7 @@
     currentCategoryId: string | null = null; // 当前选中的分类ID
 
     // 分类数据
-    categoryList : {id: string | null; name: string}[]= [
+    categoryList: { id: string | null; name: string }[] = [
       { id: null, name: '全部更新' },
       { id: '2', name: '法律汇编' },
       { id: '310', name: '新规解读' },
