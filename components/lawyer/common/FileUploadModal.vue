@@ -37,7 +37,7 @@
           <div v-if="selectedFiles.length > 0" class="lawyer-files-container">
             <div
               v-for="(file, index) in selectedFiles"
-              :key="`${file.name}-${file.size}`"
+              :key="`${file.name}-${index}`"
               class="lawyer-file-info"
             >
               <a-icon type="file-text" />
@@ -610,7 +610,7 @@
       this.uploadProgress = 0;
 
       try {
-        await this.simulateUpload();
+        await this.executeUpload();
         this.uploading = false;
         this.uploadSuccess = true;
 
@@ -634,7 +634,7 @@
     }
 
     // 真实上传到后端 - 支持单文件和多文件
-    async simulateUpload(): Promise<void> {
+    async executeUpload(): Promise<void> {
       if (this.selectedFiles.length === 0) {
         throw new Error('请先选择文件');
       }
