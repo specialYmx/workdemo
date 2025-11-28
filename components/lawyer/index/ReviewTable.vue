@@ -150,16 +150,21 @@
     viewAll() {}
 
     @Emit('view-detail')
-    viewDetail(record: ToDoRuleItem) {}
+    viewDetail(record: ToDoRuleItem) {
+        return record;
+    }
+    
 
     // 审核通过操作 - 只负责emit事件
+    @Emit('approve')
     approveItem(record: ToDoRuleItem) {
-      this.$emit('approve', record);
+      return record;
     }
 
     // 审核驳回操作 - 只负责emit事件
+    @Emit('reject')
     rejectItem(record: ToDoRuleItem) {
-      this.$emit('reject', record);
+      return record;
     }
   }
   export default ReviewTable;
