@@ -372,30 +372,40 @@
 
     // 审核操作按钮
     get reviewActions(): ReviewAction[] {
-      return [
-        {
-          text: '通过',
-          type: 'primary',
-          handler: this.handleApprove
-        },
-        {
-          text: '驳回',
-          type: 'danger',
-          handler: this.handleReject
-        }
-      ];
+      if (this.document.checkStatus === '待审核') {
+        return [
+          {
+            text: '通过',
+            type: 'primary',
+            handler: this.handleApprove
+          },
+          {
+            text: '驳回',
+            type: 'danger',
+            handler: this.handleReject
+          }
+        ];
+      }
+      if (this.document.checkStatus === '需人工处理') {
+        return [
+          {
+            text: '驳回',
+            type: 'danger',
+            handler: this.handleReject
+          }
+        ];
+      }
+      return [];
     }
 
     // 是否显示审核按钮
     get shouldShowReviewButtons(): boolean {
-      // 只检查文档的审核状态是否为'待审核'，并确保内容没有错误
-      return this.document.checkStatus === '待审核' && this.canReview;
+      return this.canReview && this.reviewActions.length > 0;
     }
 
     // 是否显示警告信息
     get shouldShowWarning(): boolean {
-      // 显示警告当状态不是待审核或者内容有错误
-      return this.document.checkStatus !== '待审核' || !this.canReview;
+      return !this.canReview;
     }
 
     // 是否有特殊信息（无旧版文件或无新版文件）
@@ -417,19 +427,31 @@
     // 是否允许审核操作
     get canReview(): boolean {
       const { hasContentError } = this.getVersionStatus();
-      // 只根据checkStatus判断是否允许审核，并检查内容是否加载成功
-      return this.document.checkStatus === '待审核' && !hasContentError;
+      const status = this.document.checkStatus;
+      const reviewableStatuses = ['待审核', '需人工处理'];
+      return reviewableStatuses.includes(status || '') && !hasContentError;
     }
 
     // 检查审核状态并显示错误信息
-    checkReviewStatusAndShowError(): boolean {
+    checkReviewStatusAndShowError(action: 'approve' | 'reject'): boolean {
       const { hasContentError } = this.getVersionStatus();
 
       if (hasContentError) {
         this.$message.error('文档内容加载失败，请刷新页面重试后再进行审核');
         return false;
-      } else if (this.document.checkStatus !== '待审核') {
-        this.$message.error('当前状态不允许审核');
+      }
+
+      if (action === 'approve' && this.document.checkStatus !== '待审核') {
+        this.$message.error('当前状态不允许通过审核');
+        return false;
+      }
+
+      if (
+        action === 'reject' &&
+        this.document.checkStatus !== '待审核' &&
+        this.document.checkStatus !== '需人工处理'
+      ) {
+        this.$message.error('当前状态不允许驳回');
         return false;
       }
       return true;
@@ -458,7 +480,10 @@
 
       if (hasContentError) {
         return '文档内容加载失败，请刷新页面重试';
-      } else if (this.document.checkStatus !== '待审核') {
+      } else if (
+        this.document.checkStatus !== '待审核' &&
+        this.document.checkStatus !== '需人工处理'
+      ) {
         return '当前状态不允许审核';
       }
       return '';
@@ -497,7 +522,7 @@
       }
 
       // 检查是否允许审核
-      if (!this.checkReviewStatusAndShowError()) {
+      if (!this.checkReviewStatusAndShowError(action)) {
         return;
       }
 

@@ -29,6 +29,7 @@
                   <a-select-option value="爬取成功"> 爬取成功 </a-select-option>
                   <a-select-option value="爬取失败"> 爬取失败 </a-select-option>
                   <a-select-option value="爬取中"> 爬取中 </a-select-option>
+                  <a-select-option value="超长文本"> 超长文本 </a-select-option>
                 </a-select>
               </div>
             </a-col>
@@ -194,6 +195,7 @@
             <a-select-option value="爬取成功">爬取成功</a-select-option>
             <a-select-option value="爬取失败">爬取失败</a-select-option>
             <a-select-option value="爬取中">爬取中</a-select-option>
+            <a-select-option value="超长文本">超长文本</a-select-option>
           </a-select>
         </a-form-model-item>
         <a-form-model-item label="对比状态" prop="extractStatus">
@@ -618,6 +620,7 @@
         爬取成功: '#52c41a',
         爬取失败: '#ff4d4f',
         爬取中: '#1890ff',
+        超长文本: '#fa8c16',
         待处理: '#fa8c16'
       };
       return colorMap[status] || '#d9d9d9';
@@ -650,7 +653,8 @@
         未爬取: '#d9d9d9',
         爬取中: '#1890ff',
         爬取成功: '#52c41a',
-        爬取失败: '#ff4d4f'
+        爬取失败: '#ff4d4f',
+        超长文本: '#fa8c16'
       };
       return colorMap[status] || '#d9d9d9';
     }

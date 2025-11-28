@@ -467,6 +467,7 @@ export interface ReviewStatusClassMap extends StringMap {
   已驳回: string;
   已过期: string;
   待审核: string;
+  需人工处理: string;
 }
 
 // 时间选项

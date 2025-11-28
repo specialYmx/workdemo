@@ -52,8 +52,13 @@
         <template slot="action" slot-scope="text, record">
           <div class="lawyer-action-links">
             <a class="lawyer-link-view" @click="viewDetail(record)"> 查看 </a>
+            <!-- 待审核状态：可以通过和驳回 -->
             <template v-if="record.checkStatus === '待审核' || record.checkStatus === null">
               <a class="lawyer-link-approve" @click="approveItem(record)"> 通过 </a>
+              <a class="lawyer-link-reject" @click="rejectItem(record)"> 驳回 </a>
+            </template>
+            <!-- 需人工处理状态：只能驳回 -->
+            <template v-else-if="record.checkStatus === '需人工处理'">
               <a class="lawyer-link-reject" @click="rejectItem(record)"> 驳回 </a>
             </template>
           </div>
@@ -126,7 +131,8 @@
         已通过: 'lawyer-status-approved',
         已驳回: 'lawyer-status-rejected',
         待审核: 'lawyer-status-pending',
-        已过期: 'lawyer-status-rejected'
+        已过期: 'lawyer-status-rejected',
+        需人工处理: 'lawyer-status-manual'
       };
       return classMap[status || ''] || 'lawyer-status-pending';
     }
@@ -173,6 +179,11 @@
       font-size: 12px;
       color: var(--lawyer-text-light);
     }
+  }
+
+  // 需人工处理状态样式（橙黄色）
+  .lawyer-status-manual {
+    color: #db6f20;
   }
 
   .lawyer-action-links {

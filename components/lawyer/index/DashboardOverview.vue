@@ -343,7 +343,8 @@
         已通过: 'lawyer-status-approved',
         已驳回: 'lawyer-status-rejected',
         待审核: 'lawyer-status-pending',
-        已过期: 'lawyer-status-rejected'
+        已过期: 'lawyer-status-rejected',
+        需人工处理: 'lawyer-status-manual'
       };
       return classMap[status] || 'lawyer-status-pending';
     }

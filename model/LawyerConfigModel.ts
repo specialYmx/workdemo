@@ -2,7 +2,7 @@ import { BaseQueryParams, MixedMap } from './LawyerModel';
 
 // ==================== 公共类型定义 ====================
 // 处理状态类型
-export type ProcessStatus = '爬取成功' | '爬取失败' | '爬取中';
+export type ProcessStatus = '爬取成功' | '爬取失败' | '爬取中' | '超长文本';
 
 // ==================== 爬取统计相关数据模型 ====================
 

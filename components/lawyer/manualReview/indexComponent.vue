@@ -92,8 +92,13 @@
             <span slot="action" slot-scope="text, record">
               <div class="lawyer-action-links">
                 <a class="lawyer-link-view" @click="viewDocument(record)"> 查看 </a>
-                <template v-if="canReviewItem(record)">
+                <!-- 待审核状态：可以通过和驳回 -->
+                <template v-if="record.checkStatus === '待审核'">
                   <a class="lawyer-link-approve" @click="approveDocument(record)"> 通过 </a>
+                  <a class="lawyer-link-reject" @click="rejectDocument(record)"> 驳回 </a>
+                </template>
+                <!-- 需人工处理状态：只能驳回 -->
+                <template v-else-if="record.checkStatus === '需人工处理'">
                   <a class="lawyer-link-reject" @click="rejectDocument(record)"> 驳回 </a>
                 </template>
               </div>
@@ -229,6 +234,7 @@
           width: 100,
           filters: [
             { text: '待审核', value: '待审核' },
+            { text: '需人工处理', value: '需人工处理' },
             { text: '已通过', value: '已通过' },
             { text: '已驳回', value: '已驳回' },
             { text: '已过期', value: '已过期' }
@@ -409,7 +415,7 @@
           page: this.currentPagination.current,
           pageSize: this.currentPagination.pageSize,
           createdTimeSort: this.createdTimeSort,
-          effectDateSort:this.effectDateSort
+          effectDateSort: this.effectDateSort
         };
 
         // 调用后端分页接口
@@ -549,7 +555,8 @@
         待审核: 'lawyer-status-pending',
         已通过: 'lawyer-status-approved',
         已驳回: 'lawyer-status-rejected',
-        已过期: 'lawyer-status-rejected'
+        已过期: 'lawyer-status-rejected',
+        需人工处理: 'lawyer-status-manual'
       };
       return classMap[status || ''] || 'lawyer-status-pending';
     }
@@ -580,12 +587,6 @@
       });
     }
 
-    // 检查是否允许审核该项目（状态检查和分类ID检查）
-    canReviewItem(record: ToDoRuleItem): boolean {
-      // 然后检查审核状态
-      return record.checkStatus === '待审核';
-    }
-
     // 审核通过
     approveDocument(document: ToDoRuleItem): void {
       // 首先检查 categoryId
@@ -594,9 +595,9 @@
         return;
       }
 
-      // 检查审核状态
-      if (!this.canReviewItem(document)) {
-        this.$message.warning('当前状态不允许审核');
+      // 检查审核状态 - 只有"待审核"状态可以通过
+      if (document.checkStatus !== '待审核') {
+        this.$message.warning('当前状态不允许通过审核');
         return;
       }
 
@@ -613,9 +614,9 @@
 
     // 审核驳回
     rejectDocument(document: ToDoRuleItem): void {
-      // 检查审核状态
-      if (!this.canReviewItem(document)) {
-        this.$message.warning('当前状态不允许审核');
+      // 检查审核状态 - "待审核"和"需人工处理"状态都可以驳回
+      if (document.checkStatus !== '待审核' && document.checkStatus !== '需人工处理') {
+        this.$message.warning('当前状态不允许驳回');
         return;
       }
 
@@ -725,6 +726,11 @@
       font-weight: 600;
       color: var(--lawyer-text);
       margin-bottom: 16px;
+    }
+
+    // 需人工处理状态样式（橙黄色）
+    .lawyer-status-manual {
+      color: #db6f20;
     }
 
     // 搜索筛选和操作区域（一行显示）
