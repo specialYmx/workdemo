@@ -42,13 +42,7 @@
         </a-row>
         <!-- 文档列表表格 -->
         <div class="lawyer-table-wrapper">
-          <!-- 暂无数据状态 -->
-          <div v-if="!tableLoading && documents.length === 0" class="lawyer-empty-state">
-            <a-empty description="暂无数据" />
-          </div>
-
           <a-table
-            v-else
             :columns="columns"
             :data-source="documents"
             :pagination="currentPagination"
@@ -818,12 +812,6 @@
         color: #cf1322;
         background-color: #fff2f0;
       }
-    }
-
-    /* 空状态样式 */
-    .lawyer-empty-state {
-      padding: 40px 20px;
-      text-align: center;
     }
   }
 </style>
