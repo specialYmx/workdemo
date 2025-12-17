@@ -602,6 +602,7 @@ export interface UpdateItem {
   date: string;
   source: string;
   category: string;
+  categoryId?: string; // 分类ID（用于识别制度库等）
   type: string;
   tags: string[];
   assemblyCategoryMain?: string; // 组装分类主字段（用于识别季刊类数据）

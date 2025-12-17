@@ -32,11 +32,11 @@
                 </div>
 
                 <div class="lawyer-header-actions">
-                  <a-button class="lawyer-back-btn" @click="goBack">
+                 <a-button class="lawyer-back-btn" @click="goBack">
                     <a-icon type="arrow-left" />
                     返回
                   </a-button>
-                  <a-button type="primary" @click="downloadDocument"> 下载 </a-button>
+                  <a-button v-if="showDownloadButton" type="primary" @click="downloadDocument"> 下载 </a-button>
                 </div>
               </div>
             </div>
@@ -243,6 +243,14 @@
   })
   class DocumentViewer extends Vue {
     @Prop({ required: true }) document!: DocumentViewerData;
+
+    get showDownloadButton(): boolean {
+      if (this.document.categoryId === '3') {
+        return false;
+      }
+      const categoryText = `${this.document.assemblyCategoryMain || ''}`;
+      return !categoryText.includes('制度库');
+    }
 
     // AI助手相关
     responseChatList: ChatListType[] = [];

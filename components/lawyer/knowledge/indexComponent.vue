@@ -270,6 +270,14 @@
       return doc.isCollect || false;
     }
 
+    isInstitutionLibraryDocument(doc: KnowledgeDataItem): boolean {
+      if (doc.categoryId === '3') {
+        return true;
+      }
+      const categoryText = `${doc.assemblyCategoryMain || ''}`;
+      return categoryText.includes('制度库');
+    }
+
     async onSearch(): Promise<void> {
       this.searchLoading = true;
       try {
@@ -322,12 +330,14 @@
           text: '查看',
           type: 'primary',
           handler: () => this.viewDocument(doc)
-        },
-        {
-          text: '下载',
-          handler: () => this.downloadDocument(doc)
         }
       ];
+      if (!this.isInstitutionLibraryDocument(doc)) {
+        actions.push({
+          text: '下载',
+          handler: () => this.downloadDocument(doc)
+        });
+      }
 
       // 只有在非收藏模式下才显示收藏按钮
       if (!this.isFavoritesMode) {

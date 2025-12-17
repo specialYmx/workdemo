@@ -83,7 +83,10 @@
                   <a class="lawyer-action-btn lawyer-btn-primary" @click.prevent="viewUpdate(item)"
                     >查看详情</a
                   >
-                  <a class="lawyer-action-btn" @click.prevent="downloadUpdate(item.id, item.title)"
+                  <a
+                    v-if="shouldShowDownload(item)"
+                    class="lawyer-action-btn"
+                    @click.prevent="downloadUpdate(item.id, item.title)"
                     >下载文件</a
                   >
                 </div>
@@ -146,6 +149,16 @@
       { id: '312', name: '法律合规季刊' },
       { id: '3', name: '制度库' }
     ];
+
+    shouldShowDownload(item: UpdateItem): boolean {
+      if (this.currentCategoryId === '3') {
+        return false;
+      }
+      if (item.categoryId === '3') {
+        return false;
+      }
+      return !(item.assemblyCategoryMain || '').includes('制度库');
+    }
 
     async mounted(): Promise<void> {
       await this.loadUpdates();
@@ -245,6 +258,7 @@
           date: item.createdTimeStr || item.publishDateStr || '未知时间',
           source: item.legalSource || '未知来源',
           category: item.categoryMain || '其他',
+          categoryId: item.categoryId,
           type,
           tags,
           assemblyCategoryMain: item.assemblyCategoryMain,
