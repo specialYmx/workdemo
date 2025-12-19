@@ -97,6 +97,7 @@
   import { downloadFileWithMessage } from '~/utils/personal';
   import { formatDate } from '~/utils/date';
   import { LawyerStoreModule } from '~/store/lawyer';
+  import { departmentOptions as departmentOptionEnums } from '~/enums/Lawyer';
 
   @Component({ name: 'lawyer-knowledge-index-component' })
   class LawyerKnowledgeIndexComponent extends Vue {
@@ -126,7 +127,7 @@
     isAdmin: boolean = false;
     categoryData: LegalCategoryItem[] = []; // 存储从接口获取的分类数据
     isAddMode: boolean = false; // 是否为新增模式
-    departmentOptions: DepartmentOption[] = []; // 存储部门数据
+    departmentOptions: DepartmentOption[] = [...departmentOptionEnums]; // 存储部门数据
     exportModalVisible: boolean = false; // 导出模态框显示状态
     selectedCopies: string[] = ['上', '下']; // 默认选中上册和下册
 
@@ -236,7 +237,7 @@
       await this.checkAdminPermission();
       await this.loadWebsiteOptions();
       await this.loadLegalCategory();
-      await this.loadDepartmentData();
+      // await this.loadDepartmentData();
       this.loadDocuments();
     }
 
@@ -664,27 +665,6 @@
       }
     }
 
-    async loadDepartmentData(): Promise<void> {
-      try {
-        const response = await this.$roadLawyerService.getDepartmentData({
-          current: 1,
-          size: 999
-        });
-        if (response?.length) {
-          this.departmentOptions = response.map(dept => ({
-            value: dept.name,
-            label: dept.name,
-            id: dept.id
-          }));
-        } else {
-          console.warn('获取部门数据为空');
-          this.departmentOptions = [];
-        }
-      } catch (error) {
-        console.error('加载部门数据失败:', error);
-        this.departmentOptions = [];
-      }
-    }
 
     getCategoryIdByRoute(): string | undefined {
       // 根据当前路由确定分类ID
@@ -732,6 +712,30 @@
         })
       );
     }
+
+    // loadDepartmentData(): Promise<void> {
+    //   return this.$roadLawyerService
+    //     .getDepartmentData({
+    //       current: 1,
+    //       size: 999
+    //     })
+    //     .then(response => {
+    //       if (response?.length) {
+    //         this.departmentOptions = response.map(dept => ({
+    //           value: dept.name,
+    //           label: dept.name,
+    //           id: dept.id
+    //         }));
+    //       } else {
+    //         console.warn('获取部门数据为空');
+    //         this.departmentOptions = [];
+    //       }
+    //     })
+    //     .catch(error => {
+    //       console.error('加载部门数据失败:', error);
+    //       this.departmentOptions = [];
+    //     });
+    // }
 
     async loadDocuments(searchType: 'normal' | 'exact' | 'default' = 'exact'): Promise<void> {
       this.listLoading = true;

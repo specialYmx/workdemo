@@ -32,11 +32,13 @@
                 </div>
 
                 <div class="lawyer-header-actions">
-                 <a-button class="lawyer-back-btn" @click="goBack">
+                  <a-button class="lawyer-back-btn" @click="goBack">
                     <a-icon type="arrow-left" />
                     返回
                   </a-button>
-                  <a-button v-if="showDownloadButton" type="primary" @click="downloadDocument"> 下载 </a-button>
+                  <a-button v-if="showDownloadButton" type="primary" @click="downloadDocument">
+                    下载
+                  </a-button>
                 </div>
               </div>
             </div>
@@ -232,6 +234,7 @@
   } from '~/model/LawyerModel';
   import { ChatListType } from '~/model/chatModel';
   import api from '~/api';
+  import { departmentOptions as departmentOptionEnums } from '~/enums/Lawyer';
   import { getFetchFormat } from '~/utils/aiFetchFormat';
   import CommonAiChat from '~/components/common/AiChat.vue';
 
@@ -293,7 +296,7 @@
     // 标签分类相关
     tagOptions: CascaderOption[] = [];
     websiteOptions: WebsiteOption[] = [];
-    departmentOptions: DepartmentOption[] = []; // 存储部门数据
+    departmentOptions: DepartmentOption[] = [...departmentOptionEnums]; // 存储部门数据
 
     // 组件挂载时初始化欢迎消息
     async mounted(): Promise<void> {
@@ -301,7 +304,7 @@
       await this.checkAdminPermission();
       await this.loadCategoryOptions();
       await this.loadWebsiteOptions();
-      await this.loadDepartmentData();
+      // await this.loadDepartmentData();
     }
 
     // 检查管理员权限
@@ -392,29 +395,6 @@
       }
     }
 
-    // 加载部门数据
-    async loadDepartmentData(): Promise<void> {
-      try {
-        const response = await this.$roadLawyerService.getDepartmentData({
-          current: 1,
-          size: 999
-        });
-        if (response.length) {
-          this.departmentOptions = response.map(dept => ({
-            value: dept.name,
-            label: dept.name,
-            id: dept.id
-          }));
-        } else {
-          console.warn('获取部门数据为空');
-          this.departmentOptions = [];
-        }
-      } catch (error) {
-        console.error('加载部门数据失败:', error);
-        this.departmentOptions = [];
-      }
-    }
-
     // 将API数据转换为级联选择器格式
     convertToCascaderOptions(categories: LegalCategoryItem[]): CascaderOption[] {
       return categories.map(
@@ -425,6 +405,30 @@
         })
       );
     }
+
+    // loadDepartmentData(): Promise<void> {
+    //   return this.$roadLawyerService
+    //     .getDepartmentData({
+    //       current: 1,
+    //       size: 999
+    //     })
+    //     .then(response => {
+    //       if (response.length) {
+    //         this.departmentOptions = response.map(dept => ({
+    //           value: dept.name,
+    //           label: dept.name,
+    //           id: dept.id
+    //         }));
+    //       } else {
+    //         console.warn('获取部门数据为空');
+    //         this.departmentOptions = [];
+    //       }
+    //     })
+    //     .catch(error => {
+    //       console.error('加载部门数据失败:', error);
+    //       this.departmentOptions = [];
+    //     });
+    // }
 
     // 根据当前路由判断页面类型，返回表单字段显示配置
     get fieldConfig(): {
@@ -821,7 +825,6 @@
       display: flex;
       flex-direction: column;
       background-color: var(--lawyer-background);
-      padding: 16px;
       box-sizing: border-box;
       overflow: hidden; // 防止页面级别的滚动条
     }
