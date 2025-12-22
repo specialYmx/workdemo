@@ -67,6 +67,7 @@
             v-if="!isUpdate"
             ref="form"
             :model="formData"
+            :rules="formRules"
             :label-col="{ span: 5 }"
             :wrapper-col="{ span: 19 }"
             style="margin-top: 24px"
@@ -82,18 +83,6 @@
                   {{ option.label }}
                 </a-select-option>
               </a-select>
-            </a-form-model-item>
-
-            <!-- 分类 -->
-            <a-form-model-item v-if="fieldConfig.showCategory" label="分类" prop="categoryPath">
-              <a-cascader
-                v-model="formData.categoryPath"
-                :options="categoryOptions"
-                placeholder="请选择分类"
-                :show-search="true"
-                :change-on-select="true"
-                style="width: 100%"
-              />
             </a-form-model-item>
 
             <!-- 发布时间 -->
@@ -121,6 +110,17 @@
               <span style="margin-left: 8px; color: #666; font-size: 12px">
                 {{ formData.appendix ? '是' : '否' }}
               </span>
+            </a-form-model-item>
+            <!-- 分类 -->
+            <a-form-model-item v-if="fieldConfig.showCategory" label="分类" prop="categoryPath">
+              <a-cascader
+                v-model="formData.categoryPath"
+                :options="categoryOptions"
+                placeholder="请选择分类"
+                :show-search="true"
+                :change-on-select="true"
+                style="width: 100%"
+              />
             </a-form-model-item>
 
             <!-- 效力位阶 -->
@@ -166,9 +166,8 @@
                 mode="multiple"
                 placeholder="请选择责任部门"
                 :allow-clear="true"
-                :max-tag-count="2"
-                :max-tag-text-length="8"
-                max-tag-placeholder="..."
+                :max-tag-count="5"
+                :max-tag-placeholder="vals => `+${vals.length}`"
               >
                 <a-select-option
                   v-for="option in departmentOptions"
@@ -258,6 +257,7 @@
 
 <script lang="ts">
   import { Component, Vue, Prop, Watch, Emit } from 'nuxt-property-decorator';
+  import type { FormModel } from 'ant-design-vue';
   import type {
     UploadConfig,
     UploadSuccessData,
@@ -321,7 +321,27 @@
       appendix: false
     };
 
-    // 计算属性 - 获取配置值
+    get isCategoryRequired(): boolean {
+      return !this.isUpdate && this.$route.path.includes('/lawyerKnowledge');
+    }
+
+    get formRules() {
+      if (!this.isCategoryRequired) {
+        return {};
+      }
+      return {
+        categoryPath: [
+          {
+            required: true,
+            type: 'array',
+            min: 1,
+            message: '请选择分类',
+            trigger: 'change'
+          }
+        ]
+      };
+    }
+
     get uploadConfig(): Required<UploadConfig> {
       return {
         multiple: false,
@@ -426,6 +446,7 @@
       } else {
         this.resetState();
       }
+      this.clearFormValidation();
     }
 
     // 监听分类选项变化，重新构建映射缓存
@@ -563,6 +584,13 @@
       };
     }
 
+    clearFormValidation(): void {
+      const form = this.$refs.form as FormModel | undefined;
+      if (form) {
+        form.clearValidate([]);
+      }
+    }
+
     // 根据分类ID获取分类名称（使用缓存提升性能）
     getCategoryNameById(categoryId: string): string {
       return this.categoryMap.get(categoryId) || '';
@@ -605,6 +633,22 @@
         return;
       }
 
+      if (!this.isUpdate) {
+        const formRef = this.$refs.form as FormModel;
+        if (!formRef) {
+          throw new Error('表单引用无效');
+        }
+        try {
+          await formRef.validate();
+        } catch {
+          return;
+        }
+      }
+
+      this.runUpload();
+    }
+
+    async runUpload(): Promise<void> {
       this.uploading = true;
       this.uploadSuccess = false;
       this.uploadProgress = 0;
