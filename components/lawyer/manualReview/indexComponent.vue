@@ -3,12 +3,12 @@
     <div class="lawyer-page-container">
       <!-- 整体卡片容器 -->
       <div class="lawyer-main-card">
-        <a-row :gutter="16">
+        <a-row >
           <a-col :span="6">
             <!-- 页面标题 -->
             <h4 class="lawyer-page-title">人工审核与数据管理</h4>
           </a-col>
-          <a-col :span="12" :offset="6" class="tx-r">
+          <a-col :span="18">
             <!-- 搜索筛选和操作区域 -->
             <div class="lawyer-controls-row">
               <a-input-search
@@ -30,13 +30,15 @@
                   @change="onFilterChange"
                 />
               </div>
-              <a-button
-                class="lawyer-btn-export"
-                :disabled="selectedRowKeys.length === 0"
-                @click="exportData"
-              >
-                导出选中数据 ({{ selectedRowKeys.length }})
-              </a-button>
+              <div class="lawyer-action-buttons">
+                <a-button
+                  class="lawyer-btn-export"
+                  :disabled="selectedRowKeys.length === 0"
+                  @click="exportData"
+                >
+                  导出选中数据 ({{ selectedRowKeys.length }})
+                </a-button>
+              </div>
             </div>
           </a-col>
         </a-row>
@@ -177,7 +179,9 @@
           key: 'ruleName',
           scopedSlots: {
             customRender: 'ruleName'
-          }
+          },
+          width: 220,
+          ellipsis: true
         },
         {
           title: '分类',
@@ -185,7 +189,8 @@
           key: 'categoryMain',
           scopedSlots: {
             customRender: 'type'
-          }
+          },
+          width: 100
         },
         {
           title: '来源',
@@ -198,7 +203,8 @@
           title: '提交时间',
           dataIndex: 'createdTime',
           key: 'createdTime',
-          width: 160,
+          width: 150,
+          ellipsis: true,
           scopedSlots: { customRender: 'createdTime' },
           sorter: true,
           sortOrder: this.createdTimeSort
@@ -207,11 +213,13 @@
               : 'descend'
             : null
         },
+
         {
           title: '施行日期',
           dataIndex: 'effectDate',
           key: 'effectDate',
-          width: 160,
+          width: 90,
+          ellipsis: true,
           scopedSlots: { customRender: 'effectDate' },
           sorter: true,
           sortOrder: this.effectDateSort
@@ -730,18 +738,34 @@
     // 搜索筛选和操作区域（一行显示）
     .lawyer-controls-row {
       display: flex;
-      gap: 12px;
+      gap: 6px;
       align-items: center;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
     }
 
     .lawyer-search-input {
       width: 30%;
     }
 
-    .lawyer-btn-export {
+    .lawyer-action-buttons {
       margin-left: auto;
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .lawyer-btn-batch-reject {
+      background: #f5222d;
+      border-color: #f5222d;
+      color: white;
+
+      &:hover {
+        background: #cf1322;
+        border-color: #cf1322;
+        color: white;
+      }
+    }
+
+    .lawyer-btn-export {
       background: #e6a23c;
       border-color: #e6a23c;
       color: white;
@@ -771,15 +795,12 @@
     // 操作链接组
     .lawyer-action-links {
       display: flex;
-      gap: 8px;
       align-items: center;
     }
 
     .lawyer-link-view {
       color: #666;
-      cursor: pointer;
       transition: color 0.2s ease;
-      padding: 2px 6px;
       border-radius: 3px;
 
       &:hover {
@@ -790,9 +811,7 @@
 
     .lawyer-link-approve {
       color: #52c41a;
-      cursor: pointer;
       transition: all 0.2s ease;
-      padding: 2px 6px;
       border-radius: 3px;
 
       &:hover {
@@ -803,9 +822,7 @@
 
     .lawyer-link-reject {
       color: #ff4d4f;
-      cursor: pointer;
       transition: all 0.2s ease;
-      padding: 2px 6px;
       border-radius: 3px;
 
       &:hover {
@@ -813,5 +830,6 @@
         background-color: #fff2f0;
       }
     }
+
   }
 </style>

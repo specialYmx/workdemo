@@ -151,9 +151,8 @@
 
     @Emit('view-detail')
     viewDetail(record: ToDoRuleItem) {
-        return record;
+      return record;
     }
-    
 
     // 审核通过操作 - 只负责emit事件
     @Emit('approve')
@@ -197,7 +196,6 @@
     align-items: center;
     cursor: pointer;
     transition: color 0.2s ease;
-    padding: 2px 6px;
     border-radius: 3px;
   }
 

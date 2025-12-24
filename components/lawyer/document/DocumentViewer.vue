@@ -22,13 +22,6 @@
                       <a-icon type="edit" class="lawyer-status-edit-icon" />
                     </a-tag>
                   </div>
-
-                  <!-- 文档元数据 -->
-                  <div class="lawyer-document-meta">
-                    <span v-for="(item, index) in documentMetaItems" :key="index">
-                      <a-icon :type="item.icon" /> {{ item.content }}
-                    </span>
-                  </div>
                 </div>
 
                 <div class="lawyer-header-actions">
@@ -40,6 +33,12 @@
                     下载
                   </a-button>
                 </div>
+              </div>
+              <!-- 文档元数据 -->
+              <div class="lawyer-document-meta">
+                <span v-for="(item, index) in documentMetaItems" :key="index">
+                  <a-icon :type="item.icon" /> {{ item.content }}
+                </span>
               </div>
             </div>
 
@@ -896,9 +895,7 @@
       color: var(--lawyer-text-light);
       display: flex;
       flex-wrap: wrap;
-      gap: 20px;
-      margin-top: 6px;
-
+      gap: 6px;
       @media (max-width: 768px) {
         gap: 12px;
         font-size: 12px;
@@ -976,7 +973,7 @@
 
     // 文档头部（在卡片内）
     .lawyer-document-header {
-      padding: 16px 20px;
+      padding: 8px;
       border-bottom: 1px solid var(--lawyer-border);
       background: var(--lawyer-surface);
 
@@ -984,8 +981,6 @@
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
-        gap: 20px;
-
         .lawyer-header-actions {
           display: flex;
           gap: 8px;
