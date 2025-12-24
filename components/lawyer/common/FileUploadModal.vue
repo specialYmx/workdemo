@@ -159,12 +159,12 @@
                 value-format="YYYY-MM-DD"
               />
             </a-form-model-item>
-            <!-- 责任部门 -->
-            <a-form-model-item v-if="fieldConfig.showDepartment" label="责任部门" prop="department">
+            <!-- 印发部门 -->
+            <a-form-model-item v-if="fieldConfig.showDepartment" label="印发部门" prop="department">
               <a-select
                 v-model="formData.department"
                 mode="multiple"
-                placeholder="请选择责任部门"
+                placeholder="请选择印发部门"
                 :allow-clear="true"
                 :max-tag-count="5"
                 :max-tag-placeholder="vals => `+${vals.length}`"
@@ -388,6 +388,7 @@
       showAppendix: boolean;
     } {
       const routePath = this.$route.path;
+      const showDepartmentInKnowledge = routePath.includes('/lawyerKnowledge');
 
       // 新规解读、处罚汇编、研究集锦、法规合规季刊：只显示"分类"、"发布时间"
       if (
@@ -433,7 +434,7 @@
         showPublishDate: true,
         showEffectDate: true,
         showDocumentNo: true,
-        showDepartment: true,
+        showDepartment: showDepartmentInKnowledge,
         showAppendix: true
       };
     }

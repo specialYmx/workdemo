@@ -194,12 +194,12 @@
               />
             </a-form-model-item>
 
-            <!-- 责任部门 -->
-            <a-form-model-item v-if="fieldConfig.showDepartment" label="责任部门" prop="department">
+            <!-- 印发部门 -->
+            <a-form-model-item v-if="fieldConfig.showDepartment" label="印发部门" prop="department">
               <a-select
                 v-model="formData.department"
                 mode="multiple"
-                placeholder="请选择责任部门"
+                placeholder="请选择印发部门"
                 :allow-clear="true"
                 :max-tag-count="2"
                 max-tag-placeholder="..."
@@ -446,6 +446,7 @@
       // 优先从路由参数获取来源页面信息
       const sourcePath = this.$route.query.source as string;
       const finalPath = sourcePath || routePath;
+      const showDepartmentInKnowledge = finalPath.includes('/lawyerKnowledge');
 
       // 新规解读、处罚汇编、研究集锦、法规合规季刊：只显示"分类"、"发布时间"
       if (
@@ -491,7 +492,7 @@
         showPublishDate: true,
         showEffectDate: true,
         showDocumentNo: true,
-        showDepartment: true,
+        showDepartment: showDepartmentInKnowledge,
         showAppendix: true
       };
     }
@@ -565,7 +566,7 @@
       // 回显生效时间 - 确保不是无效的日期字符串
       const effectiveDate = this.document.effectiveDate;
       this.formData.effectDate = effectiveDate || undefined;
-      // 回显责任部门
+      // 回显印发部门
       if (this.document.department) {
         // 兼容字符串和数组格式
         if (Array.isArray(this.document.department)) {

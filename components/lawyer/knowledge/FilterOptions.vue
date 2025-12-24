@@ -141,12 +141,12 @@
           @clear="onDocumentNumberClear"
         />
       </div>
-      <!-- 责任部门 -->
+      <!-- 印发部门 -->
       <div v-if="filterConfig.showDepartment" class="lawyer-filter-group">
         <a-select
           :value="departmentFilter || undefined"
           style="width: 100%"
-          placeholder="责任部门"
+          placeholder="印发部门"
           :allow-clear="true"
           @change="onDepartmentChange"
           :show-search="true"
@@ -223,6 +223,7 @@
       showAppendix: boolean;
     } {
       const routePath = this.$route.path;
+      const showDepartmentInKnowledge = routePath.includes('/lawyerKnowledge');
 
       // 新规解读、处罚汇编、研究集锦、法规合规季刊：只显示"分类"、"发布时间"、"排序方式"
       if (
@@ -268,7 +269,7 @@
         showPublishDate: true,
         showSortOrder: true,
         showDocumentNumber: true,
-        showDepartment: true,
+        showDepartment: showDepartmentInKnowledge,
         showAppendix: true
       };
     }
