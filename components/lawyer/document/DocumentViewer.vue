@@ -36,7 +36,7 @@
               </div>
               <!-- 文档元数据 -->
               <div class="lawyer-document-meta">
-                <span v-for="(item, index) in documentMetaItems" :key="index">
+                <span v-for="item in documentMetaItems" :key="item.icon">
                   <a-icon :type="item.icon" /> {{ item.content }}
                 </span>
               </div>
@@ -382,7 +382,7 @@
           let processedCategories = categories;
           if (categoryId) {
             // 有具体ID时，取第一个元素的children
-            processedCategories = categories[0].children || [];
+            processedCategories = categories[0]?.children || [];
           }
           this.tagOptions = this.convertToCascaderOptions(processedCategories);
         } else {
