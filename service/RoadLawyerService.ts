@@ -328,16 +328,6 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
     }
   },
 
-  async updateTimeLinessSchedule(params: QueryParams) {
-    try {
-      const res = await $axios.post(`${api.lawyer.updateTimeLinessSchedule}`, toFormData(params));
-      return res.data?.success || false;
-    } catch (error) {
-      console.error('Error updating timeliness schedule:', error);
-      return false;
-    }
-  },
-
   async uploadRuleSource(params: UploadParams) {
     try {
       const res = await $axios.post(`${api.lawyer.uploadRuleSource}`, toFormData(params));

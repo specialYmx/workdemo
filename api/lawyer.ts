@@ -18,7 +18,6 @@
   getRuleSourceList: '/legal/getRuleSourceList', // 大家智库-列表页
   getRuleUpdateList: '/legal/getRuleUpdateList', // 智库更新-列表页
   saveOrCancelCollect: '/legal/saveOrCancelCollect', // 保存或取消收藏
-  updateTimeLinessSchedule: '/legal/updateTimeLinessSchedule', // 更新及时性调度
   uploadRuleSource: '/legal/uploadRuleSource', // 大家智库-上传更新
   getAIRobotAnswer: '/legal/getAIRobotAnswer', // 大家智库-AI问答  searchId文件id  userId用户的empid默认从store的id取 question输入问题  enableNetworkQuery是否联网搜索(可选参数)
   getAdmin: '/legal/getAdmin', // 获取管理员权限状态

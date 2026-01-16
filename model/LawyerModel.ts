@@ -413,7 +413,6 @@ export interface RoadLawyerService {
   getRuleUpdateList: (params: RuleUpdateQueryParams) => Promise<RuleUpdateListResponse>;
   initData: (params?: QueryParams) => Promise<boolean>;
   saveOrCancelCollect: (params: CollectParams) => Promise<boolean>;
-  updateTimeLinessSchedule: (params: QueryParams) => Promise<boolean>;
   uploadRuleSource: (params: UploadParams) => Promise<boolean>;
   getAdmin: (params?: QueryParams) => Promise<boolean>;
   getLegalCategory: (params: LegalCategoryParams) => Promise<LegalCategoryItem[]>;

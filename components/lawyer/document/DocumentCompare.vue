@@ -773,7 +773,6 @@
       overflow-y: auto;
       flex: 1; // 使用flex占据剩余空间
       min-height: 0; // 允许收缩
-      white-space: pre-wrap; // 保留换行符
       word-break: break-word; // 长单词换行
     }
     .lawyer-iframe-preview {
