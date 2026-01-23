@@ -395,7 +395,7 @@
     }
 
     async downloadDocument(doc: KnowledgeDataItem): Promise<void> {
-      let hideLoading = null;
+      let hideLoading: void | (() => void) = undefined;
       try {
         // 根据文档分类或当前页面决定文件格式：法规汇编下载 docx，其他下载 pdf
         const assemblyCategoryMain: string | undefined = doc.assemblyCategoryMain;
@@ -411,20 +411,18 @@
         const result = await this.$roadLawyerService.downloadRuleFile({
           searchId: doc.id
         });
-
-        hideLoading();
-
         downloadFileWithMessage(result, {
           fileName: `${doc.ruleName}.${fileExtension}`,
           showMessage: true,
           messageService: this.$message
         });
       } catch (error) {
-        if (hideLoading) {
-          hideLoading();
-        }
         console.error('下载失败:', error);
         this.$message.error('下载失败，请检查网络连接后重试');
+      } finally {
+        if (typeof hideLoading === 'function') {
+          hideLoading();
+        }
       }
     }
 
@@ -513,7 +511,7 @@
         return;
       }
 
-      let hideLoading = null;
+      let hideLoading: void | (() => void) = undefined;
       try {
         hideLoading = this.$message.loading(
           `正在导出，共${this.selectedCopies.length}册，请稍候...`,
@@ -550,10 +548,6 @@
           }
         }
 
-        if (hideLoading) {
-          hideLoading();
-        }
-
         // 显示最终结果
         if (successCount === this.selectedCopies.length) {
           this.$message.success(`成功导出${successCount}册`);
@@ -564,11 +558,12 @@
           this.$message.error('导出失败，请重试');
         }
       } catch (error) {
-        if (hideLoading) {
-          hideLoading();
-        }
         console.error('导出失败:', error);
         this.$message.error('导出失败，请检查网络连接后重试');
+      } finally {
+        if (typeof hideLoading === 'function') {
+          hideLoading();
+        }
       }
     }
 
