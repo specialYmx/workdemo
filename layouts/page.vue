@@ -34,7 +34,7 @@
             </nuxt-link>
             <nuxt-link to="/researchCollection" class="lawyer-nav-link" exact-active-class="active">
               <a-icon type="experiment" />
-              研究集锦
+              专题研究
             </nuxt-link>
             <nuxt-link
               to="/legalComplianceQuarterly"

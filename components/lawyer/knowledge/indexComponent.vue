@@ -148,24 +148,35 @@
     }
 
     get categoryName(): string {
-      // 根据路由获取分类名称，用于显示
-      const routePath = this.$route.path;
-      const normalizedPath = routePath.replace(/\/$/, '');
+    // 根据路由获取分类名称，用于显示
+    const routePath = this.$route.path
 
-      // 路由路径与分类名称的映射
-      const routeMap: Record<string, string> = {
-        '/lawyerKnowledge': '大家智库',
-        '/regulationCompilation': '法规汇编',
-        '/punishmentCompilation': '处罚汇编',
-        '/researchCollection': '研究集锦',
-        '/legalComplianceQuarterly': '法律合规季刊',
-        '/newRegulationInterpretation': '新规解读',
-        '/institutionLibrary': '制度库'
-      };
-
-      // 精确匹配路由路径，默认返回
-      return routeMap[normalizedPath] || '大家智库';
+    // 路由路径与分类名称的映射
+    const routeMap: Record<string, string> = {
+      '/lawyerKnowledge': '大家智库',
+      '/regulationCompilation': '法规汇编',
+      '/punishmentCompilation': '处罚汇编',
+      '/researchCollection': '专题研究',
+      '/legalComplianceQuarterly': '法律合规季刊',
+      '/newRegulationInterpretation': '新规解读',
+      '/institutionLibrary': '制度库', // 企业内部管理制度和规范文件
     }
+
+    // 精确匹配路由路径
+    if (routeMap[routePath] || routeMap[routePath.replace(/\/$/, '')]) {
+      return routeMap[routePath] || routeMap[routePath.replace(/\/$/, '')]
+    }
+
+    // 模糊匹配（包含路径）
+    for (const [path, name] of Object.entries(routeMap)) {
+      if (routePath.includes(path)) {
+        return name
+      }
+    }
+
+    // 默认返回
+    return '大家智库'
+  }
 
     get searchButtons(): SearchButton[] {
       return [
