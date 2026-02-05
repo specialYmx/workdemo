@@ -89,7 +89,7 @@
               ></iframe>
             </template>
             <template v-else>
-              <v-md-preview :text="col.content || '暂无数据'" />
+              <auth-markdown-preview :text="col.content || '暂无数据'" :enable-image-auth="true" />
             </template>
           </div>
         </div>

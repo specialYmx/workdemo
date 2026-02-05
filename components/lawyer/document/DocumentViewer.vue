@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div ref="documentViewerContainer" class="document-viewer-wrapper">
     <div class="lawyer-document-page">
       <!-- 主要内容区 -->
@@ -52,14 +52,14 @@
                 sandbox="allow-same-origin allow-scripts"
               ></iframe>
             </template>
-            <!-- 否则使用 markdown 预览，并包含文本搜索功能 -->
+            <!-- 否则使用 markdown 预览，并ai-chat包含文本搜索功能 -->
             <lawyer-common-div-text-search v-else>
               <div
                 ref="documentContent"
                 class="lawyer-document-content lawyer-scrollable lawyer-markdown-content"
                 tabindex="0"
               >
-                <v-md-preview :text="document.content" />
+                <auth-markdown-preview :text="document.content" :enable-image-auth="true" />
               </div>
             </lawyer-common-div-text-search>
           </a-card>
