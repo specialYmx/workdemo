@@ -1,9 +1,9 @@
 export const state = () => ({
-  id: "DJ101015", // 硬编码的用户ID
+  id: 'DJ101015', // 硬编码的用户ID
   user: null,
   token:
-    "eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJESkJYIiwic3ViIjoiVXNlciBQb3J0YWwiLCJhdWQiOiJwcm9kdWN0IiwidXNlcmNvZGUiOiJESjEwMTAxNSIsImlkZW50aXR5Q2xpZW50IjoiREpaQyIsImlkZW50aXR5UGFyYW0xIjoiREoxMDEwMTUiLCJpYXQiOjE3NTg3Njk2NzgsImV4cCI6MTc1ODgzNDQ3OH0.pOqLdkO2pT7zod7tftVF8W5WY2G-LdYlCvWKapaCeJwjFAe3nm78vMKhi_lmsgaTWlupsSyxVf_tIiA1DqZbYJIyJdUQVY5Z6XzOO_PNJa5b-oPknZ8xxCOHTEl-ciVsrmp2z_wkknoEa7a1FnMlJGR2-fNGDtc5iX0exgdlJLAzTQise86MJ9Uq-8PHtgdSB_xOszJs20FLHN_TeHeO7ojOyBaQqKjgtwFg7_Gp1tuWZNcoGweznynqI3nR_4n2vWdhn_w83nPaZUEMFWJhVNeHlKvUC9dUAuQvGnhc_GD2TjqGwoApx2dx7Eg4rz-9VbMxBEGgMh0R68N9yEu3AQ",
-  isAuthenticated: true,
+    'eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJESkJYIiwic3ViIjoiVXNlciBQb3J0YWwiLCJhdWQiOiJMS1IiLCJ1c2VyY29kZSI6IkRKMTAxMDE1IiwiaWRlbnRpdHlDbGllbnQiOiJESlpDIiwiaWRlbnRpdHlQYXJhbTEiOiJESjEwMTAxNSIsImlhdCI6MTc3MjA4Nzg4MywiZXhwIjoxNzcyMTUyNjgzfQ.q_lGThUTV939bgw70JkcUaMTrTrgWT5N1Frf3hzf2cWOzrXl-ittg8OUcVsk0B87OlqbHCqu6zLe4NLYxTcx2xxKcH7o9cgZl9lgCSrJOZsyzdnqG6g-TS6YNKDfviSsvxxBVNbYYhyo3KQ7vHha65LWKAMbfqlocd0ibyI6Fl0lmcAui33p5fqVZLViVJ5hlUfnFlEg4JT_AZt1I4_dVJA1vdrSllrtWj9MP8E5fG0D4VZwTAYIngLjX1RKTuoH_mLNx_7XI791zNtCn6kVZWGSY6Rnl6rPalQlPeHjYJn4p8n6koGFPLoz-z9MfPbqvpMDllwV2TVL-7eVZ9pJCA',
+  isAuthenticated: true
 });
 
 export const mutations = {
@@ -15,7 +15,7 @@ export const mutations = {
   },
   SET_AUTH_STATUS(state, status) {
     state.isAuthenticated = status;
-  },
+  }
 };
 
 export const actions = {
@@ -23,6 +23,6 @@ export const actions = {
 };
 
 export const getters = {
-  userId: (state) => state.id,
-  isAuthenticated: (state) => state.isAuthenticated,
+  userId: state => state.id,
+  isAuthenticated: state => state.isAuthenticated
 };

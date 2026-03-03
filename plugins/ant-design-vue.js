@@ -33,6 +33,7 @@ import {
   Upload,
   Progress,
   Switch,
+  Alert,
   message,
   ConfigProvider,
   Checkbox
@@ -73,6 +74,7 @@ Vue.use(Cascader);
 Vue.use(Upload);
 Vue.use(Progress);
 Vue.use(Switch);
+Vue.use(Alert);
 Vue.use(ConfigProvider);
 Vue.use(Checkbox);
 
