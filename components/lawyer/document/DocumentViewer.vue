@@ -2,7 +2,11 @@
   <div ref="documentViewerContainer" class="document-viewer-wrapper">
     <div class="lawyer-document-page">
       <!-- 主要内容区 -->
-      <div class="lawyer-main-layout">
+      <div
+        ref="mainLayout"
+        class="lawyer-main-layout"
+        :class="{ 'lawyer-main-layout-resizing': isResizing }"
+      >
         <!-- 左侧：文档查看器 -->
         <div class="lawyer-document-left">
           <a-card class="lawyer-document-viewer lawyer-chart-card" :bordered="false">
@@ -65,8 +69,16 @@
           </a-card>
         </div>
 
+        <div
+          v-if="!isMobileViewport"
+          class="lawyer-resize-handle"
+          :class="{ 'lawyer-resize-handle-active': isResizing }"
+          @mousedown="startResize"
+          @dblclick="resetPanelWidth"
+        ></div>
+
         <!-- 右侧：文档智能问答 -->
-        <div class="lawyer-document-right">
+        <div class="lawyer-document-right" :style="rightPanelStyle">
           <common-ai-chat
             ref="aiChat"
             title="文档智能问答"
@@ -79,11 +91,18 @@
             :old-footer-style="false"
             :fetch-split-txt="splitTxt"
             :chart-height="'100%'"
-            width="calc(40vw - 40px)"
+            width="100%"
             @beforeBtnEnter="beforeBtnEnter"
             @onBtnEnter="onBtnEnter"
           />
         </div>
+
+        <div
+          v-if="isResizing"
+          class="lawyer-resize-mask"
+          @mousemove="handleResizeMouseMove"
+          @mouseup="stopResize"
+        ></div>
       </div>
 
       <!-- 编辑文档信息模态框 -->
@@ -264,6 +283,23 @@
     fetchUrl: string = api.lawyer.getAIRobotAnswer;
     splitTxt: string = `End\n\n`;
     tempText: string = '';
+    rightPanelWidthPercent: number = 40;
+    minRightPanelWidthPercent: number = 15;
+    maxRightPanelWidthPercent: number = 80;
+    isResizing: boolean = false;
+    isMobileViewport: boolean = false;
+    boundResizeMouseMove = (event: MouseEvent): void => {
+      this.handleResizeMouseMove(event);
+    };
+    boundResizeMouseUp = (): void => {
+      this.stopResize();
+    };
+    boundWindowResize = (): void => {
+      this.syncViewportState();
+    };
+    boundWindowBlur = (): void => {
+      this.stopResize();
+    };
 
     // 编辑状态相关
     editModalVisible: boolean = false;
@@ -299,11 +335,21 @@
 
     // 组件挂载时初始化欢迎消息
     async mounted(): Promise<void> {
+      this.syncViewportState();
+      window.addEventListener('resize', this.boundWindowResize);
+      window.addEventListener('blur', this.boundWindowBlur);
       this.initWelcomeMessage();
       await this.checkAdminPermission();
       await this.loadCategoryOptions();
       await this.loadWebsiteOptions();
       // await this.loadDepartmentData();
+    }
+
+    beforeDestroy(): void {
+      window.removeEventListener('resize', this.boundWindowResize);
+      window.removeEventListener('blur', this.boundWindowBlur);
+      this.removeResizeListeners();
+      this.restoreBodyInteractionStyles();
     }
 
     // 检查管理员权限
@@ -516,6 +562,91 @@
           content: `生效日期：${this.document.effectiveDate || '暂无'}`
         }
       ];
+    }
+
+    get rightPanelStyle(): Record<string, string> {
+      if (this.isMobileViewport) {
+        return {};
+      }
+
+      return {
+        width: `${this.rightPanelWidthPercent}%`,
+        flex: '0 0 auto'
+      };
+    }
+
+    syncViewportState(): void {
+      this.isMobileViewport = window.innerWidth <= 768;
+      if (this.isMobileViewport) {
+        this.stopResize();
+      }
+    }
+
+    startResize(event: MouseEvent): void {
+      if (this.isMobileViewport) {
+        return;
+      }
+      if (event.button !== 0) {
+        return;
+      }
+
+      event.preventDefault();
+      this.isResizing = true;
+      this.addResizeListeners();
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    }
+
+    handleResizeMouseMove(event: MouseEvent): void {
+      if (!this.isResizing) {
+        return;
+      }
+      if ((event.buttons & 1) !== 1) {
+        this.stopResize();
+        return;
+      }
+
+      const mainLayout = this.$refs.mainLayout as HTMLElement | undefined;
+      if (!mainLayout) {
+        return;
+      }
+
+      const rect = mainLayout.getBoundingClientRect();
+      if (rect.width <= 0) {
+        return;
+      }
+
+      const rightWidthPx = rect.right - event.clientX;
+      const widthPercent = (rightWidthPx / rect.width) * 100;
+      this.rightPanelWidthPercent = Math.min(
+        this.maxRightPanelWidthPercent,
+        Math.max(this.minRightPanelWidthPercent, widthPercent)
+      );
+    }
+
+    stopResize(): void {
+      this.isResizing = false;
+      this.removeResizeListeners();
+      this.restoreBodyInteractionStyles();
+    }
+
+    resetPanelWidth(): void {
+      this.rightPanelWidthPercent = 40;
+    }
+
+    addResizeListeners(): void {
+      document.addEventListener('mousemove', this.boundResizeMouseMove);
+      document.addEventListener('mouseup', this.boundResizeMouseUp);
+    }
+
+    removeResizeListeners(): void {
+      document.removeEventListener('mousemove', this.boundResizeMouseMove);
+      document.removeEventListener('mouseup', this.boundResizeMouseUp);
+    }
+
+    restoreBodyInteractionStyles(): void {
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
     }
 
     // 返回上一页
@@ -906,7 +1037,7 @@
     .lawyer-main-layout {
       display: flex;
       flex: 1;
-      gap: 16px;
+      gap: 0;
       min-height: 0; // 允许flex子项收缩
       overflow: hidden; // 防止主布局产生滚动条
 
@@ -915,6 +1046,10 @@
         flex-direction: column;
         gap: 12px;
       }
+    }
+
+    .lawyer-main-layout-resizing {
+      cursor: col-resize;
     }
 
     // 左侧文档区域
@@ -929,6 +1064,45 @@
         height: 60vh; // 小屏幕时限制高度
         min-height: 400px; // 确保最小高度
       }
+    }
+
+    .lawyer-resize-handle {
+      flex: 0 0 14px;
+      cursor: col-resize;
+      position: relative;
+      user-select: none;
+      touch-action: none;
+
+      @media (max-width: 768px) {
+        display: none;
+      }
+
+      &::before {
+        content: '';
+        position: absolute;
+        left: 50%;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        transform: translateX(-50%);
+        background: var(--lawyer-border);
+        border-radius: 2px;
+        transition: background-color 0.2s ease;
+      }
+
+      &:hover::before,
+      &.lawyer-resize-handle-active::before {
+        background: #1890ff;
+      }
+    }
+
+    .lawyer-resize-mask {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      cursor: col-resize;
+      background: transparent;
+      user-select: none;
     }
 
     // 文档查看器
@@ -955,6 +1129,7 @@
     // 右侧AI问答区域
     .lawyer-document-right {
       background: #fff;
+      flex: 0 0 auto;
 
       .card {
         border: none;
@@ -968,6 +1143,7 @@
         width: 100%;
         min-height: 500px; // 确保足够的最小高度
         height: auto; // 改为自适应高度
+        flex: 1 1 auto;
       }
     }
 
@@ -1065,8 +1241,8 @@
       }
 
       .lawyer-document-right {
-        // 桌面端保持固定宽度
-        width: 40%;
+        // 宽度由拖拽状态控制
+        min-width: 0;
       }
     }
   }
