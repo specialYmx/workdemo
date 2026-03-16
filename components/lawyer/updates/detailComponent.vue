@@ -268,6 +268,7 @@
             newContent: '',
             originalIframeUrl: oldIframeUrl || '',
             newIframeUrl: newIframeUrl || '',
+            changes: this.formatChanges(result?.checkResult || ''),
             modifiedDate: result?.newPublishTime || result?.effectDate || '',
             effectDate: result?.effectDate || null,
             oldFileVersion: result?.oldFileVersion,

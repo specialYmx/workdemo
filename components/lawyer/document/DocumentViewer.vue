@@ -105,135 +105,17 @@
         ></div>
       </div>
 
-      <!-- 编辑文档信息模态框 -->
-      <a-modal
-        title="编辑文档信息"
+      <lawyer-document-edit-modal
         :visible="editModalVisible"
-        :width="1000"
-        ok-text="确认"
-        cancel-text="取消"
-        :dialog-style="{ top: '20px' }"
-        class="modalBodyH152"
-        :get-container="() => $refs.documentViewerContainer"
-        @ok="handleEditConfirm"
+        :document="document"
+        :field-config="fieldConfig"
+        :tag-options="tagOptions"
+        :website-options="websiteOptions"
+        :department-options="departmentOptions"
+        :get-container="getModalContainer"
         @cancel="handleEditCancel"
-      >
-        <div class="lawyer-edit-content">
-          <a-form-model
-            ref="form"
-            :model="formData"
-            :label-col="{ span: 5 }"
-            :wrapper-col="{ span: 19 }"
-          >
-            <!-- 时效性 -->
-            <a-form-model-item v-if="fieldConfig.showTimeliness" label="时效性" prop="timeLiness">
-              <a-select v-model="formData.timeLiness" placeholder="请选择时效性">
-                <a-select-option value="待生效">待生效</a-select-option>
-                <a-select-option value="已施行">已施行</a-select-option>
-                <a-select-option value="已修订">已修订</a-select-option>
-                <a-select-option value="已废止">已废止</a-select-option>
-              </a-select>
-            </a-form-model-item>
-
-            <!-- 分类 -->
-            <a-form-model-item v-if="fieldConfig.showCategory" label="分类" prop="categoryPath">
-              <a-cascader
-                v-model="formData.categoryPath"
-                :options="tagOptions"
-                placeholder="请选择分类"
-                :show-search="true"
-                :change-on-select="true"
-                style="width: 100%"
-              />
-            </a-form-model-item>
-
-            <!-- 发布时间 -->
-            <a-form-model-item
-              v-if="fieldConfig.showPublishDate"
-              label="发布时间"
-              prop="publishDate"
-            >
-              <a-date-picker
-                v-model="formData.publishDate"
-                style="width: 100%"
-                placeholder="请选择发布时间"
-                format="YYYY-MM-DD"
-                value-format="YYYY-MM-DD"
-              />
-            </a-form-model-item>
-
-            <!-- 发文字号 -->
-            <a-form-model-item v-if="fieldConfig.showDocumentNo" label="发文字号" prop="documentNo">
-              <a-input v-model="formData.documentNo" placeholder="请输入发文字号" />
-            </a-form-model-item>
-            <!-- 是否附录 -->
-            <a-form-model-item v-if="fieldConfig.showAppendix" label="是否附录" prop="appendix">
-              <a-switch v-model="formData.appendix" />
-              <span style="margin-left: 8px; color: #666; font-size: 12px">
-                {{ formData.appendix ? '是' : '否' }}
-              </span>
-            </a-form-model-item>
-
-            <!-- 效力位阶 -->
-            <a-form-model-item
-              v-if="fieldConfig.showEffectivenessLevel"
-              label="效力位阶"
-              prop="effectivenessLevel"
-            >
-              <a-select v-model="formData.effectivenessLevel" placeholder="请选择效力位阶">
-                <a-select-option value="法律法规">法律法规</a-select-option>
-                <a-select-option value="部门规章规范性文件">部门规章规范性文件</a-select-option>
-                <a-select-option value="自律规则">自律规则</a-select-option>
-                <a-select-option value="其他">其他</a-select-option>
-              </a-select>
-            </a-form-model-item>
-
-            <!-- 来源 -->
-            <a-form-model-item v-if="fieldConfig.showSource" label="来源" prop="legalSource">
-              <a-select v-model="formData.legalSource" placeholder="请选择来源">
-                <a-select-option
-                  v-for="option in websiteOptions"
-                  :key="option.value"
-                  :value="option.value"
-                >
-                  {{ option.label }}
-                </a-select-option>
-              </a-select>
-            </a-form-model-item>
-
-            <!-- 生效时间 -->
-            <a-form-model-item v-if="fieldConfig.showEffectDate" label="生效时间" prop="effectDate">
-              <a-date-picker
-                v-model="formData.effectDate"
-                style="width: 100%"
-                placeholder="请选择生效时间"
-                format="YYYY-MM-DD"
-                value-format="YYYY-MM-DD"
-              />
-            </a-form-model-item>
-
-            <!-- 印发部门 -->
-            <a-form-model-item v-if="fieldConfig.showDepartment" label="印发部门" prop="department">
-              <a-select
-                v-model="formData.department"
-                mode="multiple"
-                placeholder="请选择印发部门"
-                :allow-clear="true"
-                :max-tag-count="2"
-                max-tag-placeholder="..."
-              >
-                <a-select-option
-                  v-for="option in departmentOptions"
-                  :key="option.id"
-                  :value="option.value"
-                >
-                  {{ option.label }}
-                </a-select-option>
-              </a-select>
-            </a-form-model-item>
-          </a-form-model>
-        </div>
-      </a-modal>
+        @success="handleEditSuccess"
+      />
     </div>
   </div>
 </template>
@@ -259,7 +141,7 @@
   @Component({
     name: 'document-viewer',
     components: {
-      CommonAiChat
+      CommonAiChat,
     }
   })
   class DocumentViewer extends Vue {
@@ -291,43 +173,21 @@
     boundResizeMouseMove = (event: MouseEvent): void => {
       this.handleResizeMouseMove(event);
     };
+
     boundResizeMouseUp = (): void => {
       this.stopResize();
     };
+
     boundWindowResize = (): void => {
       this.syncViewportState();
     };
+
     boundWindowBlur = (): void => {
       this.stopResize();
     };
 
     // 编辑状态相关
     editModalVisible: boolean = false;
-    isAdmin: boolean = false;
-
-    // 表单数据
-    formData: {
-      timeLiness?: string;
-      effectivenessLevel?: string;
-      categoryPath?: string[];
-      legalSource?: string;
-      publishDate?: string;
-      effectDate?: string;
-      department?: string[];
-      documentNo?: string;
-      appendix?: boolean;
-    } = {
-      timeLiness: undefined,
-      effectivenessLevel: undefined,
-      categoryPath: [],
-      legalSource: undefined,
-      publishDate: undefined,
-      effectDate: undefined,
-      department: [],
-      documentNo: undefined,
-      appendix: false
-    };
-
     // 标签分类相关
     tagOptions: CascaderOption[] = [];
     websiteOptions: WebsiteOption[] = [];
@@ -339,7 +199,6 @@
       window.addEventListener('resize', this.boundWindowResize);
       window.addEventListener('blur', this.boundWindowBlur);
       this.initWelcomeMessage();
-      await this.checkAdminPermission();
       await this.loadCategoryOptions();
       await this.loadWebsiteOptions();
       // await this.loadDepartmentData();
@@ -350,18 +209,6 @@
       window.removeEventListener('blur', this.boundWindowBlur);
       this.removeResizeListeners();
       this.restoreBodyInteractionStyles();
-    }
-
-    // 检查管理员权限
-    async checkAdminPermission(): Promise<void> {
-      try {
-        this.isAdmin = await this.$roadLawyerService.getAdmin({
-          empId: this.$store.state.auth.id
-        });
-      } catch (error) {
-        console.error('检查管理员权限失败:', error);
-        this.isAdmin = false;
-      }
     }
 
     // 加载网站来源数据
@@ -450,30 +297,6 @@
         })
       );
     }
-
-    // loadDepartmentData(): Promise<void> {
-    //   return this.$roadLawyerService
-    //     .getDepartmentData({
-    //       current: 1,
-    //       size: 999
-    //     })
-    //     .then(response => {
-    //       if (response.length) {
-    //         this.departmentOptions = response.map(dept => ({
-    //           value: dept.name,
-    //           label: dept.name,
-    //           id: dept.id
-    //         }));
-    //       } else {
-    //         console.warn('获取部门数据为空');
-    //         this.departmentOptions = [];
-    //       }
-    //     })
-    //     .catch(error => {
-    //       console.error('加载部门数据失败:', error);
-    //       this.departmentOptions = [];
-    //     });
-    // }
 
     // 根据当前路由判断页面类型，返回表单字段显示配置
     get fieldConfig(): {
@@ -656,147 +479,7 @@
 
     // 处理状态标签点击
     handleStatusTagClick(): void {
-      // 只有管理员才能点击编辑
-      // if (!this.isAdmin) {
-      //     this.$message.warning('只有管理员才能编辑文档信息')
-      //     return
-      // }
-      this.showEditModal();
-    }
-
-    // 显示编辑模态框
-    showEditModal(): void {
-      // 初始化表单数据
-      this.fillFormData();
       this.editModalVisible = true;
-    }
-
-    // 填充表单数据（用于回显）
-    fillFormData(): void {
-      // 回显时效性
-      this.formData.timeLiness = this.document.timeLiness || undefined;
-
-      // 回显效力位阶
-      this.formData.effectivenessLevel = this.document.effectivenessLevel || undefined;
-      // 回显分类
-      this.formData.categoryPath = [];
-
-      // 基于后端约定：categoryId 一定存在，直接根据 ID 回显完整分类路径
-      if (this.document.categoryId) {
-        const categoryPath = this.getCategoryPathById(this.document.categoryId);
-        this.formData.categoryPath = categoryPath;
-      }
-      // 回显来源
-      this.formData.legalSource = this.document.legalSource || this.document.publisher || undefined;
-
-      // 回显发布时间 - 确保不是无效的日期字符串
-      const publishDate = this.document.date;
-      this.formData.publishDate = publishDate || undefined;
-
-      // 回显生效时间 - 确保不是无效的日期字符串
-      const effectiveDate = this.document.effectiveDate;
-      this.formData.effectDate = effectiveDate || undefined;
-      // 回显印发部门
-      if (this.document.department) {
-        // 兼容字符串和数组格式
-        if (Array.isArray(this.document.department)) {
-          this.formData.department = this.document.department;
-        } else if (typeof this.document.department === 'string') {
-          // 如果是字符串，转换为数组（支持逗号分隔的字符串）
-          this.formData.department = this.document.department
-            .split(',')
-            .map((dept: string) => dept.trim())
-            .filter((dept: string) => dept);
-        } else {
-          this.formData.department = [];
-        }
-      } else {
-        this.formData.department = [];
-      }
-
-      // 回显发文字号 - 确保不是无效值
-      const fileNumber = this.document.fileNumber;
-      if (
-        fileNumber &&
-        fileNumber !== '暂无' &&
-        fileNumber !== 'undefined' &&
-        fileNumber !== 'null'
-      ) {
-        this.formData.documentNo = fileNumber;
-      } else {
-        this.formData.documentNo = undefined;
-      }
-
-      // 回显是否附录
-      this.formData.appendix = !!this.document.appendix;
-    }
-
-    // 处理编辑确认
-    async handleEditConfirm(): Promise<void> {
-      let hideLoading = null;
-      try {
-        hideLoading = this.$message.loading('正在更新文档信息...', 0);
-
-        // 准备更新参数 - 参考新增参数配置
-        const updateParams = {
-          searchId: this.document.id,
-          appendix: this.formData.appendix,
-          timeLiness: this.formData.timeLiness,
-          effectivenessLevel: this.formData.effectivenessLevel,
-          legalSource: this.formData.legalSource,
-          publishDateStr: this.formData.publishDate,
-          effectDateStr: this.formData.effectDate,
-          department: this.formData.department,
-          documentNo: this.formData.documentNo,
-          categoryId: '',
-          categoryMain: ''
-        };
-
-        // 处理分类路径 - 根据新的后端逻辑调整
-        if (this.formData.categoryPath && this.formData.categoryPath.length > 0) {
-          // 新逻辑：categoryMain是最终选择的分类名称，categoryId是最终选择的分类ID
-          const lastCategoryId = this.formData.categoryPath[this.formData.categoryPath.length - 1];
-          updateParams.categoryId = lastCategoryId;
-          updateParams.categoryMain = this.getCategoryNameById(lastCategoryId);
-
-          // 根据新逻辑，不再需要设置categorySub，因为categoryMain已经是最终选择的分类
-        }
-
-        console.log('编辑更新参数:', updateParams);
-
-        const result = await this.$roadLawyerService.updateRuleSourceDetail(updateParams);
-
-        if (!result.success) {
-          throw new Error(result.message || '更新失败');
-        }
-
-        if (hideLoading) {
-          hideLoading();
-        }
-
-        // 更新文档状态 - 传递所有更新的字段
-        this.emitUpdateDocumentStatus({
-          timeLiness: this.formData.timeLiness || '已施行',
-          categoryMain: updateParams.categoryMain,
-          categoryId: updateParams.categoryId,
-          effectivenessLevel: this.formData.effectivenessLevel,
-          effectDate: this.formData.effectDate,
-          legalSource: this.formData.legalSource,
-          department: this.formData.department,
-          documentNo: this.formData.documentNo,
-          appendix: this.formData.appendix,
-          publishDateStr: this.formData.publishDate
-        });
-
-        this.$message.success(`文档信息已更新`);
-        this.editModalVisible = false;
-      } catch (error) {
-        if (hideLoading) {
-          hideLoading();
-        }
-        console.error('更新文档信息失败:', error);
-        this.$message.error('更新文档信息失败，请重试');
-      }
     }
 
     // 处理编辑取消
@@ -804,47 +487,24 @@
       this.editModalVisible = false;
     }
 
-    // 根据分类ID获取分类名称
-    getCategoryNameById(categoryId: string): string {
-      const findCategoryName = (options: CascaderOption[], id: string): string => {
-        for (const option of options) {
-          if (option.value === id) {
-            return option.label;
-          }
-          if (option.children && option.children.length > 0) {
-            const childName = findCategoryName(option.children, id);
-            if (childName) {
-              return childName;
-            }
-          }
-        }
-        return '';
-      };
-      return findCategoryName(this.tagOptions, categoryId);
+    handleEditSuccess(statusData: {
+      timeLiness: string;
+      categoryMain?: string;
+      categoryId?: string;
+      effectivenessLevel?: string;
+      effectDate?: string;
+      legalSource?: string;
+      department?: string[];
+      documentNo?: string;
+      appendix?: boolean;
+      publishDateStr?: string;
+    }): void {
+      this.emitUpdateDocumentStatus(statusData);
+      this.editModalVisible = false;
     }
 
-    // 根据分类ID获取完整的分类路径（包含所有父级）
-    getCategoryPathById(categoryId: string): string[] {
-      const findCategoryPath = (
-        options: CascaderOption[],
-        id: string,
-        path: string[] = []
-      ): string[] => {
-        for (const option of options) {
-          const currentPath = [...path, option.value];
-          if (option.value === id) {
-            return currentPath;
-          }
-          if (option.children && option.children.length > 0) {
-            const childPath = findCategoryPath(option.children, id, currentPath);
-            if (childPath.length > 0) {
-              return childPath;
-            }
-          }
-        }
-        return [];
-      };
-      return findCategoryPath(this.tagOptions, categoryId);
+    getModalContainer(): Element {
+      return (this.$refs.documentViewerContainer as Element) || document.body;
     }
 
     // 下载文档
