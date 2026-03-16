@@ -21,7 +21,7 @@
         <div class="lawyer-top-stat-cards-container">
           <div class="lawyer-stat-card lawyer-card">
             <div class="lawyer-stat-info">
-              <div class="lawyer-stat-label">本月法规更新</div>
+              <div class="lawyer-stat-label">智库更新</div>
               <div class="lawyer-stat-value blue">
                 {{ monthlyUpdateCount }}
               </div>
