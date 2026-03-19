@@ -381,6 +381,9 @@ export interface RoadLawyerService {
   exportStatisticExcel: (params: {
     condition: string;
   }) => Promise<{ data: Blob; headers: ResponseHeaders } | null>;
+  getUpdateCountExport: (params: {
+    condition: string;
+  }) => Promise<{ data: Blob; headers: ResponseHeaders } | null>;
 
   // ==================== 大家智库相关方法 ====================
   deleteRuleSource: (params: DeleteRuleParams) => Promise<boolean>;

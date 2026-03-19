@@ -26,7 +26,7 @@
                 {{ monthlyUpdateCount }}
               </div>
             </div>
-            <div class="lawyer-stat-icon bg-blue">
+            <div class="lawyer-stat-icon bg-blue cur-p" @click="exportUpdateDetail()">
               <a-icon type="file-text" />
             </div>
           </div>
@@ -369,6 +369,9 @@
     // 组件事件定义
     @Emit('export-report')
     exportReport() {}
+
+    @Emit('export-update-detail')
+    exportUpdateDetail() {}
 
     @Emit('view-reviews')
     viewReviews() {}

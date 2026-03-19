@@ -15,6 +15,7 @@
         @time-range-change="handleTimeRangeChange"
         @trend-period-change="handleTrendPeriodChange"
         @export-report="exportStatisticReport"
+        @export-update-detail="exportUpdateDetail"
         @view-reviews="goToReviewPageFromHistory"
       />
 
@@ -523,6 +524,40 @@
           hideLoading();
         }
         console.error('导出统计报告失败:', error);
+        this.$message.error('导出失败，请重试');
+      }
+    }
+    async exportUpdateDetail(): Promise<void> {
+      let hideLoading = null;
+      try {
+        hideLoading = this.$message.loading('正在导出智库更新明细，请稍候...', 0);
+
+        const condition: string = this.activeTimeRange;
+        const result = await this.$roadLawyerService.getUpdateCountExport({
+          condition
+        });
+
+        if (hideLoading) {
+          hideLoading();
+        }
+
+        if (
+          result &&
+          downloadFileWithMessage(result, {
+            fileName: '智库更新明细.xlsx',
+            showMessage: true,
+            messageService: this.$message
+          })
+        ) {
+          return;
+        }
+
+        this.$message.error('导出失败，请重试');
+      } catch (error) {
+        if (hideLoading) {
+          hideLoading();
+        }
+        console.error('导出智库更新明细失败:', error);
         this.$message.error('导出失败，请重试');
       }
     }

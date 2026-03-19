@@ -152,6 +152,19 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
   },
 
   // ==================== 大家智库相关方法 ====================
+  async getUpdateCountExport(params: { condition: string }) {
+    try {
+      const res = await $axios.post(`${api.lawyer.getUpdateCountExport}`, toFormData(params), {
+        responseType: 'blob'
+      });
+      if (res.data) return { data: res.data, headers: res.headers };
+      return null;
+    } catch (error) {
+      console.error('Error exporting update count excel:', error);
+      throw error;
+    }
+  },
+
   async deleteRuleSource(params: DeleteRuleParams) {
     try {
       const res = await $axios.post(`${api.lawyer.deleteRuleSource}`, toFormData(params));

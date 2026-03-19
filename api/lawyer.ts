@@ -6,7 +6,7 @@
   getWebSiteRatio: '/legal/getWebSiteRatio', // 获取网站比例统计
   getTodoRuleList: '/legal/getToDoRuleList', // 获取待办列表
   exportStatisticExcel: '/legal/exportStatisticExcel', // 导出Excel报告 参数：condition : month|quarter|year
-
+  getUpdateCountExport:'/legal/getUpdateCountExport',//首页导出智库更新明细  post 参数为本月、本季、本年的代码
   // ==================== 大家智库相关接口 (rule-source-controller) ====================
   getLegalCategory: '/legal/getLegalCategory', // 获取专题分类  参数 如id:'2'、id:'3'等，空值表示获取全量数据
   getDepartmentData: '/auth/role/inquireRoles', // 获取部门数据 参数传{current：1，size:999固定这样传参}为了获取所有的部门数据
