@@ -209,6 +209,12 @@
       appendix: false
     };
 
+    get isLawyerKnowledgePage(): boolean {
+      const sourcePath = this.$route.query.source as string;
+      const routePath = sourcePath || this.$route.path;
+      return routePath.includes('/lawyerKnowledge');
+    }
+
     get modalContainerGetter(): () => Element {
       return () => {
         const customContainer =
@@ -278,7 +284,16 @@
       let hideLoading = null;
 
       try {
-        hideLoading = this.$message.loading('正在更新文档信息...', 0);
+        if (
+          this.isLawyerKnowledgePage &&
+          (!this.formData.categoryPath || this.formData.categoryPath.length === 0)
+        ) {
+          this.$message.warning('请选择分类');
+          return;
+        }
+
+         hideLoading = this.$message.loading('正在更新文档信息...', 0);
+        const resolvedCategory = this.resolveCategoryInfo();
 
         const updateParams = {
           searchId: this.document.id,
@@ -290,15 +305,9 @@
           effectDateStr: this.formData.effectDate,
           department: this.formData.department,
           documentNo: this.formData.documentNo,
-          categoryId: '',
-          categoryMain: ''
+          categoryId: resolvedCategory.categoryId,
+          categoryMain: resolvedCategory.categoryMain
         };
-
-        if (this.formData.categoryPath && this.formData.categoryPath.length > 0) {
-          const lastCategoryId = this.formData.categoryPath[this.formData.categoryPath.length - 1];
-          updateParams.categoryId = lastCategoryId;
-          updateParams.categoryMain = this.getCategoryNameById(lastCategoryId);
-        }
 
         const result = await this.$roadLawyerService.updateRuleSourceDetail(updateParams);
 
@@ -336,6 +345,70 @@
 
     handleEditCancel(): void {
       this.$emit('cancel');
+    }
+
+    resolveCategoryInfo(): { categoryId: string; categoryMain: string } {
+      if (this.formData.categoryPath && this.formData.categoryPath.length > 0) {
+        const lastCategoryId = this.formData.categoryPath[this.formData.categoryPath.length - 1];
+        return {
+          categoryId: lastCategoryId,
+          categoryMain: this.getCategoryNameById(lastCategoryId)
+        };
+      }
+
+      const routeCategoryId = this.getCategoryIdByRoute();
+      if (routeCategoryId) {
+        return {
+          categoryId: routeCategoryId,
+          categoryMain:
+            this.getCategoryNameById(routeCategoryId) ||
+            this.getCategoryNameByRoute(routeCategoryId)
+        };
+      }
+
+      return {
+        categoryId: '',
+        categoryMain: ''
+      };
+    }
+
+    getCategoryIdByRoute(): string | undefined {
+      const sourcePath = this.$route.query.source as string;
+      const routePath = sourcePath || this.$route.path;
+
+      if (routePath.includes('/institutionLibrary')) {
+        return '3';
+      }
+      if (routePath.includes('/punishmentCompilation')) {
+        return '1';
+      }
+      if (routePath.includes('/regulationCompilation')) {
+        return '2';
+      }
+      if (routePath.includes('/newRegulationInterpretation')) {
+        return '310';
+      }
+      if (routePath.includes('/researchCollection')) {
+        return '311';
+      }
+      if (routePath.includes('/legalComplianceQuarterly')) {
+        return '312';
+      }
+
+      return undefined;
+    }
+
+    getCategoryNameByRoute(categoryId: string): string {
+      const routeCategoryNameMap: Record<string, string> = {
+        '1': '处罚汇编',
+        '2': '法规汇编',
+        '3': '制度库',
+        '310': '新规解读',
+        '311': '研究集锦',
+        '312': '法律合规季刊'
+      };
+
+      return routeCategoryNameMap[categoryId] || '';
     }
 
     getCategoryNameById(categoryId: string): string {
