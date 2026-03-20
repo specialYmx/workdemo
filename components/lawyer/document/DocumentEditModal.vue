@@ -19,8 +19,8 @@
           :label-col="{ span: 5 }"
           :wrapper-col="{ span: 19 }"
         >
-          <a-form-model-item v-if="fieldConfig.showTimeliness" label="时效性" prop="timeLiness">
-            <a-select v-model="formData.timeLiness" placeholder="请选择时效性">
+          <a-form-model-item v-if="fieldConfig.showTimeliness" label="时效性" prop="timeliness">
+            <a-select v-model="formData.timeliness" placeholder="请选择时效性">
               <a-select-option value="待生效">待生效</a-select-option>
               <a-select-option value="已施行">已施行</a-select-option>
               <a-select-option value="已修订">已修订</a-select-option>
@@ -135,7 +135,7 @@
   }
 
   interface DocumentEditFormData {
-    timeLiness?: string;
+    timeliness?: string;
     effectivenessLevel?: string;
     categoryPath?: string[];
     legalSource?: string;
@@ -198,7 +198,7 @@
     @Prop({ default: null }) getContainer!: (() => Element | null | undefined) | null;
 
     formData: DocumentEditFormData = {
-      timeLiness: undefined,
+      timeliness: undefined,
       effectivenessLevel: undefined,
       categoryPath: [],
       legalSource: undefined,
@@ -248,7 +248,7 @@
     }
 
     fillFormData(): void {
-      this.formData.timeLiness = this.document.timeLiness || undefined;
+      this.formData.timeliness = this.document.timeLiness || undefined;
       this.formData.effectivenessLevel = this.document.effectivenessLevel || undefined;
       this.formData.categoryPath = [];
 
@@ -292,13 +292,13 @@
           return;
         }
 
-         hideLoading = this.$message.loading('正在更新文档信息...', 0);
+        hideLoading = this.$message.loading('正在更新文档信息...', 0);
         const resolvedCategory = this.resolveCategoryInfo();
 
         const updateParams = {
           searchId: this.document.id,
           appendix: this.formData.appendix,
-          timeLiness: this.formData.timeLiness,
+          timeLiness: this.formData.timeliness,
           effectivenessLevel: this.formData.effectivenessLevel,
           legalSource: this.formData.legalSource,
           publishDateStr: this.formData.publishDate,
@@ -320,7 +320,7 @@
         }
 
         this.emitSuccess({
-          timeLiness: this.formData.timeLiness || '已施行',
+          timeLiness: this.formData.timeliness || '已施行',
           categoryMain: updateParams.categoryMain,
           categoryId: updateParams.categoryId,
           effectivenessLevel: this.formData.effectivenessLevel,
