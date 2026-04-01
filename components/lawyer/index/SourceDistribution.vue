@@ -52,14 +52,22 @@
       其他机构: '#fadb14'
     };
 
-    // 静态tooltip格式化函数
-    private static tooltipFormatter(params): string {
-      return `${params.name}: ${Math.round(params.percent)}%`;
+    // Format backend percentages without recalculating them in ECharts.
+    private static formatBackendPercentage(value: number): string {
+      const numericValue = Number(value);
+      if (!Number.isFinite(numericValue)) {
+        return '0';
+      }
+
+      return numericValue.toFixed(2).replace(/\.?0+$/, '');
     }
 
-    // 静态label格式化函数
+    private static tooltipFormatter(params): string {
+      return `${params.name}: ${SourceDistribution.formatBackendPercentage(params.value)}%`;
+    }
+
     private static labelFormatter(params): string {
-      return `${params.name} | ${Math.round(params.percent)}%`;
+      return `${params.name} | ${SourceDistribution.formatBackendPercentage(params.value)}%`;
     }
 
     // 静态饼图基础配置

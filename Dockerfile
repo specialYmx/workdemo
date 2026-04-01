@@ -1,4 +1,4 @@
-FROM djbx.hub.com:5000/node:latest
+FROM kylin-node:16-custom
 
 # RUN sed -i "s/archive.ubuntu./mirrors.aliyun./g" /etc/apt/sources.list
 # RUN sed -i "s/deb.debian.org/mirrors.aliyun.com/g" /etc/apt/sources.iist
@@ -22,7 +22,7 @@ RUN npm install --registry=http://registry.npmmirror.com
 ENV HOST 0.0.0.0
 EXPOSE 3000
 
-RUN npm run build:prod
+RUN npm run build:uat
 
 # start command
-CMD [ "npm","run","start:prod" ]
+CMD [ "npm","run","start:uat" ]

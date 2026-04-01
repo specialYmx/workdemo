@@ -235,7 +235,9 @@
 
       try {
         // 调用真实API获取数据
-        const websiteRatioData = await this.$roadLawyerService.getWebSiteRatio();
+        const websiteRatioData = await this.$roadLawyerService.getWebSiteRatio({
+          picture: 'chart'
+        });
         // 定义颜色映射
         const colorMap: SourceColorMap = {
           国家金融监督管理总局: '#1890ff',
