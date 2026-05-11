@@ -22,7 +22,7 @@
           class="lawyer-pie-legend-item"
           :class="{ 'lawyer-legend-empty': item.value === 0 }"
         >
-          <span class="legend-color" :style="{ backgroundColor: item.color }" />
+          <span class="legend-color" :style="{ backgroundColor: getColorForLegend(item.name) }" />
           <span class="legend-name">{{ item.name }}</span>
         </div>
       </div>
@@ -132,10 +132,15 @@
       const data: PieChartDataItem[] = this.chartData?.series?.[0]?.data || [];
       return data.length === 0 || data.every((item: PieChartDataItem): boolean => item.value === 0);
     }
+
+    getColorForLegend(name: string): string {
+      return SourceDistribution.SOURCE_COLOR_MAP[name] || '#999999';
+    }
+
     // 获取颜色数组，根据数据项名称匹配颜色
     get chartColors(): string[] {
       const data: PieChartDataItem[] = this.chartData?.series?.[0]?.data || [];
-      return data.map(item => SourceDistribution.SOURCE_COLOR_MAP[item.name] || '#999999');
+      return data.map(item => this.getColorForLegend(item.name));
     }
     // 优化后的饼图配置 - 只合并动态部分
     get pieChartOptions(): EChartOption {

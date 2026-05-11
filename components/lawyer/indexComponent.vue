@@ -59,7 +59,6 @@
     IndexPageChartData,
     IndexPageListLoading,
     LegendItem,
-    SourceColorMap,
     TrendChartData,
     ChartData,
     RouteQuery
@@ -238,16 +237,6 @@
         const websiteRatioData = await this.$roadLawyerService.getWebSiteRatio({
           picture: 'chart'
         });
-        // 定义颜色映射
-        const colorMap: SourceColorMap = {
-          国家金融监督管理总局: '#1890ff',
-          人民银行网站: '#13c2c2',
-          证监会公告: '#52c41a',
-          财政部通知: '#faad14',
-          交易所规则: '#722ed1',
-          行业协会: '#eb2f96',
-          其他机构: '#fadb14'
-        };
 
         // 处理API返回的数据结构 - 兼容两种格式
         const sourceData = websiteRatioData;
@@ -269,7 +258,7 @@
             legendItems.push({
               name: key,
               value, // 保留value用于判断是否为空状态
-              color: colorMap[key] || '#999999'
+              color: '' // 子组件按名称统一映射颜色，此处仅满足类型约束
             });
           });
 
