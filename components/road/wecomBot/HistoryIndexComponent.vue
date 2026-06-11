@@ -52,6 +52,7 @@
           :loading="tableLoading"
           table-layout="fixed"
           :scroll="tableScroll"
+          :body-style="tableBodyStyle"
           :row-key="record => record.id"
           :expanded-row-keys="expandedRowKeys"
           :expand-icon="renderExpandIcon"
@@ -128,7 +129,8 @@
     tableLoading = false;
     dateRange: string[] = [];
     expandedRowKeys: Array<string | number> = [];
-    tableScroll = { x: 1390, y: 315 };
+    tableScroll = { y: 315 };
+    tableBodyStyle = { overflowX: 'hidden' };
 
     searchParams = {
       groupChatId: '',
