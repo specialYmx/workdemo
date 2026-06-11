@@ -53,8 +53,31 @@
           table-layout="fixed"
           :scroll="tableScroll"
           :row-key="record => record.id"
+          :expanded-row-keys="expandedRowKeys"
+          :expand-icon="renderExpandIcon"
+          @expand="onExpand"
           @change="handleTableChange"
         >
+          <template slot="expandedRowRender" slot-scope="record">
+            <a-list
+              class="weCom-result-list"
+              size="small"
+              :data-source="record.wecomBotTaskResults"
+            >
+              <a-list-item slot="renderItem" slot-scope="item">
+                <div class="weCom-result-item">
+                  <div class="weCom-result-meta">
+                    <a-tag color="blue">{{ item.resultType }}</a-tag>
+                    <span class="weCom-result-time">{{ formatTime(item.createdAt) }}</span>
+                  </div>
+                  <div class="weCom-result-content">{{ item.resultContent }}</div>
+                  <div v-if="item.errorMessage" class="weCom-result-error">
+                    {{ item.errorMessage }}
+                  </div>
+                </div>
+              </a-list-item>
+            </a-list>
+          </template>
           <template slot="content" slot-scope="text, record">
             <a-tooltip :title="getContentTitle(record)">
               <span class="weCom-content-text">
@@ -104,7 +127,8 @@
     chatLogList: WeComBotChatLog[] = [];
     tableLoading = false;
     dateRange: string[] = [];
-    tableScroll = { y: 520 };
+    expandedRowKeys: Array<string | number> = [];
+    tableScroll = { x: 1390, y: 315 };
 
     searchParams = {
       groupChatId: '',
@@ -223,6 +247,41 @@
       this.searchParams.endTime = value?.[1] || '';
     }
 
+    hasTaskResults(record: WeComBotChatLog): boolean {
+      return !!record.wecomBotTaskResults?.length;
+    }
+
+    onExpand(expanded: boolean, record: WeComBotChatLog): void {
+      this.expandedRowKeys = expanded
+        ? [...this.expandedRowKeys, record.id]
+        : this.expandedRowKeys.filter(key => key !== record.id);
+    }
+
+    renderExpandIcon(props: {
+      expanded: boolean;
+      record: WeComBotChatLog;
+      onExpand: (record: WeComBotChatLog, event: MouseEvent) => void;
+    }): any {
+      if (!this.hasTaskResults(props.record)) {
+        return this.$createElement('span', {
+          class: 'ant-table-row-expand-icon ant-table-row-spaced'
+        });
+      }
+
+      return this.$createElement('button', {
+        class: [
+          'ant-table-row-expand-icon',
+          props.expanded ? 'ant-table-row-expanded' : 'ant-table-row-collapsed'
+        ],
+        attrs: {
+          type: 'button'
+        },
+        on: {
+          click: (event: MouseEvent) => props.onExpand(props.record, event)
+        }
+      });
+    }
+
     formatMsgType(msgType: string): string {
       const typeMap: Record<string, string> = {
         TEXT: '文本',
@@ -311,5 +370,34 @@
   .weCom-file-name {
     display: block;
     color: #d48806;
+  }
+
+  .weCom-result-list {
+    margin: 0 16px;
+  }
+
+  .weCom-result-item {
+    width: 100%;
+  }
+
+  .weCom-result-meta {
+    display: flex;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+
+  .weCom-result-time {
+    color: #6b7280;
+  }
+
+  .weCom-result-content {
+    line-height: 22px;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+
+  .weCom-result-error {
+    margin-top: 6px;
+    color: #f5222d;
   }
 </style>

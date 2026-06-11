@@ -141,6 +141,7 @@ export interface WeComBotChatLog {
   aibotid?: string;
   chatType?: string;
   wecomBotTaskAttachment?: WeComBotTaskAttachment | null;
+  wecomBotTaskResults?: WeComBotTaskResult[];
   [key: string]: unknown;
 }
 
@@ -148,6 +149,14 @@ export interface WeComBotTaskAttachment {
   id: string | number;
   fileName: string;
   localPath: string;
+}
+
+export interface WeComBotTaskResult {
+  id: string | number;
+  resultContent: string;
+  resultType: string;
+  createdAt: string;
+  errorMessage?: string | null;
 }
 
 export interface WeComBotChatLogQuery extends WeComBotBaseQuery {
