@@ -1,6 +1,8 @@
-import RoadLawyerService from '~/service/RoadLawyerService'
+import RoadLawyerService from '~/service/RoadLawyerService';
+import WeComBotService from '~/service/WeComBotService';
 
 export default ({ $axios }, inject) => {
   // 直接注入roadLawyerService到Vue实例中，可以通过this.$roadLawyerService访问
-  inject('roadLawyerService', RoadLawyerService($axios))
-}
+  inject('roadLawyerService', RoadLawyerService($axios));
+  inject('weComBotService', WeComBotService($axios));
+};

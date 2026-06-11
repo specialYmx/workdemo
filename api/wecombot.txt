@@ -1,0 +1,172 @@
+-- 查看群聊
+/mq/dataScraper/get/groupChat    post   json
+    /**
+     * 主键
+     */
+    @TableId(type = IdType.ASSIGN_UUID,value = "id")
+    private String id; 非必传
+    /**
+     * 群聊名称
+     */
+    @TableField("group_chat_name")
+    private String groupChatName;   非必传
+-- 修改新增群聊
+/mq/dataScraper/save/groupChat  post   json
+    /**
+     * 主键
+     */
+    @TableId(type = IdType.ASSIGN_UUID,value = "id")
+    private String id; 必传
+    /**
+     * 群聊名称
+     */
+    @TableField("group_chat_name")
+    private String groupChatName;  必传
+    /**
+     * 旧id
+     */
+    private transient String oldId;  修改时必传，新增时为空
+
+-- 删除群聊
+/mq/dataScraper/del/groupChat   post   get传参  id 必传
+
+-- 查看机器人
+/mq/dataScraper/get/robot    post 
+    @TableId(type = IdType.ASSIGN_UUID, value = "id")
+    private String id;  非必传
+    /**
+     * 机器人名称
+     */
+    @TableField("robot_name")
+    private String robotName;  非必传
+    /**
+     * 机器人类型
+     */
+    @TableField("robot_type")
+    private String robotType;  必传
+-- 新增修改机器人
+/mq/dataScraper/save/robot    post 
+    @TableId(type = IdType.ASSIGN_UUID, value = "id")
+    private String id;  必传
+    /**
+     * 机器人名称
+     */
+    @TableField("robot_name")
+    private String robotName;  必传
+    /**
+     * 机器人类型
+     */
+    @TableField("robot_type")
+    private String robotType;  必传
+    /**
+     * 旧id
+     */
+    private transient String oldId;  修改时必传  ，新增时为空
+-- 删除机器人
+/mq/dataScraper/del/robot    post   get传参  id 必传
+
+-- 查询群聊机器人
+/mq/dataScraper/get/groupChatRobot   post
+  /**
+     * 群聊id
+     */
+    @TableField("group_chat_id")
+    private String groupChatId;  非必传
+    /**
+     * 群聊名称
+     */
+    @TableField("group_chat_name")
+    private String groupChatName;非 必传
+
+    /**
+     * 机器人id
+     */
+    @TableField("robot_id")
+    private String robotId; 非必传
+    /**
+     * 机器人名称
+     */
+    @TableField("robot_name")
+    private String robotName; 非必传
+    /**
+     * 是否启用
+     */
+    @TableField("enable")
+    private Boolean enable; 非必传
+-- 修改群聊机器人
+/mq/dataScraper/save/groupChatRobot   post
+   /**
+     * 群聊id
+     */
+    @TableField("group_chat_id")
+    private String groupChatId;  必传
+    /**
+     * 群聊名称
+     */
+    @TableField("group_chat_name")
+    private String groupChatName; 必传
+
+    /**
+     * 机器人id
+     */
+    @TableField("robot_id")
+    private String robotId; 必传
+    /**
+     * 机器人名称
+     */
+    @TableField("robot_name")
+    private String robotName; 必传
+    /**
+     * 是否启用
+     */
+    @TableField("enable")
+    private Boolean enable; 必传
+-- 删除群聊机器人
+/mq/dataScraper/del/groupChatRobot   post  get传参  id 必传
+
+-- 下载附件
+/mq/dataScraper/download   get   id 必传
+
+-- 查看群聊详情
+/mq/dataScraper/get/chatLog    Post
+    /**
+     * 页数
+     */
+    private transient Integer pageNum; 必传
+    /**
+     * 行数
+     */
+    private transient Integer pageSize;  必传
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+token=eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJESkYIiwiY3ViIjoiVXNlciBQb3J0YWwiLCJhdWQiOiJ1YyIsInVpZCIjb2RsaIjoiREoxMDEwMTUiLCJpZGVudGl0eUNsawVudCI6IkRKWkMiLCJpZGVudGl0eVBhcmFtMSI2IkRKMTAxMDE1IiwiWF0IjoyNzgxMDU4MzE2LCJleHAiOjE3ODExMjMxMTZ9.GGOcbp240laYVlq62XJKIWeOeZhnnM7XSLvIEXw13mv7NZDxmOfSoz39w8nqHGzx9zl4hv6CfYRr1Z6X2HhQ33DvxOgzn0_uOMea1vT3toW64svbaiV7Lb3hnixPxUge1CYFKXOv7HUxvSmqCCcXcd8aItVqPN1UpmpV6rh7HAR109y-FYl2hsjiD27mwCSMlaA8GJbNY8uJv3l01E0NgRKIG43cO-RcXHOP4j4K29JlAxbpA3cLXYR8CV-nZ9ycgRfIt5Bi8ZYouGvEPTjYbrN268Ede4h2nfRe26dqJXbBbCerrakjOUImesgpaXV445M5WJvMDsHeFyB3kmDM_g
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

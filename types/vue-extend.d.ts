@@ -1,6 +1,7 @@
-import Vue from "vue";
-import { Route } from "vue-router";
-import { RoadLawyerService } from "~/model/LawyerModel";
+import type Vue from 'vue';
+import type { Route } from 'vue-router';
+import type { RoadLawyerService } from '~/model/LawyerModel';
+import type { WeComBotService } from '~/model/RoadWeComBot';
 
 // 扩展 Route 接口以支持 Nuxt.js 的 query
 interface NuxtRoute extends Route {
@@ -9,7 +10,7 @@ interface NuxtRoute extends Route {
 }
 
 // 扩展 Vue 实例类型
-declare module "vue/types/vue" {
+declare module 'vue/types/vue' {
   interface Vue {
     $router: any;
     $route: NuxtRoute;
@@ -32,6 +33,7 @@ declare module "vue/types/vue" {
     $store: any;
     $axios: any;
     $roadLawyerService: RoadLawyerService;
+    $weComBotService: WeComBotService;
     $form: {
       createForm(component: any): any;
     };
@@ -43,7 +45,7 @@ declare module "vue/types/vue" {
 }
 
 // 扩展 nuxt-property-decorator 的 Vue 基类
-declare module "nuxt-property-decorator" {
+declare module 'nuxt-property-decorator' {
   interface Vue {
     $router: any;
     $route: NuxtRoute;
@@ -66,6 +68,7 @@ declare module "nuxt-property-decorator" {
     $store: any;
     $axios: any;
     $roadLawyerService: RoadLawyerService;
+    $weComBotService: WeComBotService;
     $form: {
       createForm(component: any): any;
     };
@@ -77,15 +80,16 @@ declare module "nuxt-property-decorator" {
 }
 
 // 扩展Nuxt上下文类型
-declare module "@nuxt/types" {
+declare module '@nuxt/types' {
   interface Context {
-    $message: Vue["$message"];
-    $roadLawyerService: Vue["$roadLawyerService"];
+    $message: Vue['$message'];
+    $roadLawyerService: Vue['$roadLawyerService'];
+    $weComBotService: Vue['$weComBotService'];
   }
 }
 
 // 声明插槽作用域类型
-declare module "vue/types/options" {
+declare module 'vue/types/options' {
   interface ComponentOptions<V extends Vue> {
     scopedSlots?: {
       [key: string]: (props: any) => any;
@@ -94,14 +98,14 @@ declare module "vue/types/options" {
 }
 
 // 扩展 Vue 作用域插槽类型
-declare module "vue/types/v3-component-options" {
+declare module 'vue/types/v3-component-options' {
   interface ScopedSlotsFixed {
     [key: string]: (props: any) => any;
   }
 }
 
 // 扩展 Ant Design Vue 组件类型
-declare module "ant-design-vue/types" {
+declare module 'ant-design-vue/types' {
   interface TableColumn {
     customRender?: string;
     scopedSlots?: { customRender: string };
