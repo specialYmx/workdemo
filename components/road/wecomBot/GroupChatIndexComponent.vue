@@ -1,46 +1,46 @@
 <template>
-  <div class="lawyer-page-container">
-    <div class="lawyer-content-wrapper">
-      <a-card class="lawyer-table-card" :bordered="false">
-        <div class="weCom-search-form">
-          <a-row :gutter="16">
-            <a-col :span="6">
-              <a-input
-                v-model="searchParams.groupChatName"
-                placeholder="群聊名称"
-                allow-clear
-                @keyup.enter="onSearch"
-              />
-            </a-col>
-            <a-col :span="18" class="weCom-search-buttons">
-              <div class="weCom-button-group">
-                <a-button type="primary" :loading="tableLoading" @click="onSearch">查询</a-button>
-                <a-button @click="onReset">重置</a-button>
-                <a-button type="primary" @click="showAddModal">新增群聊</a-button>
-              </div>
-            </a-col>
-          </a-row>
-        </div>
-
-        <a-table
-          :columns="columns"
-          :data-source="groupChatList"
-          :pagination="pagination"
-          :loading="tableLoading"
-          :row-key="record => record.id"
-          @change="handleTableChange"
-        >
-          <template slot="createTime" slot-scope="text">
-            {{ formatTime(text) }}
-          </template>
-          <template slot="action" slot-scope="text, record">
-            <div class="weCom-action-buttons">
-              <a-button type="link" @click="editGroupChat(record)">编辑</a-button>
-              <a-button type="link" danger @click="deleteGroupChat(record)">删除</a-button>
+  <div>
+    <div>
+      <div class="weCom-search-form">
+        <a-row :gutter="16">
+          <a-col :span="6">
+            <a-input
+              v-model="searchParams.groupChatName"
+              placeholder="群聊名称"
+              allow-clear
+              @keyup.enter="onSearch"
+            />
+          </a-col>
+          <a-col :span="18" class="weCom-search-buttons">
+            <div class="weCom-button-group">
+              <a-button type="primary" :loading="tableLoading" @click="onSearch">查询</a-button>
+              <a-button @click="onReset">重置</a-button>
+              <a-button type="primary" @click="showAddModal">新增群聊</a-button>
             </div>
-          </template>
-        </a-table>
-      </a-card>
+          </a-col>
+        </a-row>
+      </div>
+
+      <a-table
+        :columns="columns"
+        :data-source="groupChatList"
+        :pagination="pagination"
+        :loading="tableLoading"
+        :scroll="tableScroll"
+        :body-style="tableBodyStyle"
+        :row-key="record => record.id"
+        @change="handleTableChange"
+      >
+        <template slot="createTime" slot-scope="text">
+          {{ formatTime(text) }}
+        </template>
+        <template slot="action" slot-scope="text, record">
+          <div class="weCom-action-buttons">
+            <a-button type="link" @click="editGroupChat(record)">编辑</a-button>
+            <a-button type="link" danger @click="deleteGroupChat(record)">删除</a-button>
+          </div>
+        </template>
+      </a-table>
     </div>
 
     <a-modal
@@ -85,6 +85,8 @@
 
     groupChatList: WeComBotGroupChat[] = [];
     tableLoading = false;
+    tableScroll = { y: 315 };
+    tableBodyStyle = { overflowX: 'hidden' };
     modalVisible = false;
     modalLoading = false;
     editingRecord: WeComBotGroupChat | null = null;

@@ -1,58 +1,58 @@
 <template>
-  <div class="lawyer-page-container">
-    <div class="lawyer-content-wrapper">
-      <a-card class="lawyer-table-card" :bordered="false">
-        <div class="weCom-search-form">
-          <a-row :gutter="16">
-            <a-col :span="6">
-              <a-input
-                v-model="searchParams.robotName"
-                placeholder="机器人名称"
-                allow-clear
-                @keyup.enter="onSearch"
-              />
-            </a-col>
-            <a-col :span="6">
-              <a-select
-                v-model="searchParams.robotType"
-                placeholder="机器人类型"
-                allow-clear
-                @change="onSearch"
-              >
-                <a-select-option v-for="type in robotTypeOptions" :key="type" :value="type">
-                  {{ type }}
-                </a-select-option>
-              </a-select>
-            </a-col>
-            <a-col :span="12" class="weCom-search-buttons">
-              <div class="weCom-button-group">
-                <a-button type="primary" :loading="tableLoading" @click="onSearch">查询</a-button>
-                <a-button @click="onReset">重置</a-button>
-                <a-button type="primary" @click="showAddModal">新增机器人</a-button>
-              </div>
-            </a-col>
-          </a-row>
-        </div>
-
-        <a-table
-          :columns="columns"
-          :data-source="robotList"
-          :pagination="pagination"
-          :loading="tableLoading"
-          :row-key="record => record.id"
-          @change="handleTableChange"
-        >
-          <template slot="createTime" slot-scope="text">
-            {{ formatTime(text) }}
-          </template>
-          <template slot="action" slot-scope="text, record">
-            <div class="weCom-action-buttons">
-              <a-button type="link" @click="editRobot(record)">编辑</a-button>
-              <a-button type="link" danger @click="deleteRobot(record)">删除</a-button>
+  <div>
+    <div>
+      <div class="weCom-search-form">
+        <a-row :gutter="16">
+          <a-col :span="6">
+            <a-input
+              v-model="searchParams.robotName"
+              placeholder="机器人名称"
+              allow-clear
+              @keyup.enter="onSearch"
+            />
+          </a-col>
+          <a-col :span="6">
+            <a-select
+              v-model="searchParams.robotType"
+              placeholder="机器人类型"
+              allow-clear
+              @change="onSearch"
+            >
+              <a-select-option v-for="type in robotTypeOptions" :key="type" :value="type">
+                {{ type }}
+              </a-select-option>
+            </a-select>
+          </a-col>
+          <a-col :span="12" class="weCom-search-buttons">
+            <div class="weCom-button-group">
+              <a-button type="primary" :loading="tableLoading" @click="onSearch">查询</a-button>
+              <a-button @click="onReset">重置</a-button>
+              <a-button type="primary" @click="showAddModal">新增机器人</a-button>
             </div>
-          </template>
-        </a-table>
-      </a-card>
+          </a-col>
+        </a-row>
+      </div>
+
+      <a-table
+        :columns="columns"
+        :data-source="robotList"
+        :pagination="pagination"
+        :loading="tableLoading"
+        :scroll="tableScroll"
+        :body-style="tableBodyStyle"
+        :row-key="record => record.id"
+        @change="handleTableChange"
+      >
+        <template slot="createTime" slot-scope="text">
+          {{ formatTime(text) }}
+        </template>
+        <template slot="action" slot-scope="text, record">
+          <div class="weCom-action-buttons">
+            <a-button type="link" @click="editRobot(record)">编辑</a-button>
+            <a-button type="link" danger @click="deleteRobot(record)">删除</a-button>
+          </div>
+        </template>
+      </a-table>
     </div>
 
     <a-modal
@@ -106,6 +106,8 @@
     robotList: WeComBotRobot[] = [];
     robotTypeOptions = ['应用机器人', '长连接机器人'];
     tableLoading = false;
+    tableScroll = { x: 'max-content', y: 315 };
+    // tableBodyStyle = { overflowX: 'hidden' };
     modalVisible = false;
     modalLoading = false;
     editingRecord: WeComBotRobot | null = null;

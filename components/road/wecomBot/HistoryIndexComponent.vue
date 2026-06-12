@@ -1,116 +1,111 @@
 <template>
-  <div class="lawyer-page-container">
-    <div class="lawyer-content-wrapper">
-      <a-card class="lawyer-table-card" :bordered="false">
-        <div class="weCom-search-form">
-          <a-row :gutter="16">
-            <a-col :span="7">
-              <div class="weCom-filter-item">
-                <span class="weCom-filter-label">群聊名称:</span>
-                <a-select
-                  v-model="searchParams.groupChatId"
-                  show-search
-                  allow-clear
-                  option-filter-prop="children"
-                  placeholder="请选择群聊"
+  <div>
+    <div>
+      <div class="weCom-search-form">
+        <a-row :gutter="16">
+          <a-col :span="7">
+            <div class="weCom-filter-item">
+              <span class="weCom-filter-label">群聊名称:</span>
+              <a-select
+                v-model="searchParams.groupChatId"
+                show-search
+                allow-clear
+                option-filter-prop="children"
+                placeholder="请选择群聊"
+              >
+                <a-select-option
+                  v-for="group in groupChatOptions"
+                  :key="group.id"
+                  :value="group.id"
                 >
-                  <a-select-option
-                    v-for="group in groupChatOptions"
-                    :key="group.id"
-                    :value="group.id"
-                  >
-                    {{ group.groupChatName }}
-                  </a-select-option>
-                </a-select>
-              </div>
-            </a-col>
-            <a-col :span="8">
-              <div class="weCom-filter-item">
-                <span class="weCom-filter-label">选择时间:</span>
-                <a-range-picker
-                  v-model="dateRange"
-                  value-format="YYYY-MM-DD"
-                  format="YYYY-MM-DD"
-                  style="width: 100%"
-                  @change="onDateRangeChange"
-                />
-              </div>
-            </a-col>
-            <a-col :span="9" class="weCom-search-buttons">
-              <div class="weCom-button-group">
-                <a-button type="primary" :loading="tableLoading" @click="onSearch">查询</a-button>
-                <a-button @click="onReset">重置</a-button>
-              </div>
-            </a-col>
-          </a-row>
-        </div>
+                  {{ group.groupChatName }}
+                </a-select-option>
+              </a-select>
+            </div>
+          </a-col>
+          <a-col :span="8">
+            <div class="weCom-filter-item">
+              <span class="weCom-filter-label">选择时间:</span>
+              <a-range-picker
+                v-model="dateRange"
+                value-format="YYYY-MM-DD"
+                format="YYYY-MM-DD"
+                style="width: 100%"
+                @change="onDateRangeChange"
+              />
+            </div>
+          </a-col>
+          <a-col :span="9" class="weCom-search-buttons">
+            <div class="weCom-button-group">
+              <a-button type="primary" :loading="tableLoading" @click="onSearch">查询</a-button>
+              <a-button @click="onReset">重置</a-button>
+            </div>
+          </a-col>
+        </a-row>
+      </div>
 
-        <a-table
-          :columns="columns"
-          :data-source="chatLogList"
-          :pagination="pagination"
-          :loading="tableLoading"
-          table-layout="fixed"
-          :scroll="tableScroll"
-          :body-style="tableBodyStyle"
-          :row-key="record => record.id"
-          :expanded-row-keys="expandedRowKeys"
-          :expand-icon="renderExpandIcon"
-          @expand="onExpand"
-          @change="handleTableChange"
-        >
-          <template slot="expandedRowRender" slot-scope="record">
-            <a-list
-              class="weCom-result-list"
-              size="small"
-              :data-source="record.wecomBotTaskResults"
-            >
-              <a-list-item slot="renderItem" slot-scope="item">
-                <div class="weCom-result-item">
-                  <div class="weCom-result-meta">
-                    <a-tag color="blue">{{ item.resultType }}</a-tag>
-                    <span class="weCom-result-time">{{ formatTime(item.createdAt) }}</span>
-                  </div>
-                  <div class="weCom-result-content">{{ item.resultContent }}</div>
-                  <div v-if="item.errorMessage" class="weCom-result-error">
-                    {{ item.errorMessage }}
-                  </div>
+      <a-table
+        class="weCom-table"
+        :columns="columns"
+        :data-source="chatLogList"
+        :pagination="pagination"
+        :loading="tableLoading"
+        table-layout="fixed"
+        :scroll="tableScroll"
+        :body-style="tableBodyStyle"
+        :row-key="record => record.id"
+        :expanded-row-keys="expandedRowKeys"
+        :expand-icon="renderExpandIcon"
+        @expand="onExpand"
+        @change="handleTableChange"
+      >
+        <template slot="expandedRowRender" slot-scope="record">
+          <a-list class="weCom-result-list" size="small" :data-source="record.wecomBotTaskResults">
+            <a-list-item slot="renderItem" slot-scope="item">
+              <div class="weCom-result-item">
+                <div class="weCom-result-meta">
+                  <a-tag color="blue">{{ item.resultType }}</a-tag>
+                  <span class="weCom-result-time">{{ formatTime(item.createdAt) }}</span>
                 </div>
-              </a-list-item>
-            </a-list>
-          </template>
-          <template slot="content" slot-scope="text, record">
-            <a-tooltip :title="getContentTitle(record)">
-              <span class="weCom-content-text">
-                <span>{{ record.content }}</span>
-                <span v-if="record.wecomBotTaskAttachment" class="weCom-file-name">
-                  {{ record.wecomBotTaskAttachment.fileName }}
-                </span>
+                <div class="weCom-result-content">{{ item.resultContent }}</div>
+                <div v-if="item.errorMessage" class="weCom-result-error">
+                  {{ item.errorMessage }}
+                </div>
+              </div>
+            </a-list-item>
+          </a-list>
+        </template>
+        <template slot="content" slot-scope="text, record">
+          <a-tooltip :title="getContentTitle(record)">
+            <span class="weCom-content-text">
+              <span>{{ record.content }}</span>
+              <span v-if="record.wecomBotTaskAttachment" class="weCom-file-name">
+                {{ record.wecomBotTaskAttachment.fileName }}
               </span>
-            </a-tooltip>
-          </template>
-          <template slot="msgType" slot-scope="text">
-            {{ formatMsgType(text) }}
-          </template>
-          <template slot="createdAt" slot-scope="text">
-            {{ formatTime(text) }}
-          </template>
-          <template slot="action" slot-scope="text, record">
-            <a-button
-              v-if="record.wecomBotTaskAttachment"
-              type="link"
-              @click="
-                downloadAttachment(
-                  record.wecomBotTaskAttachment.localPath,
-                  record.wecomBotTaskAttachment.fileName
-                )
-              "
-            >
-              下载
-            </a-button>
-          </template>
-        </a-table>
-      </a-card>
+            </span>
+          </a-tooltip>
+        </template>
+        <template slot="msgType" slot-scope="text">
+          {{ formatMsgType(text) }}
+        </template>
+        <template slot="createdAt" slot-scope="text">
+          {{ formatTime(text) }}
+        </template>
+        <template slot="action" slot-scope="text, record">
+          <a-button
+            v-if="record.wecomBotTaskAttachment"
+            type="link"
+            @click="
+              downloadAttachment(
+                record.wecomBotTaskAttachment.localPath,
+                record.wecomBotTaskAttachment.fileName
+              )
+            "
+          >
+            下载
+          </a-button>
+        </template>
+      </a-table>
     </div>
   </div>
 </template>
@@ -355,6 +350,11 @@
   .weCom-button-group {
     display: flex;
     gap: 8px;
+  }
+
+  .weCom-table /deep/ .ant-table-body,
+  .weCom-table /deep/ .ant-table-header {
+    overflow-x: hidden !important;
   }
 
   .weCom-content-text {

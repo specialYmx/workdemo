@@ -1,6 +1,6 @@
 <template>
   <a-layout>
-    <a-layout-content class="layout-content">
+    <a-layout-content class="layout-content analysis-m-0">
       <road-wecom-bot-history-index-component />
     </a-layout-content>
   </a-layout>

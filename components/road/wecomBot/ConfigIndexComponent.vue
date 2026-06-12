@@ -1,71 +1,71 @@
 <template>
-  <div class="lawyer-page-container">
-    <div class="lawyer-content-wrapper">
-      <a-card class="lawyer-table-card" :bordered="false">
-        <div class="weCom-search-form">
-          <a-row :gutter="16">
-            <a-col :span="5">
-              <a-input
-                v-model="searchParams.robotName"
-                placeholder="机器人名称"
-                allow-clear
-                @keyup.enter="onSearch"
-              />
-            </a-col>
-            <a-col :span="5">
-              <a-input
-                v-model="searchParams.groupChatName"
-                placeholder="群聊名称"
-                allow-clear
-                @keyup.enter="onSearch"
-              />
-            </a-col>
-            <a-col :span="4">
-              <a-select v-model="searchParams.enable" placeholder="配置状态" allow-clear>
-                <a-select-option :value="true">启用</a-select-option>
-                <a-select-option :value="false">关闭</a-select-option>
-              </a-select>
-            </a-col>
-            <a-col :span="10" class="weCom-search-buttons">
-              <div class="weCom-button-group">
-                <a-button type="primary" :loading="tableLoading" @click="onSearch">查询</a-button>
-                <a-button @click="onReset">重置</a-button>
-                <a-button type="primary" @click="showAddModal">新增配置</a-button>
-                <a-button @click="goRobot">机器人管理</a-button>
-                <a-button @click="goGroupChat">群聊管理</a-button>
-              </div>
-            </a-col>
-          </a-row>
-        </div>
-
-        <a-table
-          :columns="columns"
-          :data-source="configList"
-          :pagination="pagination"
-          :loading="tableLoading"
-          :row-key="record => record.id || `${record.robotId}-${record.groupChatId}`"
-          @change="handleTableChange"
-        >
-          <template slot="enable" slot-scope="text, record">
-            <a-switch
-              :checked="record.enable === true"
-              :loading="record.switchLoading"
-              checked-children="启用"
-              un-checked-children="关闭"
-              @change="checked => toggleEnable(record, checked)"
+  <div>
+    <div>
+      <div class="weCom-search-form">
+        <a-row :gutter="16">
+          <a-col :span="5">
+            <a-input
+              v-model="searchParams.robotName"
+              placeholder="机器人名称"
+              allow-clear
+              @keyup.enter="onSearch"
             />
-          </template>
-          <template slot="createTime" slot-scope="text">
-            {{ formatTime(text) }}
-          </template>
-          <template slot="action" slot-scope="text, record">
-            <div class="weCom-action-buttons">
-              <a-button type="link" @click="editConfig(record)">修改</a-button>
-              <a-button type="link" danger @click="deleteConfig(record)">删除</a-button>
+          </a-col>
+          <a-col :span="5">
+            <a-input
+              v-model="searchParams.groupChatName"
+              placeholder="群聊名称"
+              allow-clear
+              @keyup.enter="onSearch"
+            />
+          </a-col>
+          <a-col :span="4">
+            <a-select v-model="searchParams.enable" placeholder="配置状态" allow-clear>
+              <a-select-option :value="true">启用</a-select-option>
+              <a-select-option :value="false">关闭</a-select-option>
+            </a-select>
+          </a-col>
+          <a-col :span="10" class="weCom-search-buttons">
+            <div class="weCom-button-group">
+              <a-button type="primary" :loading="tableLoading" @click="onSearch">查询</a-button>
+              <a-button @click="onReset">重置</a-button>
+              <a-button type="primary" @click="showAddModal">新增配置</a-button>
+              <a-button @click="goRobot">机器人管理</a-button>
+              <a-button @click="goGroupChat">群聊管理</a-button>
             </div>
-          </template>
-        </a-table>
-      </a-card>
+          </a-col>
+        </a-row>
+      </div>
+
+      <a-table
+        :columns="columns"
+        :data-source="configList"
+        :pagination="pagination"
+        :loading="tableLoading"
+        :scroll="tableScroll"
+        :body-style="tableBodyStyle"
+        :row-key="record => record.id || `${record.robotId}-${record.groupChatId}`"
+        @change="handleTableChange"
+      >
+        <template slot="enable" slot-scope="text, record">
+          <a-switch
+            :checked="record.enable === true"
+            :loading="record.switchLoading"
+            checked-children="启用"
+            un-checked-children="关闭"
+            @change="checked => toggleEnable(record, checked)"
+          />
+        </template>
+        <template slot="createTime" slot-scope="text">
+          {{ formatTime(text) }}
+        </template>
+        <template slot="action" slot-scope="text, record">
+          <div class="weCom-action-buttons">
+            <a-button type="link" @click="editConfig(record)">修改</a-button>
+            <a-button type="link" danger @click="deleteConfig(record)">删除</a-button>
+          </div>
+        </template>
+      </a-table>
     </div>
 
     <a-modal
@@ -160,6 +160,8 @@
     robotOptions: WeComBotRobot[] = [];
     groupChatOptions: WeComBotGroupChat[] = [];
     tableLoading = false;
+    tableScroll = { y: 315 };
+    tableBodyStyle = { overflowX: 'hidden' };
     modalVisible = false;
     modalLoading = false;
     editingRecord: WeComBotGroupChatRobot | null = null;
