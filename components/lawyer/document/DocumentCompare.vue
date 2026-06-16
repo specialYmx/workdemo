@@ -35,6 +35,12 @@
           </div>
         </div>
         <div class="lawyer-header-actions">
+          <lawyer-common-zoom-control
+            v-model="textScale"
+            :min="minTextScale"
+            :max="maxTextScale"
+            :step="textScaleStep"
+          />
           <div v-if="shouldShowWarning" class="lawyer-version-warning">
             {{ getReviewWarningMessage() }}
           </div>
@@ -79,7 +85,7 @@
               />
             </a-select>
           </div>
-          <div class="lawyer-column-content">
+          <div class="lawyer-column-content" :style="contentStyle">
             <template v-if="col.iframeUrl">
               <iframe
                 :src="col.iframeUrl"
@@ -89,7 +95,7 @@
               ></iframe>
             </template>
             <template v-else>
-              <auth-markdown-preview :text="col.content || '暂无数据'" :enable-image-auth="true" />
+              <v-md-preview :text="col.content || '暂无数据'" />
             </template>
           </div>
         </div>
@@ -232,6 +238,11 @@
     @Prop({ default: false }) ruleLoading!: boolean;
     @Prop({ default: false }) comparisonLoading!: boolean;
 
+    textScale: number = 100;
+    minTextScale: number = 80;
+    maxTextScale: number = 160;
+    textScaleStep: number = 10;
+
     // 标签编辑相关
     tagEditVisible: boolean = false;
     tempSelectedTagPath: string[] = [];
@@ -247,6 +258,12 @@
     private categoryMap: Map<string, string> = new Map();
     // 分类加载版本计数：加载完成后自增，用于触发计算属性重算
     categoriesVersion: number = 0;
+
+    get contentStyle(): Record<string, string> {
+      return {
+        zoom: `${this.textScale / 100}`
+      };
+    }
 
     // 判断是否来自人工审核页面
     get isFromManualReviewPage(): boolean {

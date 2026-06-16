@@ -23,9 +23,15 @@
         <span v-if="highlightCount === 0">0 个匹配项</span>
         <span v-else>{{ currentIndex + 1 }} / {{ highlightCount }} 个匹配项</span>
       </div>
+      <lawyer-common-zoom-control
+        v-model="textScale"
+        :min="minTextScale"
+        :max="maxTextScale"
+        :step="textScaleStep"
+      />
     </div>
     <div ref="contentArea" class="lawyer-content-area">
-      <div ref="searchableContent">
+      <div ref="searchableContent" class="lawyer-searchable-content" :style="contentStyle">
         <slot />
       </div>
     </div>
@@ -44,8 +50,18 @@
     highlightCount: number = 0;
     currentIndex: number = -1;
     highlightSpans: HTMLSpanElement[] = [];
+    textScale: number = 100;
+    minTextScale: number = 80;
+    maxTextScale: number = 160;
+    textScaleStep: number = 10;
     private observer: MutationObserver | null = null;
     private debouncedHighlight: any;
+
+    get contentStyle(): Record<string, string> {
+      return {
+        zoom: `${this.textScale / 100}`
+      };
+    }
 
     mounted() {
       // 初始化防抖函数
@@ -305,7 +321,6 @@
     padding: 6px 10px;
     min-width: 100px;
     text-align: center;
-    margin-right: 10px;
   }
 
   .lawyer-content-area {
@@ -357,6 +372,10 @@
     &::-webkit-scrollbar-track:vertical {
       background: rgba(0, 0, 0, 0.05);
     }
+  }
+
+  .lawyer-searchable-content {
+    font-size: 100%;
   }
 
   .lawyer-highlight {
