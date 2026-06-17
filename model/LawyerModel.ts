@@ -123,6 +123,10 @@ export interface DocumentCompareCommonFields {
   currentMaxFileVersion?: number | null;
   oldPublishTime?: string | null;
   newPublishTime?: string | null;
+  filePathOther?: string | null;
+  assId?: string | null;
+  categoryMain?: string | null;
+  categoryId?: string | null;
 }
 
 // 文档比较数据
@@ -268,6 +272,8 @@ export interface CoreDocumentFields {
   fileVersion: number;
   checkStatus: string | null;
   diffResultId: string | null;
+  assId?: string | null;
+  pptStatus?: string | null;
 }
 
 // 时间相关字段
@@ -370,6 +376,18 @@ export interface FileCompareDetail extends DocumentVersionFields {
   checkResult: string;
   checkStatus?: string;
   completed?: string; // AI对比是否完成，"0"表示未完成
+  assId?: string | null;
+}
+
+export interface PptUploadRecord {
+  id: string;
+  name: string;
+  createdTime: string;
+}
+
+export interface PptUploadParams {
+  rawledId: string;
+  multipartFile: File;
 }
 // 法律合规智能系统服务接口定义
 export interface RoadLawyerService {
@@ -433,6 +451,12 @@ export interface RoadLawyerService {
   deleteToDoRule: (params: DeleteRuleParams) => Promise<boolean>;
   exportExcel: (params: ExportParams) => Promise<{ data: Blob; headers: ResponseHeaders }>;
   getToDoRuleDetail: (params: { id: string }) => Promise<FileCompareDetail>;
+  uploadPpt: (params: PptUploadParams) => Promise<boolean>;
+  getUploadPpt: (params: { id: string }) => Promise<PptUploadRecord[]>;
+  deleteUploadPpt: (params: { fileId: string }) => Promise<boolean>;
+  minioDownload: (
+    params: { id: string }
+  ) => Promise<{ data: Blob; headers: ResponseHeaders } | null>;
   getRuleList: (
     params?: CheckRuleQueryParams,
     useCase?: 'homepage' | 'management'

@@ -63,7 +63,7 @@
                 class="lawyer-document-content lawyer-scrollable lawyer-markdown-content"
                 tabindex="0"
               >
-                <auth-markdown-preview :text="document.content" :enable-image-auth="true" />
+                <v-md-preview :text="document.content" />
               </div>
             </lawyer-common-div-text-search>
           </a-card>
@@ -141,7 +141,7 @@
   @Component({
     name: 'document-viewer',
     components: {
-      CommonAiChat,
+      CommonAiChat
     }
   })
   class DocumentViewer extends Vue {

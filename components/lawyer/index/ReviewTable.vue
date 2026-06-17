@@ -52,8 +52,11 @@
         <template slot="action" slot-scope="text, record">
           <div class="lawyer-action-links">
             <a class="lawyer-link-view" @click="viewDetail(record)"> 查看 </a>
+            <template v-if="isPptReview(record) && isReviewableStatus(record.checkStatus)">
+              <a class="lawyer-link-approve" @click="approveItem(record)"> 通过 </a>
+            </template>
             <!-- 待审核状态：可以通过和驳回 -->
-            <template v-if="record.checkStatus === '待审核' || record.checkStatus === null">
+            <template v-else-if="record.checkStatus === '待审核' || record.checkStatus === null">
               <a class="lawyer-link-approve" @click="approveItem(record)"> 通过 </a>
               <a class="lawyer-link-reject" @click="rejectItem(record)"> 驳回 </a>
             </template>
@@ -143,6 +146,14 @@
         return '-';
       }
       return moment(timeStr).format('YYYY-MM-DD HH:mm:ss');
+    }
+
+    isPptReview(record: ToDoRuleItem): boolean {
+      return !!record.assId;
+    }
+
+    isReviewableStatus(status: string | null): boolean {
+      return status === '待审核' || status === '需人工处理' || status === null;
     }
 
     // 组件事件定义

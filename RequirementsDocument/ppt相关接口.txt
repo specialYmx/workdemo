@@ -1,0 +1,18 @@
+-- 上传ppt  post
+/legal/update/uploadPpt
+private String rawledId; -- 制度id  必传
+private transient MultipartFile multipartFile; -- 附件  必传
+
+-- 查看上传的附件
+/legal/get/uploadPpt？id=xxx    post   id=制度id
+
+-- 删除附件
+/legal/del/uploadPpt?fileId=xxx   post  fileId=附件id
+
+-- 下载附件
+/legal/minioDownload？id=xxx    get    id=附件id
+
+
+
+
+

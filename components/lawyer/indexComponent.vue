@@ -61,7 +61,8 @@
     LegendItem,
     TrendChartData,
     ChartData,
-    RouteQuery
+    RouteQuery,
+    ApprovalParams
   } from '~/model/LawyerModel';
   import { downloadFileWithMessage } from '~/utils/personal';
 
@@ -406,6 +407,10 @@
       });
     }
 
+    isPptReview(record: ToDoRuleItem): boolean {
+      return !!record.assId;
+    }
+
     // 审核操作方法
     viewReviewDetail(record: ToDoRuleItem): void {
       this.$message.info(`查看详情: ${record.ruleName}`);
@@ -416,7 +421,11 @@
           path: 'lawyerIndex',
           id: record.id,
           pageTitle: record.ruleName,
-          checkStatus: record.checkStatus || '待审核' // 传递审核状态
+          checkStatus: record.checkStatus || '待审核', // 传递审核状态
+          assId:record.assId||undefined,
+          filePathOther:record.filePathOther||undefined,
+          categoryMain: record.categoryMain || undefined,
+          categoryId: record.categoryId || undefined
         }
       });
     }
@@ -442,6 +451,11 @@
 
     // 审核驳回
     rejectReview(record: ToDoRuleItem): void {
+      if (this.isPptReview(record)) {
+        this.$message.warning('PPT审核不支持驳回');
+        return;
+      }
+
       this.$confirm({
         title: '确认驳回',
         content: `确定要驳回文档"${record.ruleName}"吗？`,
@@ -459,14 +473,17 @@
       try {
         console.log('开始审核操作:', { recordId: record.id, action });
 
-        // 调用统一的审核接口，传递与详情页面一致的参数
-        await this.$roadLawyerService.approveToDoRule({
+        const params: ApprovalParams = {
           id: record.id,
-          approvalComment: action === 'approve' ? '已通过' : '已驳回',
-          effectDateStr: record.effectDate || null, // 施行日期
-          categoryMain: record.categoryMain || null, // 分类名称
-          categoryId: record.categoryId || null // 分类ID
-        });
+          approvalComment: action === 'approve' ? '已通过' : '已驳回'
+        };
+
+        params.effectDateStr = record.effectDate || null; // 施行日期
+        params.categoryMain = record.categoryMain || null; // 分类名称
+        params.categoryId = record.categoryId || null; // 分类ID
+
+        // 调用统一的审核接口，传递与详情页面一致的参数
+        await this.$roadLawyerService.approveToDoRule(params);
 
         // 显示成功消息
         this.$message.success(action === 'approve' ? '审核已通过' : '文档已驳回');
@@ -518,6 +535,7 @@
         this.$message.error('导出失败，请重试');
       }
     }
+
     async exportUpdateDetail(): Promise<void> {
       let hideLoading = null;
       try {

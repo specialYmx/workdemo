@@ -1,6 +1,16 @@
 ﻿<template>
   <div ref="documentComparePageContainer" class="lawyer-manual-review-detail-wrapper">
+    <a-spin v-if="loading && !isPptReview" class="lawyer-manual-review-detail-loading" tip="加载中..." />
+    <lawyer-document-ppt-review-detail
+      v-else-if="isPptReview"
+      :document="documentData"
+      :submitting="submitting"
+      @go-back="goBack"
+      @submit-review="handleReviewSubmit"
+      @update-document="handlePptUpdateDocument"
+    />
     <lawyer-document-compare
+      v-else
       :document="documentData"
       :submitting="submitting"
       :rule-detail-list="ruleDetailList"
@@ -21,7 +31,8 @@
     DocumentComparePageData,
     ChangeItem,
     ReviewSubmitData,
-    RuleDetailItem
+    RuleDetailItem,
+    ApprovalParams
   } from '@/model/LawyerModel';
   import { LawyerStoreModule } from '~/store/lawyer';
   @Component({ name: 'lawyer-manual-review-detail-component' })
@@ -38,7 +49,7 @@
       effectDate: null
     };
 
-    loading: boolean = false;
+    loading: boolean = true;
     // 审核提交中的状态
     submitting: boolean = false;
     // 组件销毁标志
@@ -47,6 +58,10 @@
     ruleDetailList: RuleDetailItem[] = [];
     ruleLoading: boolean = false;
     comparisonLoading: boolean = false;
+
+    get isPptReview(): boolean {
+      return !!this.documentData.assId;
+    }
 
     // 加载规则详情列表
     async loadRuleDetailList(): Promise<void> {
@@ -167,6 +182,10 @@
       this.documentData.effectDate = updateData.effectDate;
     }
 
+    handlePptUpdateDocument(updateData: { effectDate: string | null }): void {
+      this.documentData.effectDate = updateData.effectDate;
+    }
+
     // 处理审核提交
     async handleReviewSubmit(
       reviewData: ReviewSubmitData & {
@@ -186,21 +205,26 @@
         // 设置提交中状态
         this.submitting = true;
 
-        // 调用API
-        await this.$roadLawyerService.approveToDoRule({
+        const approvalParams: ApprovalParams = {
           id: this.documentData.id,
-          approvalComment: action === 'approve' ? '已通过' : '已驳回',
-          effectDateStr: effectDateStr || this.documentData.effectDate, // 优先使用弹窗设置的施行日期，允许为空
-          categoryMain, // 允许为空，根据新逻辑是最终选择的分类名称
-          categoryId // 专题分类ID，根据新逻辑是最终选择的分类ID
-        });
+          approvalComment: action === 'approve' ? '已通过' : '已驳回'
+        };
+
+        approvalParams.effectDateStr = effectDateStr || this.documentData.effectDate; // 优先使用弹窗设置的施行日期，允许为空
+        approvalParams.categoryMain = categoryMain || this.documentData.categoryMain; // 允许为空，根据新逻辑是最终选择的分类名称
+        approvalParams.categoryId = categoryId || this.documentData.categoryId; // 专题分类ID，根据新逻辑是最终选择的分类ID
+
+        // 调用API
+        await this.$roadLawyerService.approveToDoRule(approvalParams);
 
         // 检查组件是否已销毁
         if (this.isDestroyed) return;
 
         this.documentData.status = action === 'approve' ? 'approved' : 'rejected';
 
-        this.$message.success(`${action === 'approve' ? '通过' : '驳回'}操作成功！`);
+        this.$message.success(
+          this.isPptReview ? '审批操作成功。数据已更新' : `${action === 'approve' ? '通过' : '驳回'}操作成功！`
+        );
 
         // 标记列表页需要刷新
         LawyerStoreModule.markPageRefresh('manualReviewList');
@@ -356,7 +380,14 @@
       const docId = this.$route.query.id;
       const pageTitle = this.$route.query.pageTitle;
       const checkStatus = this.$route.query.checkStatus; // 从路由参数获取审核状态
-      if (!docId) return;
+      const queryFilePathOther = this.$route.query.filePathOther;
+      const queryAssId = this.$route.query.assId;
+      const queryCategoryMain = this.$route.query.categoryMain;
+      const queryCategoryId = this.$route.query.categoryId;
+      if (!docId) {
+        this.loading = false;
+        return;
+      }
       this.loading = true;
       this.documentData = {
         id: docId as string,
@@ -370,7 +401,11 @@
         oldPublishTime: null,
         newPublishTime: null,
         effectDate: null,
-        currentMaxFileVersion: 0
+        currentMaxFileVersion: 0,
+        assId: typeof queryAssId === 'string' ? queryAssId : undefined,
+        categoryMain: typeof queryCategoryMain === 'string' ? queryCategoryMain : undefined,
+        categoryId: typeof queryCategoryId === 'string' ? queryCategoryId : undefined,
+        filePathOther: typeof queryFilePathOther === 'string' ? queryFilePathOther : undefined
       };
 
       try {
@@ -378,6 +413,29 @@
         const result = await this.$roadLawyerService.getToDoRuleDetail({
           id: docId as string
         });
+        const resultFilePathOther =
+          typeof queryFilePathOther === 'string' ? queryFilePathOther : '';
+
+        if (result?.assId) {
+          this.documentData = {
+            id: docId as string,
+            title: (pageTitle as string) || result?.categoryMain || '新规解读PPT',
+            status: 'pending',
+            checkStatus: (checkStatus as string) || result?.checkStatus || '待审核',
+            tags: result?.categoryId ? [result.categoryId] : [],
+            originalContent: '',
+            newContent: '',
+            changes: [],
+            effectDate: result?.effectDate,
+            currentMaxFileVersion: result?.currentMaxFileVersion || 0,
+            assId: result.assId,
+            categoryMain: result.categoryMain,
+            categoryId: result.categoryId,
+            filePathOther: resultFilePathOther
+          };
+          return;
+        }
+
         if (result && (result.oldFileContent || result.newFileContent)) {
           // 仅使用分类ID（不再兼容中文名称）
           const tags: string[] = result.categoryId ? [result.categoryId] : [];
@@ -401,6 +459,8 @@
             changes: this.formatChanges(result.checkResult),
             modifiedDate: result.newPublishTime || result.effectDate,
             effectDate: result.effectDate,
+            categoryMain: result.categoryMain,
+            categoryId: result.categoryId,
             oldFileVersion: result.oldFileVersion,
             oldPublishTime: result.oldPublishTime,
             newFileVersion: result.newFileVersion,
@@ -453,12 +513,18 @@
       }
     }
 
+    async initPage(): Promise<void> {
+      await this.fetchDocumentData();
+      if (!this.isPptReview) {
+        // 加载规则列表
+        await this.loadRuleDetailList();
+      }
+    }
+
     // 生命周期钩子
     created(): void {
       // 在created钩子中获取数据
-      this.fetchDocumentData();
-      // 加载规则列表
-      this.loadRuleDetailList();
+      this.initPage();
     }
 
     // 组件销毁前清理
@@ -473,5 +539,10 @@
   .lawyer-manual-review-detail-wrapper {
     width: 100%;
     overflow: hidden;
+  }
+
+  .lawyer-manual-review-detail-loading {
+    width: 100%;
+    padding: 80px 0;
   }
 </style>

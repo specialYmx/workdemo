@@ -88,8 +88,11 @@
             <span slot="action" slot-scope="text, record">
               <div class="lawyer-action-links">
                 <a class="lawyer-link-view" @click="viewDocument(record)"> 查看 </a>
+                <template v-if="isPptReview(record) && isReviewableStatus(record.checkStatus)">
+                  <a class="lawyer-link-approve" @click="approveDocument(record)"> 通过 </a>
+                </template>
                 <!-- 待审核状态：可以通过和驳回 -->
-                <template v-if="record.checkStatus === '待审核'">
+                <template v-else-if="record.checkStatus === '待审核' || record.checkStatus === null">
                   <a class="lawyer-link-approve" @click="approveDocument(record)"> 通过 </a>
                   <a class="lawyer-link-reject" @click="rejectDocument(record)"> 驳回 </a>
                 </template>
@@ -115,7 +118,8 @@
     StatusMap,
     RowSelectionConfig,
     LegalCategoryItem,
-    CascaderOption
+    CascaderOption,
+    ApprovalParams
   } from '~/model/LawyerModel';
   import { downloadFileWithMessage } from '~/utils/personal';
   import type { CustomColumn, CustomPagination } from '~/model/CommonModel';
@@ -287,6 +291,7 @@
         this.$message.success('数据已更新');
       }
     }
+
     // 监听路由变化
     @Watch('$route', { immediate: true, deep: true })
     async onRouteChange(to, from): Promise<void> {
@@ -574,6 +579,14 @@
       return `/${path}`;
     }
 
+    isPptReview(document: ToDoRuleItem): boolean {
+      return !!document.assId;
+    }
+
+    isReviewableStatus(status: string | null): boolean {
+      return status === '待审核' || status === '需人工处理' || status === null;
+    }
+
     // 查看文档
     viewDocument(document: ToDoRuleItem): void {
       this.$message.info(`查看文档: ${document.ruleName}`);
@@ -584,7 +597,11 @@
           id: document.id,
           pageTitle: document.ruleName,
           source: this.$route.path,
-          checkStatus: document.checkStatus || '待审核' // 传递审核状态
+          checkStatus: document.checkStatus || '待审核', // 传递审核状态
+          filePathOther: document.filePathOther || undefined,
+          assId: document.assId || undefined,
+          categoryMain: document.categoryMain || undefined,
+          categoryId: document.categoryId || undefined
         }
       });
     }
@@ -597,7 +614,6 @@
         return;
       }
 
-      // 检查审核状态 - 只有"待审核"状态可以通过
       if (document.checkStatus !== '待审核') {
         this.$message.warning('当前状态不允许通过审核');
         return;
@@ -616,6 +632,11 @@
 
     // 审核驳回
     rejectDocument(document: ToDoRuleItem): void {
+      if (this.isPptReview(document)) {
+        this.$message.warning('PPT审核不支持驳回');
+        return;
+      }
+
       // 检查审核状态 - "待审核"和"需人工处理"状态都可以驳回
       if (document.checkStatus !== '待审核' && document.checkStatus !== '需人工处理') {
         this.$message.warning('当前状态不允许驳回');
@@ -637,14 +658,17 @@
     // 提交审核
     async submitReview(action: string, document: ToDoRuleItem): Promise<void> {
       try {
-        // 调用统一的审核接口，传递与详情页面一致的参数
-        await this.$roadLawyerService.approveToDoRule({
+        const params: ApprovalParams = {
           id: document?.id || '',
-          approvalComment: action === 'approve' ? '已通过' : '已驳回',
-          effectDateStr: document.effectDate || null, // 施行日期
-          categoryMain: document.categoryMain || null, // 分类名称
-          categoryId: document.categoryId || null // 分类ID
-        });
+          approvalComment: action === 'approve' ? '已通过' : '已驳回'
+        };
+
+        params.effectDateStr = document.effectDate || null; // 施行日期
+        params.categoryMain = document.categoryMain || null; // 分类名称
+        params.categoryId = document.categoryId || null; // 分类ID
+
+        // 调用统一的审核接口，传递与详情页面一致的参数
+        await this.$roadLawyerService.approveToDoRule(params);
 
         // 显示成功消息
         this.$message.success(action === 'approve' ? '审核已通过' : '文档已驳回');

@@ -17,7 +17,9 @@ import type {
   CheckRuleQueryParams,
   LegalCategoryParams,
   LegalCategoryItem,
-  RuleDetailItem
+  RuleDetailItem,
+  PptUploadParams,
+  PptUploadRecord
 } from '~/model/LawyerModel';
 import type {
   CrawlStatisticsQueryParams,
@@ -390,14 +392,10 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
   // 获取预览链接
   async getPreviewUrl(params: { id: string }): Promise<string> {
     try {
-      // TODO: 临时注释掉真实接口，等待权限配置完成
-      // const res = await $axios.get(`${api.lawyer.getPreviewUrl}`, {
-      //   params: { id: params.id }
-      // });
-      // return res.data?.data || '';
-
-      // 临时返回固定 URL
-      return 'https://www.baidu.com/';
+      const res = await $axios.get(`${api.lawyer.getPreviewUrl}`, {
+        params: { id: params.id }
+      });
+      return res.data?.data || '';
     } catch (error) {
       console.error('Error getting preview url:', error);
       return '';
@@ -468,6 +466,54 @@ export default ($axios: AxiosInstance): RoadLawyerService => ({
       }
     } catch (error) {
       console.error('导出Excel错误:', error);
+      return null;
+    }
+  },
+
+  async uploadPpt(params: PptUploadParams) {
+    try {
+      const res = await $axios.post(`${api.lawyer.uploadPpt}`, toFormData(params));
+      return res.data?.success || false;
+    } catch (error) {
+      console.error('Error uploading ppt:', error);
+      return false;
+    }
+  },
+
+  async getUploadPpt(params: { id: string }): Promise<PptUploadRecord[]> {
+    try {
+      const res = await $axios.post(`${api.lawyer.getUploadPpt}`, null, {
+        params: { id: params.id }
+      });
+      return res.data?.data || [];
+    } catch (error) {
+      console.error('Error fetching ppt upload records:', error);
+      return [];
+    }
+  },
+
+  async deleteUploadPpt(params: { fileId: string }) {
+    try {
+      const res = await $axios.post(`${api.lawyer.deleteUploadPpt}`, null, {
+        params: { fileId: params.fileId }
+      });
+      return res.data?.success || false;
+    } catch (error) {
+      console.error('Error deleting ppt upload record:', error);
+      return false;
+    }
+  },
+
+  async minioDownload(params: { id: string }) {
+    try {
+      const res = await $axios.get(`${api.lawyer.minioDownload}`, {
+        params: { id: params.id },
+        responseType: 'blob'
+      });
+      if (res.data) return { data: res.data, headers: res.headers };
+      return null;
+    } catch (error) {
+      console.error('Error downloading minio file:', error);
       return null;
     }
   },
