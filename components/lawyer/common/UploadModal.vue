@@ -154,8 +154,8 @@
   type UploadRequest = (files: File[]) => Promise<boolean | void> | boolean | void;
   type BeforeSubmit = (files: File[]) => Promise<boolean | void> | boolean | void;
 
-  @Component({ name: 'CommonUploadModal' })
-  class CommonUploadModal extends Vue {
+  @Component({ name: 'LawyerCommonUploadModal' })
+  class LawyerCommonUploadModal extends Vue {
     @Prop({ default: false }) visible!: boolean;
     @Prop({ default: '上传文件' }) title!: string;
     @Prop({ default: 800 }) width!: number;
@@ -414,7 +414,7 @@
     }
   }
 
-  export default CommonUploadModal;
+  export default LawyerCommonUploadModal;
 </script>
 
 <style lang="less" scoped>
