@@ -38,7 +38,7 @@
       <a-button type="primary" :loading="submitting" @click="handleApprove"> 通过 </a-button>
     </div>
 
-    <common-upload-modal
+    <lawyer-common-upload-modal
       :visible="uploadVisible"
       title="上传更新PPT"
       confirm-text="上传PPT"
@@ -267,7 +267,8 @@
         path: '/lawyerKnowledge/detail',
         query: {
           id: this.document.assId,
-          source: this.$route.path
+          pageTitle: this.document.title,
+          source: this.$route.fullPath
         }
       });
     }
