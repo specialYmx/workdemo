@@ -398,6 +398,10 @@
         id: item.id,
         pageTitle: item.ruleName,
         source: this.$route.path, // 传递来源页面路径，用于控制显示逻辑和返回行为
+        assId: item.assId || undefined,
+        filePathOther: item.filePathOther || undefined,
+        effectDate: item.effectDate || undefined,
+        checkStatus: item.checkStatus || undefined,
         ...(isRevoke ? { isRevoke: 'true' } : {})
       };
 
@@ -421,9 +425,11 @@
           path: 'lawyerIndex',
           id: record.id,
           pageTitle: record.ruleName,
+          source: this.$route.path,
           checkStatus: record.checkStatus || '待审核', // 传递审核状态
-          assId:record.assId||undefined,
-          filePathOther:record.filePathOther||undefined,
+          assId: record.assId || undefined,
+          filePathOther: record.filePathOther || undefined,
+          effectDate: record.effectDate || undefined,
           categoryMain: record.categoryMain || undefined,
           categoryId: record.categoryId || undefined
         }

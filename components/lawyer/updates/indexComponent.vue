@@ -279,29 +279,17 @@
       const dataSource: string = item.dataSource || '';
       const updateStatus: string = item.updateStatus || '';
 
-      if (item.assId) {
-        this.$router.push({
-          path: '/lawyerUpdate/detail',
-          query: {
-            id: item.id,
-            pageTitle: item.ruleName || item.title || '新规解读PPT',
-            source: this.$route.path,
-            assId: item.assId,
-            filePathOther: item.filePathOther || undefined,
-            effectDate: item.effectDate || undefined,
-            checkStatus: item.checkStatus || undefined
-          }
-        });
-        return;
-      }
-
       // 统一的跳转逻辑
       const navigateToDetail = (): void => {
         const query: RouteQuery = {
           id: item.id,
-          pageTitle: item.ruleName || item.title || '法规更新详情',
+          pageTitle: item.ruleName,
           source: this.$route.path,
           dataSource,
+          assId: item.assId || undefined,
+          filePathOther: item.filePathOther || undefined,
+          effectDate: item.effectDate || undefined,
+          checkStatus: item.checkStatus || undefined,
           // 若列表项包含旧版本ID，则一并传递，便于详情页直接获取 iframe
           ...(item.oldId ? { oldId: item.oldId } : {})
         };
@@ -313,7 +301,10 @@
       };
 
       // 判断是否可以跳转
-      if (dataSource === '1') {
+      if (item.assId || dataSource === '2') {
+        // PPT 和人工审核数据没有 updateStatus 校验，直接进入详情
+        navigateToDetail();
+      } else if (dataSource === '1') {
         // 爬取数据，需要判断 updateStatus
         if (updateStatus === '1') {
           // 列表中已经是 "1"，直接跳转
@@ -337,9 +328,6 @@
             this.$message.error('获取详情失败，请重试');
           }
         }
-      } else if (dataSource === '2') {
-        // 人工审核数据，直接跳转
-        navigateToDetail();
       }
     }
 
@@ -443,7 +431,7 @@
         if (Array.isArray(parsed)) {
           items = parsed.filter(Boolean);
         } else {
-          throw new Error('Parsed result is not an array');
+          throw new TypeError('Parsed result is not an array');
         }
       } catch {
         // JSON.parse 失败，使用手动解析逻辑作为回退方案
