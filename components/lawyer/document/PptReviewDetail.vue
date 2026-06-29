@@ -2,7 +2,7 @@
   <div class="ppt-review-wrapper">
     <header class="ppt-review-header">
       <div class="ppt-review-title">
-        <h3>{{ document.title }}</h3>
+        <h3>{{ currentPptTitle || document.title }}</h3>
         <a-tag
           color="orange"
           :class="['ppt-review-editable-tag', { 'ppt-review-editable-tag--disabled': readOnly }]"
@@ -20,7 +20,9 @@
 
     <div class="ppt-review-toolbar">
       <a-button @click="downloadCurrentPpt"> 下载PPT </a-button>
-      <a-button type="primary" @click="showUploadModal"> 上传更新 </a-button>
+      <a-button v-if="canManagePptUpload" type="primary" @click="showUploadModal">
+        上传更新
+      </a-button>
       <a-button class="ppt-review-history-btn" @click="showUploadRecords"> 查看上传记录 </a-button>
       <a-button @click="viewSourceDocument"> 查看关联原文 </a-button>
     </div>
@@ -70,8 +72,14 @@
       >
         <template slot="action" slot-scope="text, record">
           <a @click="downloadUploadRecord(record)">下载</a>
-          <a-divider type="vertical" />
-          <a class="ppt-review-delete" @click="deleteUploadRecord(record)">删除</a>
+          <a-divider v-if="canManagePptUpload" type="vertical" />
+          <a
+            v-if="canManagePptUpload"
+            class="ppt-review-delete"
+            @click="deleteUploadRecord(record)"
+          >
+            删除
+          </a>
         </template>
       </a-table>
     </a-modal>
@@ -117,6 +125,8 @@
 
     previewUrl: string = '';
     previewLoading: boolean = false;
+    currentPptFileId: string = '';
+    currentPptTitle: string = '';
     uploadVisible: boolean = false;
     uploadRecordVisible: boolean = false;
     uploadRecordLoading: boolean = false;
@@ -160,19 +170,25 @@
       return this.document.checkStatus === '待审核' || this.document.checkStatus === '需人工处理';
     }
 
+    get canManagePptUpload(): boolean {
+      return !!this.document.assId && this.document.checkStatus === '待审核' && !this.readOnly;
+    }
+
     mounted(): void {
+      this.currentPptFileId = this.document.filePathOther || '';
+      this.currentPptTitle = this.document.title;
       this.loadPreviewUrl();
     }
 
     async loadPreviewUrl(): Promise<void> {
-      if (!this.document.filePathOther) {
+      if (!this.currentPptFileId) {
         this.previewUrl = '';
         return;
       }
       this.previewLoading = true;
       try {
         this.previewUrl = await this.$roadLawyerService.getPreviewUrl({
-          id: this.document.filePathOther
+          id: this.currentPptFileId
         });
       } catch (error) {
         console.error('获取PPT预览地址失败:', error);
@@ -183,15 +199,15 @@
     }
 
     async downloadCurrentPpt(): Promise<void> {
-      if (!this.document.filePathOther) {
+      if (!this.currentPptFileId) {
         this.$message.warning('暂无可下载文件');
         return;
       }
       const result = await this.$roadLawyerService.minioDownload({
-        id: this.document.filePathOther
+        id: this.currentPptFileId
       });
       downloadFileWithMessage(result, {
-        fileName: `${this.document.title}.pptx`,
+        fileName: this.currentPptTitle,
         showMessage: true,
         messageService: this.$message
       });
@@ -215,7 +231,9 @@
     async handleUploadComplete(): Promise<void> {
       this.uploadVisible = false;
       await this.loadUploadRecords();
+      this.updateCurrentPptByLatestRecord();
       await this.loadPreviewUrl();
+      this.emitPptChanged();
     }
 
     async showUploadRecords(): Promise<void> {
@@ -232,6 +250,15 @@
       } finally {
         this.uploadRecordLoading = false;
       }
+    }
+
+    updateCurrentPptByLatestRecord(): void {
+      const latestRecord = this.uploadRecords[0];
+      if (!latestRecord) {
+        return;
+      }
+      this.currentPptFileId = latestRecord.id;
+      this.currentPptTitle = latestRecord.name;
     }
 
     async downloadUploadRecord(record: PptUploadRecord): Promise<void> {
@@ -298,6 +325,7 @@
       this.emitUpdateDocument({
         effectDate: this.tempEffectDate
       });
+      this.emitPptChanged();
       this.effectDateVisible = false;
       this.$message.success('施行日期已更新');
     }
@@ -343,6 +371,11 @@
     @Emit('update-document')
     emitUpdateDocument(updateData: { effectDate: string | null }): { effectDate: string | null } {
       return updateData;
+    }
+
+    @Emit('ppt-changed')
+    emitPptChanged(): void {
+      // 无需返回值
     }
   }
 

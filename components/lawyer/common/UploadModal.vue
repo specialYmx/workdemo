@@ -6,7 +6,7 @@
       :width="width"
       :footer="null"
       :mask-closable="false"
-      :closable="!uploading"
+      :closable="false"
       :keyboard="!uploading"
       :dialog-style="{ top: '20px' }"
       class="modalBodyH152"

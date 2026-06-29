@@ -1,6 +1,10 @@
 ﻿<template>
   <div ref="documentComparePageContainer" class="lawyer-manual-review-detail-wrapper">
-    <a-spin v-if="loading && !isPptReview" class="lawyer-manual-review-detail-loading" tip="加载中..." />
+    <a-spin
+      v-if="loading && !isPptReview"
+      class="lawyer-manual-review-detail-loading"
+      tip="加载中..."
+    />
     <lawyer-document-ppt-review-detail
       v-else-if="isPptReview"
       :document="documentData"
@@ -8,6 +12,7 @@
       @go-back="goBack"
       @submit-review="handleReviewSubmit"
       @update-document="handlePptUpdateDocument"
+      @ppt-changed="handlePptChanged"
     />
     <lawyer-document-compare
       v-else
@@ -186,6 +191,11 @@
       this.documentData.effectDate = updateData.effectDate;
     }
 
+    handlePptChanged(): void {
+      LawyerStoreModule.markPageRefresh('manualReviewList');
+      console.log('🚀 ~  ~ handlePptChanged ~ LawyerStoreModule:', LawyerStoreModule);
+    }
+
     // 处理审核提交
     async handleReviewSubmit(
       reviewData: ReviewSubmitData & {
@@ -223,7 +233,9 @@
         this.documentData.status = action === 'approve' ? 'approved' : 'rejected';
 
         this.$message.success(
-          this.isPptReview ? '审批操作成功。数据已更新' : `${action === 'approve' ? '通过' : '驳回'}操作成功！`
+          this.isPptReview
+            ? '审批操作成功。数据已更新'
+            : `${action === 'approve' ? '通过' : '驳回'}操作成功！`
         );
 
         // 标记列表页需要刷新

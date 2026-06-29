@@ -282,6 +282,7 @@
     async activated(): Promise<void> {
       // 检查 lawyer store 中的刷新标记
       const refreshFlags = LawyerStoreModule?.refreshFlags;
+      console.log("🚀 ~  ~ activated ~ refreshFlags:", refreshFlags);
       if (refreshFlags && refreshFlags.manualReviewList) {
         console.log('检测到需要刷新数据');
         await this.loadDocuments();
@@ -625,7 +626,7 @@
         okText: '确认通过',
         cancelText: '取消',
         onOk: () => {
-          this.submitReview('approve', document);
+          return this.submitReview('approve', document);
         }
       });
     }
@@ -650,13 +651,14 @@
         okType: 'danger',
         cancelText: '取消',
         onOk: () => {
-          this.submitReview('reject', document);
+          return this.submitReview('reject', document);
         }
       });
     }
 
     // 提交审核
     async submitReview(action: string, document: ToDoRuleItem): Promise<void> {
+      this.tableLoading = true;
       try {
         const params: ApprovalParams = {
           id: document?.id || '',
@@ -678,6 +680,8 @@
       } catch (error) {
         console.error('审核操作失败:', error);
         this.$message.error('审核操作失败，请重试');
+      } finally {
+        this.tableLoading = false;
       }
     }
 
