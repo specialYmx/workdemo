@@ -636,6 +636,10 @@ export interface UpdateItem {
   updateStatus?: string; // 更新状态："1"-已生成对比结果，"0"或其他-未生成
   ruleName: string; // 法规名称，用于路由传参
   oldId?: string; // 旧版本文档ID（用于 iframe 对比）
+  assId?: string | null;
+  filePathOther?: string | null;
+  effectDate?: string | null;
+  checkStatus?: string | null;
 }
 
 // 筛选选项

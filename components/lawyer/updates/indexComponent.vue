@@ -266,7 +266,11 @@
           updateStatus: item.updateStatus, // 更新状态
           ruleName: item.ruleName, // 法规名称
           // 旧版本文档ID（若后端提供则透传，用于 iframe 对比）
-          oldId: item.oldId
+          oldId: item.oldId,
+          assId: item.assId,
+          filePathOther: item.filePathOther,
+          effectDate: item.effectDate,
+          checkStatus: item.checkStatus
         };
       });
     }
@@ -274,6 +278,22 @@
     async viewUpdate(item: UpdateItem): Promise<void> {
       const dataSource: string = item.dataSource || '';
       const updateStatus: string = item.updateStatus || '';
+
+      if (item.assId) {
+        this.$router.push({
+          path: '/lawyerUpdate/detail',
+          query: {
+            id: item.id,
+            pageTitle: item.ruleName || item.title || '新规解读PPT',
+            source: this.$route.path,
+            assId: item.assId,
+            filePathOther: item.filePathOther || undefined,
+            effectDate: item.effectDate || undefined,
+            checkStatus: item.checkStatus || undefined
+          }
+        });
+        return;
+      }
 
       // 统一的跳转逻辑
       const navigateToDetail = (): void => {

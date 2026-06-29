@@ -29,7 +29,7 @@
                 </div>
 
                 <div class="lawyer-header-actions">
-                  <a-button class="lawyer-back-btn" @click="goBack">
+                  <a-button v-if="!hideBackButton" class="lawyer-back-btn" @click="goBack">
                     <a-icon type="arrow-left" />
                     返回
                   </a-button>
@@ -146,6 +146,7 @@
   })
   class DocumentViewer extends Vue {
     @Prop({ required: true }) document!: DocumentViewerData;
+    @Prop({ default: false }) hideBackButton!: boolean;
 
     get showDownloadButton(): boolean {
       if (this.document.categoryId === '3') {

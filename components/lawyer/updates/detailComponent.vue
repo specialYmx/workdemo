@@ -1,6 +1,12 @@
 <template>
   <div class="lawyer-manual-review-detail-wrapper">
-    <lawyer-document-compare :document="documentData" @go-back="goBack" />
+    <lawyer-document-ppt-review-detail
+      v-if="isPptReview"
+      :document="documentData"
+      :read-only="true"
+      @go-back="goBack"
+    />
+    <lawyer-document-compare v-else :document="documentData" @go-back="goBack" />
   </div>
 </template>
 
@@ -24,6 +30,11 @@
     loading: boolean = false;
     // 组件销毁标志
     private isDestroyed: boolean = false;
+
+    get isPptReview(): boolean {
+      return !!this.documentData.assId;
+    }
+
     // 返回上一页
     goBack(): void {
       const sourcePath = this.$route.query.source as string;
@@ -195,12 +206,33 @@
       const checkStatus = this.$route.query.checkStatus as string;
       const dataSource = this.$route.query.dataSource as string;
       const oldId = this.$route.query.oldId as string;
+      const assId = this.$route.query.assId as string;
+      const filePathOther = this.$route.query.filePathOther as string;
+      const effectDate = this.$route.query.effectDate as string;
 
       if (!documentId) return;
 
       this.loading = true;
       // 设置初始加载状态
       this.documentData = this.createBaseDocumentData(documentId as string, pageTitle, checkStatus);
+
+      if (assId) {
+        this.documentData = {
+          ...this.createBaseDocumentData(
+            documentId as string,
+            pageTitle || '新规解读PPT',
+            checkStatus,
+            ''
+          ),
+          originalContent: '',
+          newContent: '',
+          assId,
+          filePathOther,
+          effectDate: effectDate || null
+        };
+        this.loading = false;
+        return;
+      }
 
       try {
         if (dataSource === '2') {

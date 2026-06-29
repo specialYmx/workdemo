@@ -3,9 +3,13 @@
     <header class="ppt-review-header">
       <div class="ppt-review-title">
         <h3>{{ document.title }}</h3>
-        <a-tag color="orange" class="ppt-review-editable-tag" @click="showEffectDateModal">
+        <a-tag
+          color="orange"
+          :class="['ppt-review-editable-tag', { 'ppt-review-editable-tag--disabled': readOnly }]"
+          @click="showEffectDateModal"
+        >
           新规解读
-          <a-icon type="edit" class="ppt-review-tag-edit-icon" />
+          <a-icon v-if="!readOnly" type="edit" class="ppt-review-tag-edit-icon" />
         </a-tag>
       </div>
       <a-button class="ppt-review-back" @click="goBack">
@@ -109,6 +113,7 @@
   class PptReviewDetail extends Vue {
     @Prop({ required: true }) document!: DocumentComparePageData;
     @Prop({ default: false }) submitting!: boolean;
+    @Prop({ default: false }) readOnly!: boolean;
 
     previewUrl: string = '';
     previewLoading: boolean = false;
@@ -149,6 +154,9 @@
     ];
 
     get canApprove(): boolean {
+      if (this.readOnly) {
+        return false;
+      }
       return this.document.checkStatus === '待审核' || this.document.checkStatus === '需人工处理';
     }
 
@@ -268,12 +276,16 @@
         query: {
           id: this.document.assId,
           pageTitle: this.document.title,
+          fromPptReview: '1',
           source: this.$route.fullPath
         }
       });
     }
 
     showEffectDateModal(): void {
+      if (this.readOnly) {
+        return;
+      }
       if (this.document.checkStatus !== '待审核') {
         this.$message.warning('当前文档状态不允许编辑');
         return;
@@ -320,7 +332,9 @@
     }
 
     @Emit('submit-review')
-    emitSubmitReview(data: ReviewSubmitData & { effectDateStr?: string | null }): ReviewSubmitData & {
+    emitSubmitReview(
+      data: ReviewSubmitData & { effectDateStr?: string | null }
+    ): ReviewSubmitData & {
       effectDateStr?: string | null;
     } {
       return data;
@@ -374,6 +388,10 @@
     display: inline-flex;
     align-items: center;
     gap: 4px;
+  }
+
+  .ppt-review-editable-tag--disabled {
+    cursor: default;
   }
 
   .ppt-review-tag-edit-icon {

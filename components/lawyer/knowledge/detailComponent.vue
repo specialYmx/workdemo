@@ -2,6 +2,7 @@
   <div class="lawyer-knowledge-detail-wrapper">
     <lawyer-document-viewer
       :document="document"
+      :hide-back-button="hideBackButton"
       @go-back="goBack"
       @update-document-status="handleUpdateDocumentStatus"
     />
@@ -12,6 +13,7 @@
   import { Component, Vue } from 'nuxt-property-decorator';
   import type { KnowledgeDataItem, DocumentViewerData } from '~/model/LawyerModel';
   import { LawyerStoreModule } from '~/store/lawyer';
+  import { CloseCurrentRoute } from '~/utils/menu';
 
   @Component({ name: 'lawyer-knowledge-detail-component' })
   class LawyerKnowledgeDetailComponent extends Vue {
@@ -38,9 +40,14 @@
     // 废止状态控制（从文档详情弹窗的已废止控件获取）
     isRevoke: boolean = false;
 
+    get hideBackButton(): boolean {
+      return this.$route.query.fromPptReview === '1';
+    }
+
     // 返回上一页
     goBack(): void {
-      // 优先根据来源页面参数返回到正确的列表页面
+      CloseCurrentRoute(this.$route.fullPath);
+
       const sourcePath = this.$route.query.source as string;
 
       if (sourcePath) {
