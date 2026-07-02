@@ -266,10 +266,18 @@
         id: record.id
       });
       downloadFileWithMessage(result, {
-        fileName: record.name,
+        fileName: this.getDownloadName(record),
         showMessage: true,
         messageService: this.$message
       });
+    }
+
+    getDownloadName(record: PptUploadRecord): string {
+      const suffixIndex = record.id.lastIndexOf('.');
+      if (suffixIndex === -1) {
+        return record.name;
+      }
+      return `${record.name}${record.id.slice(suffixIndex)}`;
     }
 
     deleteUploadRecord(record: PptUploadRecord): void {
