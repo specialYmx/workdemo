@@ -203,14 +203,7 @@
         this.$message.warning('暂无可下载文件');
         return;
       }
-      const result = await this.$roadLawyerService.minioDownload({
-        id: this.currentPptFileId
-      });
-      downloadFileWithMessage(result, {
-        fileName: this.getPptDownloadName(this.currentPptTitle, this.currentPptFileId),
-        showMessage: true,
-        messageService: this.$message
-      });
+      await this.downloadPpt(this.currentPptFileId, this.currentPptTitle);
     }
 
     showUploadModal(): void {
@@ -262,18 +255,18 @@
     }
 
     async downloadUploadRecord(record: PptUploadRecord): Promise<void> {
+      await this.downloadPpt(record.id, record.name);
+    }
+
+    async downloadPpt(fileId: string, name: string): Promise<void> {
       const result = await this.$roadLawyerService.minioDownload({
-        id: record.id
+        id: fileId
       });
       downloadFileWithMessage(result, {
-        fileName: this.getDownloadName(record),
+        fileName: this.getPptDownloadName(name, fileId),
         showMessage: true,
         messageService: this.$message
       });
-    }
-
-    getDownloadName(record: PptUploadRecord): string {
-      return this.getPptDownloadName(record.name, record.id);
     }
 
     getPptDownloadName(name: string, fileId: string): string {
