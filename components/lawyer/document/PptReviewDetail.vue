@@ -207,7 +207,7 @@
         id: this.currentPptFileId
       });
       downloadFileWithMessage(result, {
-        fileName: this.currentPptTitle,
+        fileName: this.getPptDownloadName(this.currentPptTitle, this.currentPptFileId),
         showMessage: true,
         messageService: this.$message
       });
@@ -273,11 +273,15 @@
     }
 
     getDownloadName(record: PptUploadRecord): string {
-      const suffixIndex = record.id.lastIndexOf('.');
+      return this.getPptDownloadName(record.name, record.id);
+    }
+
+    getPptDownloadName(name: string, fileId: string): string {
+      const suffixIndex = fileId.lastIndexOf('.');
       if (suffixIndex === -1) {
-        return record.name;
+        return name;
       }
-      return `${record.name}${record.id.slice(suffixIndex)}`;
+      return `${name}${fileId.slice(suffixIndex)}`;
     }
 
     deleteUploadRecord(record: PptUploadRecord): void {
