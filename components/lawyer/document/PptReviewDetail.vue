@@ -136,11 +136,11 @@
 
     uploadConfig = {
       multiple: false,
-      acceptTypes: '.ppt,.pptx',
+      acceptTypes: '.pptx',
       maxFileSize: 200 * 1024 * 1024,
       maxFileCount: 1,
       uploadText: '点击或拖拽PPT文件到此区域上传',
-      hintText: '支持 PPT、PPTX 格式，文件大小不超过 200MB',
+      hintText: '支持 PPTX 格式，文件大小不超过 200MB',
       autoUpload: false
     };
 
