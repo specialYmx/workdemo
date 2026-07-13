@@ -29,6 +29,9 @@
                 </div>
 
                 <div class="lawyer-header-actions">
+                  <a-button v-if="showSourceDocumentButton" @click="viewSourceDocument">
+                    查看关联原文
+                  </a-button>
                   <a-button v-if="!hideBackButton" class="lawyer-back-btn" @click="goBack">
                     <a-icon type="arrow-left" />
                     返回
@@ -130,7 +133,8 @@
     CascaderOption,
     LegalCategoryItem,
     DepartmentOption,
-    WebsiteOption
+    WebsiteOption,
+    RouteQuery
   } from '~/model/LawyerModel';
   import { ChatListType } from '~/model/chatModel';
   import api from '~/api';
@@ -154,6 +158,12 @@
       }
       const categoryText = `${this.document.assemblyCategoryMain || ''}`;
       return !categoryText.includes('制度库');
+    }
+
+    get showSourceDocumentButton(): boolean {
+      const sourcePath = this.$route.query.source as string;
+      const routePath = sourcePath || this.$route.path;
+      return routePath.includes('/newRegulationInterpretation') && !!this.document.assId;
     }
 
     // AI助手相关
@@ -502,6 +512,41 @@
     }): void {
       this.emitUpdateDocumentStatus(statusData);
       this.editModalVisible = false;
+    }
+
+    async viewSourceDocument(): Promise<void> {
+      const assId = this.document.assId;
+      if (!assId) {
+        return;
+      }
+
+      const sourceDocument = await this.$roadLawyerService.getRuleSourceDetail({
+        searchId: assId
+      });
+      if (!sourceDocument) {
+        this.$message.error('未找到关联原文');
+        return;
+      }
+
+      const isRevoke = !!(sourceDocument.revokeDateTimestamp || sourceDocument.revokeDateStr);
+      const query: RouteQuery = {
+        id: assId,
+        pageTitle: sourceDocument.ruleName,
+        source: this.$route.fullPath,
+        ...(isRevoke ? { isRevoke: 'true' } : {})
+      };
+
+      if (sourceDocument.dataSource !== '2') {
+        const previewUrl = await this.$roadLawyerService.getPreviewUrl({ id: assId });
+        if (previewUrl) {
+          query.iframeUrl = previewUrl;
+        }
+      }
+
+      this.$router.push({
+        path: '/lawyerKnowledge/detail',
+        query
+      });
     }
 
     getModalContainer(): Element {

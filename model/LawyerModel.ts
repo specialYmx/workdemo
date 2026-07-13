@@ -96,6 +96,7 @@ export interface DocumentViewerData {
   assemblyCategoryMain?: string;
   dataSource?: string; // 数据来源："1"-爬取数据，"2"-人工审核数据
   iframeUrl?: string; // iframe预览链接
+  assId?: string | null;
 }
 
 // 文档比较基础字段
@@ -454,9 +455,9 @@ export interface RoadLawyerService {
   uploadPpt: (params: PptUploadParams) => Promise<boolean>;
   getUploadPpt: (params: { id: string }) => Promise<PptUploadRecord[]>;
   deleteUploadPpt: (params: { fileId: string }) => Promise<boolean>;
-  minioDownload: (
-    params: { id: string }
-  ) => Promise<{ data: Blob; headers: ResponseHeaders } | null>;
+  minioDownload: (params: {
+    id: string;
+  }) => Promise<{ data: Blob; headers: ResponseHeaders } | null>;
   getRuleList: (
     params?: CheckRuleQueryParams,
     useCase?: 'homepage' | 'management'
