@@ -38,7 +38,13 @@
       </a-button>
       <!-- 新增按钮 - 只有管理员可见 -->
       <!-- v-if="isAdmin" -->
-      <a-button type="primary" icon="plus" size="large" @click="showAddDocumentModal">
+      <a-button
+        v-if="!isRegulation"
+        type="primary"
+        icon="plus"
+        size="large"
+        @click="showAddDocumentModal"
+      >
         新增文档
       </a-button>
     </div>
@@ -148,12 +154,12 @@
           style="width: 100%"
           placeholder="印发部门"
           :allow-clear="true"
-          @change="onDepartmentChange"
           :show-search="true"
           :filter-option="false"
           :max-tag-count="2"
           :max-tag-text-length="8"
           max-tag-placeholder="..."
+          @change="onDepartmentChange"
         >
           <a-select-option
             v-for="option in departmentOptions"
@@ -195,6 +201,7 @@
   class LawyerKnowledgeFilterOptions extends Vue {
     @Prop({ required: true }) categoryName!: string;
     @Prop({ required: true }) isAdmin!: boolean;
+    @Prop({ default: false }) isRegulation!: boolean;
     @Prop({ required: true }) searchText!: string;
     @Prop({ required: true }) searchButtons!: SearchButton[];
     @Prop({ required: true }) timelinessFilter!: string;

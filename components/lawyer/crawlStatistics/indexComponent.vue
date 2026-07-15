@@ -98,6 +98,7 @@
           <template slot="action" slot-scope="text, record">
             <div class="lawyer-action-buttons">
               <a-button
+                v-if="!isRegulation"
                 type="link"
                 :disabled="isProcessing(record)"
                 :icon="isProcessing(record) ? 'loading' : 'play-circle'"
@@ -107,7 +108,9 @@
               </a-button>
               <a-button type="link" @click="viewCrawlHistory(record)"> 查看 </a-button>
               <a-button type="link" @click="viewWebsiteDetails(record)"> 网站详情 </a-button>
-              <a-button type="link" @click="editRecord(record)"> 修改 </a-button>
+              <a-button v-if="!isRegulation" type="link" @click="editRecord(record)">
+                修改
+              </a-button>
             </div>
           </template>
         </a-table>
@@ -227,6 +230,10 @@
 
   @Component({ name: 'lawyer-crawl-statistics-index-component' })
   class CrawlStatisticsComponent extends Vue {
+    get isRegulation(): boolean {
+      return this.$store.state.auth.isRegulation;
+    }
+
     // 搜索参数
     searchParams: CrawlStatisticsQueryParams = {
       websiteCode: '',

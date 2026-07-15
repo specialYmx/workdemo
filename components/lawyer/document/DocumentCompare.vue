@@ -6,7 +6,7 @@
           <div class="lawyer-title-row">
             <h3>{{ document.title }}</h3>
             <!-- 文档标签区域 - 只有来自人工审核页面时才显示编辑功能 -->
-            <div v-if="isFromManualReviewPage" class="lawyer-document-tags">
+            <div v-if="isFromManualReviewPage && !readOnly" class="lawyer-document-tags">
               <a-tag
                 v-if="displayTag"
                 color="orange"
@@ -66,7 +66,10 @@
               placeholder="选择其他制度文档对比"
               :loading="ruleLoading"
               :disabled="
-                comparisonLoading || isAiComparisonNotCompleted || document.checkStatus !== '待审核'
+                readOnly ||
+                comparisonLoading ||
+                isAiComparisonNotCompleted ||
+                document.checkStatus !== '待审核'
               "
               :allow-clear="!!selectedRuleId"
               show-search
@@ -163,7 +166,7 @@
       </div>
 
       <!-- 审核按钮固定在右下角 - 只有来自人工审核页面时才显示 -->
-      <div v-if="shouldShowReviewButtons && isFromManualReviewPage" class="tx-r">
+      <div v-if="!readOnly && shouldShowReviewButtons && isFromManualReviewPage" class="tx-r">
         <a-button
           v-for="action in reviewActions"
           :key="action.text"
@@ -237,6 +240,7 @@
     @Prop({ default: () => [] }) ruleDetailList!: RuleDetailItem[];
     @Prop({ default: false }) ruleLoading!: boolean;
     @Prop({ default: false }) comparisonLoading!: boolean;
+    @Prop({ default: false }) readOnly!: boolean;
 
     textScale: number = 100;
     minTextScale: number = 80;
@@ -422,7 +426,7 @@
 
     // 是否显示警告信息
     get shouldShowWarning(): boolean {
-      return !this.canReview;
+      return !this.readOnly && !this.canReview;
     }
 
     // 是否有特殊信息（无旧版文件或无新版文件）
@@ -647,6 +651,7 @@
     // 无选中值但后端已有旧内容时，展示自定义清空图标
     get showManualClearIcon(): boolean {
       return (
+        !this.readOnly &&
         this.isFromManualReviewPage &&
         this.hasExistingOldData &&
         !this.selectedRuleId &&

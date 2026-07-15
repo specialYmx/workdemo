@@ -52,16 +52,22 @@
         <template slot="action" slot-scope="text, record">
           <div class="lawyer-action-links">
             <a class="lawyer-link-view" @click="viewDetail(record)"> 查看 </a>
-            <template v-if="isPptReview(record) && isReviewableStatus(record.checkStatus)">
+            <template
+              v-if="!isRegulation && isPptReview(record) && isReviewableStatus(record.checkStatus)"
+            >
               <a class="lawyer-link-approve" @click="approveItem(record)"> 通过 </a>
             </template>
             <!-- 待审核状态：可以通过和驳回 -->
-            <template v-else-if="record.checkStatus === '待审核' || record.checkStatus === null">
+            <template
+              v-else-if="
+                !isRegulation && (record.checkStatus === '待审核' || record.checkStatus === null)
+              "
+            >
               <a class="lawyer-link-approve" @click="approveItem(record)"> 通过 </a>
               <a class="lawyer-link-reject" @click="rejectItem(record)"> 驳回 </a>
             </template>
             <!-- 需人工处理状态：只能驳回 -->
-            <template v-else-if="record.checkStatus === '需人工处理'">
+            <template v-else-if="!isRegulation && record.checkStatus === '需人工处理'">
               <a class="lawyer-link-reject" @click="rejectItem(record)"> 驳回 </a>
             </template>
           </div>
@@ -81,6 +87,10 @@
   class ReviewTable extends Vue {
     @Prop({ type: Array, default: () => [] }) reviews!: ToDoRuleItem[];
     @Prop({ type: Boolean, default: false }) loading!: boolean;
+
+    get isRegulation(): boolean {
+      return this.$store.state.auth.isRegulation;
+    }
 
     // 表格列定义（优先使用 CommonModel 的 CustomColumn 类型）
     reviewColumns: CustomColumn[] = [

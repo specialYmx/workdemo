@@ -9,6 +9,7 @@
       v-else-if="isPptReview"
       :document="documentData"
       :submitting="submitting"
+      :read-only="isRegulation"
       @go-back="goBack"
       @submit-review="handleReviewSubmit"
       @update-document="handlePptUpdateDocument"
@@ -21,6 +22,7 @@
       :rule-detail-list="ruleDetailList"
       :rule-loading="ruleLoading"
       :comparison-loading="comparisonLoading"
+      :read-only="isRegulation"
       @go-back="goBack"
       @submit-review="handleReviewSubmit"
       @update-document="handleUpdateDocument"
@@ -66,6 +68,10 @@
 
     get isPptReview(): boolean {
       return !!this.documentData.assId;
+    }
+
+    get isRegulation(): boolean {
+      return this.$store.state.auth.isRegulation;
     }
 
     // 加载规则详情列表

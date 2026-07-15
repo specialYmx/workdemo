@@ -3,7 +3,7 @@
     <div class="lawyer-page-container">
       <!-- 整体卡片容器 -->
       <div class="lawyer-main-card">
-        <a-row >
+        <a-row>
           <a-col :span="6">
             <!-- 页面标题 -->
             <h4 class="lawyer-page-title">人工审核与数据管理</h4>
@@ -88,16 +88,25 @@
             <span slot="action" slot-scope="text, record">
               <div class="lawyer-action-links">
                 <a class="lawyer-link-view" @click="viewDocument(record)"> 查看 </a>
-                <template v-if="isPptReview(record) && isReviewableStatus(record.checkStatus)">
+                <template
+                  v-if="
+                    !isRegulation && isPptReview(record) && isReviewableStatus(record.checkStatus)
+                  "
+                >
                   <a class="lawyer-link-approve" @click="approveDocument(record)"> 通过 </a>
                 </template>
                 <!-- 待审核状态：可以通过和驳回 -->
-                <template v-else-if="record.checkStatus === '待审核' || record.checkStatus === null">
+                <template
+                  v-else-if="
+                    !isRegulation &&
+                    (record.checkStatus === '待审核' || record.checkStatus === null)
+                  "
+                >
                   <a class="lawyer-link-approve" @click="approveDocument(record)"> 通过 </a>
                   <a class="lawyer-link-reject" @click="rejectDocument(record)"> 驳回 </a>
                 </template>
                 <!-- 需人工处理状态：只能驳回 -->
-                <template v-else-if="record.checkStatus === '需人工处理'">
+                <template v-else-if="!isRegulation && record.checkStatus === '需人工处理'">
                   <a class="lawyer-link-reject" @click="rejectDocument(record)"> 驳回 </a>
                 </template>
               </div>
@@ -126,6 +135,10 @@
   import { LawyerStoreModule } from '~/store/lawyer';
   @Component({ name: 'lawyer-manual-review-index-component' })
   class LawyerManualReviewIndexComponent extends Vue {
+    get isRegulation(): boolean {
+      return this.$store.state.auth.isRegulation;
+    }
+
     // 搜索和筛选
     searchText: string = '';
     filterType: string = '';
@@ -282,7 +295,7 @@
     async activated(): Promise<void> {
       // 检查 lawyer store 中的刷新标记
       const refreshFlags = LawyerStoreModule?.refreshFlags;
-      console.log("🚀 ~  ~ activated ~ refreshFlags:", refreshFlags);
+      console.log('🚀 ~  ~ activated ~ refreshFlags:', refreshFlags);
       if (refreshFlags && refreshFlags.manualReviewList) {
         console.log('检测到需要刷新数据');
         await this.loadDocuments();
@@ -858,6 +871,5 @@
         background-color: #fff2f0;
       }
     }
-
   }
 </style>

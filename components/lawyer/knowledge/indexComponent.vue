@@ -20,11 +20,12 @@
           :website-options="websiteOptions"
           :topic-category-options="topicCategoryOptions"
           :department-options="departmentOptions"
+          :is-regulation="isRegulation"
+          :is-admin="isAdmin"
           @search="onExactSearch"
           @show-add-document-modal="showAddDocumentModal"
           @filter-change="onFilterChange"
           @search-input-clear="onSearchInputClear"
-          :isAdmin="isAdmin"
           @show-export-modal="showExportModal"
         />
 
@@ -36,9 +37,9 @@
           :total-documents="totalDocuments"
           :page-size="pageSize"
           :doc-actions="documentActions"
+          :search-keyword="searchKeyword"
           @page-change="onPageChange"
           @show-size-change="onShowSizeChange"
-          :search-keyword="searchKeyword"
         />
       </div>
 
@@ -131,6 +132,10 @@
     exportModalVisible: boolean = false; // 导出模态框显示状态
     selectedCopies: string[] = ['上', '下']; // 默认选中上册和下册
 
+    get isRegulation(): boolean {
+      return this.$store.state.auth.isRegulation;
+    }
+
     get uploadConfig(): KnowledgeUploadConfig {
       return {
         multiple: false,
@@ -148,35 +153,35 @@
     }
 
     get categoryName(): string {
-    // 根据路由获取分类名称，用于显示
-    const routePath = this.$route.path
+      // 根据路由获取分类名称，用于显示
+      const routePath = this.$route.path;
 
-    // 路由路径与分类名称的映射
-    const routeMap: Record<string, string> = {
-      '/lawyerKnowledge': '大家智库',
-      '/regulationCompilation': '法规汇编',
-      '/punishmentCompilation': '处罚汇编',
-      '/researchCollection': '专题研究',
-      '/legalComplianceQuarterly': '法律合规季刊',
-      '/newRegulationInterpretation': '新规解读',
-      '/institutionLibrary': '制度库', // 企业内部管理制度和规范文件
-    }
+      // 路由路径与分类名称的映射
+      const routeMap: Record<string, string> = {
+        '/lawyerKnowledge': '大家智库',
+        '/regulationCompilation': '法规汇编',
+        '/punishmentCompilation': '处罚汇编',
+        '/researchCollection': '专题研究',
+        '/legalComplianceQuarterly': '法律合规季刊',
+        '/newRegulationInterpretation': '新规解读',
+        '/institutionLibrary': '制度库' // 企业内部管理制度和规范文件
+      };
 
-    // 精确匹配路由路径
-    if (routeMap[routePath] || routeMap[routePath.replace(/\/$/, '')]) {
-      return routeMap[routePath] || routeMap[routePath.replace(/\/$/, '')]
-    }
-
-    // 模糊匹配（包含路径）
-    for (const [path, name] of Object.entries(routeMap)) {
-      if (routePath.includes(path)) {
-        return name
+      // 精确匹配路由路径
+      if (routeMap[routePath] || routeMap[routePath.replace(/\/$/, '')]) {
+        return routeMap[routePath] || routeMap[routePath.replace(/\/$/, '')];
       }
-    }
 
-    // 默认返回
-    return '大家智库'
-  }
+      // 模糊匹配（包含路径）
+      for (const [path, name] of Object.entries(routeMap)) {
+        if (routePath.includes(path)) {
+          return name;
+        }
+      }
+
+      // 默认返回
+      return '大家智库';
+    }
 
     get searchButtons(): SearchButton[] {
       return [
@@ -339,7 +344,7 @@
       }
 
       // 只有在非收藏模式下才显示收藏按钮
-      if (!this.isFavoritesMode) {
+      if (!this.isRegulation && !this.isFavoritesMode) {
         actions.push({
           type: isFavorite ? 'primary' : 'default',
           text: isFavorite ? '取消收藏' : '收藏',
@@ -349,18 +354,20 @@
 
       // 只有管理员才能看到上传更新和移除按钮
       // if (this.isAdmin) {
-      actions.push(
-        {
-          text: '上传更新',
-          class: 'lawyer-btn-upload',
-          handler: () => this.uploadDocument(doc.id, doc.ruleName)
-        },
-        {
-          text: '移除',
-          type: 'danger',
-          handler: () => this.removeDocument(doc)
-        }
-      );
+      if (!this.isRegulation) {
+        actions.push(
+          {
+            text: '上传更新',
+            class: 'lawyer-btn-upload',
+            handler: () => this.uploadDocument(doc.id, doc.ruleName)
+          },
+          {
+            text: '移除',
+            type: 'danger',
+            handler: () => this.removeDocument(doc)
+          }
+        );
+      }
       // }
 
       return actions;
@@ -395,7 +402,7 @@
     }
 
     async downloadDocument(doc: KnowledgeDataItem): Promise<void> {
-      let hideLoading: void | (() => void) = undefined;
+      let hideLoading: void | (() => void);
       try {
         // 根据文档分类或当前页面决定文件格式：法规汇编下载 docx，其他下载 pdf
         const assemblyCategoryMain: string | undefined = doc.assemblyCategoryMain;
@@ -511,7 +518,7 @@
         return;
       }
 
-      let hideLoading: void | (() => void) = undefined;
+      let hideLoading: void | (() => void);
       try {
         hideLoading = this.$message.loading(
           `正在导出，共${this.selectedCopies.length}册，请稍候...`,

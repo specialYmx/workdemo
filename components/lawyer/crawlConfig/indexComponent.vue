@@ -47,7 +47,9 @@
               <div class="lawyer-button-group">
                 <a-button type="primary" :loading="tableLoading" @click="onSearch"> 搜索 </a-button>
                 <a-button @click="onReset"> 重置 </a-button>
-                <a-button type="primary" @click="showAddModal"> 新增配置 </a-button>
+                <a-button v-if="!isRegulation" type="primary" @click="showAddModal">
+                  新增配置
+                </a-button>
               </div>
             </a-col>
           </a-row>
@@ -66,7 +68,7 @@
             <a :href="safeUrl(text)" target="_blank">{{ text }}</a>
           </template>
           <!-- 标签列（关键词、屏蔽词、栏目名通用） -->
-          <template slot="tagList" slot-scope="text, record">
+          <template slot="tagList" slot-scope="text">
             <div v-if="text && text.length > 0" class="lawyer-keywords-container">
               <a-tag
                 v-for="(keyword, index) in getDisplayKeywords(text)"
@@ -94,6 +96,7 @@
             <a-switch
               :checked="record.enabled === 1"
               :loading="record.switchLoading"
+              :disabled="isRegulation"
               @change="checked => toggleEnabled(record, checked)"
             />
           </template>
@@ -110,7 +113,7 @@
 
           <!-- 操作列 -->
           <template slot="action" slot-scope="text, record">
-            <div class="lawyer-action-buttons">
+            <div v-if="!isRegulation" class="lawyer-action-buttons">
               <a-button type="link" @click="editConfig(record)"> 编辑 </a-button>
               <a-button type="link" danger @click="deleteConfig(record)"> 删除 </a-button>
             </div>
@@ -242,6 +245,10 @@
     name: 'crawl-config-index-component'
   })
   class CrawlConfigIndexComponent extends Vue {
+    get isRegulation(): boolean {
+      return this.$store.state.auth.isRegulation;
+    }
+
     // 数据状态
     configList: CrawlConfigItem[] = [];
     tableLoading: boolean = false;

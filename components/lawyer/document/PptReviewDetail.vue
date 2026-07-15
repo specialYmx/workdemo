@@ -6,7 +6,7 @@
         <a-tag
           color="orange"
           :class="['ppt-review-editable-tag', { 'ppt-review-editable-tag--disabled': readOnly }]"
-          @click="showEffectDateModal"
+          @click="!readOnly && showEffectDateModal()"
         >
           新规解读
           <a-icon v-if="!readOnly" type="edit" class="ppt-review-tag-edit-icon" />
@@ -164,10 +164,10 @@
     ];
 
     get canApprove(): boolean {
-      if (this.readOnly) {
-        return false;
-      }
-      return this.document.checkStatus === '待审核' || this.document.checkStatus === '需人工处理';
+      return (
+        !this.readOnly &&
+        (this.document.checkStatus === '待审核' || this.document.checkStatus === '需人工处理')
+      );
     }
 
     get canManagePptUpload(): boolean {
@@ -315,9 +315,6 @@
     }
 
     showEffectDateModal(): void {
-      if (this.readOnly) {
-        return;
-      }
       if (this.document.checkStatus !== '待审核') {
         this.$message.warning('当前文档状态不允许编辑');
         return;

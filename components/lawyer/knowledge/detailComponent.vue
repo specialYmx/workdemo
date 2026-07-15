@@ -3,6 +3,7 @@
     <lawyer-document-viewer
       :document="document"
       :hide-back-button="hideBackButton"
+      :read-only="isRegulation"
       @go-back="goBack"
       @update-document-status="handleUpdateDocumentStatus"
     />
@@ -42,6 +43,10 @@
 
     get hideBackButton(): boolean {
       return this.$route.query.fromPptReview === '1';
+    }
+
+    get isRegulation(): boolean {
+      return this.$store.state.auth.isRegulation;
     }
 
     // 返回上一页

@@ -19,11 +19,19 @@
                     <h1>{{ document.title }}</h1>
                     <a-tag
                       :color="document.isRevoke ? 'red' : 'green'"
-                      :class="['lawyer-editable-status', 'lawyer-inline-status']"
-                      @click="handleStatusTagClick"
+                      :class="[
+                        'lawyer-editable-status',
+                        'lawyer-inline-status',
+                        { 'lawyer-status-disabled': readOnly || document.isRevoke }
+                      ]"
+                      @click="!readOnly && !document.isRevoke && handleStatusTagClick()"
                     >
                       {{ document.timeLiness || '未知' }}
-                      <a-icon type="edit" class="lawyer-status-edit-icon" />
+                      <a-icon
+                        v-if="!readOnly && !document.isRevoke"
+                        type="edit"
+                        class="lawyer-status-edit-icon"
+                      />
                     </a-tag>
                   </div>
                 </div>
@@ -151,6 +159,7 @@
   class DocumentViewer extends Vue {
     @Prop({ required: true }) document!: DocumentViewerData;
     @Prop({ default: false }) hideBackButton!: boolean;
+    @Prop({ default: false }) readOnly!: boolean;
 
     get showDownloadButton(): boolean {
       if (this.document.categoryId === '3') {
